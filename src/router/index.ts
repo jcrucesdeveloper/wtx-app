@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TemplatesView from '../views/TemplatesView.vue'
+import TemplatesView from '../views/templates/TemplatesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,17 +9,17 @@ const router = createRouter({
     {
       path: '/sessions',
       name: 'sessions',
-      component: () => import('../views/SessionsView.vue'),
+      component: () => import('../views/sessions/SessionsView.vue'),
     },
     {
       path: '/friends',
       name: 'friends',
-      component: () => import('../views/FriendsView.vue'),
+      component: () => import('../views/social/FriendsView.vue'),
     },
     {
       path: '/settings',
       name: 'settings',
-      component: () => import('../views/ConfigurationView.vue'),
+      component: () => import('../views/menu/ConfigurationView.vue'),
     },
   ],
 })
