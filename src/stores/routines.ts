@@ -64,6 +64,11 @@ export const useRoutinesStore = defineStore('routines', () => {
     return routines.value.find((r) => r.id === id)
   }
 
+  /** An existing routine with byte-identical text, if one is already stored. */
+  function findByText(rawText: string): StoredRoutine | undefined {
+    return routines.value.find((r) => r.rawText === rawText)
+  }
+
   /** Parse a stored routine's text (or return the parser error). */
   function parsed(id: string): ParseResult | undefined {
     const routine = getById(id)
@@ -93,5 +98,5 @@ export const useRoutinesStore = defineStore('routines', () => {
     routines.value = routines.value.filter((r) => r.id !== id)
   }
 
-  return { routines, list, getById, parsed, add, remove }
+  return { routines, list, getById, findByText, parsed, add, remove }
 })

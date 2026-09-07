@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
+import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { parseTemplateText } from '@/lib/parseRoutine'
 
@@ -15,7 +16,13 @@ const id = computed(() => String(route.params.id))
 const routine = computed(() => routines.getById(id.value))
 const result = computed(() => (routine.value ? parseTemplateText(routine.value.rawText) : null))
 
+const shareName = computed(() => {
+  if (!routine.value) return ''
+  return result.value?.ok ? result.value.template.name : routine.value.filename
+})
+
 const showSource = ref(false)
+const shareOpen = ref(false)
 
 function remove() {
   if (!routine.value) return
@@ -51,8 +58,18 @@ function remove() {
         <pre class="source">{{ routine.rawText }}</pre>
       </div>
 
-      <button type="button" class="danger" @click="remove">Remove routine</button>
+      <div class="footer-actions">
+        <button type="button" class="share" @click="shareOpen = true">Share via QR</button>
+        <button type="button" class="danger" @click="remove">Remove</button>
+      </div>
     </template>
+
+    <ShareRoutineSheet
+      v-if="routine"
+      v-model:open="shareOpen"
+      :raw-text="routine.rawText"
+      :name="shareName"
+    />
   </AppPage>
 </template>
 
@@ -108,14 +125,31 @@ function remove() {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-.danger {
+.footer-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
   margin-top: 8px;
+}
+
+.share {
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.danger {
   border: 1px solid var(--color-border);
   background: transparent;
   color: #e11d48;
   font-size: 14px;
   font-weight: 600;
-  padding: 12px;
+  padding: 12px 16px;
   border-radius: 12px;
   cursor: pointer;
 }
