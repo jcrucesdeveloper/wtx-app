@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRouter } from 'vue-router'
 import AppTabBar from './components/AppTabBar.vue'
 import { useThemeStore } from './stores/theme'
 
 // Initialise the theme so the stored accent color is applied on load.
 useThemeStore()
+
+const router = useRouter()
+
+function onLoad() {
+  // Placeholder: kick off loading a routine.
+  router.push('/templates')
+}
 </script>
 
 <template>
@@ -12,7 +19,7 @@ useThemeStore()
     <main class="app-content">
       <RouterView />
     </main>
-    <AppTabBar />
+    <AppTabBar @load="onLoad" />
   </div>
 </template>
 
