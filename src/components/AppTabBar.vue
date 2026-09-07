@@ -36,7 +36,7 @@ const emit = defineEmits<{
       <span class="tab__label">{{ tab.label }}</span>
     </RouterLink>
 
-    <button type="button" class="fab" @click="emit('load')">
+    <button type="button" class="fab" aria-label="Load a routine" @click="emit('load')">
       <span class="fab__label">WTX</span>
     </button>
 

@@ -7,6 +7,11 @@ const router = createRouter({
     { path: '/', redirect: '/templates' },
     { path: '/templates', name: 'templates', component: TemplatesView },
     {
+      path: '/templates/:id',
+      name: 'template-detail',
+      component: () => import('../views/templates/TemplateDetailView.vue'),
+    },
+    {
       path: '/sessions',
       name: 'sessions',
       component: () => import('../views/sessions/SessionsView.vue'),
