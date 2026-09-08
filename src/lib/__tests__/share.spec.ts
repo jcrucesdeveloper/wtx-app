@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { encodeRoutineParam, decodeRoutineParam, buildImportUrl, ROUTINE_PARAM } from '../share'
+import {
+  encodeRoutineParam,
+  decodeRoutineParam,
+  buildImportUrl,
+  readScannedRoutine,
+  ROUTINE_PARAM,
+} from '../share'
 
 const SAMPLE = `# Push Day
 unit: kg
@@ -24,5 +30,26 @@ describe('routine share encoding', () => {
     const parsed = new URL(url)
     expect(parsed.pathname).toBe('/import')
     expect(decodeRoutineParam(parsed.searchParams.get(ROUTINE_PARAM)!)).toBe(SAMPLE)
+  })
+})
+
+describe('readScannedRoutine', () => {
+  it('reads the routine out of a scanned import URL', () => {
+    const url = buildImportUrl(SAMPLE, 'https://wtx.example/import')
+    expect(readScannedRoutine(url)).toBe(SAMPLE)
+  })
+
+  it('reads a bare ?r= fragment', () => {
+    expect(readScannedRoutine(`?${ROUTINE_PARAM}=${encodeRoutineParam(SAMPLE)}`)).toBe(SAMPLE)
+  })
+
+  it('accepts raw .wtt text encoded straight into the code', () => {
+    expect(readScannedRoutine(`  ${SAMPLE}  `)).toBe(SAMPLE.trim())
+  })
+
+  it('returns null for an unrelated QR code', () => {
+    expect(readScannedRoutine('https://example.com/hello')).toBeNull()
+    expect(readScannedRoutine('just some text')).toBeNull()
+    expect(readScannedRoutine('')).toBeNull()
   })
 })

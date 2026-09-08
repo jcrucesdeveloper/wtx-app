@@ -33,3 +33,40 @@ export function buildImportUrl(text: string, importPath: string): string {
   const sep = importPath.includes('?') ? '&' : '?'
   return `${origin}${importPath}${sep}${ROUTINE_PARAM}=${encodeRoutineParam(text)}`
 }
+
+/**
+ * Pulls the `.wtt` text out of a scanned QR payload.
+ *
+ * Accepts either an import URL carrying a `?${ROUTINE_PARAM}=` param (what
+ * {@link buildImportUrl} produces) or raw `.wtt` text encoded straight into
+ * the code.
+ *
+ * @param scanned - The decoded QR string.
+ * @returns The `.wtt` text, or `null` if nothing routine-shaped was found.
+ */
+export function readScannedRoutine(scanned: string): string | null {
+  const value = scanned.trim()
+  if (!value) return null
+
+  try {
+    const param = new URL(value).searchParams.get(ROUTINE_PARAM)
+    if (param) return decodeRoutineParam(param)
+  } catch {
+    /* not a URL — fall through */
+  }
+
+  // A bare `?r=...` fragment, or the param sitting anywhere in the string.
+  const match = new RegExp(`[?&]${ROUTINE_PARAM}=([A-Za-z0-9_-]+)`).exec(value)
+  if (match) {
+    try {
+      return decodeRoutineParam(match[1]!)
+    } catch {
+      /* corrupt param */
+    }
+  }
+
+  // Raw `.wtt` text encoded directly into the QR.
+  if (value.startsWith('#') || value.includes(' | ')) return value
+
+  return null
+}
