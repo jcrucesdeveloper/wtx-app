@@ -4,7 +4,6 @@ import AppTabBar from './components/AppTabBar.vue'
 import LoadRoutineSheet from './components/load/LoadRoutineSheet.vue'
 import WtxActionSheet from './components/wtx/WtxActionSheet.vue'
 import CreateRoutineSheet from './components/wtx/CreateRoutineSheet.vue'
-import SharePickerSheet from './components/share/SharePickerSheet.vue'
 import { useThemeStore } from './stores/theme'
 import { useUiStore } from './stores/ui'
 
@@ -23,7 +22,6 @@ const ui = useUiStore()
     <WtxActionSheet />
     <LoadRoutineSheet />
     <CreateRoutineSheet />
-    <SharePickerSheet />
   </div>
 </template>
 

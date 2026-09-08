@@ -1,17 +1,8 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
-import {
-  Activity,
-  Download,
-  FilePlus2,
-  LayoutGrid,
-  Share2,
-  SlidersVertical,
-  Users,
-} from '@lucide/vue'
+import { Activity, Download, FilePlus2, LayoutGrid, SlidersVertical, Users } from '@lucide/vue'
 
-export type IconName =
-  'templates' | 'sessions' | 'friends' | 'settings' | 'load' | 'create' | 'share'
+export type IconName = 'templates' | 'sessions' | 'friends' | 'settings' | 'load' | 'create'
 
 const ICONS: Record<IconName, Component> = {
   templates: LayoutGrid,
@@ -20,7 +11,6 @@ const ICONS: Record<IconName, Component> = {
   settings: SlidersVertical,
   load: Download,
   create: FilePlus2,
-  share: Share2,
 }
 
 const props = defineProps<{

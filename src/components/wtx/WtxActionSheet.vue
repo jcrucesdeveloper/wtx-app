@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
-import { useRoutinesStore } from '@/stores/routines'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import AppIcon, { type IconName } from '@/components/AppIcon.vue'
 
 const ui = useUiStore()
 const { menuOpen } = storeToRefs(ui)
-const routines = useRoutinesStore()
 
 interface Action {
-  key: 'load' | 'create' | 'sharePicker'
+  key: 'load' | 'create'
   icon: IconName
   title: string
   hint: string
@@ -29,29 +27,14 @@ const actions: Action[] = [
     title: 'Create a routine',
     hint: 'Build a new template from scratch',
   },
-  {
-    key: 'sharePicker',
-    icon: 'share',
-    title: 'Share a routine',
-    hint: 'Pick one from your library to share',
-  },
 ]
-
-function isDisabled(action: Action): boolean {
-  return action.key === 'sharePicker' && !routines.list.length
-}
 </script>
 
 <template>
   <BottomSheet :open="menuOpen" title="WTX" @close="ui.close()">
     <ul class="actions">
       <li v-for="action in actions" :key="action.key">
-        <button
-          type="button"
-          class="action"
-          :disabled="isDisabled(action)"
-          @click="ui.open(action.key)"
-        >
+        <button type="button" class="action" @click="ui.open(action.key)">
           <span class="action__icon">
             <AppIcon :name="action.icon" :size="20" />
           </span>
@@ -88,11 +71,6 @@ function isDisabled(action: Action): boolean {
   color: inherit;
   text-align: left;
   cursor: pointer;
-}
-
-.action:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .action__icon {
