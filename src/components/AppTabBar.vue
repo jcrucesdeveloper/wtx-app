@@ -19,7 +19,7 @@ const leftTabs = tabs.slice(0, 2)
 const rightTabs = tabs.slice(2)
 
 const emit = defineEmits<{
-  load: []
+  menu: []
 }>()
 </script>
 
@@ -36,7 +36,7 @@ const emit = defineEmits<{
       <span class="tab__label">{{ tab.label }}</span>
     </RouterLink>
 
-    <button type="button" class="fab" aria-label="Load a routine" @click="emit('load')">
+    <button type="button" class="fab" aria-label="Open WTX actions" @click="emit('menu')">
       <span class="fab__label">WTX</span>
     </button>
 
