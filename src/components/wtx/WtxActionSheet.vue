@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
 import { useRoutinesStore } from '@/stores/routines'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
+import AppIcon, { type IconName } from '@/components/AppIcon.vue'
 
 const ui = useUiStore()
 const { menuOpen } = storeToRefs(ui)
@@ -10,32 +11,35 @@ const routines = useRoutinesStore()
 
 interface Action {
   key: 'load' | 'create' | 'sharePicker'
+  icon: IconName
   title: string
   hint: string
-  icon: string
-  disabled?: boolean
 }
 
 const actions: Action[] = [
   {
     key: 'load',
+    icon: 'load',
     title: 'Load a routine',
     hint: 'Import a .wtt file or paste its text',
-    icon: '📥',
   },
   {
     key: 'create',
+    icon: 'create',
     title: 'Create a routine',
     hint: 'Build a new template from scratch',
-    icon: '✏️',
   },
   {
     key: 'sharePicker',
+    icon: 'share',
     title: 'Share a routine',
     hint: 'Pick one from your library to share',
-    icon: '🔗',
   },
 ]
+
+function isDisabled(action: Action): boolean {
+  return action.key === 'sharePicker' && !routines.list.length
+}
 </script>
 
 <template>
@@ -45,10 +49,12 @@ const actions: Action[] = [
         <button
           type="button"
           class="action"
-          :disabled="action.key === 'sharePicker' && !routines.list.length"
+          :disabled="isDisabled(action)"
           @click="ui.open(action.key)"
         >
-          <span class="action__icon" aria-hidden="true">{{ action.icon }}</span>
+          <span class="action__icon">
+            <AppIcon :name="action.icon" :size="20" />
+          </span>
           <span class="action__body">
             <span class="action__title">{{ action.title }}</span>
             <span class="action__hint">{{ action.hint }}</span>
@@ -96,7 +102,7 @@ const actions: Action[] = [
   height: 40px;
   border-radius: 10px;
   background: var(--color-background-mute);
-  font-size: 18px;
+  color: var(--color-accent);
 }
 
 .action__body {
