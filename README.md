@@ -131,5 +131,10 @@ pnpm build          # -> dist/
 
 ## License
 
-No project license yet. The vendored parser in `src/lib/wtx/` is MIT, from
-upstream.
+**All rights reserved.** This project is source-available for reference only —
+you may not copy, reuse, modify, or redistribute the code without permission.
+See [`LICENSE`](./LICENSE).
+
+The one exception is the vendored parser in `src/lib/wtx/`, which is MIT-licensed
+by its upstream author ([`jcrucesdeveloper/wtx`](https://github.com/jcrucesdeveloper/wtx))
+and carries its own terms.
