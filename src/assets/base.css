@@ -61,8 +61,13 @@
   font-weight: normal;
 }
 
+html {
+  height: 100%;
+}
+
 body {
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   color: var(--color-text);
   background: var(--color-background);
   transition:
