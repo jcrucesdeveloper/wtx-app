@@ -28,14 +28,14 @@ function remove() {
   if (!routine.value) return
   if (!confirm('Remove this routine from your library?')) return
   routines.remove(routine.value.id)
-  router.replace('/templates')
+  router.replace('/')
 }
 </script>
 
 <template>
   <AppPage :title="result?.ok ? result.template.name : 'Routine'">
     <template #actions>
-      <RouterLink to="/templates" class="back">Back</RouterLink>
+      <RouterLink to="/" class="back">Back</RouterLink>
     </template>
 
     <p v-if="!routine" class="msg">This routine is no longer in your library.</p>

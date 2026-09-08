@@ -1,22 +1,30 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import AppIcon, { type IconName } from './AppIcon.vue'
 
 interface Tab {
   to: string
   label: string
   icon: IconName
+  /** Path prefixes that count as "on this tab". */
+  match: string[]
 }
 
 const tabs: Tab[] = [
-  { to: '/templates', label: 'Templates', icon: 'templates' },
-  { to: '/sessions', label: 'Sessions', icon: 'sessions' },
-  { to: '/friends', label: 'Friends', icon: 'friends' },
-  { to: '/settings', label: 'Config', icon: 'settings' },
+  { to: '/', label: 'Templates', icon: 'templates', match: ['/', '/templates'] },
+  { to: '/sessions', label: 'Sessions', icon: 'sessions', match: ['/sessions'] },
+  { to: '/friends', label: 'Friends', icon: 'friends', match: ['/friends'] },
+  { to: '/settings', label: 'Config', icon: 'settings', match: ['/settings'] },
 ]
 
 const leftTabs = tabs.slice(0, 2)
 const rightTabs = tabs.slice(2)
+
+const route = useRoute()
+
+function isActive(tab: Tab): boolean {
+  return tab.match.some((path) => route.path === path || route.path.startsWith(`${path}/`))
+}
 
 const emit = defineEmits<{
   menu: []
@@ -30,7 +38,7 @@ const emit = defineEmits<{
       :key="tab.to"
       :to="tab.to"
       class="tab"
-      active-class="tab--active"
+      :class="{ 'tab--active': isActive(tab) }"
     >
       <AppIcon :name="tab.icon" :size="22" class="tab__icon" />
       <span class="tab__label">{{ tab.label }}</span>
@@ -45,7 +53,7 @@ const emit = defineEmits<{
       :key="tab.to"
       :to="tab.to"
       class="tab"
-      active-class="tab--active"
+      :class="{ 'tab--active': isActive(tab) }"
     >
       <AppIcon :name="tab.icon" :size="22" class="tab__icon" />
       <span class="tab__label">{{ tab.label }}</span>

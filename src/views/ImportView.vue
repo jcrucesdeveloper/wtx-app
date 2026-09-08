@@ -59,7 +59,7 @@ function add() {
 <template>
   <AppPage title="Import routine">
     <template #actions>
-      <RouterLink to="/templates" class="cancel">Cancel</RouterLink>
+      <RouterLink to="/" class="cancel">Cancel</RouterLink>
     </template>
 
     <p v-if="decoded.state === 'empty'" class="msg">

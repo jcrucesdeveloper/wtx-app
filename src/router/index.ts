@@ -4,8 +4,7 @@ import TemplatesView from '../views/templates/TemplatesView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', redirect: '/templates' },
-    { path: '/templates', name: 'templates', component: TemplatesView },
+    { path: '/', name: 'home', component: TemplatesView },
     {
       path: '/templates/:id',
       name: 'template-detail',
