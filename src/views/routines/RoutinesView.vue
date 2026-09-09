@@ -1,25 +1,48 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { RouterLink } from 'vue-router'
+import { GripVertical } from '@lucide/vue'
+import { useDragAndDrop } from '@formkit/drag-and-drop/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { useUiStore } from '@/stores/ui'
-import { parseTemplateText } from '@/lib/parseRoutine'
+import { parseRoutineText } from '@/lib/parseRoutine'
+import type { StoredRoutine } from '@/stores/routines'
 
 const routines = useRoutinesStore()
 const ui = useUiStore()
 
+const [listEl, ordered] = useDragAndDrop<StoredRoutine>([...routines.list], {
+  dragHandle: '.grip',
+  draggingClass: 'card-row--dragging',
+})
+
+// Pull in adds/removes that happen elsewhere (load sheet, detail screen).
+watch(
+  () =>
+    routines.list
+      .map((r) => r.id)
+      .slice()
+      .sort()
+      .join(','),
+  () => {
+    ordered.value = [...routines.list]
+  },
+)
+
+// Persist a drag as soon as it lands.
+watch(ordered, (next) => {
+  routines.reorder(next.map((r) => r.id))
+})
+
 const items = computed(() =>
-  routines.list.map((routine) => ({
-    routine,
-    result: parseTemplateText(routine.rawText),
-  })),
+  ordered.value.map((routine) => ({ routine, result: parseRoutineText(routine.rawText) })),
 )
 </script>
 
 <template>
-  <AppPage title="Templates">
+  <AppPage title="Routines">
     <template #actions>
       <button v-if="routines.list.length" type="button" class="add" @click="ui.openLoadSheet()">
         + Load
@@ -28,16 +51,19 @@ const items = computed(() =>
 
     <div v-if="!routines.list.length" class="empty">
       <p class="empty__title">No routines yet</p>
-      <p class="empty__hint">Load a <code>.wtt</code> template to get started.</p>
+      <p class="empty__hint">Load a <code>.wtt</code> routine to get started.</p>
       <button type="button" class="empty__btn" @click="ui.openLoadSheet()">Load a routine</button>
     </div>
 
-    <ul v-else class="list">
-      <li v-for="{ routine, result } in items" :key="routine.id">
-        <RouterLink :to="`/templates/${routine.id}`" class="card">
+    <ul v-else ref="listEl" class="list">
+      <li v-for="{ routine, result } in items" :key="routine.id" class="card-row">
+        <span class="grip" aria-hidden="true">
+          <GripVertical :size="18" :stroke-width="2" />
+        </span>
+        <RouterLink :to="`/routines/${routine.id}`" class="card">
           <template v-if="result.ok">
-            <span class="card__name">{{ result.template.name }}</span>
-            <RoutineSummary :template="result.template" />
+            <span class="card__name">{{ result.routine.name }}</span>
+            <RoutineSummary :routine="result.routine" />
           </template>
           <template v-else>
             <span class="card__name">{{ routine.filename }}</span>
@@ -71,7 +97,37 @@ const items = computed(() =>
   padding: 0;
 }
 
+.card-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.card-row--dragging {
+  opacity: 0.4;
+}
+
+.grip {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  opacity: 0.6;
+  cursor: grab;
+  touch-action: none;
+}
+
+.grip:active {
+  cursor: grabbing;
+  opacity: 1;
+}
+
 .card {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;

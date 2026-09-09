@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@formkit/drag-and-drop':
+        specifier: ^0.6.1
+        version: 0.6.1
       '@lucide/vue':
         specifier: ^1.41.0
         version: 1.41.0(vue@3.5.42(typescript@6.0.3))
@@ -337,6 +340,14 @@ packages:
       '@noble/hashes': ^1.8.0 || ^2.0.0
     peerDependenciesMeta:
       '@noble/hashes':
+        optional: true
+
+  '@formkit/drag-and-drop@0.6.1':
+    resolution: {integrity: sha512-DNKoPqdg9RW7k0zZlF2FH636Cc16V3tuGDVKWNHpSXr3amF4nmQZfieoLNVRxqWxXVFJq2DY+vf8SCD10JyjAA==}
+    peerDependencies:
+      '@marko/runtime-tags': '>=6.0.166'
+    peerDependenciesMeta:
+      '@marko/runtime-tags':
         optional: true
 
   '@humanfs/core@0.19.2':
@@ -2355,6 +2366,8 @@ snapshots:
       levn: 0.4.1
 
   '@exodus/bytes@1.15.1': {}
+
+  '@formkit/drag-and-drop@0.6.1': {}
 
   '@humanfs/core@0.19.2':
     dependencies:

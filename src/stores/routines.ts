@@ -1,8 +1,8 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { parseTemplateText, type ParseResult } from '@/lib/parseRoutine'
+import { parseRoutineText, type ParseResult } from '@/lib/parseRoutine'
 
-/** A `.wtt` template as stored in the library. Raw text is the source of truth. */
+/** A `.wtt` routine as stored in the library. Raw text is the source of truth. */
 export interface StoredRoutine {
   id: string
   /** Original file name, or a generated one for pasted text. */
@@ -57,8 +57,8 @@ export const useRoutinesStore = defineStore('routines', () => {
     { deep: true },
   )
 
-  /** Newest first. */
-  const list = computed(() => [...routines.value].sort((a, b) => b.addedAt - a.addedAt))
+  /** In the user's chosen order (drag to reorder); newest additions land last. */
+  const list = computed(() => routines.value)
 
   function getById(id: string): StoredRoutine | undefined {
     return routines.value.find((r) => r.id === id)
@@ -72,7 +72,7 @@ export const useRoutinesStore = defineStore('routines', () => {
   /** Parse a stored routine's text (or return the parser error). */
   function parsed(id: string): ParseResult | undefined {
     const routine = getById(id)
-    return routine ? parseTemplateText(routine.rawText) : undefined
+    return routine ? parseRoutineText(routine.rawText) : undefined
   }
 
   /**
@@ -81,12 +81,12 @@ export const useRoutinesStore = defineStore('routines', () => {
    * @throws The parser's error message if `rawText` is not a valid `.wtt`.
    */
   function add(rawText: string, filename: string): StoredRoutine {
-    const result = parseTemplateText(rawText)
+    const result = parseRoutineText(rawText)
     if (!result.ok) throw new Error(result.error)
 
     const routine: StoredRoutine = {
       id: newId(),
-      filename: filename.trim() || `${result.template.name || 'routine'}.wtt`,
+      filename: filename.trim() || `${result.routine.name || 'routine'}.wtt`,
       rawText,
       addedAt: Date.now(),
     }
@@ -100,7 +100,7 @@ export const useRoutinesStore = defineStore('routines', () => {
    * @throws The parser's error message, or if no routine has that id.
    */
   function update(id: string, rawText: string): StoredRoutine {
-    const result = parseTemplateText(rawText)
+    const result = parseRoutineText(rawText)
     if (!result.ok) throw new Error(result.error)
 
     const routine = routines.value.find((r) => r.id === id)
@@ -114,5 +114,24 @@ export const useRoutinesStore = defineStore('routines', () => {
     routines.value = routines.value.filter((r) => r.id !== id)
   }
 
-  return { routines, list, getById, findByText, parsed, add, update, remove }
+  /**
+   * Reorders the library to match `orderedIds`. Ids not present are dropped from
+   * the ordering hint but kept (appended in their existing order), and unknown
+   * ids are ignored, so a stale list from the UI can't lose routines.
+   */
+  function reorder(orderedIds: string[]) {
+    const byId = new Map(routines.value.map((r) => [r.id, r]))
+    const next: StoredRoutine[] = []
+    for (const id of orderedIds) {
+      const routine = byId.get(id)
+      if (routine) {
+        next.push(routine)
+        byId.delete(id)
+      }
+    }
+    for (const routine of byId.values()) next.push(routine)
+    routines.value = next
+  }
+
+  return { routines, list, getById, findByText, parsed, add, update, remove, reorder }
 })

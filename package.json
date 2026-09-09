@@ -17,6 +17,7 @@
     "sync:wtx": "node scripts/sync-wtx.mjs"
   },
   "dependencies": {
+    "@formkit/drag-and-drop": "^0.6.1",
     "@lucide/vue": "^1.41.0",
     "pinia": "^4.0.2",
     "qr-scanner": "^1.4.2",
