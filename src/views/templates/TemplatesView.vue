@@ -51,13 +51,15 @@ const items = computed(() =>
 
 <style scoped>
 .add {
-  border: none;
+  border: 1px solid var(--color-border-hover);
   background: var(--color-background-mute);
   color: var(--color-text);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
@@ -65,7 +67,7 @@ const items = computed(() =>
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding: 0;
 }
 
@@ -73,8 +75,8 @@ const items = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px;
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
   border-left: 3px solid var(--color-accent);
@@ -115,10 +117,12 @@ const items = computed(() =>
 .empty__btn {
   margin-top: 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 12px 20px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   color: #fff;
   background: var(--color-accent);
   cursor: pointer;

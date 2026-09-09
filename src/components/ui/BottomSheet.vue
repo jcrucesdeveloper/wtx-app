@@ -58,7 +58,8 @@ const emit = defineEmits<{
   gap: 14px;
   padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
   background: var(--color-background);
-  border-radius: 20px 20px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-top: 1px solid var(--color-border-hover);
 }
 
 .sheet__grabber {

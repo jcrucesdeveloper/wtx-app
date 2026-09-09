@@ -113,8 +113,9 @@ function remove() {
   font-size: 12px;
   line-height: 1.5;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
   overflow-x: auto;
   white-space: pre;
 }
@@ -136,21 +137,25 @@ function remove() {
   border: none;
   background: var(--color-accent);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
 .danger {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-hover);
   background: transparent;
   color: #e11d48;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 </style>

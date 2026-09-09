@@ -63,7 +63,7 @@ function select(value: string) {
   position: relative;
   aspect-ratio: 1;
   border: none;
-  border-radius: 50%;
+  border-radius: var(--radius-md);
   background: var(--swatch);
   cursor: pointer;
   padding: 0;

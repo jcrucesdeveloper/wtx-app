@@ -32,11 +32,13 @@ const chips = computed(() => {
 }
 
 .chip {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: var(--radius-xs);
   background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
   color: var(--color-text);
+  font-variant-numeric: tabular-nums;
 }
 </style>

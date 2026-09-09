@@ -28,7 +28,7 @@ const sessions = [
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .row {
@@ -36,15 +36,17 @@ const sessions = [
   grid-template-columns: 48px 1fr auto;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
+  padding: 13px 14px;
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
 }
 
 .row__date {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   opacity: 0.6;
 }
 
@@ -54,12 +56,19 @@ const sessions = [
 }
 
 .row__status {
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  padding: 3px 6px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-xs);
   opacity: 0.7;
 }
 
 .row__status--done {
   color: var(--color-accent);
+  border-color: var(--color-accent);
   opacity: 1;
 }
 </style>

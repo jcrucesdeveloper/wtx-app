@@ -66,7 +66,8 @@ const actions: Action[] = [
   width: 100%;
   padding: 14px;
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   color: inherit;
   text-align: left;
@@ -78,7 +79,7 @@ const actions: Action[] = [
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--color-background-mute);
   color: var(--color-accent);
 }

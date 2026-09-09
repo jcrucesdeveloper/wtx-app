@@ -71,7 +71,7 @@ function onSubmit() {
   flex-direction: column;
   gap: 10px;
   padding: 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
 }
@@ -95,10 +95,12 @@ function onSubmit() {
 
 .primary {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 14px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   color: #fff;
   background: var(--color-accent);
   cursor: pointer;

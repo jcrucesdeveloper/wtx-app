@@ -105,7 +105,7 @@ watch(
   aspect-ratio: 1;
   padding: 16px;
   background: #fff;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
 }
 
 .qr {
@@ -144,7 +144,7 @@ watch(
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-background-soft);
   color: var(--color-text);
@@ -158,10 +158,12 @@ watch(
 
 .actions button {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 13px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 

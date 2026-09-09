@@ -30,16 +30,16 @@ function initials(name: string) {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .row {
   display: grid;
-  grid-template-columns: 40px 1fr auto;
+  grid-template-columns: 36px 1fr auto;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-radius: 14px;
+  padding: 11px 14px;
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
 }
@@ -47,9 +47,9 @@ function initials(name: string) {
 .avatar {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
   background: var(--color-accent);
   color: #fff;
   font-size: 13px;
@@ -64,5 +64,6 @@ function initials(name: string) {
 .row__streak {
   font-size: 12px;
   opacity: 0.7;
+  font-variant-numeric: tabular-nums;
 }
 </style>

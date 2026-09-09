@@ -40,26 +40,27 @@ function prescription(exercise: WorkoutExercise): string {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   padding: 0;
 }
 
 .exercise {
   display: grid;
-  grid-template-columns: 24px 1fr;
+  grid-template-columns: 22px 1fr;
   gap: 12px;
   align-items: baseline;
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 11px 12px;
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
 }
 
 .exercise__index {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  opacity: 0.4;
+  opacity: 0.45;
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .exercise__body {

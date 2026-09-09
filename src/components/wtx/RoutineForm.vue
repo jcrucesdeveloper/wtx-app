@@ -214,8 +214,10 @@ function numberOrUndefined(value: string): number | undefined {
 }
 
 .field__label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   opacity: 0.7;
 }
 
@@ -225,7 +227,7 @@ textarea {
   font-family: inherit;
   font-size: 14px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-background-soft);
   color: var(--color-text);
@@ -245,13 +247,15 @@ textarea {
 }
 
 .add {
-  border: none;
+  border: 1px solid var(--color-border-hover);
   background: var(--color-background-mute);
   color: var(--color-text);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
@@ -261,7 +265,8 @@ textarea {
   gap: 10px;
   padding: 14px;
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
 }
 
@@ -287,8 +292,8 @@ textarea {
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
   background: var(--color-background);
   color: var(--color-text);
   font-size: 12px;
@@ -303,19 +308,22 @@ textarea {
 .segmented {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 10px;
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--radius-md);
   background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
 }
 
 .segmented button {
   border: none;
   background: transparent;
   padding: 7px;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   color: var(--color-text);
   opacity: 0.6;
   cursor: pointer;
@@ -324,6 +332,6 @@ textarea {
 .segmented button.active {
   background: var(--color-background);
   opacity: 1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 </style>

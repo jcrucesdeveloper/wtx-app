@@ -133,8 +133,9 @@ function add() {
   color: var(--color-accent);
   text-decoration: none;
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
 }
 
 .source {
@@ -142,8 +143,9 @@ function add() {
   font-size: 12px;
   line-height: 1.5;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
   overflow-x: auto;
   white-space: pre;
 }
@@ -157,10 +159,12 @@ function add() {
 
 .primary {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 14px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   color: #fff;
   background: var(--color-accent);
   cursor: pointer;

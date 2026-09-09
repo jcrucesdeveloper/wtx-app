@@ -21,14 +21,16 @@ const { accent } = storeToRefs(theme)
 <style scoped>
 .group {
   padding: 16px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
 }
 
 .group__title {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   color: var(--color-heading);
 }
 

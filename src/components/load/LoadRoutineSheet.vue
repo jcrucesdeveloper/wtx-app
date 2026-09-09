@@ -215,19 +215,22 @@ onBeforeUnmount(stopScanner)
 .segmented {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  padding: 4px;
-  border-radius: 12px;
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--radius-md);
   background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
 }
 
 .segmented button {
   border: none;
   background: transparent;
   padding: 8px;
-  border-radius: 9px;
-  font-size: 13px;
-  font-weight: 600;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   color: var(--color-text);
   opacity: 0.6;
   cursor: pointer;
@@ -236,7 +239,7 @@ onBeforeUnmount(stopScanner)
 .segmented button.active {
   background: var(--color-background);
   opacity: 1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .field {
@@ -251,7 +254,7 @@ onBeforeUnmount(stopScanner)
   justify-content: center;
   padding: 22px 12px;
   border: 1px dashed var(--color-border-hover);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: 13px;
   opacity: 0.85;
   cursor: pointer;
@@ -268,7 +271,7 @@ onBeforeUnmount(stopScanner)
   aspect-ratio: 1;
   width: 100%;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: #000;
 }
 
@@ -295,7 +298,7 @@ onBeforeUnmount(stopScanner)
   justify-content: center;
   padding: 12px;
   border: 1px dashed var(--color-border-hover);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: 13px;
   opacity: 0.85;
   cursor: pointer;
@@ -311,7 +314,7 @@ textarea,
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-background-soft);
   color: var(--color-text);
@@ -328,7 +331,7 @@ textarea,
   flex-direction: column;
   gap: 10px;
   padding: 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
 }
@@ -358,10 +361,12 @@ textarea,
 
 .primary {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 14px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
   color: #fff;
   background: var(--color-accent);
   cursor: pointer;
