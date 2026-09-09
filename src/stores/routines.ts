@@ -94,9 +94,25 @@ export const useRoutinesStore = defineStore('routines', () => {
     return routine
   }
 
+  /**
+   * Replaces a routine's text in place after checking it parses.
+   *
+   * @throws The parser's error message, or if no routine has that id.
+   */
+  function update(id: string, rawText: string): StoredRoutine {
+    const result = parseTemplateText(rawText)
+    if (!result.ok) throw new Error(result.error)
+
+    const routine = routines.value.find((r) => r.id === id)
+    if (!routine) throw new Error('That routine is no longer in your library.')
+
+    routine.rawText = rawText
+    return routine
+  }
+
   function remove(id: string) {
     routines.value = routines.value.filter((r) => r.id !== id)
   }
 
-  return { routines, list, getById, findByText, parsed, add, remove }
+  return { routines, list, getById, findByText, parsed, add, update, remove }
 })

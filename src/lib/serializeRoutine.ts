@@ -1,4 +1,5 @@
 import { formatCompactDuration } from '@/lib/format'
+import type { WorkoutTemplate } from '@/lib/wtx'
 
 /** One exercise row in a {@link RoutineDraft}, as edited in the create form. */
 export interface RoutineDraftExercise {
@@ -35,6 +36,31 @@ export function emptyDraft(): RoutineDraft {
 /** A blank rep-based exercise row. */
 export function emptyExercise(): RoutineDraftExercise {
   return { name: '', kind: 'reps', sets: 3, reps: 10, durationSeconds: 60 }
+}
+
+/**
+ * Builds an editable {@link RoutineDraft} from a parsed template, so an existing
+ * routine can be reopened in the "Create a routine" form for editing.
+ */
+export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
+  const exercises = template.exercises.map((exercise) => ({
+    name: exercise.name,
+    kind: exercise.kind,
+    sets: exercise.kind === 'reps' ? exercise.sets : 3,
+    reps: exercise.targetReps ?? 10,
+    durationSeconds: exercise.durationSeconds ?? 60,
+    weight: exercise.targetWeight,
+    restSeconds: exercise.restSeconds,
+    muscleGroup: exercise.muscleGroup ?? '',
+  }))
+
+  return {
+    name: template.name,
+    unit: template.unit ?? 'kg',
+    notes: template.notes ?? '',
+    tags: [...template.tags],
+    exercises: exercises.length ? exercises : [emptyExercise()],
+  }
 }
 
 function positiveInt(value: number, fallback: number): number {

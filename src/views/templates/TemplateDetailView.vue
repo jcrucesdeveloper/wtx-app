@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Share2 } from '@lucide/vue'
+import { ArrowLeft, Share2, SquarePen } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
 import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
+import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { parseTemplateText } from '@/lib/parseRoutine'
 
@@ -24,17 +25,11 @@ const shareName = computed(() => {
 
 const showSource = ref(false)
 const shareOpen = ref(false)
+const editOpen = ref(false)
 
 function goBack() {
   if (window.history.length > 1) router.back()
   else router.replace('/')
-}
-
-function remove() {
-  if (!routine.value) return
-  if (!confirm('Remove this routine from your library?')) return
-  routines.remove(routine.value.id)
-  router.replace('/')
 }
 </script>
 
@@ -45,15 +40,22 @@ function remove() {
         <ArrowLeft :size="20" :stroke-width="2.25" />
       </button>
     </template>
-    <template #actions>
+    <template v-if="routine && result" #actions>
       <button
-        v-if="routine && result"
+        type="button"
+        class="icon-btn"
+        aria-label="Edit routine"
+        @click="editOpen = true"
+      >
+        <SquarePen :size="18" :stroke-width="2.25" />
+      </button>
+      <button
         type="button"
         class="icon-btn"
         aria-label="Share routine"
         @click="shareOpen = true"
       >
-        <Share2 :size="19" :stroke-width="2.25" />
+        <Share2 :size="18" :stroke-width="2.25" />
       </button>
     </template>
 
@@ -76,18 +78,12 @@ function remove() {
         <p class="error">{{ result.error }}</p>
         <pre class="source">{{ routine.rawText }}</pre>
       </div>
-
-      <div class="footer-actions">
-        <button type="button" class="danger" @click="remove">Remove from library</button>
-      </div>
     </template>
 
-    <ShareRoutineSheet
-      v-if="routine"
-      v-model:open="shareOpen"
-      :raw-text="routine.rawText"
-      :name="shareName"
-    />
+    <template v-if="routine">
+      <ShareRoutineSheet v-model:open="shareOpen" :raw-text="routine.rawText" :name="shareName" />
+      <EditRoutineSheet v-model:open="editOpen" :routine-id="routine.id" />
+    </template>
   </AppPage>
 </template>
 
@@ -157,24 +153,5 @@ function remove() {
   font-size: 13px;
   color: #e11d48;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.footer-actions {
-  display: flex;
-  margin-top: 8px;
-}
-
-.danger {
-  width: 100%;
-  border: 1px solid var(--color-border-hover);
-  background: transparent;
-  color: #e11d48;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
 }
 </style>
