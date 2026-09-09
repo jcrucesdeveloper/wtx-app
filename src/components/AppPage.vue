@@ -7,6 +7,7 @@ defineProps<{
 <template>
   <section class="page">
     <header class="page__header">
+      <slot name="leading" />
       <h1 class="page__title">{{ title }}</h1>
       <slot name="actions" />
     </header>
@@ -26,15 +27,19 @@ defineProps<{
 .page__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   padding: 20px 20px 12px;
 }
 
 .page__title {
+  flex: 1;
+  min-width: 0;
   font-size: 22px;
   font-weight: 700;
   color: var(--color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .page__body {

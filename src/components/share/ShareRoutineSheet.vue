@@ -38,6 +38,20 @@ const qr = computed<{ svg: string } | { error: string }>(() => {
 
 const copied = ref<'link' | 'text' | null>(null)
 
+const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+
+async function nativeShare() {
+  try {
+    await navigator.share({
+      title: props.name || 'wtx routine',
+      text: `${props.name} — open in wtx`,
+      url: url.value,
+    })
+  } catch {
+    /* user dismissed the share sheet, or it's unavailable */
+  }
+}
+
 async function copy(kind: 'link' | 'text') {
   const value = kind === 'link' ? url.value : props.rawText
   try {
@@ -72,7 +86,11 @@ watch(
     </div>
 
     <p class="name">{{ name }}</p>
-    <p class="hint">Scan to open this routine in wtx and add it.</p>
+    <p class="hint">Scan the QR to open this routine in wtx, or share the link another way.</p>
+
+    <button v-if="canNativeShare" type="button" class="share-native" @click="nativeShare">
+      Share to another app…
+    </button>
 
     <label class="link-row">
       <span class="sr-only">Import link</span>
@@ -137,6 +155,20 @@ watch(
   font-size: 12px;
   opacity: 0.65;
   margin-top: -6px;
+}
+
+.share-native {
+  width: 100%;
+  border: 1px solid var(--color-border-hover);
+  background: var(--color-background-soft);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
 }
 
 .link-row input {

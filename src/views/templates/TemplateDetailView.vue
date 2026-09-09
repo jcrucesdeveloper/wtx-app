@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft, Share2 } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
@@ -24,6 +25,11 @@ const shareName = computed(() => {
 const showSource = ref(false)
 const shareOpen = ref(false)
 
+function goBack() {
+  if (window.history.length > 1) router.back()
+  else router.replace('/')
+}
+
 function remove() {
   if (!routine.value) return
   if (!confirm('Remove this routine from your library?')) return
@@ -34,8 +40,21 @@ function remove() {
 
 <template>
   <AppPage :title="result?.ok ? result.template.name : 'Routine'">
+    <template #leading>
+      <button type="button" class="icon-btn" aria-label="Back" @click="goBack">
+        <ArrowLeft :size="20" :stroke-width="2.25" />
+      </button>
+    </template>
     <template #actions>
-      <RouterLink to="/" class="back">Back</RouterLink>
+      <button
+        v-if="routine && result"
+        type="button"
+        class="icon-btn"
+        aria-label="Share routine"
+        @click="shareOpen = true"
+      >
+        <Share2 :size="19" :stroke-width="2.25" />
+      </button>
     </template>
 
     <p v-if="!routine" class="msg">This routine is no longer in your library.</p>
@@ -59,8 +78,7 @@ function remove() {
       </div>
 
       <div class="footer-actions">
-        <button type="button" class="share" @click="shareOpen = true">Share via QR</button>
-        <button type="button" class="danger" @click="remove">Remove</button>
+        <button type="button" class="danger" @click="remove">Remove from library</button>
       </div>
     </template>
 
@@ -74,11 +92,26 @@ function remove() {
 </template>
 
 <style scoped>
-.back {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-accent);
-  text-decoration: none;
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-md);
+  background: var(--color-background-soft);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.icon-btn:active {
+  background: var(--color-background-mute);
+}
+
+/* Pull the back button to the visual edge so the tap target still feels inset. */
+.icon-btn:first-child {
+  margin-left: -4px;
 }
 
 .stack {
@@ -127,26 +160,12 @@ function remove() {
 }
 
 .footer-actions {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
+  display: flex;
   margin-top: 8px;
 }
 
-.share {
-  border: none;
-  background: var(--color-accent);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  padding: 12px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-}
-
 .danger {
+  width: 100%;
   border: 1px solid var(--color-border-hover);
   background: transparent;
   color: #e11d48;
