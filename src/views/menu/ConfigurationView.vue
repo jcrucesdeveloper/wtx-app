@@ -2,23 +2,38 @@
 import { storeToRefs } from 'pinia'
 import AppPage from '@/components/AppPage.vue'
 import ColorPicker from '@/components/ColorPicker.vue'
+import ThemeModePicker from '@/components/ThemeModePicker.vue'
 import { useThemeStore } from '@/stores/theme'
 
 const theme = useThemeStore()
-const { accent } = storeToRefs(theme)
+const { accent, mode } = storeToRefs(theme)
 </script>
 
 <template>
   <AppPage title="Configuration">
-    <div class="group">
-      <h2 class="group__title">Accent color</h2>
-      <p class="group__hint">Pick the color used across the app.</p>
-      <ColorPicker v-model="accent" />
+    <div class="stack">
+      <div class="group">
+        <h2 class="group__title">Theme</h2>
+        <p class="group__hint">Native follows your device's setting.</p>
+        <ThemeModePicker v-model="mode" />
+      </div>
+
+      <div class="group">
+        <h2 class="group__title">Accent color</h2>
+        <p class="group__hint">Pick the color used across the app.</p>
+        <ColorPicker v-model="accent" />
+      </div>
     </div>
   </AppPage>
 </template>
 
 <style scoped>
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .group {
   padding: 16px;
   border-radius: var(--radius-md);
