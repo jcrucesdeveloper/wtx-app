@@ -7,6 +7,8 @@ import { formatCompactDuration } from '@/lib/format'
 
 const draft = defineModel<RoutineDraft>({ required: true })
 
+const unitOptions = ['kg', 'lb'] as const
+
 const tagsText = computed({
   get: () => draft.value.tags.join(', '),
   set: (value: string) => {
@@ -105,10 +107,20 @@ function numberOrUndefined(value: string): number | undefined {
     </label>
 
     <div class="row">
-      <label class="field">
+      <div class="field">
         <span class="field__label">Unit</span>
-        <input v-model="draft.unit" type="text" placeholder="kg" maxlength="8" />
-      </label>
+        <div class="segmented">
+          <button
+            v-for="option in unitOptions"
+            :key="option"
+            type="button"
+            :class="{ active: draft.unit === option }"
+            @click="draft.unit = option"
+          >
+            {{ option }}
+          </button>
+        </div>
+      </div>
       <label class="field">
         <span class="field__label">Tags</span>
         <input v-model="tagsText" type="text" placeholder="push, upper" />
