@@ -6,8 +6,6 @@ import { parseTemplateText } from '@/lib/parseRoutine'
 import { draftFromTemplate, emptyDraft, serializeTemplate } from '@/lib/serializeRoutine'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import RoutineForm from '@/components/wtx/RoutineForm.vue'
-import RoutineSummary from '@/components/routine/RoutineSummary.vue'
-import ExerciseList from '@/components/routine/ExerciseList.vue'
 
 const props = defineProps<{
   open: boolean
@@ -64,17 +62,7 @@ function onDelete() {
   <BottomSheet :open="open" title="Edit routine" @close="close">
     <RoutineForm v-model="draft" />
 
-    <div v-if="result.ok" class="preview">
-      <h3 class="preview__name">{{ result.template.name }}</h3>
-      <RoutineSummary :template="result.template" />
-      <ExerciseList
-        class="preview__list"
-        :exercises="result.template.exercises"
-        :unit="result.template.unit"
-      />
-    </div>
-    <p v-else class="error">{{ result.error }}</p>
-
+    <p v-if="!result.ok" class="error">{{ result.error }}</p>
     <p v-if="submitError" class="error">{{ submitError }}</p>
 
     <button type="button" class="primary" :disabled="!canSubmit" @click="onSubmit">
@@ -86,26 +74,6 @@ function onDelete() {
 </template>
 
 <style scoped>
-.preview {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-}
-
-.preview__name {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-heading);
-}
-
-.preview__list {
-  margin-top: 2px;
-}
-
 .error {
   font-size: 13px;
   color: #e11d48;

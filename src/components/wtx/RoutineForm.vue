@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { GripVertical } from '@lucide/vue'
+import { computed, reactive } from 'vue'
+import { ChevronDown, GripVertical } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { emptyExercise, type RoutineDraft, type RoutineDraftExercise } from '@/lib/serializeRoutine'
 import { formatCompactDuration } from '@/lib/format'
@@ -31,14 +31,6 @@ function parseDuration(input: string): number {
   return 0
 }
 
-function addExercise() {
-  draft.value.exercises.push(emptyExercise())
-}
-
-function removeExercise(index: number) {
-  draft.value.exercises.splice(index, 1)
-}
-
 /** Stable keys for draggable exercises, since drafts carry no id. */
 const exerciseKeys = new WeakMap<RoutineDraftExercise, number>()
 let nextExerciseKey = 0
@@ -51,8 +43,50 @@ function keyFor(exercise: RoutineDraftExercise): number {
   return key
 }
 
+/**
+ * Exercise cards collapse to a one-line summary by default so editing a
+ * routine with many exercises doesn't turn into one long form. A card starts
+ * expanded only while it still has no name, since it needs input right away.
+ */
+const expanded = reactive<Record<number, boolean>>({})
+for (const exercise of draft.value.exercises) {
+  if (!exercise.name.trim()) expanded[keyFor(exercise)] = true
+}
+
+function isExpanded(exercise: RoutineDraftExercise): boolean {
+  return Boolean(expanded[keyFor(exercise)])
+}
+
+function toggleExpanded(exercise: RoutineDraftExercise) {
+  const key = keyFor(exercise)
+  expanded[key] = !expanded[key]
+}
+
+function addExercise() {
+  const exercise = emptyExercise()
+  draft.value.exercises.push(exercise)
+  expanded[keyFor(exercise)] = true
+}
+
+function removeExercise(index: number) {
+  draft.value.exercises.splice(index, 1)
+}
+
 function setKind(exercise: RoutineDraftExercise, kind: 'reps' | 'time') {
   exercise.kind = kind
+}
+
+/** Short one-line stand-in for a collapsed exercise's prescription. */
+function summaryFor(exercise: RoutineDraftExercise): string {
+  const parts: string[] = []
+  parts.push(
+    exercise.kind === 'time'
+      ? formatCompactDuration(exercise.durationSeconds) || '0s'
+      : `${exercise.sets || 0} × ${exercise.reps || 0}`,
+  )
+  if (exercise.weight !== undefined)
+    parts.push(`${exercise.weight} ${draft.value.unit ?? ''}`.trim())
+  return parts.join(' · ')
 }
 
 function numberOrUndefined(value: string): number | undefined {
@@ -104,103 +138,119 @@ function numberOrUndefined(value: string): number | undefined {
           v-for="(exercise, i) in draft.exercises"
           :key="keyFor(exercise)"
           class="exercise"
+          :class="{ 'exercise--open': isExpanded(exercise) }"
         >
-          <div class="exercise__top">
-            <button type="button" class="exercise__handle" aria-label="Drag to reorder">
+          <div class="exercise__top" @click="toggleExpanded(exercise)">
+            <button type="button" class="exercise__handle" aria-label="Drag to reorder" @click.stop>
               <GripVertical :size="16" :stroke-width="2" />
             </button>
             <span class="exercise__index">{{ i + 1 }}</span>
-            <input
-              v-model="exercise.name"
-              class="exercise__name"
-              type="text"
-              placeholder="Bench Press"
-            />
+
+            <div class="exercise__title">
+              <input
+                v-model="exercise.name"
+                class="exercise__name"
+                type="text"
+                placeholder="Bench Press"
+                @click.stop
+              />
+              <span v-if="!isExpanded(exercise)" class="exercise__summary">
+                {{ summaryFor(exercise) }}
+              </span>
+            </div>
+
             <button
               type="button"
               class="exercise__remove"
               :disabled="draft.exercises.length === 1"
               aria-label="Remove"
-              @click="removeExercise(i)"
+              @click.stop="removeExercise(i)"
             >
               ✕
             </button>
+            <ChevronDown class="exercise__chevron" :size="16" :stroke-width="2.25" />
           </div>
 
-          <div class="segmented">
-            <button
-              type="button"
-              :class="{ active: exercise.kind === 'reps' }"
-              @click="setKind(exercise, 'reps')"
-            >
-              Reps
-            </button>
-            <button
-              type="button"
-              :class="{ active: exercise.kind === 'time' }"
-              @click="setKind(exercise, 'time')"
-            >
-              Time
-            </button>
-          </div>
+          <div v-if="isExpanded(exercise)" class="exercise__body">
+            <div class="segmented">
+              <button
+                type="button"
+                :class="{ active: exercise.kind === 'reps' }"
+                @click="setKind(exercise, 'reps')"
+              >
+                Reps
+              </button>
+              <button
+                type="button"
+                :class="{ active: exercise.kind === 'time' }"
+                @click="setKind(exercise, 'time')"
+              >
+                Time
+              </button>
+            </div>
 
-          <div v-if="exercise.kind === 'reps'" class="row">
-            <label class="field">
-              <span class="field__label">Sets</span>
-              <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
-            </label>
-            <label class="field">
-              <span class="field__label">Reps</span>
-              <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
-            </label>
-          </div>
-          <label v-else class="field">
-            <span class="field__label">Duration</span>
-            <input
-              :value="formatCompactDuration(exercise.durationSeconds)"
-              type="text"
-              placeholder="1m30s"
-              @change="
-                exercise.durationSeconds = parseDuration(
-                  ($event.target as HTMLInputElement).value,
-                )
-              "
-            />
-          </label>
-
-          <div class="row">
-            <label class="field">
-              <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
+            <div v-if="exercise.kind === 'reps'" class="row">
+              <label class="field">
+                <span class="field__label">Sets</span>
+                <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
+              </label>
+              <label class="field">
+                <span class="field__label">Reps</span>
+                <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
+              </label>
+            </div>
+            <label v-else class="field">
+              <span class="field__label">Duration</span>
               <input
-                :value="exercise.weight ?? ''"
-                type="number"
-                min="0"
-                step="0.25"
-                inputmode="decimal"
-                placeholder="optional"
-                @input="
-                  exercise.weight = numberOrUndefined(($event.target as HTMLInputElement).value)
-                "
-              />
-            </label>
-            <label class="field">
-              <span class="field__label">Rest</span>
-              <input
-                :value="formatCompactDuration(exercise.restSeconds ?? 0)"
+                :value="formatCompactDuration(exercise.durationSeconds)"
                 type="text"
                 placeholder="1m30s"
                 @change="
-                  exercise.restSeconds =
-                    parseDuration(($event.target as HTMLInputElement).value) || undefined
+                  exercise.durationSeconds = parseDuration(
+                    ($event.target as HTMLInputElement).value,
+                  )
                 "
               />
             </label>
-          </div>
 
-          <label class="field">
-            <span class="field__label">Muscle group</span>
-            <input v-model="exercise.muscleGroup" type="text" placeholder="optional, e.g. chest" />
-          </label>
+            <div class="row">
+              <label class="field">
+                <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
+                <input
+                  :value="exercise.weight ?? ''"
+                  type="number"
+                  min="0"
+                  step="0.25"
+                  inputmode="decimal"
+                  placeholder="optional"
+                  @input="
+                    exercise.weight = numberOrUndefined(($event.target as HTMLInputElement).value)
+                  "
+                />
+              </label>
+              <label class="field">
+                <span class="field__label">Rest</span>
+                <input
+                  :value="formatCompactDuration(exercise.restSeconds ?? 0)"
+                  type="text"
+                  placeholder="1m30s"
+                  @change="
+                    exercise.restSeconds =
+                      parseDuration(($event.target as HTMLInputElement).value) || undefined
+                  "
+                />
+              </label>
+            </div>
+
+            <label class="field">
+              <span class="field__label">Muscle group</span>
+              <input
+                v-model="exercise.muscleGroup"
+                type="text"
+                placeholder="optional, e.g. chest"
+              />
+            </label>
+          </div>
         </div>
       </VueDraggable>
     </div>
@@ -281,8 +331,6 @@ textarea {
 .exercise {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
   border: 1px solid var(--color-border);
   border-left: 3px solid var(--color-accent);
   border-radius: var(--radius-md);
@@ -299,9 +347,11 @@ textarea {
 
 .exercise__top {
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto auto;
   align-items: center;
   gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
 }
 
 .exercise__handle {
@@ -332,6 +382,34 @@ textarea {
   opacity: 0.4;
 }
 
+.exercise__title {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.exercise__name {
+  padding: 3px 4px;
+  margin: -3px -4px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.exercise__name:focus {
+  border-color: var(--color-border);
+  background: var(--color-background);
+  outline: none;
+}
+
+.exercise__summary {
+  font-size: 11px;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
 .exercise__remove {
   width: 28px;
   height: 28px;
@@ -349,9 +427,25 @@ textarea {
   cursor: not-allowed;
 }
 
+.exercise__chevron {
+  opacity: 0.45;
+  transition: transform 0.15s ease;
+}
+
+.exercise--open .exercise__chevron {
+  transform: rotate(180deg);
+}
+
+.exercise__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 12px 14px;
+}
+
 .segmented {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: inline-flex;
+  align-self: flex-start;
   gap: 3px;
   padding: 3px;
   border-radius: var(--radius-md);
@@ -362,7 +456,7 @@ textarea {
 .segmented button {
   border: none;
   background: transparent;
-  padding: 7px;
+  padding: 5px 16px;
   border-radius: var(--radius-xs);
   font-size: 11px;
   font-weight: 700;
