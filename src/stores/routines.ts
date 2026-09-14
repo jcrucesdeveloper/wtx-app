@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { parseTemplateText, type ParseResult } from '@/lib/parseRoutine'
+import { DEFAULT_TEMPLATES } from '@/lib/wtx/defaultTemplates'
 
 /** A `.wtt` template as stored in the library. Raw text is the source of truth. */
 export interface StoredRoutine {
@@ -15,10 +16,29 @@ export interface StoredRoutine {
 
 const STORAGE_KEY = 'wtx:routines'
 
+function newId(): string {
+  try {
+    return crypto.randomUUID()
+  } catch {
+    return `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+  }
+}
+
+/** The starter library for a visitor who has never had anything in storage. */
+function defaultRoutines(): StoredRoutine[] {
+  const now = Date.now()
+  return DEFAULT_TEMPLATES.map((template, index) => ({
+    id: newId(),
+    filename: template.filename,
+    rawText: template.rawText,
+    addedAt: now + index,
+  }))
+}
+
 function readStored(): StoredRoutine[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
+    if (raw === null) return defaultRoutines()
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
     return parsed.filter(
@@ -31,14 +51,6 @@ function readStored(): StoredRoutine[] {
     )
   } catch {
     return []
-  }
-}
-
-function newId(): string {
-  try {
-    return crypto.randomUUID()
-  } catch {
-    return `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
   }
 }
 
