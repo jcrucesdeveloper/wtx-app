@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue'
-import { ChevronDown, GripVertical } from '@lucide/vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { ChevronDown, EllipsisVertical, GripVertical } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { emptyExercise, type RoutineDraft, type RoutineDraftExercise } from '@/lib/serializeRoutine'
 import { formatCompactDuration } from '@/lib/format'
@@ -48,11 +48,16 @@ function keyFor(exercise: RoutineDraftExercise): number {
 /**
  * Exercise cards collapse to a one-line summary by default so editing a
  * routine with many exercises doesn't turn into one long form. A card starts
- * expanded only while it still has no name, since it needs input right away.
+ * expanded — and, if it has no name yet, in rename mode — only while it still
+ * needs input right away.
  */
 const expanded = reactive<Record<number, boolean>>({})
+const renaming = reactive<Record<number, boolean>>({})
 for (const exercise of draft.value.exercises) {
-  if (!exercise.name.trim()) expanded[keyFor(exercise)] = true
+  if (!exercise.name.trim()) {
+    expanded[keyFor(exercise)] = true
+    renaming[keyFor(exercise)] = true
+  }
 }
 
 function isExpanded(exercise: RoutineDraftExercise): boolean {
@@ -64,14 +69,59 @@ function toggleExpanded(exercise: RoutineDraftExercise) {
   expanded[key] = !expanded[key]
 }
 
-function addExercise() {
+/** Renaming and removing an exercise both live behind its "⋯" menu. */
+const menuOpenKey = ref<number | null>(null)
+const nameInputs = new Map<number, HTMLInputElement>()
+
+function isMenuOpen(exercise: RoutineDraftExercise): boolean {
+  return menuOpenKey.value === keyFor(exercise)
+}
+
+function toggleMenu(exercise: RoutineDraftExercise) {
+  const key = keyFor(exercise)
+  menuOpenKey.value = menuOpenKey.value === key ? null : key
+}
+
+function closeMenu() {
+  menuOpenKey.value = null
+}
+
+onMounted(() => document.addEventListener('click', closeMenu))
+onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
+
+function setNameInputRef(exercise: RoutineDraftExercise, el: Element | null) {
+  const key = keyFor(exercise)
+  if (el) nameInputs.set(key, el as HTMLInputElement)
+  else nameInputs.delete(key)
+}
+
+function isRenaming(exercise: RoutineDraftExercise): boolean {
+  return Boolean(renaming[keyFor(exercise)])
+}
+
+async function startRenaming(exercise: RoutineDraftExercise) {
+  const key = keyFor(exercise)
+  renaming[key] = true
+  menuOpenKey.value = null
+  await nextTick()
+  nameInputs.get(key)?.focus()
+  nameInputs.get(key)?.select()
+}
+
+function stopRenaming(exercise: RoutineDraftExercise) {
+  renaming[keyFor(exercise)] = false
+}
+
+async function addExercise() {
   const exercise = emptyExercise()
   draft.value.exercises.push(exercise)
   expanded[keyFor(exercise)] = true
+  await startRenaming(exercise)
 }
 
 function removeExercise(index: number) {
   draft.value.exercises.splice(index, 1)
+  closeMenu()
 }
 
 function setKind(exercise: RoutineDraftExercise, kind: 'reps' | 'time') {
@@ -160,26 +210,48 @@ function numberOrUndefined(value: string): number | undefined {
 
             <div class="exercise__title">
               <input
+                v-if="isRenaming(exercise)"
+                :ref="(el) => setNameInputRef(exercise, el as Element | null)"
                 v-model="exercise.name"
                 class="exercise__name"
                 type="text"
                 placeholder="Bench Press"
                 @click.stop
+                @keydown.enter.prevent="stopRenaming(exercise)"
+                @blur="stopRenaming(exercise)"
               />
+              <span v-else class="exercise__name-text">
+                {{ exercise.name || 'Unnamed exercise' }}
+              </span>
               <span v-if="!isExpanded(exercise)" class="exercise__summary">
                 {{ summaryFor(exercise) }}
               </span>
             </div>
 
-            <button
-              type="button"
-              class="exercise__remove"
-              :disabled="draft.exercises.length === 1"
-              aria-label="Remove"
-              @click.stop="removeExercise(i)"
-            >
-              ✕
-            </button>
+            <div class="exercise__menu">
+              <button
+                type="button"
+                class="exercise__kebab"
+                aria-label="Exercise options"
+                @click.stop="toggleMenu(exercise)"
+              >
+                <EllipsisVertical :size="16" :stroke-width="2.25" />
+              </button>
+              <div v-if="isMenuOpen(exercise)" class="exercise__menu-panel" @click.stop>
+                <button type="button" class="exercise__menu-item" @click="startRenaming(exercise)">
+                  Rename
+                </button>
+                <button
+                  type="button"
+                  class="exercise__menu-item exercise__menu-item--danger"
+                  :disabled="draft.exercises.length === 1"
+                  @click="removeExercise(i)"
+                >
+                  Remove exercise
+                </button>
+              </div>
+            </div>
+
             <ChevronDown class="exercise__chevron" :size="16" :stroke-width="2.25" />
           </div>
 
@@ -416,13 +488,28 @@ textarea {
   outline: none;
 }
 
+.exercise__name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
 .exercise__summary {
   font-size: 11px;
   opacity: 0.6;
   font-variant-numeric: tabular-nums;
 }
 
-.exercise__remove {
+.exercise__menu {
+  position: relative;
+}
+
+.exercise__kebab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
   padding: 0;
@@ -430,13 +517,50 @@ textarea {
   border-radius: var(--radius-sm);
   background: var(--color-background);
   color: var(--color-text);
-  font-size: 12px;
+  opacity: 0.7;
   cursor: pointer;
 }
 
-.exercise__remove:disabled {
+.exercise__menu-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-hover);
+  background: var(--color-background);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.exercise__menu-item {
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.exercise__menu-item:hover,
+.exercise__menu-item:focus-visible {
+  background: var(--color-background-mute);
+}
+
+.exercise__menu-item--danger {
+  color: #e11d48;
+}
+
+.exercise__menu-item:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+  background: transparent;
 }
 
 .exercise__chevron {
