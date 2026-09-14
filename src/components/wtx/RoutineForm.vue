@@ -239,7 +239,7 @@ function numberOrUndefined(value: string): number | undefined {
               </button>
               <div v-if="isMenuOpen(exercise)" class="exercise__menu-panel" @click.stop>
                 <button type="button" class="exercise__menu-item" @click="startRenaming(exercise)">
-                  Rename
+                  Change exercise
                 </button>
                 <button
                   type="button"
