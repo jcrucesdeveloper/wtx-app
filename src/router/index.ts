@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TemplatesView from '../views/templates/TemplatesView.vue'
+import RoutinesView from '../views/routines/RoutinesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'home', component: TemplatesView },
+    { path: '/', name: 'home', component: RoutinesView },
     {
-      path: '/templates/:id',
-      name: 'template-detail',
-      component: () => import('../views/templates/TemplateDetailView.vue'),
+      path: '/routines/:id',
+      name: 'routine-detail',
+      component: () => import('../views/routines/RoutineDetailView.vue'),
     },
     {
       path: '/import',

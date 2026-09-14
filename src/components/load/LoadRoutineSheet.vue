@@ -130,7 +130,7 @@ function onSubmit() {
   try {
     const routine = routines.add(text.value, filename.value)
     ui.close()
-    router.push(`/templates/${routine.id}`)
+    router.push(`/routines/${routine.id}`)
   } catch (error) {
     submitError.value = error instanceof Error ? error.message : String(error)
   }

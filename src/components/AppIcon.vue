@@ -2,10 +2,10 @@
 import type { Component } from 'vue'
 import { Activity, Download, FilePlus2, LayoutGrid, SlidersVertical, Users } from '@lucide/vue'
 
-export type IconName = 'templates' | 'sessions' | 'friends' | 'settings' | 'load' | 'create'
+export type IconName = 'routines' | 'sessions' | 'friends' | 'settings' | 'load' | 'create'
 
 const ICONS: Record<IconName, Component> = {
-  templates: LayoutGrid,
+  routines: LayoutGrid,
   sessions: Activity,
   friends: Users,
   settings: SlidersVertical,

@@ -19,7 +19,7 @@ const items = computed(() =>
 </script>
 
 <template>
-  <AppPage title="Templates">
+  <AppPage title="Routines">
     <template #actions>
       <button v-if="routines.list.length" type="button" class="add" @click="ui.openLoadSheet()">
         + Load
@@ -34,7 +34,7 @@ const items = computed(() =>
 
     <ul v-else class="list">
       <li v-for="{ routine, result } in items" :key="routine.id">
-        <RouterLink :to="`/templates/${routine.id}`" class="card">
+        <RouterLink :to="`/routines/${routine.id}`" class="card">
           <template v-if="result.ok">
             <span class="card__name">{{ result.template.name }}</span>
             <RoutineSummary :template="result.template" />
