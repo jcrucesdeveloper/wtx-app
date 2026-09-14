@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
 
-defineProps<{
-  open: boolean
-  title: string
-}>()
+withDefaults(
+  defineProps<{
+    open: boolean
+    title: string
+    /** Fills the whole viewport instead of the usual partial-height sheet. */
+    fullHeight?: boolean
+  }>(),
+  { fullHeight: false },
+)
 
 const emit = defineEmits<{
   close: []
@@ -23,8 +28,8 @@ const emit = defineEmits<{
         @click.self="emit('close')"
         @keydown.esc="emit('close')"
       >
-        <div class="sheet">
-          <div class="sheet__grabber" />
+        <div class="sheet" :class="{ 'sheet--full': fullHeight }">
+          <div v-if="!fullHeight" class="sheet__grabber" />
           <header class="sheet__head">
             <h2>{{ title }}</h2>
             <div class="sheet__actions">
@@ -65,6 +70,14 @@ const emit = defineEmits<{
   background: var(--color-background);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   border-top: 1px solid var(--color-border-hover);
+}
+
+.sheet--full {
+  height: 100dvh;
+  max-height: 100dvh;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  border-radius: 0;
+  border-top: none;
 }
 
 .sheet__grabber {

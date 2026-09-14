@@ -72,7 +72,7 @@ function onDelete() {
 </script>
 
 <template>
-  <BottomSheet :open="open" title="Edit routine" @close="close">
+  <BottomSheet :open="open" title="Edit routine" full-height @close="close">
     <template #actions>
       <button
         type="button"
