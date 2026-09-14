@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { X } from '@lucide/vue'
+
 defineProps<{
   open: boolean
   title: string
@@ -25,9 +27,12 @@ const emit = defineEmits<{
           <div class="sheet__grabber" />
           <header class="sheet__head">
             <h2>{{ title }}</h2>
-            <button type="button" class="icon-btn" aria-label="Close" @click="emit('close')">
-              ✕
-            </button>
+            <div class="sheet__actions">
+              <slot name="actions" />
+              <button type="button" class="icon-btn" aria-label="Close" @click="emit('close')">
+                <X :size="18" :stroke-width="2.25" />
+              </button>
+            </div>
           </header>
 
           <slot />
@@ -83,11 +88,18 @@ const emit = defineEmits<{
   color: var(--color-heading);
 }
 
+.sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .icon-btn {
+  display: grid;
+  place-items: center;
   border: none;
   background: transparent;
   color: var(--color-text);
-  font-size: 15px;
   padding: 6px;
   cursor: pointer;
   opacity: 0.6;

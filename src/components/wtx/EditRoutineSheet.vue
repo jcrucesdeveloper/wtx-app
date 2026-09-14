@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { Trash2 } from '@lucide/vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { draftFromTemplate, emptyDraft, serializeTemplate } from '@/lib/serializeRoutine'
@@ -20,16 +21,36 @@ const router = useRouter()
 const routines = useRoutinesStore()
 
 const draft = ref(emptyDraft())
-const submitError = ref('')
+const saveError = ref('')
 
 const rawText = computed(() => serializeTemplate(draft.value))
 const result = computed(() => parseTemplateText(rawText.value))
-const canSubmit = computed(() => draft.value.name.trim().length > 0 && result.value.ok)
+
+/** Saves the draft as soon as it parses, so there's no separate "Save" step. */
+let saveTimer: ReturnType<typeof setTimeout> | undefined
+
+function persist() {
+  clearTimeout(saveTimer)
+  if (!draft.value.name.trim() || !result.value.ok) return
+  try {
+    routines.update(props.routineId, rawText.value)
+    saveError.value = ''
+  } catch (error) {
+    saveError.value = error instanceof Error ? error.message : String(error)
+  }
+}
+
+watch(rawText, () => {
+  clearTimeout(saveTimer)
+  saveTimer = setTimeout(persist, 400)
+})
+
+onBeforeUnmount(() => clearTimeout(saveTimer))
 
 watch(
   () => props.open,
   (open) => {
-    submitError.value = ''
+    saveError.value = ''
     if (!open) return
     const parsed = routines.parsed(props.routineId)
     draft.value = parsed?.ok ? draftFromTemplate(parsed.template) : emptyDraft()
@@ -37,78 +58,58 @@ watch(
 )
 
 function close() {
+  persist()
   emit('update:open', false)
-}
-
-function onSubmit() {
-  submitError.value = ''
-  try {
-    routines.update(props.routineId, rawText.value)
-    close()
-  } catch (error) {
-    submitError.value = error instanceof Error ? error.message : String(error)
-  }
 }
 
 function onDelete() {
   if (!confirm('Remove this routine from your library?')) return
+  clearTimeout(saveTimer)
   routines.remove(props.routineId)
-  close()
+  emit('update:open', false)
   router.replace('/')
 }
 </script>
 
 <template>
   <BottomSheet :open="open" title="Edit routine" @close="close">
+    <template #actions>
+      <button
+        type="button"
+        class="icon-btn icon-btn--danger"
+        aria-label="Delete routine"
+        @click="onDelete"
+      >
+        <Trash2 :size="18" :stroke-width="2.25" />
+      </button>
+    </template>
+
     <RoutineForm v-model="draft" />
 
     <p v-if="!result.ok" class="error">{{ result.error }}</p>
-    <p v-if="submitError" class="error">{{ submitError }}</p>
-
-    <button type="button" class="primary" :disabled="!canSubmit" @click="onSubmit">
-      Save changes
-    </button>
-
-    <button type="button" class="delete" @click="onDelete">Delete routine</button>
+    <p v-if="saveError" class="error">{{ saveError }}</p>
   </BottomSheet>
 </template>
 
 <style scoped>
+.icon-btn {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  padding: 6px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.icon-btn--danger {
+  color: #e11d48;
+}
+
 .error {
   font-size: 13px;
   color: #e11d48;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   word-break: break-word;
-}
-
-.primary {
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 14px;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
-  background: var(--color-accent);
-  cursor: pointer;
-}
-
-.primary:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.delete {
-  align-self: center;
-  border: none;
-  background: transparent;
-  color: #e11d48;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  padding: 4px 8px;
-  cursor: pointer;
 }
 </style>
