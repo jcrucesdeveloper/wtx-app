@@ -1,8 +1,15 @@
 <script setup lang="ts">
-defineProps<{
-  open: boolean
-  title: string
-}>()
+import { X } from '@lucide/vue'
+
+withDefaults(
+  defineProps<{
+    open: boolean
+    title: string
+    /** Fills the whole viewport instead of the usual partial-height sheet. */
+    fullHeight?: boolean
+  }>(),
+  { fullHeight: false },
+)
 
 const emit = defineEmits<{
   close: []
@@ -21,13 +28,16 @@ const emit = defineEmits<{
         @click.self="emit('close')"
         @keydown.esc="emit('close')"
       >
-        <div class="sheet">
-          <div class="sheet__grabber" />
+        <div class="sheet" :class="{ 'sheet--full': fullHeight }">
+          <div v-if="!fullHeight" class="sheet__grabber" />
           <header class="sheet__head">
             <h2>{{ title }}</h2>
-            <button type="button" class="icon-btn" aria-label="Close" @click="emit('close')">
-              ✕
-            </button>
+            <div class="sheet__actions">
+              <slot name="actions" />
+              <button type="button" class="icon-btn" aria-label="Close" @click="emit('close')">
+                <X :size="18" :stroke-width="2.25" />
+              </button>
+            </div>
           </header>
 
           <slot />
@@ -62,6 +72,14 @@ const emit = defineEmits<{
   border-top: 1px solid var(--color-border-hover);
 }
 
+.sheet--full {
+  height: 100dvh;
+  max-height: 100dvh;
+  padding-top: calc(12px + env(safe-area-inset-top));
+  border-radius: 0;
+  border-top: none;
+}
+
 .sheet__grabber {
   align-self: center;
   width: 36px;
@@ -83,11 +101,18 @@ const emit = defineEmits<{
   color: var(--color-heading);
 }
 
+.sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .icon-btn {
+  display: grid;
+  place-items: center;
   border: none;
   background: transparent;
   color: var(--color-text);
-  font-size: 15px;
   padding: 6px;
   cursor: pointer;
   opacity: 0.6;
