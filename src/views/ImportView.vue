@@ -49,7 +49,7 @@ function add() {
   addError.value = ''
   try {
     const routine = routines.add(decoded.value.text, '')
-    router.replace(`/templates/${routine.id}`)
+    router.replace(`/routines/${routine.id}`)
   } catch (error) {
     addError.value = error instanceof Error ? error.message : String(error)
   }
@@ -64,7 +64,7 @@ function add() {
 
     <p v-if="decoded.state === 'empty'" class="msg">
       This link has no routine in it. Open a share link from another device, or load a file from
-      Templates.
+      Routines.
     </p>
 
     <p v-else-if="decoded.state === 'bad-link'" class="msg error">
@@ -78,7 +78,7 @@ function add() {
     </div>
 
     <div v-else-if="parsed?.ok" class="stack">
-      <RouterLink v-if="existing" :to="`/templates/${existing.id}`" class="already">
+      <RouterLink v-if="existing" :to="`/routines/${existing.id}`" class="already">
         Already in your library — open it
       </RouterLink>
 

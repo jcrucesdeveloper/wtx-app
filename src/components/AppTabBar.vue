@@ -11,7 +11,7 @@ interface Tab {
 }
 
 const tabs: Tab[] = [
-  { to: '/', label: 'Templates', icon: 'templates', match: ['/', '/templates'] },
+  { to: '/', label: 'Routines', icon: 'routines', match: ['/', '/routines'] },
   { to: '/sessions', label: 'Sessions', icon: 'sessions', match: ['/sessions'] },
   { to: '/friends', label: 'Friends', icon: 'friends', match: ['/friends'] },
   { to: '/settings', label: 'Config', icon: 'settings', match: ['/settings'] },
