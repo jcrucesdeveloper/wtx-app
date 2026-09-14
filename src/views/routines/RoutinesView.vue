@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { VueDraggable } from 'vue-draggable-plus'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import { useRoutinesStore } from '@/stores/routines'
@@ -10,12 +11,14 @@ import { parseTemplateText } from '@/lib/parseRoutine'
 const routines = useRoutinesStore()
 const ui = useUiStore()
 
-const items = computed(() =>
-  routines.list.map((routine) => ({
-    routine,
-    result: parseTemplateText(routine.rawText),
-  })),
-)
+const items = computed({
+  get: () =>
+    routines.list.map((routine) => ({
+      routine,
+      result: parseTemplateText(routine.rawText),
+    })),
+  set: (value) => routines.reorder(value.map((item) => item.routine)),
+})
 </script>
 
 <template>
@@ -32,7 +35,17 @@ const items = computed(() =>
       <button type="button" class="empty__btn" @click="ui.openLoadSheet()">Load a routine</button>
     </div>
 
-    <ul v-else class="list">
+    <VueDraggable
+      v-else
+      v-model="items"
+      tag="ul"
+      class="list"
+      ghost-class="card--ghost"
+      drag-class="card--dragging"
+      :animation="150"
+      :delay="150"
+      :delay-on-touch-only="true"
+    >
       <li v-for="{ routine, result } in items" :key="routine.id">
         <RouterLink :to="`/routines/${routine.id}`" class="card">
           <template v-if="result.ok">
@@ -45,7 +58,7 @@ const items = computed(() =>
           </template>
         </RouterLink>
       </li>
-    </ul>
+    </VueDraggable>
   </AppPage>
 </template>
 
@@ -82,6 +95,15 @@ const items = computed(() =>
   border-left: 3px solid var(--color-accent);
   text-decoration: none;
   color: inherit;
+  touch-action: manipulation;
+}
+
+.card--ghost {
+  opacity: 0.4;
+}
+
+.card--dragging {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .card__name {

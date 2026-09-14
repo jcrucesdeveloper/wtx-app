@@ -27,12 +27,14 @@ function newId(): string {
 /** The starter library for a visitor who has never had anything in storage. */
 function defaultRoutines(): StoredRoutine[] {
   const now = Date.now()
-  return DEFAULT_TEMPLATES.map((template, index) => ({
+  const routines = DEFAULT_TEMPLATES.map((template, index) => ({
     id: newId(),
     filename: template.filename,
     rawText: template.rawText,
     addedAt: now + index,
   }))
+  // DEFAULT_TEMPLATES is alphabetical (leg, pull, push); reverse for Push/Pull/Leg display order.
+  return routines.reverse()
 }
 
 function readStored(): StoredRoutine[] {
@@ -69,8 +71,13 @@ export const useRoutinesStore = defineStore('routines', () => {
     { deep: true },
   )
 
-  /** Newest first. */
-  const list = computed(() => [...routines.value].sort((a, b) => b.addedAt - a.addedAt))
+  /** Display order — newest first by default, but user-reorderable via {@link reorder}. */
+  const list = computed(() => routines.value)
+
+  /** Replaces the display order, e.g. after a drag-and-drop reorder. */
+  function reorder(newOrder: StoredRoutine[]) {
+    routines.value = newOrder
+  }
 
   function getById(id: string): StoredRoutine | undefined {
     return routines.value.find((r) => r.id === id)
@@ -102,7 +109,7 @@ export const useRoutinesStore = defineStore('routines', () => {
       rawText,
       addedAt: Date.now(),
     }
-    routines.value.push(routine)
+    routines.value.unshift(routine)
     return routine
   }
 
@@ -126,5 +133,5 @@ export const useRoutinesStore = defineStore('routines', () => {
     routines.value = routines.value.filter((r) => r.id !== id)
   }
 
-  return { routines, list, getById, findByText, parsed, add, update, remove }
+  return { routines, list, getById, findByText, parsed, add, update, remove, reorder }
 })

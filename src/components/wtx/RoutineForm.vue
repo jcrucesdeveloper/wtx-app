@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { GripVertical } from '@lucide/vue'
+import { VueDraggable } from 'vue-draggable-plus'
 import { emptyExercise, type RoutineDraft, type RoutineDraftExercise } from '@/lib/serializeRoutine'
 import { formatCompactDuration } from '@/lib/format'
 
@@ -37,11 +39,16 @@ function removeExercise(index: number) {
   draft.value.exercises.splice(index, 1)
 }
 
-function move(index: number, delta: number) {
-  const target = index + delta
-  if (target < 0 || target >= draft.value.exercises.length) return
-  const list = draft.value.exercises
-  ;[list[index], list[target]] = [list[target]!, list[index]!]
+/** Stable keys for draggable exercises, since drafts carry no id. */
+const exerciseKeys = new WeakMap<RoutineDraftExercise, number>()
+let nextExerciseKey = 0
+function keyFor(exercise: RoutineDraftExercise): number {
+  let key = exerciseKeys.get(exercise)
+  if (key === undefined) {
+    key = nextExerciseKey++
+    exerciseKeys.set(exercise, key)
+  }
+  return key
 }
 
 function setKind(exercise: RoutineDraftExercise, kind: 'reps' | 'time') {
@@ -85,29 +92,33 @@ function numberOrUndefined(value: string): number | undefined {
         <button type="button" class="add" @click="addExercise">+ Add</button>
       </div>
 
-      <div v-for="(exercise, i) in draft.exercises" :key="i" class="exercise">
-        <div class="exercise__top">
-          <span class="exercise__index">{{ i + 1 }}</span>
-          <input
-            v-model="exercise.name"
-            class="exercise__name"
-            type="text"
-            placeholder="Bench Press"
-          />
-          <div class="exercise__reorder">
-            <button type="button" :disabled="i === 0" aria-label="Move up" @click="move(i, -1)">
-              ↑
+      <VueDraggable
+        v-model="draft.exercises"
+        class="exercises__list"
+        handle=".exercise__handle"
+        ghost-class="exercise--ghost"
+        drag-class="exercise--dragging"
+        :animation="150"
+      >
+        <div
+          v-for="(exercise, i) in draft.exercises"
+          :key="keyFor(exercise)"
+          class="exercise"
+        >
+          <div class="exercise__top">
+            <button type="button" class="exercise__handle" aria-label="Drag to reorder">
+              <GripVertical :size="16" :stroke-width="2" />
             </button>
+            <span class="exercise__index">{{ i + 1 }}</span>
+            <input
+              v-model="exercise.name"
+              class="exercise__name"
+              type="text"
+              placeholder="Bench Press"
+            />
             <button
               type="button"
-              :disabled="i === draft.exercises.length - 1"
-              aria-label="Move down"
-              @click="move(i, 1)"
-            >
-              ↓
-            </button>
-            <button
-              type="button"
+              class="exercise__remove"
               :disabled="draft.exercises.length === 1"
               aria-label="Remove"
               @click="removeExercise(i)"
@@ -115,81 +126,83 @@ function numberOrUndefined(value: string): number | undefined {
               ✕
             </button>
           </div>
-        </div>
 
-        <div class="segmented">
-          <button
-            type="button"
-            :class="{ active: exercise.kind === 'reps' }"
-            @click="setKind(exercise, 'reps')"
-          >
-            Reps
-          </button>
-          <button
-            type="button"
-            :class="{ active: exercise.kind === 'time' }"
-            @click="setKind(exercise, 'time')"
-          >
-            Time
-          </button>
-        </div>
+          <div class="segmented">
+            <button
+              type="button"
+              :class="{ active: exercise.kind === 'reps' }"
+              @click="setKind(exercise, 'reps')"
+            >
+              Reps
+            </button>
+            <button
+              type="button"
+              :class="{ active: exercise.kind === 'time' }"
+              @click="setKind(exercise, 'time')"
+            >
+              Time
+            </button>
+          </div>
 
-        <div v-if="exercise.kind === 'reps'" class="row">
-          <label class="field">
-            <span class="field__label">Sets</span>
-            <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
-          </label>
-          <label class="field">
-            <span class="field__label">Reps</span>
-            <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
-          </label>
-        </div>
-        <label v-else class="field">
-          <span class="field__label">Duration</span>
-          <input
-            :value="formatCompactDuration(exercise.durationSeconds)"
-            type="text"
-            placeholder="1m30s"
-            @change="
-              exercise.durationSeconds = parseDuration(($event.target as HTMLInputElement).value)
-            "
-          />
-        </label>
-
-        <div class="row">
-          <label class="field">
-            <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
+          <div v-if="exercise.kind === 'reps'" class="row">
+            <label class="field">
+              <span class="field__label">Sets</span>
+              <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
+            </label>
+            <label class="field">
+              <span class="field__label">Reps</span>
+              <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
+            </label>
+          </div>
+          <label v-else class="field">
+            <span class="field__label">Duration</span>
             <input
-              :value="exercise.weight ?? ''"
-              type="number"
-              min="0"
-              step="0.25"
-              inputmode="decimal"
-              placeholder="optional"
-              @input="
-                exercise.weight = numberOrUndefined(($event.target as HTMLInputElement).value)
-              "
-            />
-          </label>
-          <label class="field">
-            <span class="field__label">Rest</span>
-            <input
-              :value="formatCompactDuration(exercise.restSeconds ?? 0)"
+              :value="formatCompactDuration(exercise.durationSeconds)"
               type="text"
               placeholder="1m30s"
               @change="
-                exercise.restSeconds =
-                  parseDuration(($event.target as HTMLInputElement).value) || undefined
+                exercise.durationSeconds = parseDuration(
+                  ($event.target as HTMLInputElement).value,
+                )
               "
             />
           </label>
-        </div>
 
-        <label class="field">
-          <span class="field__label">Muscle group</span>
-          <input v-model="exercise.muscleGroup" type="text" placeholder="optional, e.g. chest" />
-        </label>
-      </div>
+          <div class="row">
+            <label class="field">
+              <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
+              <input
+                :value="exercise.weight ?? ''"
+                type="number"
+                min="0"
+                step="0.25"
+                inputmode="decimal"
+                placeholder="optional"
+                @input="
+                  exercise.weight = numberOrUndefined(($event.target as HTMLInputElement).value)
+                "
+              />
+            </label>
+            <label class="field">
+              <span class="field__label">Rest</span>
+              <input
+                :value="formatCompactDuration(exercise.restSeconds ?? 0)"
+                type="text"
+                placeholder="1m30s"
+                @change="
+                  exercise.restSeconds =
+                    parseDuration(($event.target as HTMLInputElement).value) || undefined
+                "
+              />
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field__label">Muscle group</span>
+            <input v-model="exercise.muscleGroup" type="text" placeholder="optional, e.g. chest" />
+          </label>
+        </div>
+      </VueDraggable>
     </div>
   </div>
 </template>
@@ -259,6 +272,12 @@ textarea {
   cursor: pointer;
 }
 
+.exercises__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .exercise {
   display: flex;
   flex-direction: column;
@@ -270,11 +289,41 @@ textarea {
   background: var(--color-background-soft);
 }
 
+.exercise--ghost {
+  opacity: 0.4;
+}
+
+.exercise--dragging {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
 .exercise__top {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   align-items: center;
   gap: 8px;
+}
+
+.exercise__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-text);
+  opacity: 0.6;
+  cursor: grab;
+  touch-action: none;
+}
+
+.exercise__handle:active {
+  opacity: 1;
+  background: var(--color-background-mute);
+  cursor: grabbing;
 }
 
 .exercise__index {
@@ -283,12 +332,7 @@ textarea {
   opacity: 0.4;
 }
 
-.exercise__reorder {
-  display: flex;
-  gap: 2px;
-}
-
-.exercise__reorder button {
+.exercise__remove {
   width: 28px;
   height: 28px;
   padding: 0;
@@ -300,7 +344,7 @@ textarea {
   cursor: pointer;
 }
 
-.exercise__reorder button:disabled {
+.exercise__remove:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
