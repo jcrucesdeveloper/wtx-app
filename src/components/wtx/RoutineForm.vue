@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { ChevronDown, EllipsisVertical, GripVertical } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { emptyExercise, type RoutineDraft, type RoutineDraftExercise } from '@/lib/serializeRoutine'
 import { formatCompactDuration } from '@/lib/format'
+import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 
 const draft = defineModel<RoutineDraft>({ required: true })
 
@@ -48,16 +49,11 @@ function keyFor(exercise: RoutineDraftExercise): number {
 /**
  * Exercise cards collapse to a one-line summary by default so editing a
  * routine with many exercises doesn't turn into one long form. A card starts
- * expanded — and, if it has no name yet, in rename mode — only while it still
- * needs input right away.
+ * expanded only while it still needs input right away (no name yet).
  */
 const expanded = reactive<Record<number, boolean>>({})
-const renaming = reactive<Record<number, boolean>>({})
 for (const exercise of draft.value.exercises) {
-  if (!exercise.name.trim()) {
-    expanded[keyFor(exercise)] = true
-    renaming[keyFor(exercise)] = true
-  }
+  if (!exercise.name.trim()) expanded[keyFor(exercise)] = true
 }
 
 function isExpanded(exercise: RoutineDraftExercise): boolean {
@@ -69,9 +65,8 @@ function toggleExpanded(exercise: RoutineDraftExercise) {
   expanded[key] = !expanded[key]
 }
 
-/** Renaming and removing an exercise both live behind its "⋯" menu. */
+/** Removing an exercise lives behind its "⋯" menu. */
 const menuOpenKey = ref<number | null>(null)
-const nameInputs = new Map<number, HTMLInputElement>()
 
 function isMenuOpen(exercise: RoutineDraftExercise): boolean {
   return menuOpenKey.value === keyFor(exercise)
@@ -89,34 +84,26 @@ function closeMenu() {
 onMounted(() => document.addEventListener('click', closeMenu))
 onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 
-function setNameInputRef(exercise: RoutineDraftExercise, el: Element | null) {
-  const key = keyFor(exercise)
-  if (el) nameInputs.set(key, el as HTMLInputElement)
-  else nameInputs.delete(key)
-}
+/** Naming and renaming an exercise both go through the picker sheet. */
+const pickerOpen = ref(false)
+const pickerTarget = ref<RoutineDraftExercise | null>(null)
 
-function isRenaming(exercise: RoutineDraftExercise): boolean {
-  return Boolean(renaming[keyFor(exercise)])
-}
-
-async function startRenaming(exercise: RoutineDraftExercise) {
-  const key = keyFor(exercise)
-  renaming[key] = true
+function openPicker(exercise: RoutineDraftExercise) {
+  pickerTarget.value = exercise
+  pickerOpen.value = true
   menuOpenKey.value = null
-  await nextTick()
-  nameInputs.get(key)?.focus()
-  nameInputs.get(key)?.select()
 }
 
-function stopRenaming(exercise: RoutineDraftExercise) {
-  renaming[keyFor(exercise)] = false
+function onPickExercise(name: string) {
+  if (pickerTarget.value) pickerTarget.value.name = name
+  pickerOpen.value = false
 }
 
-async function addExercise() {
+function addExercise() {
   const exercise = emptyExercise()
   draft.value.exercises.push(exercise)
   expanded[keyFor(exercise)] = true
-  await startRenaming(exercise)
+  openPicker(exercise)
 }
 
 function removeExercise(index: number) {
@@ -209,20 +196,9 @@ function numberOrUndefined(value: string): number | undefined {
             <span class="exercise__index">{{ i + 1 }}</span>
 
             <div class="exercise__title">
-              <input
-                v-if="isRenaming(exercise)"
-                :ref="(el) => setNameInputRef(exercise, el as Element | null)"
-                v-model="exercise.name"
-                class="exercise__name"
-                type="text"
-                placeholder="Bench Press"
-                @click.stop
-                @keydown.enter.prevent="stopRenaming(exercise)"
-                @blur="stopRenaming(exercise)"
-              />
-              <span v-else class="exercise__name-text">
+              <button type="button" class="exercise__name-text" @click.stop="openPicker(exercise)">
                 {{ exercise.name || 'Unnamed exercise' }}
-              </span>
+              </button>
               <span v-if="!isExpanded(exercise)" class="exercise__summary">
                 {{ summaryFor(exercise) }}
               </span>
@@ -238,7 +214,7 @@ function numberOrUndefined(value: string): number | undefined {
                 <EllipsisVertical :size="16" :stroke-width="2.25" />
               </button>
               <div v-if="isMenuOpen(exercise)" class="exercise__menu-panel" @click.stop>
-                <button type="button" class="exercise__menu-item" @click="startRenaming(exercise)">
+                <button type="button" class="exercise__menu-item" @click="openPicker(exercise)">
                   Change exercise
                 </button>
                 <button
@@ -338,6 +314,13 @@ function numberOrUndefined(value: string): number | undefined {
         </div>
       </VueDraggable>
     </div>
+
+    <ExerciseListSheet
+      :open="pickerOpen"
+      :initial-query="pickerTarget?.name ?? ''"
+      @close="pickerOpen = false"
+      @select="onPickExercise"
+    />
   </div>
 </template>
 
@@ -473,27 +456,19 @@ textarea {
   min-width: 0;
 }
 
-.exercise__name {
-  padding: 3px 4px;
-  margin: -3px -4px;
-  border: 1px solid transparent;
-  background: transparent;
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.exercise__name:focus {
-  border-color: var(--color-border);
-  background: var(--color-background);
-  outline: none;
-}
-
 .exercise__name-text {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 600;
   color: var(--color-heading);
+  max-width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .exercise__summary {

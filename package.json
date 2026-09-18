@@ -14,7 +14,8 @@
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
-    "sync:wtx": "node scripts/sync-wtx.mjs"
+    "sync:wtx": "node scripts/sync-wtx.mjs",
+    "sync:exercises": "node scripts/sync-exercise-db.mjs"
   },
   "dependencies": {
     "@lucide/vue": "^1.41.0",
