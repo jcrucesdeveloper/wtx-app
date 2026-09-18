@@ -44,6 +44,14 @@ function muscleGroupFor(primaryMuscles) {
   return group
 }
 
+// A handful of upstream names carry a competition-discipline suffix (e.g.
+// "Bench Press - Powerlifting"). We tag by muscle group, not sport — strip it.
+const DISCIPLINE_SUFFIX = /\s*-\s*(Powerlifting|Strongman|Olympic Weightlifting|Weightlifting|CrossFit)$/i
+
+function cleanName(name) {
+  return name.replace(DISCIPLINE_SUFFIX, '').trim()
+}
+
 const outFile = join(
   dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -65,11 +73,19 @@ const raw = await res.json()
 const trimmed = raw
   .map((exercise) => ({
     id: exercise.id,
-    name: exercise.name,
+    name: cleanName(exercise.name),
     muscleGroup: muscleGroupFor(exercise.primaryMuscles),
     primaryMuscles: exercise.primaryMuscles,
   }))
   .sort((a, b) => a.name.localeCompare(b.name))
+
+const seenNames = new Set()
+for (const exercise of trimmed) {
+  if (seenNames.has(exercise.name)) {
+    throw new Error(`Cleaning names produced a duplicate: "${exercise.name}"`)
+  }
+  seenNames.add(exercise.name)
+}
 
 await writeFile(outFile, JSON.stringify(trimmed, null, 2) + '\n')
 

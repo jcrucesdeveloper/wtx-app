@@ -433,7 +433,7 @@
   },
   {
     "id": "Bench_Press_-_Powerlifting",
-    "name": "Bench Press - Powerlifting",
+    "name": "Bench Press",
     "muscleGroup": "Arms",
     "primaryMuscles": ["triceps"]
   },

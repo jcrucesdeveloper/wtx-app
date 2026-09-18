@@ -22,6 +22,13 @@ it doesn't recognize. Other dropped fields — `force`, `level`, `mechanic`,
 upstream images aren't vendored. Re-run the sync script once image support
 is built to see what else is needed from upstream.
 
+A handful of upstream names also carry a competition-discipline suffix
+(e.g. `"Bench Press - Powerlifting"`) — same reasoning as dropping
+`category`, exercises shouldn't be tied to a sport. `cleanName()` in
+`scripts/sync-exercise-db.mjs` strips a trailing `- Powerlifting` /
+`- Strongman` / `- Olympic Weightlifting` / `- Weightlifting` / `- CrossFit`
+and the sync throws if that ever produces a duplicate name.
+
 ## Re-syncing
 
 Run `pnpm sync:exercises` (see `scripts/sync-exercise-db.mjs`). It pulls
