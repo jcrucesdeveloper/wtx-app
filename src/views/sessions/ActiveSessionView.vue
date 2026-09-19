@@ -34,11 +34,18 @@ const progressPercent = computed(() =>
     : 0,
 )
 
+/**
+ * Small-area hypothesis (Koo & Fishbach 2010): motivation is highest when the
+ * displayed count is the smaller one — "done" early on, "to go" once past halfway.
+ */
 const progressLabel = computed(() => {
   const { totalSets, completedSets } = stats.value
   if (totalSets === 0) return ''
   if (completedSets >= totalSets) return 'All sets done'
-  return `${totalSets - completedSets} set${totalSets - completedSets === 1 ? '' : 's'} to go`
+
+  const remaining = totalSets - completedSets
+  if (completedSets < remaining) return `${completedSets} set${completedSets === 1 ? '' : 's'} done`
+  return `${remaining} set${remaining === 1 ? '' : 's'} to go`
 })
 
 const menuOpen = ref(false)
