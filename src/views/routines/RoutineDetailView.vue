@@ -5,6 +5,7 @@ import { ArrowLeft, Share2, SquarePen } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
+import StartRoutineButton from '@/components/routine/StartRoutineButton.vue'
 import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
@@ -41,20 +42,10 @@ function goBack() {
       </button>
     </template>
     <template v-if="routine && result" #actions>
-      <button
-        type="button"
-        class="icon-btn"
-        aria-label="Edit routine"
-        @click="editOpen = true"
-      >
+      <button type="button" class="icon-btn" aria-label="Edit routine" @click="editOpen = true">
         <SquarePen :size="18" :stroke-width="2.25" />
       </button>
-      <button
-        type="button"
-        class="icon-btn"
-        aria-label="Share routine"
-        @click="shareOpen = true"
-      >
+      <button type="button" class="icon-btn" aria-label="Share routine" @click="shareOpen = true">
         <Share2 :size="18" :stroke-width="2.25" />
       </button>
     </template>
@@ -67,6 +58,8 @@ function goBack() {
         <RoutineSummary :template="result.template" />
 
         <ExerciseList :exercises="result.template.exercises" :unit="result.template.unit" />
+
+        <StartRoutineButton :routine-id="routine.id" />
 
         <button type="button" class="link" @click="showSource = !showSource">
           {{ showSource ? 'Hide' : 'Show' }} source

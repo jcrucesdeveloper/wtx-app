@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 import { VueDraggable } from 'vue-draggable-plus'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
+import StartRoutineButton from '@/components/routine/StartRoutineButton.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { useUiStore } from '@/stores/ui'
 import { parseTemplateText } from '@/lib/parseRoutine'
@@ -51,6 +52,7 @@ const items = computed({
           <template v-if="result.ok">
             <span class="card__name">{{ result.template.name }}</span>
             <RoutineSummary :template="result.template" />
+            <StartRoutineButton :routine-id="routine.id" />
           </template>
           <template v-else>
             <span class="card__name">{{ routine.filename }}</span>

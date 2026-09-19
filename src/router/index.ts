@@ -21,6 +21,16 @@ const router = createRouter({
       component: () => import('../views/sessions/SessionsView.vue'),
     },
     {
+      path: '/sessions/active',
+      name: 'active-session',
+      component: () => import('../views/sessions/ActiveSessionView.vue'),
+    },
+    {
+      path: '/sessions/:id',
+      name: 'session-detail',
+      component: () => import('../views/sessions/SessionDetailView.vue'),
+    },
+    {
       path: '/friends',
       name: 'friends',
       component: () => import('../views/social/FriendsView.vue'),

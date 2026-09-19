@@ -4,6 +4,7 @@ import AppTabBar from './components/AppTabBar.vue'
 import LoadRoutineSheet from './components/load/LoadRoutineSheet.vue'
 import WtxActionSheet from './components/wtx/WtxActionSheet.vue'
 import CreateRoutineSheet from './components/wtx/CreateRoutineSheet.vue'
+import ResumeSessionBanner from './components/session/ResumeSessionBanner.vue'
 import { useThemeStore } from './stores/theme'
 import { useUiStore } from './stores/ui'
 
@@ -18,6 +19,7 @@ const ui = useUiStore()
     <main class="app-content">
       <RouterView />
     </main>
+    <ResumeSessionBanner />
     <AppTabBar @menu="ui.open('menu')" />
     <WtxActionSheet />
     <LoadRoutineSheet />
