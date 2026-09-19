@@ -13,6 +13,21 @@ const activeSession = useActiveSessionStore()
 
 const draft = computed(() => activeSession.session?.draft)
 
+const stats = computed(() => {
+  const exercises = draft.value?.exercises ?? []
+  let totalSets = 0
+  let completedSets = 0
+  let completedExercises = 0
+  for (const exercise of exercises) {
+    const workingSets = exercise.loggedSets.filter((s) => !s.isWarmup)
+    const doneSets = workingSets.filter((s) => s.completed)
+    totalSets += workingSets.length
+    completedSets += doneSets.length
+    if (workingSets.length > 0 && doneSets.length === workingSets.length) completedExercises++
+  }
+  return { totalSets, completedSets, completedExercises, totalExercises: exercises.length }
+})
+
 const menuOpen = ref(false)
 function closeMenu() {
   menuOpen.value = false
@@ -50,7 +65,6 @@ function onStartGroupWorkout() {
       </button>
     </template>
     <template v-if="draft" #actions>
-      <span class="elapsed">{{ formatClock(activeSession.elapsedSeconds) }}</span>
       <button
         type="button"
         class="icon-btn"
@@ -84,6 +98,19 @@ function onStartGroupWorkout() {
     </p>
 
     <template v-else>
+      <div class="stats-bar">
+        <div class="stats-bar__time">
+          <span class="stats-bar__time-label">Elapsed</span>
+          <span class="stats-bar__time-value">{{ formatClock(activeSession.elapsedSeconds) }}</span>
+        </div>
+        <div class="stats-bar__chips">
+          <span class="chip">
+            {{ stats.completedExercises }}/{{ stats.totalExercises }} exercises
+          </span>
+          <span class="chip">{{ stats.completedSets }}/{{ stats.totalSets }} sets</span>
+        </div>
+      </div>
+
       <div class="stack">
         <ActiveExerciseCard
           v-for="(exercise, i) in draft.exercises"
@@ -121,11 +148,58 @@ function onStartGroupWorkout() {
   margin-left: -4px;
 }
 
-.elapsed {
-  font-size: 13px;
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+}
+
+.stats-bar__time {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stats-bar__time-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  opacity: 0.55;
+}
+
+.stats-bar__time-value {
+  font-size: 28px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--color-heading);
+  line-height: 1.1;
+}
+
+.stats-bar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  align-self: flex-end;
+}
+
+.chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: var(--radius-xs);
+  background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .menu {
