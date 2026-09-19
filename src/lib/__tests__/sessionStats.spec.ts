@@ -60,9 +60,17 @@ describe('computeWeekStreak', () => {
 })
 
 describe('last7DaysActivity', () => {
-  it('marks only the days that have a session, oldest to today', () => {
-    // NOW (2026-09-16) is the trailing 7th day; 2026-09-14 is two days before it.
+  it('marks only the days that have a session, oldest to today, with weekday initials', () => {
+    // NOW (2026-09-16, a Wednesday) is the trailing 7th day; 09-14 is two days before it.
     const result = last7DaysActivity(['2026-09-16', '2026-09-14'], NOW)
-    expect(result).toEqual([false, false, false, false, true, false, true])
+    expect(result).toEqual([
+      { label: 'T', active: false, isToday: false }, // Thu 09-10
+      { label: 'F', active: false, isToday: false }, // Fri 09-11
+      { label: 'S', active: false, isToday: false }, // Sat 09-12
+      { label: 'S', active: false, isToday: false }, // Sun 09-13
+      { label: 'M', active: true, isToday: false }, // Mon 09-14
+      { label: 'T', active: false, isToday: false }, // Tue 09-15
+      { label: 'W', active: true, isToday: true }, // Wed 09-16 (today)
+    ])
   })
 })

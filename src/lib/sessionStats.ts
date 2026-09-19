@@ -1,4 +1,5 @@
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEKDAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const MONTH_NAMES = [
   'Jan',
   'Feb',
@@ -85,13 +86,25 @@ export function computeWeekStreak(dateStrs: string[], now: Date = new Date()): n
   return streak
 }
 
-/** Whether each of the last 7 calendar days (oldest → today) had a session. */
-export function last7DaysActivity(dateStrs: string[], now: Date = new Date()): boolean[] {
+/** One day in a {@link last7DaysActivity} strip. */
+export interface DayActivity {
+  /** Single-letter weekday initial, e.g. "M". */
+  label: string
+  active: boolean
+  isToday: boolean
+}
+
+/** The last 7 calendar days (oldest → today), each flagged for whether it had a session. */
+export function last7DaysActivity(dateStrs: string[], now: Date = new Date()): DayActivity[] {
   const days = new Set(dateStrs)
   const today = startOfDay(now)
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today)
     d.setDate(d.getDate() - (6 - i))
-    return days.has(toDateKey(d))
+    return {
+      label: WEEKDAY_INITIALS[d.getDay()]!,
+      active: days.has(toDateKey(d)),
+      isToday: i === 6,
+    }
   })
 }

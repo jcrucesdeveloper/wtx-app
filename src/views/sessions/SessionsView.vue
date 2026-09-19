@@ -97,11 +97,16 @@ const volumeDeltas = computed(() => {
       </div>
       <div class="consistency__days">
         <span
-          v-for="(active, i) in last7Days"
+          v-for="(day, i) in last7Days"
           :key="i"
-          class="consistency__dot"
-          :class="{ 'consistency__dot--active': active, 'consistency__dot--today': i === 6 }"
-        />
+          class="consistency__day"
+          :class="{
+            'consistency__day--active': day.active,
+            'consistency__day--today': day.isToday,
+          }"
+        >
+          {{ day.label }}
+        </span>
       </div>
     </div>
 
@@ -242,20 +247,28 @@ const volumeDeltas = computed(() => {
   flex-shrink: 0;
 }
 
-.consistency__dot {
-  width: 9px;
-  height: 9px;
+.consistency__day {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text);
+  opacity: 0.5;
   background: var(--color-background-mute);
   border: 1px solid var(--color-border);
 }
 
-.consistency__dot--active {
+.consistency__day--active {
   background: var(--color-accent);
   border-color: var(--color-accent);
+  color: #fff;
+  opacity: 1;
 }
 
-.consistency__dot--today {
+.consistency__day--today {
   box-shadow:
     0 0 0 2px var(--color-background-soft),
     0 0 0 3px var(--color-border-hover);
