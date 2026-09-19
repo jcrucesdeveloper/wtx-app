@@ -28,6 +28,19 @@ const stats = computed(() => {
   return { totalSets, completedSets, completedExercises, totalExercises: exercises.length }
 })
 
+const progressPercent = computed(() =>
+  stats.value.totalSets > 0
+    ? Math.round((stats.value.completedSets / stats.value.totalSets) * 100)
+    : 0,
+)
+
+const progressLabel = computed(() => {
+  const { totalSets, completedSets } = stats.value
+  if (totalSets === 0) return ''
+  if (completedSets >= totalSets) return 'All sets done'
+  return `${totalSets - completedSets} set${totalSets - completedSets === 1 ? '' : 's'} to go`
+})
+
 const menuOpen = ref(false)
 function closeMenu() {
   menuOpen.value = false
@@ -99,15 +112,26 @@ function onStartGroupWorkout() {
 
     <template v-else>
       <div class="stats-bar">
-        <div class="stats-bar__time">
-          <span class="stats-bar__time-label">Elapsed</span>
-          <span class="stats-bar__time-value">{{ formatClock(activeSession.elapsedSeconds) }}</span>
+        <div class="stats-bar__row">
+          <div class="stats-bar__time">
+            <span class="stats-bar__time-label">Elapsed</span>
+            <span class="stats-bar__time-value">{{
+              formatClock(activeSession.elapsedSeconds)
+            }}</span>
+          </div>
+          <div class="stats-bar__chips">
+            <span class="chip">
+              {{ stats.completedExercises }}/{{ stats.totalExercises }} exercises
+            </span>
+            <span class="chip">{{ stats.completedSets }}/{{ stats.totalSets }} sets</span>
+          </div>
         </div>
-        <div class="stats-bar__chips">
-          <span class="chip">
-            {{ stats.completedExercises }}/{{ stats.totalExercises }} exercises
-          </span>
-          <span class="chip">{{ stats.completedSets }}/{{ stats.totalSets }} sets</span>
+
+        <div v-if="stats.totalSets > 0" class="stats-bar__progress">
+          <div class="stats-bar__progress-track">
+            <div class="stats-bar__progress-fill" :style="{ width: progressPercent + '%' }" />
+          </div>
+          <span class="stats-bar__progress-label">{{ progressLabel }}</span>
         </div>
       </div>
 
@@ -150,14 +174,20 @@ function onStartGroupWorkout() {
 
 .stats-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   margin: 0 0 14px;
   padding: 12px 14px;
   border-radius: var(--radius-lg);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
+}
+
+.stats-bar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .stats-bar__time {
@@ -187,7 +217,6 @@ function onStartGroupWorkout() {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 6px;
-  align-self: flex-end;
 }
 
 .chip {
@@ -199,6 +228,36 @@ function onStartGroupWorkout() {
   border: 1px solid var(--color-border);
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stats-bar__progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stats-bar__progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-mute);
+  overflow: hidden;
+}
+
+.stats-bar__progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transition: width 0.3s ease;
+}
+
+.stats-bar__progress-label {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text);
+  opacity: 0.7;
   white-space: nowrap;
 }
 
