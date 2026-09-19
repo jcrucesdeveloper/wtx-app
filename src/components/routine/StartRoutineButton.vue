@@ -1,32 +1,14 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { useRoutinesStore } from '@/stores/routines'
-import { useActiveSessionStore } from '@/stores/activeSession'
+import { useStartRoutine } from '@/composables/useStartRoutine'
 
 const props = defineProps<{
   routineId: string
 }>()
 
-const router = useRouter()
-const routines = useRoutinesStore()
-const activeSession = useActiveSessionStore()
+const { startRoutine } = useStartRoutine()
 
 function onClick() {
-  if (activeSession.isActive) {
-    if (activeSession.session?.routineId === props.routineId) {
-      router.push({ name: 'active-session' })
-      return
-    }
-    if (!confirm('You have a workout in progress. Discard it and start this one?')) return
-    activeSession.discard()
-  }
-
-  const result = routines.parsed(props.routineId)
-  const routine = routines.getById(props.routineId)
-  if (!result?.ok || !routine) return
-
-  activeSession.start(routine, result.template)
-  router.push({ name: 'active-session' })
+  startRoutine(props.routineId)
 }
 </script>
 

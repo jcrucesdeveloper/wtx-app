@@ -6,7 +6,9 @@ import AppPage from '@/components/AppPage.vue'
   <AppPage title="Social">
     <div class="empty">
       <p class="empty__title">Coming soon</p>
-      <p class="empty__hint">Social features are still in the works.</p>
+      <p class="empty__hint">
+        Training with friends, group sessions, and the rest of social are still in the works.
+      </p>
     </div>
   </AppPage>
 </template>

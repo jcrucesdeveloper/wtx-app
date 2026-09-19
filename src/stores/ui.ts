@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 /** Bottom sheets that hang off the WTX button — only one is open at a time. */
-export type Sheet = 'menu' | 'load' | 'create'
+export type Sheet = 'menu' | 'start' | 'load' | 'create'
 
 /** Transient UI state shared across screens (not persisted). */
 export const useUiStore = defineStore('ui', () => {
@@ -17,6 +17,7 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   const menuOpen = computed(() => activeSheet.value === 'menu')
+  const startSheetOpen = computed(() => activeSheet.value === 'start')
   const loadSheetOpen = computed(() => activeSheet.value === 'load')
   const createSheetOpen = computed(() => activeSheet.value === 'create')
 
@@ -35,6 +36,7 @@ export const useUiStore = defineStore('ui', () => {
     open,
     close,
     menuOpen,
+    startSheetOpen,
     loadSheetOpen,
     createSheetOpen,
     openLoadSheet,
