@@ -1,5 +1,4 @@
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const WEEKDAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const MONTH_NAMES = [
   'Jan',
   'Feb',
@@ -23,13 +22,6 @@ function parseLocalDate(dateStr: string): Date {
 
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate())
-}
-
-function toDateKey(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
 }
 
 function daysBetween(a: Date, b: Date): number {
@@ -67,13 +59,18 @@ function mondayOf(date: Date): Date {
   return d
 }
 
+/** Set of Monday timestamps (local midnight) for every week that has a session. */
+function weeksWithSessions(dateStrs: string[]): Set<number> {
+  return new Set(dateStrs.map((d) => mondayOf(parseLocalDate(d)).getTime()))
+}
+
 /**
  * Consecutive weeks (Mon–Sun) with at least one session, walking back from
  * the current week. A week still in progress with no session yet doesn't
  * break the streak — it just isn't counted until it has one.
  */
 export function computeWeekStreak(dateStrs: string[], now: Date = new Date()): number {
-  const weeks = new Set(dateStrs.map((d) => mondayOf(parseLocalDate(d)).getTime()))
+  const weeks = weeksWithSessions(dateStrs)
 
   const cursor = mondayOf(now)
   if (!weeks.has(cursor.getTime())) cursor.setDate(cursor.getDate() - 7)
@@ -86,25 +83,28 @@ export function computeWeekStreak(dateStrs: string[], now: Date = new Date()): n
   return streak
 }
 
-/** One day in a {@link last7DaysActivity} strip. */
-export interface DayActivity {
-  /** Single-letter weekday initial, e.g. "M". */
-  label: string
+/** One week in a {@link recentWeeksActivity} strip. */
+export interface WeekActivity {
   active: boolean
-  isToday: boolean
+  isCurrent: boolean
 }
 
-/** The last 7 calendar days (oldest → today), each flagged for whether it had a session. */
-export function last7DaysActivity(dateStrs: string[], now: Date = new Date()): DayActivity[] {
-  const days = new Set(dateStrs)
-  const today = startOfDay(now)
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today)
-    d.setDate(d.getDate() - (6 - i))
-    return {
-      label: WEEKDAY_INITIALS[d.getDay()]!,
-      active: days.has(toDateKey(d)),
-      isToday: i === 6,
-    }
+/**
+ * The last `count` calendar weeks (Mon–Sun, oldest → current), each flagged
+ * for whether it had a session. Same weekly unit as {@link computeWeekStreak},
+ * so the streak number and the strip always agree.
+ */
+export function recentWeeksActivity(
+  dateStrs: string[],
+  count = 8,
+  now: Date = new Date(),
+): WeekActivity[] {
+  const weeks = weeksWithSessions(dateStrs)
+  const thisMonday = mondayOf(now)
+
+  return Array.from({ length: count }, (_, i) => {
+    const monday = new Date(thisMonday)
+    monday.setDate(monday.getDate() - (count - 1 - i) * 7)
+    return { active: weeks.has(monday.getTime()), isCurrent: i === count - 1 }
   })
 }

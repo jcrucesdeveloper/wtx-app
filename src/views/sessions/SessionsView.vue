@@ -10,7 +10,7 @@ import {
   formatSessionDate,
   recencyGroup,
   computeWeekStreak,
-  last7DaysActivity,
+  recentWeeksActivity,
   type RecencyGroup,
 } from '@/lib/sessionStats'
 
@@ -28,7 +28,7 @@ const sessionDates = computed(() =>
 )
 
 const weekStreak = computed(() => computeWeekStreak(sessionDates.value))
-const last7Days = computed(() => last7DaysActivity(sessionDates.value))
+const recentWeeks = computed(() => recentWeeksActivity(sessionDates.value))
 
 const RECENCY_ORDER: RecencyGroup[] = ['This week', 'Last week', 'Earlier']
 
@@ -80,34 +80,35 @@ const volumeDeltas = computed(() => {
     </RouterLink>
 
     <div v-if="items.length" class="consistency">
-      <div class="consistency__streak">
-        <Flame
-          :size="20"
-          :stroke-width="2.25"
-          class="consistency__flame"
-          :class="{ 'consistency__flame--active': weekStreak > 0 }"
-        />
-        <template v-if="weekStreak > 0">
-          <span class="consistency__streak-value">{{ weekStreak }}</span>
-          <span class="consistency__streak-label"
-            >week{{ weekStreak === 1 ? '' : 's' }} in a row</span
-          >
-        </template>
-        <span v-else class="consistency__streak-label">Train this week to start a streak</span>
+      <div class="consistency__row">
+        <div class="consistency__streak">
+          <Flame
+            :size="20"
+            :stroke-width="2.25"
+            class="consistency__flame"
+            :class="{ 'consistency__flame--active': weekStreak > 0 }"
+          />
+          <template v-if="weekStreak > 0">
+            <span class="consistency__streak-value">{{ weekStreak }}</span>
+            <span class="consistency__streak-label"
+              >week{{ weekStreak === 1 ? '' : 's' }} in a row</span
+            >
+          </template>
+          <span v-else class="consistency__streak-label">Train this week to start a streak</span>
+        </div>
+        <div class="consistency__weeks">
+          <span
+            v-for="(week, i) in recentWeeks"
+            :key="i"
+            class="consistency__week"
+            :class="{
+              'consistency__week--active': week.active,
+              'consistency__week--current': week.isCurrent,
+            }"
+          />
+        </div>
       </div>
-      <div class="consistency__days">
-        <span
-          v-for="(day, i) in last7Days"
-          :key="i"
-          class="consistency__day"
-          :class="{
-            'consistency__day--active': day.active,
-            'consistency__day--today': day.isToday,
-          }"
-        >
-          {{ day.label }}
-        </span>
-      </div>
+      <span class="consistency__weeks-caption">Last {{ recentWeeks.length }} weeks</span>
     </div>
 
     <div v-if="!items.length" class="empty">
@@ -197,14 +198,20 @@ const volumeDeltas = computed(() => {
 
 .consistency {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
   padding: 12px 14px;
   margin-bottom: 16px;
   border-radius: var(--radius-lg);
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
+}
+
+.consistency__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .consistency__streak {
@@ -241,37 +248,38 @@ const volumeDeltas = computed(() => {
   white-space: nowrap;
 }
 
-.consistency__days {
+.consistency__weeks {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-.consistency__day {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--color-text);
-  opacity: 0.5;
+.consistency__week {
+  width: 10px;
+  height: 20px;
+  border-radius: var(--radius-xs);
   background: var(--color-background-mute);
   border: 1px solid var(--color-border);
 }
 
-.consistency__day--active {
+.consistency__week--active {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  color: #fff;
-  opacity: 1;
 }
 
-.consistency__day--today {
+.consistency__week--current {
   box-shadow:
     0 0 0 2px var(--color-background-soft),
     0 0 0 3px var(--color-border-hover);
+}
+
+.consistency__weeks-caption {
+  align-self: flex-end;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  opacity: 0.45;
 }
 
 .groups {
