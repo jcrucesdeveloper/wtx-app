@@ -73,11 +73,8 @@ function onNoteInput(event: Event) {
       <button type="button" class="actions__btn" @click="addSet">
         <Plus :size="14" :stroke-width="2.5" /> Add set
       </button>
-      <button type="button" class="actions__btn" @click="addWarmup">
-        <Plus :size="14" :stroke-width="2.5" /> Add warm-up
-      </button>
     </div>
-
+    
     <textarea
       class="note"
       rows="1"

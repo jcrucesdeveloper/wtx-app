@@ -69,16 +69,13 @@ function remove() {
     >
       <Check :size="16" :stroke-width="2.5" />
     </button>
-    <button type="button" class="row__remove" aria-label="Remove set" @click="remove">
-      <Trash2 :size="14" :stroke-width="2" />
-    </button>
   </div>
 </template>
 
 <style scoped>
 .row {
   display: grid;
-  grid-template-columns: 22px 1fr 1fr 34px 24px;
+  grid-template-columns: 22px 1fr 1fr 34px ;
   align-items: center;
   gap: 8px;
 }
