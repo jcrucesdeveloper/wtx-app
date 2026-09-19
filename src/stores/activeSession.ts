@@ -64,6 +64,8 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
 
   function tick() {
     now.value = Date.now()
+    const endsAt = session.value?.restEndsAt
+    if (endsAt && now.value >= endsAt) skipRestTimer()
   }
   const tickTimer = setInterval(tick, 1000)
   window.addEventListener('visibilitychange', tick)
