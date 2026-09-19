@@ -23,7 +23,7 @@ const stats = computed(() => {
     const doneSets = workingSets.filter((s) => s.completed)
     totalSets += workingSets.length
     completedSets += doneSets.length
-    if (workingSets.length > 0 && doneSets.length === workingSets.length) completedExercises++
+    if (doneSets.length > 0) completedExercises++
   }
   return { totalSets, completedSets, completedExercises, totalExercises: exercises.length }
 })
