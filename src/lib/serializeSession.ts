@@ -83,6 +83,9 @@ export function draftFromTemplate(
     const last = findLastExercise(lastSession, exercise.name)
     const lastWorking = last?.workingSets ?? []
 
+    const templateWeight = exercise.targetWeight ?? undefined
+    const templateReps = exercise.kind === 'time' ? exercise.durationSeconds : exercise.targetReps
+
     const loggedSets: SessionSetDraft[] = Array.from({ length: exercise.sets }, (_, i) => {
       const ghost = lastWorking[i] ?? lastWorking[lastWorking.length - 1]
       return {
@@ -91,8 +94,8 @@ export function draftFromTemplate(
         weight: null,
         reps: null,
         completed: false,
-        ghostWeight: ghost?.weight,
-        ghostReps: ghost?.reps,
+        ghostWeight: ghost?.weight ?? templateWeight,
+        ghostReps: ghost?.reps ?? templateReps,
       }
     })
 
