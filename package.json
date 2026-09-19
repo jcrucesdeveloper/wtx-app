@@ -15,9 +15,13 @@
     "lint:eslint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/",
     "sync:wtx": "node scripts/sync-wtx.mjs",
-    "sync:exercises": "node scripts/sync-exercise-db.mjs"
+    "sync:exercises": "node scripts/sync-exercise-db.mjs",
+    "cap:sync": "pnpm run build && npx cap sync android",
+    "cap:open": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
     "@lucide/vue": "^1.41.0",
     "pinia": "^4.0.2",
     "qr-scanner": "^1.4.2",
@@ -27,6 +31,8 @@
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
     "@tsconfig/node24": "^24.0.4",
     "@types/jsdom": "^28.0.3",
     "@types/node": "^24.13.3",
