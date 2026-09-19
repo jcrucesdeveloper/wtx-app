@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Check, Trash2 } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import type { SessionSetDraft } from '@/lib/serializeSession'
@@ -8,9 +9,16 @@ const props = defineProps<{
   set: SessionSetDraft
   label: string
   kind: 'reps' | 'time'
+  /** Exercise's planned weight/reps — last-resort placeholder when there's no ghost value. */
+  targetWeight: number
+  targetReps: number
 }>()
 
 const activeSession = useActiveSessionStore()
+
+/** Prefers "last time" data; falls back to the template's planned value so it's never a bare 0. */
+const placeholderWeight = computed(() => props.set.ghostWeight ?? props.targetWeight)
+const placeholderReps = computed(() => props.set.ghostReps ?? props.targetReps)
 
 function onWeightInput(event: Event) {
   const value = (event.target as HTMLInputElement).value
@@ -46,7 +54,7 @@ function remove() {
       class="row__input"
       type="number"
       inputmode="decimal"
-      :placeholder="set.ghostWeight !== undefined ? String(set.ghostWeight) : '0'"
+      :placeholder="String(placeholderWeight)"
       :value="set.weight ?? ''"
       @input="onWeightInput"
     />
@@ -54,9 +62,7 @@ function remove() {
       class="row__input"
       type="number"
       inputmode="numeric"
-      :placeholder="
-        set.ghostReps !== undefined ? String(set.ghostReps) : kind === 'time' ? 's' : '0'
-      "
+      :placeholder="kind === 'time' && placeholderReps === 0 ? 's' : String(placeholderReps)"
       :value="set.reps ?? ''"
       @input="onRepsInput"
     />
@@ -75,7 +81,7 @@ function remove() {
 <style scoped>
 .row {
   display: grid;
-  grid-template-columns: 22px 1fr 1fr 34px ;
+  grid-template-columns: 22px 1fr 1fr 34px;
   align-items: center;
   gap: 8px;
 }

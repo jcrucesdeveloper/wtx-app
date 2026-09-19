@@ -66,6 +66,8 @@ function onNoteInput(event: Event) {
         :set="set"
         :label="label"
         :kind="exercise.kind"
+        :target-weight="exercise.weight"
+        :target-reps="exercise.reps"
       />
     </div>
 
@@ -74,7 +76,7 @@ function onNoteInput(event: Event) {
         <Plus :size="14" :stroke-width="2.5" /> Add set
       </button>
     </div>
-    
+
     <textarea
       class="note"
       rows="1"
