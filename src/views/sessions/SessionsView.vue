@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { Flame } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
-import { formatClock } from '@/lib/format'
+import { formatClock, formatNumber } from '@/lib/format'
+import {
+  formatSessionDate,
+  recencyGroup,
+  computeWeekStreak,
+  last7DaysActivity,
+  type RecencyGroup,
+} from '@/lib/sessionStats'
 
 const sessions = useSessionsStore()
 const activeSession = useActiveSessionStore()
@@ -12,6 +20,55 @@ const activeSession = useActiveSessionStore()
 const items = computed(() =>
   sessions.list.map((session) => ({ session, result: sessions.parsed(session.id) })),
 )
+
+const sessionDates = computed(() =>
+  items.value
+    .map((item) => (item.result?.ok ? item.result.session.date : undefined))
+    .filter((d): d is string => d !== undefined),
+)
+
+const weekStreak = computed(() => computeWeekStreak(sessionDates.value))
+const last7Days = computed(() => last7DaysActivity(sessionDates.value))
+
+const RECENCY_ORDER: RecencyGroup[] = ['This week', 'Last week', 'Earlier']
+
+const groupedItems = computed(() => {
+  const buckets = new Map<RecencyGroup, typeof items.value>()
+  for (const item of items.value) {
+    const dateStr = item.result?.ok ? item.result.session.date : undefined
+    const label: RecencyGroup = dateStr ? recencyGroup(dateStr) : 'Earlier'
+    const bucket = buckets.get(label) ?? []
+    bucket.push(item)
+    buckets.set(label, bucket)
+  }
+  return RECENCY_ORDER.map((label) => ({ label, items: buckets.get(label) ?? [] })).filter(
+    (group) => group.items.length > 0,
+  )
+})
+
+/** Volume change vs. the previous logged session of the same routine. */
+const volumeDeltas = computed(() => {
+  const deltas = new Map<string, number>()
+  const flat = items.value
+
+  for (const [i, current] of flat.entries()) {
+    if (!current.result?.ok) continue
+    const routineId = current.session.routineId
+    if (!routineId) continue
+
+    const prev = flat
+      .slice(i + 1)
+      .find((item) => item.session.routineId === routineId && item.result?.ok)
+    if (!prev?.result?.ok) continue
+
+    const currentVolume = current.result.session.totalVolume
+    const prevVolume = prev.result.session.totalVolume
+    if (currentVolume === 0 && prevVolume === 0) continue
+    deltas.set(current.session.id, currentVolume - prevVolume)
+  }
+
+  return deltas
+})
 </script>
 
 <template>
@@ -22,25 +79,78 @@ const items = computed(() =>
       <span class="resume__time">{{ formatClock(activeSession.elapsedSeconds) }}</span>
     </RouterLink>
 
+    <div v-if="items.length" class="consistency">
+      <div class="consistency__streak">
+        <Flame
+          :size="20"
+          :stroke-width="2.25"
+          class="consistency__flame"
+          :class="{ 'consistency__flame--active': weekStreak > 0 }"
+        />
+        <template v-if="weekStreak > 0">
+          <span class="consistency__streak-value">{{ weekStreak }}</span>
+          <span class="consistency__streak-label"
+            >week{{ weekStreak === 1 ? '' : 's' }} in a row</span
+          >
+        </template>
+        <span v-else class="consistency__streak-label">Train this week to start a streak</span>
+      </div>
+      <div class="consistency__days">
+        <span
+          v-for="(active, i) in last7Days"
+          :key="i"
+          class="consistency__dot"
+          :class="{ 'consistency__dot--active': active, 'consistency__dot--today': i === 6 }"
+        />
+      </div>
+    </div>
+
     <div v-if="!items.length" class="empty">
       <p class="empty__title">No sessions yet</p>
       <p class="empty__hint">Start a routine to log your first workout.</p>
     </div>
 
-    <ul v-else class="list">
-      <li v-for="{ session, result } in items" :key="session.id">
-        <RouterLink :to="`/sessions/${session.id}`" class="row">
-          <span class="row__date">{{ result?.ok ? result.session.date : '—' }}</span>
-          <span class="row__name">{{ result?.ok ? result.session.name : session.filename }}</span>
-          <span
-            class="row__status"
-            :class="{ 'row__status--done': result?.ok && result.session.isComplete }"
-          >
-            {{ result?.ok ? (result.session.isComplete ? 'Done' : 'Partial') : 'Error' }}
-          </span>
-        </RouterLink>
-      </li>
-    </ul>
+    <div v-else class="groups">
+      <section v-for="group in groupedItems" :key="group.label" class="group">
+        <h2 class="group__label">{{ group.label }}</h2>
+        <ul class="list">
+          <li v-for="{ session, result } in group.items" :key="session.id">
+            <RouterLink :to="`/sessions/${session.id}`" class="row">
+              <div class="row__top">
+                <span class="row__date">{{
+                  result?.ok ? formatSessionDate(result.session.date) : '—'
+                }}</span>
+                <span class="row__name">{{
+                  result?.ok ? result.session.name : session.filename
+                }}</span>
+                <span
+                  class="row__status"
+                  :class="{ 'row__status--done': result?.ok && result.session.isComplete }"
+                >
+                  {{ result?.ok ? (result.session.isComplete ? 'Done' : 'Partial') : 'Error' }}
+                </span>
+              </div>
+
+              <div v-if="result?.ok" class="row__stats">
+                <span class="chip">{{ result.session.exerciseCount }} exercises</span>
+                <span class="chip">{{ result.session.totalWorkingSets }} sets</span>
+                <span v-if="result.session.totalVolume > 0" class="chip">
+                  {{ formatNumber(result.session.totalVolume) }} {{ result.session.unit }}
+                </span>
+                <span
+                  v-if="volumeDeltas.get(session.id)"
+                  class="chip"
+                  :class="volumeDeltas.get(session.id)! > 0 ? 'chip--up' : 'chip--down'"
+                >
+                  {{ volumeDeltas.get(session.id)! > 0 ? '▲' : '▼' }}
+                  {{ formatNumber(Math.abs(volumeDeltas.get(session.id)!)) }}
+                </span>
+              </div>
+            </RouterLink>
+          </li>
+        </ul>
+      </section>
+    </div>
   </AppPage>
 </template>
 
@@ -80,6 +190,92 @@ const items = computed(() =>
   opacity: 0.9;
 }
 
+.consistency {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+}
+
+.consistency__streak {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.consistency__flame {
+  flex-shrink: 0;
+  color: var(--color-text);
+  opacity: 0.35;
+}
+
+.consistency__flame--active {
+  color: var(--color-accent);
+  opacity: 1;
+}
+
+.consistency__streak-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.consistency__streak-label {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.consistency__days {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.consistency__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
+}
+
+.consistency__dot--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.consistency__dot--today {
+  box-shadow:
+    0 0 0 2px var(--color-background-soft),
+    0 0 0 3px var(--color-border-hover);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.group__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  opacity: 0.55;
+  margin-bottom: 8px;
+}
+
 .list {
   list-style: none;
   display: flex;
@@ -89,10 +285,9 @@ const items = computed(() =>
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 48px 1fr auto;
-  align-items: center;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 13px 14px;
   border-radius: var(--radius-md);
   background: var(--color-background-soft);
@@ -101,7 +296,15 @@ const items = computed(() =>
   color: inherit;
 }
 
+.row__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .row__date {
+  flex-shrink: 0;
+  min-width: 44px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -110,6 +313,8 @@ const items = computed(() =>
 }
 
 .row__name {
+  flex: 1;
+  min-width: 0;
   font-weight: 600;
   color: var(--color-heading);
   overflow: hidden;
@@ -118,6 +323,7 @@ const items = computed(() =>
 }
 
 .row__status {
+  flex-shrink: 0;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -132,6 +338,34 @@ const items = computed(() =>
   color: var(--color-accent);
   border-color: var(--color-accent);
   opacity: 1;
+}
+
+.row__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: var(--radius-xs);
+  background: var(--color-background-mute);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chip--up {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.chip--down {
+  color: #e11d48;
+  border-color: #e11d48;
 }
 
 .empty {
