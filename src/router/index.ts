@@ -31,9 +31,9 @@ const router = createRouter({
       component: () => import('../views/sessions/SessionDetailView.vue'),
     },
     {
-      path: '/friends',
-      name: 'friends',
-      component: () => import('../views/social/FriendsView.vue'),
+      path: '/social',
+      name: 'social',
+      component: () => import('../views/social/SocialView.vue'),
     },
     {
       path: '/settings',
