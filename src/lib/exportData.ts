@@ -1,4 +1,4 @@
-import { zipSync, type Zippable } from 'fflate'
+import { unzipSync, zipSync, type Zippable } from 'fflate'
 import type { StoredRoutine } from '@/stores/routines'
 import type { StoredSession } from '@/stores/sessions'
 
@@ -62,4 +62,50 @@ export function downloadDataExport(zip: Uint8Array, filename = exportFilename())
   } finally {
     URL.revokeObjectURL(url)
   }
+}
+
+/** A single file recovered from an imported export zip. */
+export interface ImportedFile {
+  filename: string
+  rawText: string
+}
+
+/** The contents of a `.zip` built by {@link buildDataExportZip}. */
+export interface ParsedDataExport {
+  routines: ImportedFile[]
+  sessions: ImportedFile[]
+}
+
+/** Reads back a `.zip` built by {@link buildDataExportZip}, ignoring anything outside those two folders. */
+export function parseDataExportZip(bytes: Uint8Array): ParsedDataExport {
+  const entries = unzipSync(bytes)
+  const decoder = new TextDecoder()
+  const routines: ImportedFile[] = []
+  const sessions: ImportedFile[] = []
+
+  for (const [path, data] of Object.entries(entries)) {
+    if (path.endsWith('/')) continue
+    const filename = path.slice(path.lastIndexOf('/') + 1)
+    const rawText = decoder.decode(data)
+    if (path.startsWith('routines/')) routines.push({ filename, rawText })
+    else if (path.startsWith('sessions/')) sessions.push({ filename, rawText })
+  }
+
+  return { routines, sessions }
+}
+
+/**
+ * Recovers a `.wts` file's original save time from its exported filename's
+ * `HHmm` suffix (see {@link StoredSession.filename}'s naming scheme), anchored
+ * to the session's own date. Falls back to `now` if the filename doesn't
+ * match that scheme, e.g. a file renamed before re-importing.
+ */
+export function importedSessionAddedAt(filename: string, dateStr: string, now = Date.now()): number {
+  const time = /-(\d{2})(\d{2})\.wts$/i.exec(filename)
+  const [year, month, day] = dateStr.split('-').map(Number)
+  if (!time || !year || !month || !day) return now
+
+  const hours = Number(time[1])
+  const minutes = Number(time[2])
+  return new Date(year, month - 1, day, hours, minutes).getTime()
 }

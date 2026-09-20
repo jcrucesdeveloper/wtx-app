@@ -29,8 +29,8 @@ export interface RoutineDraft {
 }
 
 /** A blank draft with one empty rep-based exercise. */
-export function emptyDraft(): RoutineDraft {
-  return { name: '', unit: 'kg', notes: '', tags: [], exercises: [emptyExercise()] }
+export function emptyDraft(unit = 'kg'): RoutineDraft {
+  return { name: '', unit, notes: '', tags: [], exercises: [emptyExercise()] }
 }
 
 /** A blank rep-based exercise row. */
