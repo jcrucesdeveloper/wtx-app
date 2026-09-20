@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft } from '@lucide/vue'
+import { ArrowLeft, EllipsisVertical } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
 import { useSessionsStore } from '@/stores/sessions'
@@ -15,9 +15,25 @@ const id = computed(() => String(route.params.id))
 const stored = computed(() => sessions.getById(id.value))
 const result = computed(() => (stored.value ? sessions.parsed(id.value) : null))
 
+const menuOpen = ref(false)
+
+function closeMenu() {
+  menuOpen.value = false
+}
+onMounted(() => document.addEventListener('click', closeMenu))
+onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
+
 function goBack() {
   if (window.history.length > 1) router.back()
   else router.replace('/sessions')
+}
+
+function onDelete() {
+  menuOpen.value = false
+  if (!stored.value) return
+  if (!confirm('Delete this session from your history?')) return
+  sessions.remove(stored.value.id)
+  router.replace('/sessions')
 }
 </script>
 
@@ -27,6 +43,23 @@ function goBack() {
       <button type="button" class="icon-btn" aria-label="Back" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
       </button>
+    </template>
+    <template v-if="stored" #actions>
+      <div class="menu">
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label="Session options"
+          @click.stop="menuOpen = !menuOpen"
+        >
+          <EllipsisVertical :size="18" :stroke-width="2.25" />
+        </button>
+        <div v-if="menuOpen" class="menu__panel" @click.stop>
+          <button type="button" class="menu__item menu__item--danger" @click="onDelete">
+            Delete session
+          </button>
+        </div>
+      </div>
     </template>
 
     <p v-if="!stored" class="msg">This session is no longer in your history.</p>
@@ -78,6 +111,46 @@ function goBack() {
 
 .icon-btn:first-child {
   margin-left: -4px;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-hover);
+  background: var(--color-background);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.menu__item {
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.menu__item:hover,
+.menu__item:focus-visible {
+  background: var(--color-background-mute);
+}
+
+.menu__item--danger {
+  color: #e11d48;
 }
 
 .stack {

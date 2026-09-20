@@ -34,3 +34,21 @@ export function formatClock(totalSeconds: number): string {
 export function formatNumber(value: number): string {
   return Math.round(value).toLocaleString('en-US').replace(/,/g, ' ')
 }
+
+/** Local wall-clock time for a timestamp, e.g. "6:45 PM". */
+export function formatTimeOfDay(ms: number): string {
+  const date = new Date(ms)
+  const hours24 = date.getHours()
+  const hours = hours24 % 12 || 12
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const period = hours24 < 12 ? 'AM' : 'PM'
+  return `${hours}:${minutes} ${period}`
+}
+
+/** Filesystem-safe 24h "HHmm" stamp for a timestamp, for sortable, collision-resistant filenames. */
+export function formatFileTimeStamp(ms: number): string {
+  const date = new Date(ms)
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}${minutes}`
+}

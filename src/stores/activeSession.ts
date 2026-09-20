@@ -195,8 +195,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (!result.ok) throw new Error(result.error)
 
     const sessions = useSessionsStore()
-    const filename = `${session.value.draft.name || 'Session'} ${session.value.draft.date}.wts`
-    const stored = sessions.add(rawText, filename, session.value.routineId)
+    const stored = sessions.add(rawText, session.value.routineId, Date.now())
 
     session.value = null
     persist()

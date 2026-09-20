@@ -5,7 +5,7 @@ import { Flame } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
-import { formatClock, formatNumber } from '@/lib/format'
+import { formatClock, formatNumber, formatTimeOfDay } from '@/lib/format'
 import {
   formatSessionDate,
   recencyGroup,
@@ -123,9 +123,6 @@ const volumeDeltas = computed(() => {
           <li v-for="{ session, result } in group.items" :key="session.id">
             <RouterLink :to="`/sessions/${session.id}`" class="row">
               <div class="row__top">
-                <span class="row__date">{{
-                  result?.ok ? formatSessionDate(result.session.date) : '—'
-                }}</span>
                 <span class="row__name">{{
                   result?.ok ? result.session.name : session.filename
                 }}</span>
@@ -135,6 +132,13 @@ const volumeDeltas = computed(() => {
                 >
                   {{ result?.ok ? (result.session.isComplete ? 'Done' : 'Partial') : 'Error' }}
                 </span>
+              </div>
+
+              <div class="row__meta">
+                <span class="row__date">{{
+                  result?.ok ? formatSessionDate(result.session.date) : '—'
+                }}</span>
+                <span class="row__time">{{ formatTimeOfDay(session.addedAt) }}</span>
               </div>
 
               <div v-if="result?.ok" class="row__stats">
@@ -323,14 +327,26 @@ const volumeDeltas = computed(() => {
   gap: 10px;
 }
 
+.row__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: -4px;
+}
+
 .row__date {
-  flex-shrink: 0;
-  min-width: 44px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--label-tracking);
   opacity: 0.6;
+}
+
+.row__time {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.45;
+  font-variant-numeric: tabular-nums;
 }
 
 .row__name {
