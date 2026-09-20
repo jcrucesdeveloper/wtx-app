@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Share2, SquarePen } from '@lucide/vue'
+import { ArrowLeft, EllipsisVertical, Play, Share2, SquarePen, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
@@ -9,11 +9,13 @@ import StartRoutineButton from '@/components/routine/StartRoutineButton.vue'
 import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
+import { useStartRoutine } from '@/composables/useStartRoutine'
 import { parseTemplateText } from '@/lib/parseRoutine'
 
 const route = useRoute()
 const router = useRouter()
 const routines = useRoutinesStore()
+const { startRoutine } = useStartRoutine()
 
 const id = computed(() => String(route.params.id))
 const routine = computed(() => routines.getById(id.value))
@@ -27,10 +29,34 @@ const shareName = computed(() => {
 const showSource = ref(false)
 const shareOpen = ref(false)
 const editOpen = ref(false)
+const menuOpen = ref(false)
+
+function closeMenu() {
+  menuOpen.value = false
+}
+onMounted(() => document.addEventListener('click', closeMenu))
+onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 
 function goBack() {
   if (window.history.length > 1) router.back()
   else router.replace('/')
+}
+
+function onPlay() {
+  if (!routine.value) return
+  startRoutine(routine.value.id)
+}
+
+function onPlayWithFriends() {
+  router.push({ name: 'social' })
+}
+
+function onDelete() {
+  menuOpen.value = false
+  if (!routine.value) return
+  if (!confirm('Remove this routine from your library?')) return
+  routines.remove(routine.value.id)
+  router.replace('/')
 }
 </script>
 
@@ -42,12 +68,43 @@ function goBack() {
       </button>
     </template>
     <template v-if="routine && result" #actions>
+      <button
+        type="button"
+        class="icon-btn icon-btn--primary"
+        aria-label="Play routine"
+        @click="onPlay"
+      >
+        <Play :size="18" :stroke-width="2.25" fill="currentColor" />
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        aria-label="Play with friends"
+        @click="onPlayWithFriends"
+      >
+        <Users :size="18" :stroke-width="2.25" />
+      </button>
       <button type="button" class="icon-btn" aria-label="Edit routine" @click="editOpen = true">
         <SquarePen :size="18" :stroke-width="2.25" />
       </button>
       <button type="button" class="icon-btn" aria-label="Share routine" @click="shareOpen = true">
         <Share2 :size="18" :stroke-width="2.25" />
       </button>
+      <div class="menu">
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label="Routine options"
+          @click.stop="menuOpen = !menuOpen"
+        >
+          <EllipsisVertical :size="18" :stroke-width="2.25" />
+        </button>
+        <div v-if="menuOpen" class="menu__panel" @click.stop>
+          <button type="button" class="menu__item menu__item--danger" @click="onDelete">
+            Delete routine
+          </button>
+        </div>
+      </div>
     </template>
 
     <p v-if="!routine" class="msg">This routine is no longer in your library.</p>
@@ -101,6 +158,57 @@ function goBack() {
 /* Pull the back button to the visual edge so the tap target still feels inset. */
 .icon-btn:first-child {
   margin-left: -4px;
+}
+
+.icon-btn--primary {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.icon-btn--primary:active {
+  background: var(--color-accent);
+  opacity: 0.85;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-hover);
+  background: var(--color-background);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.menu__item {
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.menu__item:hover,
+.menu__item:focus-visible {
+  background: var(--color-background-mute);
+}
+
+.menu__item--danger {
+  color: #e11d48;
 }
 
 .stack {

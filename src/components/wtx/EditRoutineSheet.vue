@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { Trash2 } from '@lucide/vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { draftFromTemplate, emptyDraft, serializeTemplate } from '@/lib/serializeRoutine'
@@ -17,7 +15,6 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
-const router = useRouter()
 const routines = useRoutinesStore()
 
 const draft = ref(emptyDraft())
@@ -61,29 +58,10 @@ function close() {
   persist()
   emit('update:open', false)
 }
-
-function onDelete() {
-  if (!confirm('Remove this routine from your library?')) return
-  clearTimeout(saveTimer)
-  routines.remove(props.routineId)
-  emit('update:open', false)
-  router.replace('/')
-}
 </script>
 
 <template>
   <BottomSheet :open="open" title="Edit routine" full-height @close="close">
-    <template #actions>
-      <button
-        type="button"
-        class="icon-btn icon-btn--danger"
-        aria-label="Delete routine"
-        @click="onDelete"
-      >
-        <Trash2 :size="18" :stroke-width="2.25" />
-      </button>
-    </template>
-
     <RoutineForm v-model="draft" />
 
     <p v-if="!result.ok" class="error">{{ result.error }}</p>
@@ -92,20 +70,6 @@ function onDelete() {
 </template>
 
 <style scoped>
-.icon-btn {
-  display: grid;
-  place-items: center;
-  border: none;
-  background: transparent;
-  padding: 6px;
-  cursor: pointer;
-  opacity: 0.6;
-}
-
-.icon-btn--danger {
-  color: #e11d48;
-}
-
 .error {
   font-size: 13px;
   color: #e11d48;
