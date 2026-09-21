@@ -124,23 +124,43 @@ in sync.
   Xcode/App Store Connect handles corner masking.
 - **Android** uses an adaptive icon (background layer + foreground layer,
   composited and masked by the launcher at runtime):
+  - `icon.html` and `icon-foreground.html` both hardcode their canvas size in
+    CSS (`html, body { width/height: 1024px / 432px }`), so headless
+    Chrome's `--window-size` does **not** rescale their content — a smaller
+    window only crops the fixed-size render instead of shrinking it. Always
+    render at the file's native size (1024 for `icon.html`, 432 for
+    `icon-foreground.html`) and downscale from there with Pillow
+    (`Image.resize(..., Image.LANCZOS)`, keeping the alpha channel for the
+    foreground), never with a smaller `--window-size`.
   - `icon-foreground.html` renders *only* the mark, transparent background,
     sized to fit inside the adaptive-icon safe zone (inner 66/108 of the
     canvas) so it survives circle/squircle/rounded-square launcher masks.
-    Render it with `--default-background-color=00000000` (see
-    `--screenshot` flags above) at 108/162/216/324/432px and copy each into
+    Render it once at 432×432 with `--default-background-color=00000000`
+    (see `--screenshot` flags above), then downscale to 108/162/216/324 and
+    copy each into
     `android/app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher_foreground.png`.
-  - The background layer is `android/app/src/main/res/drawable/ic_launcher_background.xml`,
-    a gradient `<shape>` matching `icon.html`'s tile gradient — edit it
-    directly if the palette changes, no image export needed.
+  - The background layer is the flat color in
+    `android/app/src/main/res/values/ic_launcher_background.xml`
+    (`#181818`, matching `icon.html`'s background) — edit it directly if the
+    palette changes, no image export needed.
   - The legacy (pre-Android-8, non-adaptive) launcher icons still need full
-    flat PNGs: render `icon.html` itself at 48/72/96/144/192px into each
-    density's `ic_launcher.png`, then circle-crop those into
-    `ic_launcher_round.png` (e.g. via Pillow — paste through an ellipse
-    mask). Both `mipmap-anydpi-v26/ic_launcher*.xml` already point at
-    `@drawable/ic_launcher_background` + `@mipmap/ic_launcher_foreground`.
+    flat PNGs: render `icon.html` once at 1024×1024, downscale to
+    48/72/96/144/192px into each density's `ic_launcher.png`, then circle-crop
+    those into `ic_launcher_round.png` (e.g. via Pillow — paste through an
+    ellipse mask). Both `mipmap-anydpi-v26/ic_launcher*.xml` already point at
+    `@color/ic_launcher_background` + `@mipmap/ic_launcher_foreground`.
 
-## Uploading
+## Browser favicon (`public/favicon.ico`)
+
+`icon.html`'s composition (mark filling ~41%×21% of the canvas) reads fine
+as an app icon, where OS chrome (rounded corners, shadow, safe zone) adds
+visual weight around it, but it's too small and thin to read at 16×16/32×32
+in a browser tab. The favicon instead uses the same colors and the same
+mark geometry, cropped tighter — viewBox `7 7 86 86` instead of `0 0 100 100`
+(no separate HTML file; it's simple enough to draw directly with Pillow
+`rounded_rectangle`, scaling each rect's viewBox coordinates by
+`size / 86`). Regenerate at 16/32/48/64px and save as a single multi-size
+`.ico` (`Image.save(..., sizes=[(16,16),(32,32),(48,48),(64,64)])`).
 
 | Store | File | Target |
 |---|---|---|
