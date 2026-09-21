@@ -1,12 +1,54 @@
-# wtx
+<div align="center">
+  <img src="listing/visuals/png/icon.png" alt="wtx icon" width="96" height="96">
 
-A mobile-first web client for **wtx**, a plain-text workout format. Keep your
-training routines as small, human-readable `.wtt` files, then load, build, and
-share them from your phone — no account, no backend, nothing to sync.
+  # wtx
+
+  A mobile-first web client for **wtx**, a plain-text workout format.
+
+  [![License](https://img.shields.io/badge/license-source--available-red.svg)](./LICENSE)
+  [![Vue 3](https://img.shields.io/badge/Vue-3-42b883?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Vite](https://img.shields.io/badge/Vite-B73BFE?logo=vite&logoColor=white)](https://vite.dev/)
+</div>
+
+Keep your training routines as small, human-readable `.wtt` files, then load,
+build, and share them from your phone — no account, no backend, nothing to
+sync.
 
 Everything lives in the browser: routines are stored in `localStorage`, and
 sharing is done with self-contained links and QR codes that carry the whole
 routine in the URL.
+
+## Contents
+
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [The `.wtt` format](#the-wtt-format)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Project structure](#project-structure)
+- [The wtx parser](#the-wtx-parser)
+- [Deployment](#deployment)
+- [License](#license)
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="listing/visuals/screens/01-routines.png" alt="Routines library" width="220"><br>
+      <sub>Routines library</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="listing/visuals/screens/02-local-first.png" alt="Local-first configuration" width="220"><br>
+      <sub>Local-first, no account</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="listing/visuals/screens/03-share-qr.png" alt="Share a routine via QR" width="220"><br>
+      <sub>Share via QR</sub>
+    </td>
+  </tr>
+</table>
 
 ## Features
 
