@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — Store Visuals Gallery</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      body {
+        background: var(--bg-0);
+        min-height: 100vh;
+        padding: 48px 40px 96px;
+        color: var(--text-0);
+      }
+
+      .page-head {
+        max-width: 1040px;
+        margin: 0 auto 48px;
+      }
+
+      .page-head h1 {
+        font-size: 34px;
+        font-weight: 800;
+      }
+
+      .page-head p {
+        margin-top: 10px;
+        color: var(--text-1);
+        font-size: 16px;
+        line-height: 1.6;
+        max-width: 640px;
+      }
+
+      .section-title {
+        max-width: 1040px;
+        margin: 56px auto 20px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent-2);
+      }
+
+      .row {
+        max-width: 1040px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+      }
+
+      .tile {
+        background: var(--bg-1);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .tile .frame-wrap {
+        overflow: hidden;
+        background: #000;
+      }
+
+      .tile .cap {
+        padding: 12px 14px;
+        font-size: 13px;
+        color: var(--text-1);
+        font-weight: 600;
+        border-top: 1px solid var(--border);
+      }
+
+      /* phone-shaped preview: real HTML in an iframe, scaled down */
+      .phone .frame-wrap {
+        width: 195px;
+        height: calc(195px * 1920 / 1080);
+      }
+
+      .phone iframe {
+        width: 1080px;
+        height: 1920px;
+        border: 0;
+        transform: scale(0.1806);
+        transform-origin: top left;
+      }
+
+      .icon-tile .frame-wrap {
+        width: 160px;
+        height: 160px;
+      }
+
+      .icon-tile iframe {
+        width: 1024px;
+        height: 1024px;
+        border: 0;
+        transform: scale(0.15625);
+        transform-origin: top left;
+      }
+
+      .fg-tile .frame-wrap {
+        width: 360px;
+        height: 175.8px;
+      }
+
+      .fg-tile iframe {
+        width: 1024px;
+        height: 500px;
+        border: 0;
+        transform: scale(0.3516);
+        transform-origin: top left;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-head">
+      <h1>WTX — Store Visuals</h1>
+      <p>
+        Live previews of every HTML asset in this folder, rendered at true
+        proportions via scaled iframes. Edit any source file and reload this
+        page to see the change. Exported PNGs (ready to upload) live in
+        <code>png/</code> — see <code>README.md</code> for how they were made
+        and how to regenerate them.
+      </p>
+    </div>
+
+    <div class="section-title">Icon &amp; Feature Graphic</div>
+    <div class="row">
+      <div class="tile icon-tile">
+        <div class="frame-wrap"><iframe src="icon.html"></iframe></div>
+        <div class="cap">icon.html — 1024×1024</div>
+      </div>
+      <div class="tile fg-tile">
+        <div class="frame-wrap"><iframe src="feature-graphic.html"></iframe></div>
+        <div class="cap">feature-graphic.html — 1024×500 (Play only)</div>
+      </div>
+    </div>
+
+    <div class="section-title">Screenshots — Google Play size (1080×1920)</div>
+    <div class="row">
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/01-templates-library.html"></iframe></div>
+        <div class="cap">01 · Templates library</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/02-create-a-routine.html"></iframe></div>
+        <div class="cap">02 · Create a routine</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/03-share-via-qr.html"></iframe></div>
+        <div class="cap">03 · Share via QR</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/04-load-a-routine.html"></iframe></div>
+        <div class="cap">04 · Load a routine</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/05-wtt-format.html"></iframe></div>
+        <div class="cap">05 · The .wtt format</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/06-privacy.html"></iframe></div>
+        <div class="cap">06 · Privacy</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/07-accent-colors.html"></iframe></div>
+        <div class="cap">07 · Accent colors</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap"><iframe src="play-store/08-routine-detail.html"></iframe></div>
+        <div class="cap">08 · Routine detail</div>
+      </div>
+    </div>
+
+    <div class="section-title">Screenshots — App Store size (1290×2796)</div>
+    <div class="row">
+      <div class="tile phone">
+        <div class="frame-wrap" style="height: calc(195px * 2796 / 1290)">
+          <iframe src="app-store/01-templates-library.html" style="width: 1290px; height: 2796px; transform: scale(0.1512)"></iframe>
+        </div>
+        <div class="cap">01 · Templates library</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap" style="height: calc(195px * 2796 / 1290)">
+          <iframe src="app-store/03-share-via-qr.html" style="width: 1290px; height: 2796px; transform: scale(0.1512)"></iframe>
+        </div>
+        <div class="cap">03 · Share via QR</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap" style="height: calc(195px * 2796 / 1290)">
+          <iframe src="app-store/05-wtt-format.html" style="width: 1290px; height: 2796px; transform: scale(0.1512)"></iframe>
+        </div>
+        <div class="cap">05 · The .wtt format</div>
+      </div>
+      <div class="tile phone">
+        <div class="frame-wrap" style="height: calc(195px * 2796 / 1290)">
+          <iframe src="app-store/06-privacy.html" style="width: 1290px; height: 2796px; transform: scale(0.1512)"></iframe>
+        </div>
+        <div class="cap">06 · Privacy</div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX App Icon — 1024×1024</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      html,
+      body {
+        width: 1024px;
+        height: 1024px;
+      }
+
+      .icon {
+        width: 1024px;
+        height: 1024px;
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(120% 120% at 22% 12%, #34d399 0%, transparent 45%),
+          linear-gradient(155deg, #10b981 0%, #0a6e50 62%, #063a2b 100%);
+      }
+
+      /* soft top-light sheen, flat-modern not glassy */
+      .icon::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.16) 0%,
+          rgba(255, 255, 255, 0.04) 22%,
+          rgba(255, 255, 255, 0) 46%
+        );
+      }
+
+      .icon::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 42%;
+        background: linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.28) 0%,
+          rgba(0, 0, 0, 0) 100%
+        );
+      }
+
+      .mark {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mark svg {
+        width: 62%;
+        height: 62%;
+        filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="icon">
+      <div class="mark">
+        <svg viewBox="0 0 100 100" fill="none">
+          <polyline
+            points="17,23 32,79 50,47 68,79 83,23"
+            stroke="#f8fffb"
+            stroke-width="12.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+    </div>
+  </body>
+</html>
