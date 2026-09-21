@@ -2,10 +2,12 @@
 
 HTML/CSS source for every image asset needed to submit WTX to Google Play
 and the App Store, plus already-exported PNGs at exact store dimensions.
-Dark, accent-driven design using WTX's real palette
-(`src/config/theme.ts`), built to explain the actual shipped features from
-`../play-store/02-full-description.md` and `../app-store/02-description.md`
-— not generic stock-photo marketing.
+Dark, Signal-Red-accented design using WTX's real palette
+(`src/config/theme.ts`), wrapping **literal screenshots of the running app**
+(`screens/*.png`) — not illustrated recreations. Per current App Store/Play
+ASO guidance, real product UI converts better than stock-photo-style
+marketing art, and screenshots should make the actual UI large and
+dominant rather than small inside decorative padding.
 
 Open `index.html` in a browser for a live gallery of everything below.
 
@@ -14,32 +16,43 @@ Open `index.html` in a browser for a live gallery of everything below.
 ```
 visuals/
   styles.css              shared design system (colors, type, components)
-  icon.html                1024×1024 app icon — a bold "W" mark
+  icon.html                1024×1024 app icon — flat barbell mark
+  icon-foreground.html    transparent, safe-zone-sized mark for the Android adaptive icon
   feature-graphic.html     1024×500 Google Play feature graphic
-  src/                     8 screenshot templates ({{WIDTH}}/{{HEIGHT}} placeholders)
+  splash.html             native app splash screen, rendered per target size
+  screens/                real PNG captures of the running app (see below)
+  src/                     3 screenshot templates ({{WIDTH}}/{{HEIGHT}} placeholders)
   generate.mjs             stamps src/ templates into both store sizes
-  play-store/              8 generated screenshots, 1080×1920 (Google Play)
-  app-store/               8 generated screenshots, 1290×2796 (App Store, 6.9")
+  play-store/              3 generated screenshots, 1080×1920 (Google Play)
+  app-store/               3 generated screenshots, 1290×2796 (App Store, 6.9")
   png/                     exported PNGs, ready to upload — see below
   index.html               live preview gallery of every asset
 ```
 
-## The 8 screenshots, and which feature each one sells
+## The 3 screenshots, and which feature each one sells
 
-| # | File | Headline | Explains (from the store description) |
+| # | File | Headline | Real screen captured |
 |---|---|---|---|
-| 1 | `01-templates-library` | "Your routines, as text files you own." | Templates library — parsed exercise/set/muscle-group summaries |
-| 2 | `02-create-a-routine` | "Build a routine in seconds." | The create-routine form → serializes to `.wtt` |
-| 3 | `03-share-via-qr` | "Share it with a scan." | QR share/import, no account either side |
-| 4 | `04-load-a-routine` | "Paste it, pick it, or scan it." | The three load methods |
-| 5 | `05-wtt-format` | "It's just text." | The `.wtt` format itself — the core differentiator |
-| 6 | `06-privacy` | "Nothing leaves your phone." | No account / local-only storage |
-| 7 | `07-accent-colors` | "Make it yours." | Configurable accent color |
-| 8 | `08-routine-detail` | "Every set, at a glance." | Routine detail view (optional 8th slot) |
+| 1 | `01-routines-library` | "Every routine, one tap away." | Routines list — the default seeded library (push/pull/leg day), real computed exercise/time/volume stats |
+| 2 | `02-local-first` | "Nothing leaves your phone." | Configuration → Data — export/import/delete, no account UI anywhere in the app |
+| 3 | `03-share-via-qr` | "Share it with a scan." | The real Share sheet, with an actual scannable QR (not a decorative pattern) |
 
-Order matches `../assets/checklist.md`'s guidance: the first two/three slides
-carry the most conversion weight on both stores, so the differentiator
-(plain text, no account) leads rather than gets buried.
+The "routines with friends" idea was dropped: Social is a "Coming soon" stub
+with nothing real to screenshot yet. Add it back here once it ships.
+
+### Recapturing a screen after an app change
+
+The `screens/*.png` files are plain screenshots, not something this repo can
+regenerate on its own — recapture manually when the underlying screen
+changes:
+
+1. Run the app (`pnpm dev`), open the target screen in a phone-width window
+   (`#app` caps at 480px — anything ≤480px wide renders edge-to-edge like a
+   device).
+2. Screenshot it (a fresh/incognito profile gets the seeded default data
+   instead of your local dev state) and crop to just the app column.
+3. Save over the matching file in `screens/`, then re-run `node
+   generate.mjs` and re-export the PNGs (see below).
 
 ## Why one template works for both store sizes
 
@@ -80,13 +93,13 @@ CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"   # adjust for yo
 
 # One screenshot, Play size
 "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
-  --screenshot="png/play-store/01-templates-library.png" --window-size=1080,1920 \
-  "file:///$PWD/play-store/01-templates-library.html"
+  --screenshot="png/play-store/01-routines-library.png" --window-size=1080,1920 \
+  "file:///$PWD/play-store/01-routines-library.html"
 
 # Same screenshot, App Store size
 "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
-  --screenshot="png/app-store/01-templates-library.png" --window-size=1290,2796 \
-  "file:///$PWD/app-store/01-templates-library.html"
+  --screenshot="png/app-store/01-routines-library.png" --window-size=1290,2796 \
+  "file:///$PWD/app-store/01-routines-library.html"
 ```
 
 `--force-device-scale-factor=1` and `--hide-scrollbars` are what make the
@@ -133,7 +146,7 @@ in sync.
 |---|---|---|
 | Google Play | `png/icon-512.png` | App icon (512×512) |
 | Google Play | `png/feature-graphic.png` | Feature graphic (1024×500) |
-| Google Play | `png/play-store/*.png` | Phone screenshots (pick at least 2, up to 8 — all 8 are provided) |
+| Google Play | `png/play-store/*.png` | Phone screenshots (pick at least 2 — all 3 are provided) |
 | App Store | `png/icon.png` | App icon (1024×1024, Xcode/App Store Connect handles the mask) |
 | App Store | `png/app-store/*.png` | 6.9" iPhone screenshot set |
 
@@ -150,17 +163,12 @@ content changes.
   (`-apple-system`/`Segoe UI`/Roboto/etc.) and `Consolas`/`SF Mono`/`Menlo`
   for the code block — no Google Fonts, no CDN. Renders identically offline
   and won't break if a font host is unreachable at export time.
-- **The QR code in `03-share-via-qr` is decorative**, not a functional
-  scannable code (generated as a deterministic pseudo-random module pattern
-  with correct finder-square positions) — this is a marketing screenshot
-  illustrating the feature, not a real generated QR from the app. Don't
-  ship it anywhere it could be mistaken for a working import link.
-- **Nothing here is a literal screenshot of the running app UI** — these are
-  illustrated marketing slides in the app's visual language (colors,
-  rounded cards, the same information the real screens show), which is
-  standard practice for store screenshots and avoids needing the actual
-  Capacitor build running and captured pixel-for-pixel. If you'd rather have
-  literal device screenshots of the real app later, that's a separate pass
-  (run `pnpm cap:open` / `cap:open:ios` from the main app, capture each
-  screen, composite into a device frame) — this folder doesn't block that,
-  it's a legitimate alternative or complement to it.
+- **The QR code in `03-share-via-qr` is real** — `screens/03-share-qr.png` is
+  a literal capture of the app's own Share sheet (`uqr`-rendered, scans to
+  a real `?r=`-encoded import link), not a decorative pattern. Don't
+  recapture it against a `localhost` dev URL for an actual store submission —
+  recapture against the production domain first.
+- **Every screenshot wraps a literal capture of the running app**, not an
+  illustrated recreation — see "Recapturing a screen after an app change"
+  above. `styles.css`'s design system (colors, type, the `.device` frame) is
+  only the headline/subhead chrome around each real screenshot.
