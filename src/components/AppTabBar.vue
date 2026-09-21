@@ -64,8 +64,12 @@ const emit = defineEmits<{
 <style scoped>
 .tab-bar {
   position: sticky;
-  /* Sits above a native bottom AdBanner when one is showing — see AdBanner.vue. */
-  bottom: var(--ad-banner-height, 0px);
+  /* Sits above a native bottom AdBanner when one is showing — see AdBanner.vue.
+     --ad-banner-inset-fix corrects for the AdMob plugin placing the banner
+     one extra system-inset above where its height alone would put it — see
+     the SizeChanged listener in services/ads.ts. Both vars are 0px whenever
+     no banner is showing, so this is a no-op the rest of the time. */
+  bottom: calc(var(--ad-banner-height, 0px) + var(--ad-banner-inset-fix, 0px));
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(5, 1fr);

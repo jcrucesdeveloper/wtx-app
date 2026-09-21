@@ -74,6 +74,7 @@ export const AdService = {
   async hideBanner(): Promise<void> {
     if (!isNativePlatform()) return
     document.documentElement.style.setProperty('--ad-banner-height', '0px')
+    document.documentElement.style.setProperty('--ad-banner-inset-fix', '0px')
     try {
       await AdMob.removeBanner()
     } catch (err) {
@@ -134,5 +135,17 @@ async function doInit(): Promise<void> {
 
   AdMob.addListener(BannerAdPluginEvents.SizeChanged, (size: AdMobBannerSize) => {
     document.documentElement.style.setProperty('--ad-banner-height', `${size.height}px`)
+    // On Android 15+, the native AdMob plugin adds the bottom system-bar
+    // inset (gesture nav / 3-button bar) a *second* time as extra margin on
+    // the banner view, on top of the inset Capacitor's own WebView padding
+    // already accounts for — so from the page's point of view the banner
+    // sits one extra inset-height above where `--ad-banner-height` alone
+    // would put it. `--native-bottom-inset` is that raw inset in px, pushed
+    // in by MainActivity (Android WebView has no `env(safe-area-inset-*)`
+    // support to read it directly — that's WebKit/iOS-only). Reserve it only
+    // while a banner is actually showing, via a var that stays 0 otherwise
+    // (see hideBanner) so the normal no-ad bottom padding is untouched. See
+    // AppTabBar.vue.
+    document.documentElement.style.setProperty('--ad-banner-inset-fix', 'var(--native-bottom-inset, 0px)')
   })
 }
