@@ -18,7 +18,11 @@ const ui = useUiStore()
 <template>
   <div class="app-shell">
     <main class="app-content">
-      <RouterView />
+      <RouterView v-slot="{ Component, route }">
+        <Transition :name="(route.meta.transition as string | undefined) ?? ''" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
     <ResumeSessionBanner />
     <AppTabBar @menu="ui.open('menu')" />

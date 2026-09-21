@@ -72,12 +72,30 @@ function onDiscard() {
   router.replace('/sessions')
 }
 
+const finishing = ref(false)
+const reduceMotion =
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    : false
+
 function onFinish() {
-  const stored = activeSession.finish()
-  router.replace({ name: 'session-detail', params: { id: stored.id } })
-  // Let the summary render first so the interstitial reads as a break after
-  // the result, not something blocking it.
-  setTimeout(() => AdService.showInterstitial(), 500)
+  if (finishing.value) return
+  finishing.value = true
+
+  const go = () => {
+    const elapsedSeconds = activeSession.elapsedSeconds
+    const stored = activeSession.finish()
+    router.replace({
+      name: 'session-complete',
+      params: { id: stored.id },
+      query: { elapsed: String(elapsedSeconds) },
+    })
+  }
+
+  // A short beat of "squash" on the button before the page transition takes
+  // over, so the tap reads as acknowledged rather than an instant cut.
+  if (reduceMotion) go()
+  else setTimeout(go, 140)
 }
 
 function onStartGroupWorkout() {
@@ -116,7 +134,13 @@ function onStartGroupWorkout() {
           </button>
         </div>
       </div>
-      <button type="button" class="finish-btn" @click="onFinish">
+      <button
+        type="button"
+        class="finish-btn"
+        :class="{ 'finish-btn--pressed': finishing }"
+        :disabled="finishing"
+        @click="onFinish"
+      >
         <Check :size="16" :stroke-width="2.5" /> Finish
       </button>
     </template>
@@ -330,6 +354,25 @@ function onStartGroupWorkout() {
   color: #fff;
   background: var(--color-accent);
   cursor: pointer;
+}
+
+.finish-btn--pressed {
+  animation: finish-btn-punch 0.14s ease-out both;
+}
+
+@keyframes finish-btn-punch {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(0.88);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finish-btn--pressed {
+    animation: none;
+  }
 }
 
 .stack {

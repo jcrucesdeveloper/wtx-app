@@ -26,6 +26,12 @@ const router = createRouter({
       component: () => import('../views/sessions/ActiveSessionView.vue'),
     },
     {
+      path: '/sessions/:id/complete',
+      name: 'session-complete',
+      component: () => import('../views/sessions/SessionCompleteView.vue'),
+      meta: { transition: 'finish' },
+    },
+    {
       path: '/sessions/:id',
       name: 'session-detail',
       component: () => import('../views/sessions/SessionDetailView.vue'),

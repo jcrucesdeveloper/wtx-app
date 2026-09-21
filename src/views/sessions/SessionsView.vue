@@ -12,6 +12,7 @@ import {
   recencyGroup,
   computeWeekStreak,
   recentWeeksActivity,
+  routineVolumeDelta,
   type RecencyGroup,
 } from '@/lib/sessionStats'
 
@@ -50,24 +51,11 @@ const groupedItems = computed(() => {
 /** Volume change vs. the previous logged session of the same routine. */
 const volumeDeltas = computed(() => {
   const deltas = new Map<string, number>()
-  const flat = items.value
-
-  for (const [i, current] of flat.entries()) {
-    if (!current.result?.ok) continue
-    const routineId = current.session.routineId
-    if (!routineId) continue
-
-    const prev = flat
-      .slice(i + 1)
-      .find((item) => item.session.routineId === routineId && item.result?.ok)
-    if (!prev?.result?.ok) continue
-
-    const currentVolume = current.result.session.totalVolume
-    const prevVolume = prev.result.session.totalVolume
-    if (currentVolume === 0 && prevVolume === 0) continue
-    deltas.set(current.session.id, currentVolume - prevVolume)
+  for (const item of items.value) {
+    if (!item.result?.ok) continue
+    const delta = routineVolumeDelta(sessions.list, item.session)
+    if (delta !== undefined) deltas.set(item.session.id, delta)
   }
-
   return deltas
 })
 </script>

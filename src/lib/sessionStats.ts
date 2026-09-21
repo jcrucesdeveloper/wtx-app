@@ -1,3 +1,6 @@
+import { parseSessionText } from '@/lib/parseSession'
+import type { StoredSession } from '@/stores/sessions'
+
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTH_NAMES = [
   'Jan',
@@ -107,4 +110,32 @@ export function recentWeeksActivity(
     monday.setDate(monday.getDate() - (count - 1 - i) * 7)
     return { active: weeks.has(monday.getTime()), isCurrent: i === count - 1 }
   })
+}
+
+/**
+ * Volume change vs. the most recent earlier session of the same routine.
+ * `undefined` when there's no routine link, no prior session, or both sit at
+ * zero volume (nothing meaningful to compare).
+ */
+export function routineVolumeDelta(
+  sessions: StoredSession[],
+  session: StoredSession,
+): number | undefined {
+  if (!session.routineId) return undefined
+
+  const current = parseSessionText(session.rawText)
+  if (!current.ok) return undefined
+
+  const prev = sessions
+    .filter((s) => s.routineId === session.routineId && s.addedAt < session.addedAt)
+    .sort((a, b) => b.addedAt - a.addedAt)[0]
+  if (!prev) return undefined
+
+  const prevParsed = parseSessionText(prev.rawText)
+  if (!prevParsed.ok) return undefined
+
+  const currentVolume = current.session.totalVolume
+  const prevVolume = prevParsed.session.totalVolume
+  if (currentVolume === 0 && prevVolume === 0) return undefined
+  return currentVolume - prevVolume
 }
