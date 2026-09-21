@@ -4,6 +4,7 @@ export interface AccentColor {
 }
 
 export const ACCENT_COLORS: AccentColor[] = [
+  { name: 'Signal Red', value: '#e0263a' },
   { name: 'Emerald', value: '#10b981' },
   { name: 'Blue', value: '#3b82f6' },
   { name: 'Violet', value: '#8b5cf6' },
@@ -14,4 +15,4 @@ export const ACCENT_COLORS: AccentColor[] = [
   { name: 'Slate', value: '#64748b' },
 ]
 
-export const DEFAULT_ACCENT = '#10b981'
+export const DEFAULT_ACCENT = '#e0263a'

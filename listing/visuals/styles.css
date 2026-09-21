@@ -3,7 +3,7 @@
    Colors mirror src/config/theme.ts so marketing art matches the app. */
 
 :root {
-  --c-emerald: #10b981;
+  --c-signal: #e0263a;
   --c-blue: #3b82f6;
   --c-violet: #8b5cf6;
   --c-rose: #f43f5e;
@@ -12,9 +12,9 @@
   --c-lime: #84cc16;
   --c-slate: #64748b;
 
-  --accent: var(--c-emerald);
-  --accent-2: #34d399;
-  --accent-soft: rgba(16, 185, 129, 0.16);
+  --accent: var(--c-signal);
+  --accent-2: #ff5468;
+  --accent-soft: rgba(224, 38, 58, 0.18);
 
   --bg-0: #05080a;
   --bg-1: #0c1116;
@@ -55,7 +55,7 @@ body {
   flex-direction: column;
   background:
     radial-gradient(120% 70% at 50% -8%, var(--accent-soft), transparent 60%),
-    radial-gradient(90% 60% at 100% 110%, rgba(52, 211, 153, 0.08), transparent 55%),
+    radial-gradient(90% 60% at 100% 110%, rgba(255, 84, 104, 0.08), transparent 55%),
     var(--bg-0);
   color: var(--text-0);
   font-family: var(--font-sans);

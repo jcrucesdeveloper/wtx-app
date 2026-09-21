@@ -21,20 +21,25 @@
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
 }
 
-/* semantic color variables for this project */
+/* semantic color variables for this project.
+   Dark is the bare default (no data-theme set yet, or explicit `dark`) — a
+   training app should look like one before any JS or OS preference kicks
+   in. `native` mode (src/stores/theme.ts) removes data-theme and falls back
+   to the prefers-color-scheme queries below to still follow the OS both
+   ways; explicit `light` always wins via the [data-theme='light'] block. */
 :root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  --color-background: var(--vt-c-black);
+  --color-background-soft: var(--vt-c-black-soft);
+  --color-background-mute: var(--vt-c-black-mute);
 
-  --color-border: var(--vt-c-divider-light-1);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  --color-border: var(--vt-c-divider-dark-1);
+  --color-border-hover: var(--vt-c-divider-dark-1);
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
+  --color-heading: var(--vt-c-text-dark-1);
+  --color-text: var(--vt-c-text-dark-2);
 
   /* Overridden at runtime by the theme store (see src/stores/theme.ts). */
-  --color-accent: #10b981;
+  --color-accent: #e0263a;
 
   --section-gap: 160px;
 
@@ -51,32 +56,32 @@
   --label-tracking: 0.06em;
 }
 
-/* Native mode (no explicit choice): follow the OS/browser color scheme. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
+/* Native mode + light OS: the only case that still needs to opt into light. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']):not([data-theme='light']) {
+    --color-background: var(--vt-c-white);
+    --color-background-soft: var(--vt-c-white-soft);
+    --color-background-mute: var(--vt-c-white-mute);
 
-    --color-border: var(--vt-c-divider-dark-1);
-    --color-border-hover: var(--vt-c-divider-dark-1);
+    --color-border: var(--vt-c-divider-light-1);
+    --color-border-hover: var(--vt-c-divider-light-1);
 
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
+    --color-heading: var(--vt-c-text-light-1);
+    --color-text: var(--vt-c-text-light-1);
   }
 }
 
-/* Explicit choice (see src/stores/theme.ts): wins over the OS setting either way. */
-:root[data-theme='dark'] {
-  --color-background: var(--vt-c-black);
-  --color-background-soft: var(--vt-c-black-soft);
-  --color-background-mute: var(--vt-c-black-mute);
+/* Explicit light choice (see src/stores/theme.ts): wins over the OS setting either way. */
+:root[data-theme='light'] {
+  --color-background: var(--vt-c-white);
+  --color-background-soft: var(--vt-c-white-soft);
+  --color-background-mute: var(--vt-c-white-mute);
 
-  --color-border: var(--vt-c-divider-dark-1);
-  --color-border-hover: var(--vt-c-divider-dark-1);
+  --color-border: var(--vt-c-divider-light-1);
+  --color-border-hover: var(--vt-c-divider-light-1);
 
-  --color-heading: var(--vt-c-text-dark-1);
-  --color-text: var(--vt-c-text-dark-2);
+  --color-heading: var(--vt-c-text-light-1);
+  --color-text: var(--vt-c-text-light-1);
 }
 
 *,

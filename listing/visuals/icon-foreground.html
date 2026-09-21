@@ -2,31 +2,33 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>WTX App Icon — 1024×1024</title>
+    <title>WTX Adaptive Icon Foreground — transparent, safe-zone sized</title>
     <style>
       html,
       body {
-        width: 1024px;
-        height: 1024px;
+        width: 432px;
+        height: 432px;
+        background: transparent;
       }
 
-      .icon {
-        width: 1024px;
-        height: 1024px;
-        background: #181818;
+      .fg {
+        width: 432px;
+        height: 432px;
         display: flex;
         align-items: center;
         justify-content: center;
       }
 
-      .icon svg {
-        width: 56%;
-        height: 56%;
+      /* Android adaptive-icon safe zone is the inner 66/108 (~61%) circle.
+         48% keeps the mark clear of it on every launcher mask shape. */
+      .fg svg {
+        width: 48%;
+        height: 48%;
       }
     </style>
   </head>
   <body>
-    <div class="icon">
+    <div class="fg">
       <svg viewBox="0 0 100 100">
         <g fill="#e0263a">
           <rect x="24" y="47" width="52" height="6" rx="3" />

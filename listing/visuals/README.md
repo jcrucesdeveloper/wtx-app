@@ -100,6 +100,33 @@ separate render — Google Play wants 512×512, Apple wants 1024×1024, and
 designing once at the larger size and resizing down is the standard,
 correct approach (never the reverse).
 
+## Regenerating the native app icons (iOS/Android)
+
+`icon.html`/`icon-foreground.html` are also the source of truth for the
+actual on-device launcher icon, not just the store listing PNG — keep them
+in sync.
+
+- **iOS**: just re-render `icon.html` at 1024×1024 (see above) and copy it
+  over `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png`.
+  Xcode/App Store Connect handles corner masking.
+- **Android** uses an adaptive icon (background layer + foreground layer,
+  composited and masked by the launcher at runtime):
+  - `icon-foreground.html` renders *only* the mark, transparent background,
+    sized to fit inside the adaptive-icon safe zone (inner 66/108 of the
+    canvas) so it survives circle/squircle/rounded-square launcher masks.
+    Render it with `--default-background-color=00000000` (see
+    `--screenshot` flags above) at 108/162/216/324/432px and copy each into
+    `android/app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher_foreground.png`.
+  - The background layer is `android/app/src/main/res/drawable/ic_launcher_background.xml`,
+    a gradient `<shape>` matching `icon.html`'s tile gradient — edit it
+    directly if the palette changes, no image export needed.
+  - The legacy (pre-Android-8, non-adaptive) launcher icons still need full
+    flat PNGs: render `icon.html` itself at 48/72/96/144/192px into each
+    density's `ic_launcher.png`, then circle-crop those into
+    `ic_launcher_round.png` (e.g. via Pillow — paste through an ellipse
+    mask). Both `mipmap-anydpi-v26/ic_launcher*.xml` already point at
+    `@drawable/ic_launcher_background` + `@mipmap/ic_launcher_foreground`.
+
 ## Uploading
 
 | Store | File | Target |

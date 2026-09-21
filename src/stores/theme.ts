@@ -16,12 +16,16 @@ function readStoredAccent(): string {
   }
 }
 
+/** No stored preference yet (fresh install) defaults to `dark`, not `native` —
+ *  a training app should look like one out of the box, regardless of the
+ *  device's OS color scheme. Users can still switch to `native` or `light`
+ *  in settings. */
 function readStoredMode(): ThemeMode {
   try {
     const stored = localStorage.getItem(MODE_STORAGE_KEY)
-    return stored === 'light' || stored === 'dark' ? stored : 'native'
+    return stored === 'light' || stored === 'dark' || stored === 'native' ? stored : 'dark'
   } catch {
-    return 'native'
+    return 'dark'
   }
 }
 
