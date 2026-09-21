@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX Feature Graphic — 1024×500</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      html,
+      body {
+        width: 1024px;
+        height: 500px;
+      }
+
+      .canvas {
+        width: 1024px;
+        height: 500px;
+      }
+
+      .canvas::before {
+        background-size: 46px 46px;
+      }
+
+      .fg-frame {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 0 72px;
+        gap: 48px;
+      }
+
+      .fg-mark {
+        width: 176px;
+        height: 176px;
+        min-width: 176px;
+        border-radius: 42px;
+        background: linear-gradient(155deg, #34d399, #0a6e50 75%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 26px 60px rgba(0, 0, 0, 0.45);
+      }
+
+      .fg-mark svg {
+        width: 62%;
+        height: 62%;
+      }
+
+      .fg-text {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .fg-word {
+        font-family: var(--font-sans);
+        font-size: 76px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: var(--text-0);
+        line-height: 1;
+      }
+
+      .fg-tag {
+        font-family: var(--font-sans);
+        font-size: 30px;
+        font-weight: 600;
+        color: var(--accent-2);
+        line-height: 1.3;
+      }
+
+      .fg-sub {
+        font-family: var(--font-sans);
+        font-size: 22px;
+        font-weight: 500;
+        color: var(--text-1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="canvas">
+      <div class="fg-frame">
+        <div class="fg-mark">
+          <svg viewBox="0 0 100 100" fill="none">
+            <polyline
+              points="17,23 32,79 50,47 68,79 83,23"
+              stroke="#f8fffb"
+              stroke-width="12.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="fg-text">
+          <div class="fg-word">WTX</div>
+          <div class="fg-tag">Workout routines, as text files you own.</div>
+          <div class="fg-sub">No account. No cloud. Share with a scan.</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

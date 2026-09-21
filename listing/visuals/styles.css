@@ -1,0 +1,654 @@
+/* WTX store-visuals design system.
+   Shared by the icon, feature graphic, and every screenshot slide.
+   Colors mirror src/config/theme.ts so marketing art matches the app. */
+
+:root {
+  --c-emerald: #10b981;
+  --c-blue: #3b82f6;
+  --c-violet: #8b5cf6;
+  --c-rose: #f43f5e;
+  --c-amber: #f59e0b;
+  --c-cyan: #06b6d4;
+  --c-lime: #84cc16;
+  --c-slate: #64748b;
+
+  --accent: var(--c-emerald);
+  --accent-2: #34d399;
+  --accent-soft: rgba(16, 185, 129, 0.16);
+
+  --bg-0: #05080a;
+  --bg-1: #0c1116;
+  --bg-2: #12181f;
+  --bg-3: #1a222b;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  --text-0: #f6f8fa;
+  --text-1: #aebac6;
+  --text-2: #74818f;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: 'Cascadia Code', 'SF Mono', Consolas, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: #000;
+}
+
+/* ---------- canvas: the exact-pixel export box ---------- */
+
+.canvas {
+  container-type: size;
+  container-name: canvas;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(120% 70% at 50% -8%, var(--accent-soft), transparent 60%),
+    radial-gradient(90% 60% at 100% 110%, rgba(52, 211, 153, 0.08), transparent 55%),
+    var(--bg-0);
+  color: var(--text-0);
+  font-family: var(--font-sans);
+}
+
+.canvas::before {
+  /* faint grid texture, gym-graph-paper feel */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 8cqw 8cqw;
+  opacity: 0.35;
+  mask-image: radial-gradient(85% 70% at 50% 20%, #000 40%, transparent 90%);
+}
+
+.frame {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 9cqw 8.5cqw 11cqw;
+  gap: 3.4cqw;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4cqw;
+  font-size: 3.1cqw;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+
+.eyebrow .dot {
+  width: 1.6cqw;
+  height: 1.6cqw;
+  min-width: 6px;
+  min-height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 1.6cqw var(--accent);
+}
+
+.headline {
+  font-size: 8.4cqw;
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-0);
+}
+
+.headline em {
+  color: var(--accent-2);
+  font-style: normal;
+}
+
+.subhead {
+  font-size: 3.9cqw;
+  line-height: 1.5;
+  color: var(--text-1);
+  max-width: 90cqw;
+}
+
+.art {
+  position: relative;
+  margin-top: 4.5cqw;
+  flex-shrink: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.6cqw;
+  padding: 2.1cqw 3.4cqw;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-strong);
+  font-size: 3.1cqw;
+  font-weight: 600;
+  color: var(--text-1);
+  width: fit-content;
+}
+
+.badge svg {
+  width: 4cqw;
+  height: 4cqw;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+.card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4.2cqw;
+  box-shadow: 0 1.5cqw 4cqw rgba(0, 0, 0, 0.35);
+}
+
+.icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 9cqw;
+  height: 9cqw;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 2.4cqw;
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  flex-shrink: 0;
+}
+
+.icon-chip svg {
+  width: 4.6cqw;
+  height: 4.6cqw;
+  min-width: 16px;
+  min-height: 16px;
+}
+
+/* ---------- footer wordmark on every slide ---------- */
+
+.wordmark {
+  position: absolute;
+  left: 8.5cqw;
+  bottom: 5.5cqw;
+  display: flex;
+  align-items: center;
+  gap: 1.8cqw;
+  font-size: 3.4cqw;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+}
+
+.wordmark .mark {
+  width: 7cqw;
+  height: 7cqw;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 1.8cqw;
+  background: linear-gradient(155deg, var(--accent-2), var(--accent) 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wordmark .mark svg {
+  width: 65%;
+  height: 65%;
+}
+
+/* ---------- template 1: templates library ---------- */
+
+.card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2.6cqw;
+  width: 100%;
+}
+
+.routine-card {
+  display: flex;
+  align-items: center;
+  gap: 3.4cqw;
+  padding: 4cqw 4.4cqw;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4cqw;
+}
+
+.routine-card.hi {
+  border-color: var(--border-strong);
+  background: linear-gradient(135deg, var(--bg-3), var(--bg-2));
+}
+
+.routine-card .swatch {
+  width: 8.5cqw;
+  height: 8.5cqw;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 2.2cqw;
+  flex-shrink: 0;
+}
+
+.routine-card .meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9cqw;
+  flex: 1;
+  min-width: 0;
+}
+
+.routine-card .name {
+  font-size: 4.2cqw;
+  font-weight: 700;
+  color: var(--text-0);
+}
+
+.routine-card .sub {
+  font-size: 3cqw;
+  color: var(--text-2);
+  display: flex;
+  gap: 2cqw;
+}
+
+.routine-card .tags {
+  display: flex;
+  gap: 1.4cqw;
+  flex-shrink: 0;
+}
+
+.tag-chip {
+  font-size: 2.7cqw;
+  font-weight: 600;
+  padding: 1.2cqw 2.2cqw;
+  border-radius: 999px;
+  background: var(--bg-3);
+  color: var(--text-1);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+/* ---------- template 2: create a routine (form) ---------- */
+
+.form-mock {
+  width: 100%;
+  padding: 5cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 3.4cqw;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4cqw;
+}
+
+.field .label {
+  font-size: 2.9cqw;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.field .input {
+  padding: 3.2cqw 3.6cqw;
+  border-radius: 3cqw;
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  font-size: 3.8cqw;
+  color: var(--text-0);
+  font-weight: 600;
+}
+
+.field-row {
+  display: flex;
+  gap: 2.6cqw;
+}
+
+.field-row .field {
+  flex: 1;
+}
+
+.chip-row {
+  display: flex;
+  gap: 1.8cqw;
+  flex-wrap: wrap;
+}
+
+.chip-row .chip {
+  padding: 1.8cqw 3.2cqw;
+  border-radius: 999px;
+  font-size: 3cqw;
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  color: var(--text-1);
+}
+
+.chip-row .chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-2);
+}
+
+/* ---------- template 3: share via QR ---------- */
+
+.qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4cqw;
+  padding: 6cqw;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.qr {
+  width: 46cqw;
+  height: 46cqw;
+  min-width: 140px;
+  min-height: 140px;
+  background: #fff;
+  border-radius: 3.4cqw;
+  padding: 4cqw;
+  display: grid;
+}
+
+.qr-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+}
+
+.qr-cell {
+  background: #0b0f13;
+}
+
+.qr-cell.off {
+  background: transparent;
+}
+
+.qr-finder {
+  position: absolute;
+  width: 22%;
+  height: 22%;
+  border: solid #0b0f13;
+  border-width: 16%;
+}
+
+.qr-finder-inner {
+  position: absolute;
+  width: 8%;
+  height: 8%;
+  background: #0b0f13;
+}
+
+/* ---------- template 4: load a routine (three ways) ---------- */
+
+.three-pack {
+  display: flex;
+  flex-direction: column;
+  gap: 2.8cqw;
+  width: 100%;
+}
+
+.method-row {
+  display: flex;
+  align-items: center;
+  gap: 3.6cqw;
+  padding: 4cqw;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4cqw;
+}
+
+.method-row .txt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+}
+
+.method-row .txt .t {
+  font-size: 3.8cqw;
+  font-weight: 700;
+  color: var(--text-0);
+}
+
+.method-row .txt .d {
+  font-size: 2.9cqw;
+  color: var(--text-2);
+}
+
+/* ---------- template 5: the .wtt format ---------- */
+
+.code-block {
+  width: 100%;
+  background: #090c0f;
+  border: 1px solid var(--border-strong);
+  border-radius: 4cqw;
+  padding: 4.4cqw;
+  font-family: var(--font-mono);
+  font-size: 3cqw;
+  line-height: 1.7;
+  color: #cbd5e1;
+  overflow: hidden;
+}
+
+.code-block .c-name {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.code-block .c-key {
+  color: #7dd3fc;
+}
+
+.code-block .c-punc {
+  color: var(--text-2);
+}
+
+.arrow-down {
+  display: flex;
+  justify-content: center;
+  margin: 1.4cqw 0;
+  color: var(--accent-2);
+}
+
+.arrow-down svg {
+  width: 6cqw;
+  height: 6cqw;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.parsed-summary {
+  display: flex;
+  align-items: center;
+  gap: 3cqw;
+  padding: 3.6cqw 4cqw;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 4cqw;
+}
+
+.parsed-summary .stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+}
+
+.parsed-summary .stat b {
+  font-size: 4.6cqw;
+  color: var(--text-0);
+}
+
+.parsed-summary .stat span {
+  font-size: 2.7cqw;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.parsed-summary .div {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border-strong);
+}
+
+/* ---------- template 6: privacy ---------- */
+
+.privacy-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6cqw 0;
+}
+
+.shield {
+  position: relative;
+  width: 40cqw;
+  height: 40cqw;
+  min-width: 130px;
+  min-height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shield svg {
+  width: 100%;
+  height: 100%;
+}
+
+.privacy-points {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2cqw;
+  width: 100%;
+}
+
+.privacy-point {
+  display: flex;
+  align-items: center;
+  gap: 3cqw;
+  font-size: 3.6cqw;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.privacy-point svg {
+  width: 5.4cqw;
+  height: 5.4cqw;
+  min-width: 18px;
+  min-height: 18px;
+  color: var(--accent-2);
+  flex-shrink: 0;
+}
+
+/* ---------- template 7: accent colors ---------- */
+
+.swatch-stage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4.4cqw;
+  padding: 4cqw 2cqw;
+  justify-content: center;
+}
+
+.swatch-dot {
+  position: relative;
+  width: 16cqw;
+  height: 16cqw;
+  min-width: 46px;
+  min-height: 46px;
+  border-radius: 50%;
+}
+
+.swatch-dot.selected::after {
+  content: '';
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  border: 2.4px solid var(--text-0);
+  border-width: 0.6cqw;
+}
+
+.swatch-dot.selected .check {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #06120c;
+}
+
+.swatch-dot .check svg {
+  width: 46%;
+  height: 46%;
+}
+
+/* ---------- template 8: routine detail ---------- */
+
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2cqw;
+  width: 100%;
+}
+
+.exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 3.4cqw;
+  padding: 3.6cqw 4cqw;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 3.6cqw;
+}
+
+.exercise-row .num {
+  width: 6.6cqw;
+  height: 6.6cqw;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 1.8cqw;
+  background: var(--bg-3);
+  color: var(--text-2);
+  font-size: 2.9cqw;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.exercise-row .name {
+  flex: 1;
+  font-size: 3.6cqw;
+  font-weight: 700;
+  color: var(--text-0);
+  min-width: 0;
+}
+
+.exercise-row .stat {
+  font-size: 2.9cqw;
+  color: var(--accent-2);
+  font-weight: 700;
+  white-space: nowrap;
+}
