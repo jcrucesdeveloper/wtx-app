@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoutinesStore } from '@/stores/routines'
+import { useSettingsStore } from '@/stores/settings'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { draftFromTemplate, emptyDraft, serializeTemplate } from '@/lib/serializeRoutine'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
@@ -16,8 +17,9 @@ const emit = defineEmits<{
 }>()
 
 const routines = useRoutinesStore()
+const settings = useSettingsStore()
 
-const draft = ref(emptyDraft())
+const draft = ref(emptyDraft(settings.defaultUnit))
 const saveError = ref('')
 
 const rawText = computed(() => serializeTemplate(draft.value))
@@ -50,7 +52,7 @@ watch(
     saveError.value = ''
     if (!open) return
     const parsed = routines.parsed(props.routineId)
-    draft.value = parsed?.ok ? draftFromTemplate(parsed.template) : emptyDraft()
+    draft.value = parsed?.ok ? draftFromTemplate(parsed.template) : emptyDraft(settings.defaultUnit)
   },
 )
 

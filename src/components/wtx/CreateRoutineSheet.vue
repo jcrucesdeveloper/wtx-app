@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
 import { useRoutinesStore } from '@/stores/routines'
+import { useSettingsStore } from '@/stores/settings'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { emptyDraft, serializeTemplate } from '@/lib/serializeRoutine'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
@@ -13,8 +14,9 @@ const router = useRouter()
 const ui = useUiStore()
 const { createSheetOpen } = storeToRefs(ui)
 const routines = useRoutinesStore()
+const settings = useSettingsStore()
 
-const draft = ref(emptyDraft())
+const draft = ref(emptyDraft(settings.defaultUnit))
 const submitError = ref('')
 
 const rawText = computed(() => serializeTemplate(draft.value))
@@ -23,7 +25,7 @@ const canSubmit = computed(() => draft.value.name.trim().length > 0 && result.va
 
 watch(createSheetOpen, (open) => {
   if (!open) {
-    draft.value = emptyDraft()
+    draft.value = emptyDraft(settings.defaultUnit)
     submitError.value = ''
   }
 })

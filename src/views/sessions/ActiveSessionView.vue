@@ -7,6 +7,7 @@ import ActiveExerciseCard from '@/components/session/ActiveExerciseCard.vue'
 import RestTimerBar from '@/components/session/RestTimerBar.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock } from '@/lib/format'
+import { AdService } from '@/services/ads'
 
 const router = useRouter()
 const activeSession = useActiveSessionStore()
@@ -52,7 +53,11 @@ const menuOpen = ref(false)
 function closeMenu() {
   menuOpen.value = false
 }
-onMounted(() => document.addEventListener('click', closeMenu))
+onMounted(() => {
+  document.addEventListener('click', closeMenu)
+  // Pre-load now so it's ready to show the moment the workout finishes.
+  AdService.loadInterstitial()
+})
 onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 
 function goBack() {
@@ -70,6 +75,9 @@ function onDiscard() {
 function onFinish() {
   const stored = activeSession.finish()
   router.replace({ name: 'session-detail', params: { id: stored.id } })
+  // Let the summary render first so the interstitial reads as a break after
+  // the result, not something blocking it.
+  setTimeout(() => AdService.showInterstitial(), 500)
 }
 
 function onStartGroupWorkout() {

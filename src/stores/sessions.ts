@@ -119,10 +119,15 @@ export const useSessionsStore = defineStore('sessions', () => {
     sessions.value = sessions.value.filter((s) => s.id !== id)
   }
 
+  /** Wipes the whole log, e.g. for a full data reset. */
+  function clear() {
+    sessions.value = []
+  }
+
   /** Most recent completed session for a routine, for "last time" prefill. */
   function lastForRoutine(routine: StoredRoutine): WorkoutSession | undefined {
     return findLastSessionForRoutine(sessions.value, routine)
   }
 
-  return { sessions, list, getById, parsed, add, remove, lastForRoutine }
+  return { sessions, list, getById, parsed, add, remove, clear, lastForRoutine }
 })

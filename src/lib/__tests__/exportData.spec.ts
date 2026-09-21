@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { unzipSync, strFromU8 } from 'fflate'
-import { buildDataExportZip, exportFilename } from '../exportData'
+import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
+import {
+  buildDataExportZip,
+  exportFilename,
+  importedSessionAddedAt,
+  parseDataExportZip,
+} from '../exportData'
 import type { StoredRoutine } from '@/stores/routines'
 import type { StoredSession } from '@/stores/sessions'
 
@@ -44,5 +49,38 @@ describe('buildDataExportZip', () => {
 describe('exportFilename', () => {
   it('produces a date-stamped zip filename', () => {
     expect(exportFilename(new Date('2024-03-05T12:00:00Z'))).toBe('wtx-export-2024-03-05.zip')
+  })
+})
+
+describe('parseDataExportZip', () => {
+  it('reads routines and sessions back out by folder', () => {
+    const zip = buildDataExportZip([routine], [session])
+    const parsed = parseDataExportZip(zip)
+    expect(parsed.routines).toEqual([{ filename: 'push.wtt', rawText: routine.rawText }])
+    expect(parsed.sessions).toEqual([
+      { filename: 'push-2024-01-01.wts', rawText: session.rawText },
+    ])
+  })
+
+  it('ignores anything outside routines/ and sessions/', () => {
+    const bytes = zipSync({ 'readme.txt': strToU8('not a routine or session') })
+    expect(parseDataExportZip(bytes)).toEqual({ routines: [], sessions: [] })
+  })
+})
+
+describe('importedSessionAddedAt', () => {
+  it('recovers the original save time from the exported filename', () => {
+    const ms = importedSessionAddedAt('Push Day-2024-01-01-1430.wts', '2024-01-01')
+    const date = new Date(ms)
+    expect(date.getFullYear()).toBe(2024)
+    expect(date.getMonth()).toBe(0)
+    expect(date.getDate()).toBe(1)
+    expect(date.getHours()).toBe(14)
+    expect(date.getMinutes()).toBe(30)
+  })
+
+  it('falls back to now for a filename that does not match the naming scheme', () => {
+    const now = 123456
+    expect(importedSessionAddedAt('renamed.wts', '2024-01-01', now)).toBe(now)
   })
 })
