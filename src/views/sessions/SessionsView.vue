@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Flame } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import AdBanner from '@/components/ads/AdBanner.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock, formatNumber, formatTimeOfDay } from '@/lib/format'
@@ -161,6 +162,8 @@ const volumeDeltas = computed(() => {
         </ul>
       </section>
     </div>
+
+    <AdBanner />
   </AppPage>
 </template>
 

@@ -33,6 +33,14 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- Google's public sample AdMob App ID. Swap for the real AdMob App ID
+             from the AdMob console before any Play Store release — this is a
+             native build-time value and can't be sourced from the Vite env vars
+             used for the JS-side ad unit IDs. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
     </application>
 
     <!-- Permissions -->

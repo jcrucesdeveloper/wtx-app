@@ -16,10 +16,12 @@
     "format": "prettier --write --experimental-cli src/",
     "sync:wtx": "node scripts/sync-wtx.mjs",
     "sync:exercises": "node scripts/sync-exercise-db.mjs",
-    "cap:sync": "pnpm run build && npx cap sync android",
-    "cap:open": "npx cap open android"
+    "cap:sync": "pnpm run build && npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^8.1.0",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.2",
     "@lucide/vue": "^1.41.0",
@@ -34,6 +36,7 @@
   "devDependencies": {
     "@capacitor/android": "^8.5.2",
     "@capacitor/cli": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@tsconfig/node24": "^24.0.4",
     "@types/jsdom": "^28.0.3",
     "@types/node": "^24.13.3",
