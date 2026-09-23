@@ -259,16 +259,16 @@ export class WorkoutParser {
   /**
    * Parses one optional per-set override line following a `.wtt` exercise line.
    *
-   * @param line - `Label | Weight`, where Label is `W`, `D`, or a set number.
+   * @param line - `Label | Weight | Reps`, where Label is `W`, `D`, or a set number.
    * @returns The parsed set override.
-   * @throws If the label or weight field is missing.
+   * @throws If the label, weight, or reps field is missing.
    */
   private static parseTemplateSetLine(line: string): TemplateSet {
-    const [label, weight] = WorkoutParser.splitFields(line)
-    if (!label || weight === undefined) {
+    const [label, weight, reps] = WorkoutParser.splitFields(line)
+    if (!label || weight === undefined || reps === undefined) {
       throw new Error(`Invalid set line: "${line}"`)
     }
-    return { label, weight: Number(weight) }
+    return { label, weight: Number(weight), reps: Number(reps) }
   }
 
   /**

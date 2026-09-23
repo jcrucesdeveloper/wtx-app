@@ -6,6 +6,7 @@ export type ExerciseType =
 export interface TemplateSet {
   label: string // "W" for warm-up, "1", "2", ... for working sets, "D" for drop set
   weight: number
+  reps: number
 }
 
 /** One raw exercise line from a `.wtt` template. */

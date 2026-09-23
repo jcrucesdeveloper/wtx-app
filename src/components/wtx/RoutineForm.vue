@@ -169,6 +169,11 @@ function onSetWeightInput(exercise: RoutineDraftExercise, index: number, event: 
   const value = (event.target as HTMLInputElement).value
   ensureRow(exercise, index).weight = numberOrUndefined(value)
 }
+
+function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  ensureRow(exercise, index).reps = numberOrUndefined(value)
+}
 </script>
 
 <template>
@@ -288,21 +293,11 @@ function onSetWeightInput(exercise: RoutineDraftExercise, index: number, event: 
               <div class="row">
                 <label class="field">
                   <span class="field__label">Sets</span>
-                  <input
-                    v-model.number="exercise.sets"
-                    type="number"
-                    min="1"
-                    inputmode="numeric"
-                  />
+                  <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
                 </label>
                 <label class="field">
                   <span class="field__label">Reps</span>
-                  <input
-                    v-model.number="exercise.reps"
-                    type="number"
-                    min="1"
-                    inputmode="numeric"
-                  />
+                  <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
                 </label>
               </div>
             </template>
@@ -353,6 +348,7 @@ function onSetWeightInput(exercise: RoutineDraftExercise, index: number, event: 
               <div class="sets__head">
                 <span />
                 <span>Weight ({{ draft.unit || '—' }})</span>
+                <span>Reps</span>
               </div>
               <div v-for="(row, si) in displayRows(exercise)" :key="si" class="sets__row">
                 <button
@@ -373,6 +369,16 @@ function onSetWeightInput(exercise: RoutineDraftExercise, index: number, event: 
                   :placeholder="String(exercise.weight ?? 0)"
                   :value="row.weight ?? ''"
                   @input="onSetWeightInput(exercise, si, $event)"
+                />
+                <input
+                  class="sets__input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  :placeholder="String(exercise.reps ?? 0)"
+                  :value="row.reps ?? ''"
+                  @input="onSetRepsInput(exercise, si, $event)"
                 />
               </div>
             </div>
@@ -658,7 +664,7 @@ textarea {
 
 .sets__head {
   display: grid;
-  grid-template-columns: 28px 1fr;
+  grid-template-columns: 28px 1fr 1fr;
   gap: 8px;
   font-size: 10px;
   font-weight: 700;
@@ -669,7 +675,7 @@ textarea {
 
 .sets__row {
   display: grid;
-  grid-template-columns: 28px 1fr;
+  grid-template-columns: 28px 1fr 1fr;
   align-items: center;
   gap: 8px;
 }

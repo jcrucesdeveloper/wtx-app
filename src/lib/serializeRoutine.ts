@@ -10,6 +10,8 @@ export interface RoutineDraftSet {
   type: 'number' | 'W' | 'D'
   /** Overridden weight for this set; `undefined` falls back to the exercise's weight. */
   weight?: number
+  /** Overridden reps for this set; `undefined` falls back to the exercise's reps. */
+  reps?: number
 }
 
 /** One exercise row in a {@link RoutineDraft}, as edited in the create form. */
@@ -71,7 +73,7 @@ export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
             const entry = exercise.specificSets![i]
             if (!entry) return { type: 'number' }
             const type = entry.label === 'W' || entry.label === 'D' ? entry.label : 'number'
-            return { type, weight: entry.weight }
+            return { type, weight: entry.weight, reps: entry.reps }
           })
         : undefined,
   }))
@@ -92,7 +94,7 @@ function positiveInt(value: number, fallback: number): number {
 
 /** A set row is worth writing out only once it diverges from the plain default. */
 function isCustomSetRow(row: RoutineDraftSet): boolean {
-  return row.type !== 'number' || row.weight !== undefined
+  return row.type !== 'number' || row.weight !== undefined || row.reps !== undefined
 }
 
 function serializeExercise(exercise: RoutineDraftExercise): string[] {
@@ -122,7 +124,8 @@ function serializeExercise(exercise: RoutineDraftExercise): string[] {
       const row = exercise.setRows[i] ?? { type: 'number' as const }
       const label = row.type === 'number' ? String(i + 1) : row.type
       const weight = row.weight ?? exercise.weight ?? 0
-      lines.push(`${label} | ${weight}`)
+      const reps = row.reps ?? exercise.reps ?? 0
+      lines.push(`${label} | ${weight} | ${reps}`)
     }
   }
 

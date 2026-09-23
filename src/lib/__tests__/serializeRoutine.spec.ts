@@ -96,7 +96,11 @@ describe('serializeTemplate', () => {
           reps: 8,
           durationSeconds: 0,
           weight: 60,
-          setRows: [{ type: 'W', weight: 40 }, { type: 'number' }, { type: 'D', weight: 45 }],
+          setRows: [
+            { type: 'W', weight: 40, reps: 10 },
+            { type: 'number' },
+            { type: 'D', weight: 45, reps: 6 },
+          ],
         },
       ],
     }
@@ -105,21 +109,21 @@ describe('serializeTemplate', () => {
     const bench = template.exercises[0]!
     expect(bench.targetWeight).toBe(60)
     expect(bench.specificSets).toEqual([
-      { label: 'W', weight: 40 },
-      { label: '2', weight: 60 },
-      { label: 'D', weight: 45 },
+      { label: 'W', weight: 40, reps: 10 },
+      { label: '2', weight: 60, reps: 8 },
+      { label: 'D', weight: 45, reps: 6 },
     ])
   })
 
   it('reopens a template with set overrides for editing and re-serializes it unchanged', () => {
-    const original = `# Push Day\nunit: kg\n\nBench Press | reps 3x8 | 60\nW | 40\n2 | 60\nD | 45\n`
+    const original = `# Push Day\nunit: kg\n\nBench Press | reps 3x8 | 60\nW | 40 | 10\n2 | 60 | 8\nD | 45 | 6\n`
     const template = WorkoutParser.parseTemplate(original)
     const draft = draftFromTemplate(template)
 
     expect(draft.exercises[0]!.setRows).toEqual([
-      { type: 'W', weight: 40 },
-      { type: 'number', weight: 60 },
-      { type: 'D', weight: 45 },
+      { type: 'W', weight: 40, reps: 10 },
+      { type: 'number', weight: 60, reps: 8 },
+      { type: 'D', weight: 45, reps: 6 },
     ])
 
     const reparsed = WorkoutParser.parseTemplate(serializeTemplate(draft))
