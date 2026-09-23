@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Plus } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ActiveSetRow from '@/components/session/ActiveSetRow.vue'
 import { formatCompactDuration } from '@/lib/format'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
@@ -83,6 +84,7 @@ function onNoteInput(event: Event) {
       placeholder="Note (optional)"
       :value="exercise.note"
       @input="onNoteInput"
+      @focus="scrollFocusedIntoView"
     />
   </div>
 </template>

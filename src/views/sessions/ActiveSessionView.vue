@@ -161,6 +161,8 @@ function onStartGroupWorkout() {
       </div>
 
       <RestTimerBar />
+
+      <div class="bottom-space" aria-hidden="true" />
     </template>
   </AppPage>
 </template>
@@ -341,5 +343,12 @@ function onStartGroupWorkout() {
 .msg {
   font-size: 14px;
   opacity: 0.7;
+}
+
+.bottom-space {
+  /* Room for the last exercise's inputs to scroll clear of the on-screen
+     keyboard — see scrollFocusedIntoView. Without this there's nothing left
+     to scroll for sets near the end of the workout. */
+  height: 240px;
 }
 </style>

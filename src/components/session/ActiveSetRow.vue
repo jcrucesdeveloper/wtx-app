@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Check, Trash2 } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import type { SessionSetDraft } from '@/lib/serializeSession'
 
 const props = defineProps<{
@@ -57,6 +58,7 @@ function remove() {
       :placeholder="String(placeholderWeight)"
       :value="set.weight ?? ''"
       @input="onWeightInput"
+      @focus="scrollFocusedIntoView"
     />
     <input
       class="row__input"
@@ -65,6 +67,7 @@ function remove() {
       :placeholder="kind === 'time' && placeholderReps === 0 ? 's' : String(placeholderReps)"
       :value="set.reps ?? ''"
       @input="onRepsInput"
+      @focus="scrollFocusedIntoView"
     />
     <button
       type="button"
