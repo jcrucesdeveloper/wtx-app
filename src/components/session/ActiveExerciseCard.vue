@@ -48,12 +48,12 @@ const prescription = computed(() => {
   return `${props.exercise.sets} × ${props.exercise.reps}`
 })
 
-/** Warm-ups all show "W"; working sets get sequential numbers, in array order. */
+/** Warm-ups/drop-sets show "W"/"D"; plain sets get sequential numbers, in array order. */
 const labeledSets = computed(() => {
   let workingIndex = 0
   return props.exercise.loggedSets.map((set) => ({
     set,
-    label: set.isWarmup ? 'W' : String(++workingIndex),
+    label: set.type === 'number' ? String(++workingIndex) : set.type,
   }))
 })
 
@@ -62,7 +62,7 @@ function addSet() {
 }
 
 function addWarmup() {
-  activeSession.addSet(props.exerciseIndex, { isWarmup: true })
+  activeSession.addSet(props.exerciseIndex, { type: 'W' })
 }
 
 function onNoteInput(event: Event) {

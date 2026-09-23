@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { serializeSession, type SessionDraft } from '../serializeSession'
+import { draftFromTemplate, serializeSession, type SessionDraft } from '../serializeSession'
 import { parseSessionText } from '../parseSession'
 import { isTimeExercise, displayNote } from '../sessionTime'
+import { WorkoutParser } from '../wtx'
 
 function draft(overrides: Partial<SessionDraft> = {}): SessionDraft {
   return {
@@ -27,9 +28,9 @@ describe('serializeSession', () => {
           weight: 80,
           note: '',
           loggedSets: [
-            { id: '1', isWarmup: true, weight: 40, reps: 10, completed: true },
-            { id: '2', isWarmup: false, weight: 80, reps: 6, completed: true },
-            { id: '3', isWarmup: false, weight: 82.5, reps: 5, completed: true },
+            { id: '1', type: 'W', weight: 40, reps: 10, completed: true },
+            { id: '2', type: 'number', weight: 80, reps: 6, completed: true },
+            { id: '3', type: 'number', weight: 82.5, reps: 5, completed: true },
           ],
         },
       ],
@@ -49,6 +50,35 @@ describe('serializeSession', () => {
     ])
   })
 
+  it('labels a drop set "D" and excludes it from working-set numbering', () => {
+    const d = draft({
+      exercises: [
+        {
+          name: 'Lat Pulldown',
+          kind: 'reps',
+          sets: 3,
+          reps: 10,
+          weight: 50,
+          note: '',
+          loggedSets: [
+            { id: '1', type: 'number', weight: 50, reps: 10, completed: true },
+            { id: '2', type: 'number', weight: 50, reps: 9, completed: true },
+            { id: '3', type: 'D', weight: 35, reps: 12, completed: true },
+          ],
+        },
+      ],
+    })
+
+    const result = parseSessionText(serializeSession(d))
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.session.exercises[0]!.loggedSets).toEqual([
+      { label: '1', weight: 50, reps: 10 },
+      { label: '2', weight: 50, reps: 9 },
+      { label: 'D', weight: 35, reps: 12 },
+    ])
+  })
+
   it('only writes completed sets, skipping empty or in-progress rows', () => {
     const d = draft({
       exercises: [
@@ -60,9 +90,9 @@ describe('serializeSession', () => {
           weight: 100,
           note: '',
           loggedSets: [
-            { id: '1', isWarmup: false, weight: 100, reps: 5, completed: true },
-            { id: '2', isWarmup: false, weight: null, reps: null, completed: false },
-            { id: '3', isWarmup: false, weight: 100, reps: 4, completed: false },
+            { id: '1', type: 'number', weight: 100, reps: 5, completed: true },
+            { id: '2', type: 'number', weight: null, reps: null, completed: false },
+            { id: '3', type: 'number', weight: 100, reps: 4, completed: false },
           ],
         },
       ],
@@ -107,8 +137,8 @@ describe('serializeSession', () => {
           weight: 0,
           note: 'keep hips level',
           loggedSets: [
-            { id: '1', isWarmup: false, weight: 0, reps: 32, completed: true },
-            { id: '2', isWarmup: false, weight: 0, reps: 28, completed: true },
+            { id: '1', type: 'number', weight: 0, reps: 32, completed: true },
+            { id: '2', type: 'number', weight: 0, reps: 28, completed: true },
           ],
         },
       ],
@@ -144,5 +174,46 @@ describe('serializeSession', () => {
     if (!result.ok) return
     expect(isTimeExercise(result.session.exercises[0]!.note)).toBe(false)
     expect(displayNote(result.session.exercises[0]!.note)).toBe('controlled tempo')
+  })
+})
+
+describe('draftFromTemplate', () => {
+  it('loads each set\'s type from the template\'s per-set overrides', () => {
+    const template = WorkoutParser.parseTemplate(`# Push Day
+unit: kg
+
+Bench Press | reps 4x8 | 60 | rest 1m30s
+W | 40 | 10
+D | 45 | 6
+`)
+
+    const draft = draftFromTemplate(template, 'push-day.wtt')
+    const types = draft.exercises[0]!.loggedSets.map((s) => s.type)
+    expect(types).toEqual(['W', 'D', 'number', 'number'])
+  })
+
+  it('ghosts warm-up and working sets from the matching slot of the last session', () => {
+    const template = WorkoutParser.parseTemplate(`# Push Day
+unit: kg
+
+Bench Press | reps 2x8 | 60
+W | 40 | 10
+`)
+
+    const lastSession = WorkoutParser.parseSession(`# Push Day - 2026-09-01
+unit: kg
+
+Bench Press | 2x8 | 60
+W | 35 | 12
+1 | 82.5 | 8
+2 | 82.5 | 6
+`)
+
+    const draft = draftFromTemplate(template, 'push-day.wtt', lastSession)
+    const sets = draft.exercises[0]!.loggedSets
+    expect(sets.map((s) => ({ type: s.type, ghostWeight: s.ghostWeight, ghostReps: s.ghostReps }))).toEqual([
+      { type: 'W', ghostWeight: 35, ghostReps: 12 },
+      { type: 'number', ghostWeight: 82.5, ghostReps: 8 },
+    ])
   })
 })

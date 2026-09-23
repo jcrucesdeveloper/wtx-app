@@ -26,7 +26,7 @@ const stats = computed(() => {
   let completedSets = 0
   let completedExercises = 0
   for (const exercise of exercises) {
-    const workingSets = exercise.loggedSets.filter((s) => !s.isWarmup)
+    const workingSets = exercise.loggedSets.filter((s) => s.type !== 'W')
     const doneSets = workingSets.filter((s) => s.completed)
     totalSets += workingSets.length
     completedSets += doneSets.length

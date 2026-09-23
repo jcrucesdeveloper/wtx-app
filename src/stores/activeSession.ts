@@ -7,6 +7,7 @@ import {
   serializeSession,
   type SessionDraft,
   type SessionExerciseDraft,
+  type SessionSetType,
 } from '@/lib/serializeSession'
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import type { StoredRoutine } from '@/stores/routines'
@@ -27,12 +28,23 @@ export interface ActiveSession {
 
 const STORAGE_KEY = 'wtx:activeSession'
 
+/** Migrates a pre-`type` stored set (`isWarmup: boolean`) to the `type` field. */
+function migrateSet(set: Record<string, unknown>): void {
+  if ('type' in set) return
+  set.type = set.isWarmup ? 'W' : 'number'
+  delete set.isWarmup
+}
+
 function readStored(): ActiveSession | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw === null) return null
     const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? (parsed as ActiveSession) : null
+    if (!parsed || typeof parsed !== 'object') return null
+    for (const exercise of parsed.draft?.exercises ?? []) {
+      for (const set of exercise.loggedSets ?? []) migrateSet(set)
+    }
+    return parsed as ActiveSession
   } catch {
     return null
   }
@@ -133,7 +145,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     const found = findSet(exerciseIndex, setId)
     if (!found) return
     found.set.completed = true
-    if (!found.set.isWarmup && found.exercise.restSeconds) {
+    if (found.set.type !== 'W' && found.exercise.restSeconds) {
       startRestTimer(exerciseIndex, setId, found.exercise.restSeconds)
     }
   }
@@ -143,16 +155,24 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (found) found.set.completed = false
   }
 
-  function addSet(exerciseIndex: number, opts?: { isWarmup?: boolean }) {
+  function addSet(exerciseIndex: number, opts?: { type?: SessionSetType }) {
     const exercise = session.value?.draft.exercises[exerciseIndex]
     if (!exercise) return
     exercise.loggedSets.push({
       id: newSetId(),
-      isWarmup: opts?.isWarmup ?? false,
+      type: opts?.type ?? 'number',
       weight: null,
       reps: null,
       completed: false,
     })
+  }
+
+  /** Tapping a set's number cycles it through plain number → warm-up → drop set. */
+  function cycleSetType(exerciseIndex: number, setId: string) {
+    const found = findSet(exerciseIndex, setId)
+    if (!found) return
+    const set = found.set
+    set.type = set.type === 'number' ? 'W' : set.type === 'W' ? 'D' : 'number'
   }
 
   function removeSet(exerciseIndex: number, setId: string) {
@@ -182,7 +202,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       note: '',
       loggedSets: Array.from({ length: 3 }, () => ({
         id: newSetId(),
-        isWarmup: false,
+        type: 'number' as const,
         weight: null,
         reps: null,
         completed: false,
@@ -282,6 +302,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     uncompleteSet,
     addSet,
     removeSet,
+    cycleSetType,
     updateNote,
     addExercise,
     removeExercise,

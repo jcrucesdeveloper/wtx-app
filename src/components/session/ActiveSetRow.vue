@@ -46,11 +46,29 @@ function toggleComplete() {
 function remove() {
   activeSession.removeSet(props.exerciseIndex, props.set.id)
 }
+
+function cycleType() {
+  activeSession.cycleSetType(props.exerciseIndex, props.set.id)
+}
 </script>
 
 <template>
-  <div class="row" :class="{ 'row--complete': set.completed, 'row--warmup': set.isWarmup }">
-    <span class="row__label">{{ label }}</span>
+  <div
+    class="row"
+    :class="{
+      'row--complete': set.completed,
+      'row--warmup': set.type === 'W',
+      'row--dropset': set.type === 'D',
+    }"
+  >
+    <button
+      type="button"
+      class="row__label"
+      :aria-label="`Set ${label} type, tap to change`"
+      @click="cycleType"
+    >
+      {{ label }}
+    </button>
     <input
       class="row__input"
       type="number"
@@ -90,15 +108,29 @@ function remove() {
 }
 
 .row__label {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
   font-size: 11px;
   font-weight: 700;
   opacity: 0.55;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  color: inherit;
+  cursor: pointer;
 }
 
-.row--warmup .row__label {
+.row__label:hover,
+.row__label:focus-visible {
+  opacity: 0.85;
+}
+
+.row--warmup .row__label,
+.row--dropset .row__label {
   color: var(--color-accent);
+  opacity: 1;
 }
 
 .row__input {
