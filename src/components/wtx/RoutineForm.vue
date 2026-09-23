@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { ChevronDown, EllipsisVertical, GripVertical } from '@lucide/vue'
+import { ChevronDown, EllipsisVertical, GripVertical, X } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import {
   emptyExercise,
@@ -9,6 +9,7 @@ import {
   type RoutineDraftSet,
 } from '@/lib/serializeRoutine'
 import { formatCompactDuration } from '@/lib/format'
+import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 
 const draft = defineModel<RoutineDraft>({ required: true })
@@ -174,13 +175,28 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
   const value = (event.target as HTMLInputElement).value
   ensureRow(exercise, index).reps = numberOrUndefined(value)
 }
+
+function addSet(exercise: RoutineDraftExercise) {
+  exercise.sets = (exercise.sets || 0) + 1
+}
+
+function removeSet(exercise: RoutineDraftExercise, index: number) {
+  exercise.sets = Math.max(0, (exercise.sets || 0) - 1)
+  exercise.setRows?.splice(index, 1)
+}
 </script>
 
 <template>
   <div class="form">
     <label class="field">
       <span class="field__label">Routine name</span>
-      <input v-model="draft.name" type="text" placeholder="Push Day" maxlength="80" />
+      <input
+        v-model="draft.name"
+        type="text"
+        placeholder="Push Day"
+        maxlength="80"
+        @focus="scrollFocusedIntoView"
+      />
     </label>
 
     <div class="row">
@@ -200,13 +216,23 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
       </div>
       <label class="field">
         <span class="field__label">Tags</span>
-        <input v-model="tagsText" type="text" placeholder="push, upper" />
+        <input
+          v-model="tagsText"
+          type="text"
+          placeholder="push, upper"
+          @focus="scrollFocusedIntoView"
+        />
       </label>
     </div>
 
     <label class="field">
       <span class="field__label">Notes</span>
-      <textarea v-model="draft.notes" rows="2" placeholder="Focuses mostly on chest." />
+      <textarea
+        v-model="draft.notes"
+        rows="2"
+        placeholder="Focuses mostly on chest."
+        @focus="scrollFocusedIntoView"
+      />
     </label>
 
     <div class="exercises">
@@ -289,15 +315,7 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
               </button>
             </div>
 
-            <template v-if="exercise.kind === 'reps'">
-              <div class="row">
-                <label class="field">
-                  <span class="field__label">Reps</span>
-                  <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
-                </label>
-              </div>
-            </template>
-            <label v-else class="field">
+            <label v-if="exercise.kind == 'time'" class="field">
               <span class="field__label">Duration</span>
               <input
                 :value="formatCompactDuration(exercise.durationSeconds)"
@@ -308,24 +326,11 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
                     ($event.target as HTMLInputElement).value,
                   )
                 "
+                @focus="scrollFocusedIntoView"
               />
             </label>
 
             <div v-if="exercise.kind === 'reps'" class="row">
-              <label class="field">
-                <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
-                <input
-                  :value="exercise.weight ?? ''"
-                  type="number"
-                  min="0"
-                  step="0.25"
-                  inputmode="decimal"
-                  placeholder="optional"
-                  @input="
-                    exercise.weight = numberOrUndefined(($event.target as HTMLInputElement).value)
-                  "
-                />
-              </label>
               <label class="field">
                 <span class="field__label">Rest</span>
                 <input
@@ -336,27 +341,17 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
                     exercise.restSeconds =
                       parseDuration(($event.target as HTMLInputElement).value) || undefined
                   "
+                  @focus="scrollFocusedIntoView"
                 />
               </label>
             </div>
-            <label v-else class="field">
-              <span class="field__label">Rest</span>
-              <input
-                :value="formatCompactDuration(exercise.restSeconds ?? 0)"
-                type="text"
-                placeholder="1m30s"
-                @change="
-                  exercise.restSeconds =
-                    parseDuration(($event.target as HTMLInputElement).value) || undefined
-                "
-              />
-            </label>
 
             <div v-if="exercise.kind === 'reps'" class="sets">
               <div class="sets__head">
                 <span />
                 <span>Weight ({{ draft.unit || '—' }})</span>
                 <span>Reps</span>
+                <span />
               </div>
               <div v-for="(row, si) in displayRows(exercise)" :key="si" class="sets__row">
                 <button
@@ -377,6 +372,7 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
                   :placeholder="String(exercise.weight ?? 0)"
                   :value="row.weight ?? ''"
                   @input="onSetWeightInput(exercise, si, $event)"
+                  @focus="scrollFocusedIntoView"
                 />
                 <input
                   class="sets__input"
@@ -387,8 +383,18 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
                   :placeholder="String(exercise.reps ?? 0)"
                   :value="row.reps ?? ''"
                   @input="onSetRepsInput(exercise, si, $event)"
+                  @focus="scrollFocusedIntoView"
                 />
+                <button
+                  type="button"
+                  class="sets__remove"
+                  :aria-label="`Remove set ${si + 1}`"
+                  @click="removeSet(exercise, si)"
+                >
+                  <X :size="14" :stroke-width="2.25" />
+                </button>
               </div>
+              <button type="button" class="sets__add" @click="addSet(exercise)">+ Add set</button>
             </div>
           </div>
         </div>
@@ -672,7 +678,7 @@ textarea {
 
 .sets__head {
   display: grid;
-  grid-template-columns: 28px 1fr 1fr;
+  grid-template-columns: 28px 1fr 1fr 24px;
   gap: 8px;
   font-size: 10px;
   font-weight: 700;
@@ -683,9 +689,48 @@ textarea {
 
 .sets__row {
   display: grid;
-  grid-template-columns: 28px 1fr 1fr;
+  grid-template-columns: 28px 1fr 1fr 24px;
   align-items: center;
   gap: 8px;
+}
+
+.sets__remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.sets__remove:hover {
+  opacity: 1;
+  color: #e11d48;
+  border-color: #e11d48;
+}
+
+.sets__add {
+  align-self: flex-start;
+  border: 1px dashed var(--color-border-hover);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.sets__add:hover {
+  opacity: 1;
 }
 
 .sets__label {
