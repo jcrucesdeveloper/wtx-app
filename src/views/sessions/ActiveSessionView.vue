@@ -6,12 +6,17 @@ import AppPage from '@/components/AppPage.vue'
 import ActiveExerciseCard from '@/components/session/ActiveExerciseCard.vue'
 import RestTimerBar from '@/components/session/RestTimerBar.vue'
 import ReorderExercisesSheet from '@/components/session/ReorderExercisesSheet.vue'
+import FinishSessionSheet from '@/components/session/FinishSessionSheet.vue'
+import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useRoutinesStore } from '@/stores/routines'
+import { sessionDiffersFromRoutine } from '@/lib/sessionToRoutine'
 import { formatClock } from '@/lib/format'
 import { AdService } from '@/services/ads'
 
 const router = useRouter()
 const activeSession = useActiveSessionStore()
+const routines = useRoutinesStore()
 
 const draft = computed(() => activeSession.session?.draft)
 
@@ -79,12 +84,40 @@ function onReorder() {
   reorderOpen.value = true
 }
 
-function onFinish() {
-  const stored = activeSession.finish()
+const addExerciseOpen = ref(false)
+function onAddExercise() {
+  menuOpen.value = false
+  addExerciseOpen.value = true
+}
+function onPickExercise(name: string) {
+  activeSession.addExercise(name)
+  addExerciseOpen.value = false
+}
+
+function finishAndNavigate(routineIdOverride?: string) {
+  const stored = activeSession.finish(routineIdOverride)
   router.replace({ name: 'session-detail', params: { id: stored.id } })
   // Let the summary render first so the interstitial reads as a break after
   // the result, not something blocking it.
   setTimeout(() => AdService.showInterstitial(), 500)
+}
+
+const finishSheetOpen = ref(false)
+function onFinish() {
+  const session = activeSession.session
+  const routineId = session?.routineId
+  const template = routineId ? routines.parsed(routineId) : undefined
+
+  if (session && template?.ok && sessionDiffersFromRoutine(session.draft, template.template)) {
+    finishSheetOpen.value = true
+    return
+  }
+  finishAndNavigate()
+}
+
+function onFinishSheetChoice(routineIdOverride?: string) {
+  finishSheetOpen.value = false
+  finishAndNavigate(routineIdOverride)
 }
 
 function onStartGroupWorkout() {
@@ -118,6 +151,7 @@ function onStartGroupWorkout() {
           <EllipsisVertical :size="18" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
+          <button type="button" class="menu__item" @click="onAddExercise">Add exercise</button>
           <button
             type="button"
             class="menu__item"
@@ -172,6 +206,7 @@ function onStartGroupWorkout() {
           :exercise-index="i"
           :exercise="exercise"
           :unit="draft.unit"
+          :can-remove="draft.exercises.length > 1"
         />
       </div>
 
@@ -180,6 +215,12 @@ function onStartGroupWorkout() {
       <div class="bottom-space" aria-hidden="true" />
 
       <ReorderExercisesSheet v-model:open="reorderOpen" />
+      <ExerciseListSheet
+        :open="addExerciseOpen"
+        @close="addExerciseOpen = false"
+        @select="onPickExercise"
+      />
+      <FinishSessionSheet v-model:open="finishSheetOpen" @finish="onFinishSheetChoice" />
     </template>
   </AppPage>
 </template>
