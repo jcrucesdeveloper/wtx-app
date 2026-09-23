@@ -36,6 +36,30 @@ describe('vendored wtx parser', () => {
     expect(t.totalTime).toBe(90 + 4 * 90 + 3 * 60)
     expect(t.estimatedVolume).toBe(4 * 8 * 60 + 3 * 15 * 8)
   })
+
+  it('parses per-set weight overrides (warm-up and drop-set)', () => {
+    const text = `# Push Day
+unit: kg
+
+Bench Press | reps 4x8 | 60 | rest 1m30s
+W | 40
+D | 45
+`
+    const t = WorkoutParser.parseTemplate(text)
+    const bench = t.exercises[0]!
+    expect(bench.targetWeight).toBe(60)
+    expect(bench.specificSets).toEqual([
+      { label: 'W', weight: 40 },
+      { label: 'D', weight: 45 },
+    ])
+  })
+
+  it('throws when a set override line has no preceding exercise', () => {
+    const text = `# Push Day
+W | 40
+`
+    expect(() => WorkoutParser.parseTemplate(text)).toThrow(/Set line with no preceding exercise/)
+  })
 })
 
 describe('parseTemplateText', () => {
