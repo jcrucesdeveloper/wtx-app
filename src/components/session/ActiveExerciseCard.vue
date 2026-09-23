@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { EllipsisVertical, Plus } from '@lucide/vue'
+import { ArrowDownUp, EllipsisVertical, Plus } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ActiveSetRow from '@/components/session/ActiveSetRow.vue'
@@ -16,12 +16,21 @@ const props = defineProps<{
 
 const activeSession = useActiveSessionStore()
 
+const emit = defineEmits<{
+  reorder: []
+}>()
+
 const menuOpen = ref(false)
 function closeMenu() {
   menuOpen.value = false
 }
 onMounted(() => document.addEventListener('click', closeMenu))
 onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
+
+function reorderExercises() {
+  menuOpen.value = false
+  emit('reorder')
+}
 
 function removeExercise() {
   menuOpen.value = false
@@ -82,6 +91,14 @@ function onNoteInput(event: Event) {
           <EllipsisVertical :size="16" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="card__menu-panel" @click.stop>
+          <button
+            type="button"
+            class="card__menu-item"
+            :disabled="!canRemove"
+            @click="reorderExercises"
+          >
+            <ArrowDownUp :size="14" :stroke-width="2.25" /> Reorder exercises
+          </button>
           <button
             type="button"
             class="card__menu-item card__menu-item--danger"
@@ -203,12 +220,16 @@ function onNoteInput(event: Event) {
 }
 
 .card__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   border: none;
   background: transparent;
   color: var(--color-text);
   font-size: 13px;
   font-weight: 600;
   text-align: left;
+  white-space: nowrap;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;

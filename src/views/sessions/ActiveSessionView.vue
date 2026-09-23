@@ -207,6 +207,7 @@ function onStartGroupWorkout() {
           :exercise="exercise"
           :unit="draft.unit"
           :can-remove="draft.exercises.length > 1"
+          @reorder="onReorder"
         />
       </div>
 
