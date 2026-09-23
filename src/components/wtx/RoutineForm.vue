@@ -128,7 +128,7 @@ function summaryFor(exercise: RoutineDraftExercise): string {
       ? formatCompactDuration(exercise.durationSeconds) || '0s'
       : `${exercise.sets || 0} × ${exercise.reps || 0}`,
   )
-  if (exercise.weight !== undefined)
+  if (exercise.kind === 'reps' && exercise.weight !== undefined)
     parts.push(`${exercise.weight} ${draft.value.unit ?? ''}`.trim())
   return parts.join(' · ')
 }
@@ -292,10 +292,6 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
             <template v-if="exercise.kind === 'reps'">
               <div class="row">
                 <label class="field">
-                  <span class="field__label">Sets</span>
-                  <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
-                </label>
-                <label class="field">
                   <span class="field__label">Reps</span>
                   <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
                 </label>
@@ -315,7 +311,7 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
               />
             </label>
 
-            <div class="row">
+            <div v-if="exercise.kind === 'reps'" class="row">
               <label class="field">
                 <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
                 <input
@@ -343,6 +339,18 @@ function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Ev
                 />
               </label>
             </div>
+            <label v-else class="field">
+              <span class="field__label">Rest</span>
+              <input
+                :value="formatCompactDuration(exercise.restSeconds ?? 0)"
+                type="text"
+                placeholder="1m30s"
+                @change="
+                  exercise.restSeconds =
+                    parseDuration(($event.target as HTMLInputElement).value) || undefined
+                "
+              />
+            </label>
 
             <div v-if="exercise.kind === 'reps'" class="sets">
               <div class="sets__head">
