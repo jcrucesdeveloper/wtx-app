@@ -2,6 +2,13 @@
 export type ExerciseType =
   { kind: 'reps'; sets: number; reps: number } | { kind: 'time'; seconds: number }
 
+/** One optional per-set override line following a `.wtt` exercise line. */
+export interface TemplateSet {
+  label: string // "W" for warm-up, "1", "2", ... for working sets, "D" for drop set
+  weight: number
+  reps: number
+}
+
 /** One raw exercise line from a `.wtt` template. */
 export interface TemplateExercise {
   name: string
@@ -9,24 +16,23 @@ export interface TemplateExercise {
   weight?: number
   restSeconds?: number
   muscleGroup?: string
+  specificSets?: TemplateSet[]
 }
 
 /** Raw parse result for a `.wtt` template file. */
 export interface Template {
   name: string
   unit?: string
-  /** `description:` metadata line. */
   description?: string
   /** `notes:` metadata line (alias/companion of `description`). */
   notes?: string
-  /** `tags:` metadata line, split on commas. */
   tags?: string[]
   exercises: TemplateExercise[]
 }
 
 /** One logged set following a session exercise line. */
 export interface SessionSet {
-  label: string // "W" for warm-up, "1", "2", ... for working sets
+  label: string
   weight: number
   reps: number
 }

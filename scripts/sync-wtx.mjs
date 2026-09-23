@@ -10,7 +10,7 @@ import { writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const REF = process.argv[2] ?? '636fc79000395101183bf64b8393954fb5d096f2'
+const REF = process.argv[2] ?? '222489466892954e1ca9640da01db08324d8ad42'
 const REPO = 'jcrucesdeveloper/wtx'
 const SRC_DIR = 'parsers/typescript/src'
 const FILES = [

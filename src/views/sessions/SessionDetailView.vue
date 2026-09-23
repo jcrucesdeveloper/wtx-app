@@ -4,7 +4,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, EllipsisVertical } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
-import AdBanner from '@/components/ads/AdBanner.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { formatNumber } from '@/lib/format'
 
@@ -89,8 +88,6 @@ function onDelete() {
         <pre class="source">{{ stored.rawText }}</pre>
       </div>
     </template>
-
-    <AdBanner v-if="stored" />
   </AppPage>
 </template>
 
