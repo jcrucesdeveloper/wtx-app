@@ -1,4 +1,4 @@
-import type { TemplateExercise } from './types'
+import type { TemplateExercise, TemplateSet } from './types'
 
 /**
  * One planned exercise in a {@link WorkoutTemplate}.
@@ -32,11 +32,15 @@ export class WorkoutExercise {
   /** Primary muscle group, if the line carries a `muscle` field. */
   readonly muscleGroup?: string
 
+  /** Optional per-set value overrides (e.g. warm-up or drop-set weights), in file order. */
+  readonly specificSets?: TemplateSet[]
+
   constructor(raw: TemplateExercise) {
     this.name = raw.name
     this.targetWeight = raw.weight
     this.restSeconds = raw.restSeconds
     this.muscleGroup = raw.muscleGroup
+    this.specificSets = raw.specificSets
 
     if (raw.type.kind === 'reps') {
       this.kind = 'reps'

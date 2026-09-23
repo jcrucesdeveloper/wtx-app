@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { serializeTemplate, type RoutineDraft } from '../serializeRoutine'
+import { draftFromTemplate, serializeTemplate, type RoutineDraft } from '../serializeRoutine'
 import { parseTemplateText } from '../parseRoutine'
 import { WorkoutParser } from '../wtx'
 
@@ -75,6 +75,59 @@ describe('serializeTemplate', () => {
     expect(template.exercises[0]!.sets).toBe(4)
     expect(template.exercises[0]!.targetReps).toBe(8)
     expect(template.exercises[0]!.restSeconds).toBe(90)
+  })
+
+  it('omits set-override lines when no row is customized', () => {
+    const text = serializeTemplate(repsOnly)
+    expect(text).not.toMatch(/^\s*W \|/m)
+    expect(text).not.toMatch(/^\s*D \|/m)
+  })
+
+  it('round-trips per-set weight overrides (warm-up, drop-set, and a plain set)', () => {
+    const draft: RoutineDraft = {
+      name: 'Push Day',
+      unit: 'kg',
+      tags: [],
+      exercises: [
+        {
+          name: 'Bench Press',
+          kind: 'reps',
+          sets: 3,
+          reps: 8,
+          durationSeconds: 0,
+          weight: 60,
+          setRows: [
+            { type: 'W', weight: 40, reps: 10 },
+            { type: 'number' },
+            { type: 'D', weight: 45, reps: 6 },
+          ],
+        },
+      ],
+    }
+
+    const template = WorkoutParser.parseTemplate(serializeTemplate(draft))
+    const bench = template.exercises[0]!
+    expect(bench.targetWeight).toBe(60)
+    expect(bench.specificSets).toEqual([
+      { label: 'W', weight: 40, reps: 10 },
+      { label: '2', weight: 60, reps: 8 },
+      { label: 'D', weight: 45, reps: 6 },
+    ])
+  })
+
+  it('reopens a template with set overrides for editing and re-serializes it unchanged', () => {
+    const original = `# Push Day\nunit: kg\n\nBench Press | reps 3x8 | 60\nW | 40 | 10\n2 | 60 | 8\nD | 45 | 6\n`
+    const template = WorkoutParser.parseTemplate(original)
+    const draft = draftFromTemplate(template)
+
+    expect(draft.exercises[0]!.setRows).toEqual([
+      { type: 'W', weight: 40, reps: 10 },
+      { type: 'number', weight: 60, reps: 8 },
+      { type: 'D', weight: 45, reps: 6 },
+    ])
+
+    const reparsed = WorkoutParser.parseTemplate(serializeTemplate(draft))
+    expect(reparsed.exercises[0]!.specificSets).toEqual(template.exercises[0]!.specificSets)
   })
 
   it('is stable across a parse → serialize round-trip of example templates', () => {

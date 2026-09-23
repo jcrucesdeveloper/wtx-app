@@ -2,7 +2,12 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { ChevronDown, EllipsisVertical, GripVertical } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
-import { emptyExercise, type RoutineDraft, type RoutineDraftExercise } from '@/lib/serializeRoutine'
+import {
+  emptyExercise,
+  type RoutineDraft,
+  type RoutineDraftExercise,
+  type RoutineDraftSet,
+} from '@/lib/serializeRoutine'
 import { formatCompactDuration } from '@/lib/format'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 
@@ -123,7 +128,7 @@ function summaryFor(exercise: RoutineDraftExercise): string {
       ? formatCompactDuration(exercise.durationSeconds) || '0s'
       : `${exercise.sets || 0} × ${exercise.reps || 0}`,
   )
-  if (exercise.weight !== undefined)
+  if (exercise.kind === 'reps' && exercise.weight !== undefined)
     parts.push(`${exercise.weight} ${draft.value.unit ?? ''}`.trim())
   return parts.join(' · ')
 }
@@ -133,6 +138,41 @@ function numberOrUndefined(value: string): number | undefined {
   if (trimmed === '') return undefined
   const n = Number(trimmed)
   return Number.isFinite(n) ? n : undefined
+}
+
+/**
+ * One row per prescribed set, mirroring the active session's per-set rows.
+ * Rows beyond the saved `setRows` (or when there are none yet) fall back to
+ * the plain numbered default, without writing anything until touched.
+ */
+function displayRows(exercise: RoutineDraftExercise): RoutineDraftSet[] {
+  const count = Math.max(0, Math.trunc(exercise.sets) || 0)
+  return Array.from({ length: count }, (_, i) => exercise.setRows?.[i] ?? { type: 'number' })
+}
+
+/** Lazily grows `setRows` so row `index` exists, then returns it for mutation. */
+function ensureRow(exercise: RoutineDraftExercise, index: number): RoutineDraftSet {
+  if (!exercise.setRows) exercise.setRows = []
+  while (exercise.setRows.length <= index) {
+    exercise.setRows.push({ type: 'number' })
+  }
+  return exercise.setRows[index]!
+}
+
+/** Tapping a set's number cycles it through plain number → warm-up → drop set. */
+function cycleSetType(exercise: RoutineDraftExercise, index: number) {
+  const row = ensureRow(exercise, index)
+  row.type = row.type === 'number' ? 'W' : row.type === 'W' ? 'D' : 'number'
+}
+
+function onSetWeightInput(exercise: RoutineDraftExercise, index: number, event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  ensureRow(exercise, index).weight = numberOrUndefined(value)
+}
+
+function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  ensureRow(exercise, index).reps = numberOrUndefined(value)
 }
 </script>
 
@@ -249,16 +289,14 @@ function numberOrUndefined(value: string): number | undefined {
               </button>
             </div>
 
-            <div v-if="exercise.kind === 'reps'" class="row">
-              <label class="field">
-                <span class="field__label">Sets</span>
-                <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
-              </label>
-              <label class="field">
-                <span class="field__label">Reps</span>
-                <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
-              </label>
-            </div>
+            <template v-if="exercise.kind === 'reps'">
+              <div class="row">
+                <label class="field">
+                  <span class="field__label">Reps</span>
+                  <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
+                </label>
+              </div>
+            </template>
             <label v-else class="field">
               <span class="field__label">Duration</span>
               <input
@@ -273,7 +311,7 @@ function numberOrUndefined(value: string): number | undefined {
               />
             </label>
 
-            <div class="row">
+            <div v-if="exercise.kind === 'reps'" class="row">
               <label class="field">
                 <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
                 <input
@@ -301,15 +339,57 @@ function numberOrUndefined(value: string): number | undefined {
                 />
               </label>
             </div>
-
-            <label class="field">
-              <span class="field__label">Muscle group</span>
+            <label v-else class="field">
+              <span class="field__label">Rest</span>
               <input
-                v-model="exercise.muscleGroup"
+                :value="formatCompactDuration(exercise.restSeconds ?? 0)"
                 type="text"
-                placeholder="optional, e.g. chest"
+                placeholder="1m30s"
+                @change="
+                  exercise.restSeconds =
+                    parseDuration(($event.target as HTMLInputElement).value) || undefined
+                "
               />
             </label>
+
+            <div v-if="exercise.kind === 'reps'" class="sets">
+              <div class="sets__head">
+                <span />
+                <span>Weight ({{ draft.unit || '—' }})</span>
+                <span>Reps</span>
+              </div>
+              <div v-for="(row, si) in displayRows(exercise)" :key="si" class="sets__row">
+                <button
+                  type="button"
+                  class="sets__label"
+                  :class="{ 'sets__label--marked': row.type !== 'number' }"
+                  :aria-label="`Set ${si + 1} type, tap to change`"
+                  @click="cycleSetType(exercise, si)"
+                >
+                  {{ row.type === 'number' ? si + 1 : row.type }}
+                </button>
+                <input
+                  class="sets__input"
+                  type="number"
+                  min="0"
+                  step="0.25"
+                  inputmode="decimal"
+                  :placeholder="String(exercise.weight ?? 0)"
+                  :value="row.weight ?? ''"
+                  @input="onSetWeightInput(exercise, si, $event)"
+                />
+                <input
+                  class="sets__input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  :placeholder="String(exercise.reps ?? 0)"
+                  :value="row.reps ?? ''"
+                  @input="onSetRepsInput(exercise, si, $event)"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </VueDraggable>
@@ -582,5 +662,64 @@ textarea {
   background: var(--color-background);
   opacity: 1;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.sets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sets__head {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  opacity: 0.5;
+}
+
+.sets__row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.sets__label {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.sets__label--marked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+  opacity: 1;
+}
+
+.sets__input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 7px 8px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 </style>

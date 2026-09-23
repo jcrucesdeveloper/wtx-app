@@ -5,12 +5,13 @@ import type {
   SessionSet,
   Template,
   TemplateExercise,
+  TemplateSet,
 } from './types'
 import { WorkoutSession } from './WorkoutSession'
 import { WorkoutTemplate } from './WorkoutTemplate'
 
 const META_RE = /^([a-zA-Z_]+):\s*(.*)$/
-const SET_LABEL_RE = /^(W|\d+)$/
+const SET_LABEL_RE = /^(W|D|\d+)$/
 const NUMBER_RE = /^-?\d+(\.\d+)?$/
 const DURATION_RE = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/
 
@@ -48,7 +49,16 @@ export class WorkoutParser {
       }
 
       if (line.includes('|')) {
-        exercises.push(WorkoutParser.parseTemplateExerciseLine(line))
+        const firstField = line.slice(0, line.indexOf('|')).trim()
+        if (SET_LABEL_RE.test(firstField)) {
+          const current = exercises[exercises.length - 1]
+          if (!current) {
+            throw new Error(`Set line with no preceding exercise: "${line}"`)
+          }
+          ;(current.specificSets ??= []).push(WorkoutParser.parseTemplateSetLine(line))
+        } else {
+          exercises.push(WorkoutParser.parseTemplateExerciseLine(line))
+        }
         continue
       }
 
@@ -244,6 +254,21 @@ export class WorkoutParser {
     }
 
     return exercise
+  }
+
+  /**
+   * Parses one optional per-set override line following a `.wtt` exercise line.
+   *
+   * @param line - `Label | Weight | Reps`, where Label is `W`, `D`, or a set number.
+   * @returns The parsed set override.
+   * @throws If the label, weight, or reps field is missing.
+   */
+  private static parseTemplateSetLine(line: string): TemplateSet {
+    const [label, weight, reps] = WorkoutParser.splitFields(line)
+    if (!label || weight === undefined || reps === undefined) {
+      throw new Error(`Invalid set line: "${line}"`)
+    }
+    return { label, weight: Number(weight), reps: Number(reps) }
   }
 
   /**
