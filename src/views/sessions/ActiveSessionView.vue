@@ -5,6 +5,7 @@ import { ArrowLeft, Check, EllipsisVertical, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import ActiveExerciseCard from '@/components/session/ActiveExerciseCard.vue'
 import RestTimerBar from '@/components/session/RestTimerBar.vue'
+import ReorderExercisesSheet from '@/components/session/ReorderExercisesSheet.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock } from '@/lib/format'
 import { AdService } from '@/services/ads'
@@ -72,6 +73,12 @@ function onDiscard() {
   router.replace('/sessions')
 }
 
+const reorderOpen = ref(false)
+function onReorder() {
+  menuOpen.value = false
+  reorderOpen.value = true
+}
+
 function onFinish() {
   const stored = activeSession.finish()
   router.replace({ name: 'session-detail', params: { id: stored.id } })
@@ -111,6 +118,14 @@ function onStartGroupWorkout() {
           <EllipsisVertical :size="18" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
+          <button
+            type="button"
+            class="menu__item"
+            :disabled="stats.totalExercises < 2"
+            @click="onReorder"
+          >
+            Reorder exercises
+          </button>
           <button type="button" class="menu__item menu__item--danger" @click="onDiscard">
             Discard workout
           </button>
@@ -163,6 +178,8 @@ function onStartGroupWorkout() {
       <RestTimerBar />
 
       <div class="bottom-space" aria-hidden="true" />
+
+      <ReorderExercisesSheet v-model:open="reorderOpen" />
     </template>
   </AppPage>
 </template>
@@ -316,6 +333,12 @@ function onStartGroupWorkout() {
 
 .menu__item--danger {
   color: #e11d48;
+}
+
+.menu__item:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: transparent;
 }
 
 .finish-btn {
