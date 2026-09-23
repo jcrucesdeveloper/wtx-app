@@ -6,6 +6,7 @@ import {
   newSetId,
   serializeSession,
   type SessionDraft,
+  type SessionExerciseDraft,
 } from '@/lib/serializeSession'
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import type { StoredRoutine } from '@/stores/routines'
@@ -165,6 +166,24 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (exercise) exercise.note = note
   }
 
+  /**
+   * Reorders the in-progress session's exercises. Only this session is
+   * affected — the routine/template it was started from is untouched.
+   */
+  function reorderExercises(newOrder: SessionExerciseDraft[]) {
+    if (!session.value) return
+    const restExerciseIndex = session.value.restExerciseIndex
+    const restExercise =
+      restExerciseIndex !== null ? session.value.draft.exercises[restExerciseIndex] : undefined
+
+    session.value.draft.exercises = newOrder
+
+    if (restExercise) {
+      const newIndex = newOrder.indexOf(restExercise)
+      session.value.restExerciseIndex = newIndex === -1 ? null : newIndex
+    }
+  }
+
   function startRestTimer(exerciseIndex: number, setId: string, seconds: number) {
     if (!session.value) return
     session.value.restExerciseIndex = exerciseIndex
@@ -220,6 +239,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     addSet,
     removeSet,
     updateNote,
+    reorderExercises,
     startRestTimer,
     skipRestTimer,
     adjustRestTimer,
