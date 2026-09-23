@@ -8,17 +8,29 @@ import RestTimerBar from '@/components/session/RestTimerBar.vue'
 import ReorderExercisesSheet from '@/components/session/ReorderExercisesSheet.vue'
 import FinishSessionSheet from '@/components/session/FinishSessionSheet.vue'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
+import PreSessionTransition from '@/components/session/PreSessionTransition.vue'
+import PostSessionTransition from '@/components/session/PostSessionTransition.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
+import { useFinishSession } from '@/composables/useFinishSession'
 import { sessionDiffersFromRoutine } from '@/lib/sessionToRoutine'
 import { formatClock } from '@/lib/format'
+import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { AdService } from '@/services/ads'
 
 const router = useRouter()
 const activeSession = useActiveSessionStore()
 const routines = useRoutinesStore()
+const { finishSession } = useFinishSession()
 
 const draft = computed(() => activeSession.session?.draft)
+
+/** Only the moment a workout truly starts, not every time this view is re-entered. */
+const showIntro = ref(false)
+
+/** Set once finishing, so the outro beat can outlive `draft` going null. */
+const finishing = ref(false)
+const finishedSessionId = ref<string | null>(null)
 
 const stats = computed(() => {
   const exercises = draft.value?.exercises ?? []
@@ -63,6 +75,9 @@ onMounted(() => {
   document.addEventListener('click', closeMenu)
   // Pre-load now so it's ready to show the moment the workout finishes.
   AdService.loadInterstitial()
+  // A freshly-started session is a few seconds old at most — resuming an
+  // already-in-progress one (e.g. backgrounding and returning) shouldn't replay it.
+  if (!prefersReducedMotion() && activeSession.elapsedSeconds < 2) showIntro.value = true
 })
 onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 
@@ -95,11 +110,20 @@ function onPickExercise(name: string) {
 }
 
 function finishAndNavigate(routineIdOverride?: string) {
-  const stored = activeSession.finish(routineIdOverride)
-  router.replace({ name: 'session-detail', params: { id: stored.id } })
-  // Let the summary render first so the interstitial reads as a break after
-  // the result, not something blocking it.
-  setTimeout(() => AdService.showInterstitial(), 500)
+  const stored = finishSession(routineIdOverride)
+  if (prefersReducedMotion()) {
+    router.replace({ name: 'session-complete', params: { id: stored.id } })
+    return
+  }
+  finishedSessionId.value = stored.id
+  finishing.value = true
+}
+
+function onFinishTransitionDone() {
+  finishing.value = false
+  if (finishedSessionId.value) {
+    router.replace({ name: 'session-complete', params: { id: finishedSessionId.value } })
+  }
 }
 
 const finishSheetOpen = ref(false)
@@ -223,6 +247,13 @@ function onStartGroupWorkout() {
       />
       <FinishSessionSheet v-model:open="finishSheetOpen" @finish="onFinishSheetChoice" />
     </template>
+
+    <PreSessionTransition
+      v-if="showIntro && draft"
+      :routine-name="draft.name"
+      @done="showIntro = false"
+    />
+    <PostSessionTransition v-if="finishing" @done="onFinishTransitionDone" />
   </AppPage>
 </template>
 

@@ -6,16 +6,27 @@ import { formatClock } from '@/lib/format'
 const activeSession = useActiveSessionStore()
 
 const visible = computed(() => activeSession.session?.restEndsAt != null)
+
+const progressPercent = computed(() => {
+  const duration = activeSession.session?.restDurationSeconds
+  if (!duration) return 0
+  return Math.min(100, Math.max(0, (activeSession.restRemainingSeconds / duration) * 100))
+})
 </script>
 
 <template>
   <div v-if="visible" class="bar">
-    <span class="bar__label">Rest</span>
-    <span class="bar__time">{{ formatClock(activeSession.restRemainingSeconds) }}</span>
-    <div class="bar__actions">
-      <button type="button" @click="activeSession.adjustRestTimer(-15)">−15s</button>
-      <button type="button" @click="activeSession.adjustRestTimer(15)">+15s</button>
-      <button type="button" class="bar__skip" @click="activeSession.skipRestTimer()">Skip</button>
+    <div class="bar__track">
+      <div class="bar__fill" :style="{ width: progressPercent + '%' }" />
+    </div>
+    <div class="bar__row">
+      <span class="bar__label">Rest</span>
+      <span class="bar__time">{{ formatClock(activeSession.restRemainingSeconds) }}</span>
+      <div class="bar__actions">
+        <button type="button" @click="activeSession.adjustRestTimer(-15)">−15s</button>
+        <button type="button" @click="activeSession.adjustRestTimer(15)">+15s</button>
+        <button type="button" class="bar__skip" @click="activeSession.skipRestTimer()">Skip</button>
+      </div>
     </div>
   </div>
 </template>
@@ -25,12 +36,32 @@ const visible = computed(() => activeSession.session?.restEndsAt != null)
   position: sticky;
   bottom: 0;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   margin: 12px -20px -24px;
   padding: 10px 20px calc(10px + env(safe-area-inset-bottom));
   background: var(--color-background-soft);
   border-top: 1px solid var(--color-border-hover);
+}
+
+.bar__track {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-mute);
+  overflow: hidden;
+}
+
+.bar__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transition: width 1s linear;
+}
+
+.bar__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .bar__label {
