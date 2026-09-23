@@ -167,6 +167,44 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   }
 
   /**
+   * Appends a new exercise to the end of the in-progress session — e.g. when
+   * the planned equipment is unavailable and something else is subbed in.
+   * Only this session is affected until the user chooses to sync on finish.
+   */
+  function addExercise(name: string) {
+    if (!session.value) return
+    session.value.draft.exercises.push({
+      name,
+      kind: 'reps',
+      sets: 3,
+      reps: 10,
+      weight: 0,
+      note: '',
+      loggedSets: Array.from({ length: 3 }, () => ({
+        id: newSetId(),
+        isWarmup: false,
+        weight: null,
+        reps: null,
+        completed: false,
+      })),
+    })
+  }
+
+  /**
+   * Removes an exercise from the in-progress session. Only this session is
+   * affected — the routine/template it was started from is untouched.
+   */
+  function removeExercise(index: number) {
+    if (!session.value) return
+    const restExerciseIndex = session.value.restExerciseIndex
+    if (restExerciseIndex !== null) {
+      if (restExerciseIndex === index) skipRestTimer()
+      else if (restExerciseIndex > index) session.value.restExerciseIndex = restExerciseIndex - 1
+    }
+    session.value.draft.exercises.splice(index, 1)
+  }
+
+  /**
    * Reorders the in-progress session's exercises. Only this session is
    * affected — the routine/template it was started from is untouched.
    */
@@ -205,8 +243,14 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     session.value.restEndsAt = Math.max(Date.now(), session.value.restEndsAt + deltaSeconds * 1000)
   }
 
-  /** Serializes, saves to the session log, and clears the active session. */
-  function finish(): StoredSession {
+  /**
+   * Serializes, saves to the session log, and clears the active session.
+   *
+   * @param routineIdOverride Links the saved session to a different routine
+   *   than the one it was started from — e.g. when the user saved a
+   *   mid-workout exercise swap as a new routine on finish.
+   */
+  function finish(routineIdOverride?: string): StoredSession {
     if (!session.value) throw new Error('No active session to finish.')
 
     const rawText = serializeSession(session.value.draft)
@@ -214,7 +258,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (!result.ok) throw new Error(result.error)
 
     const sessions = useSessionsStore()
-    const stored = sessions.add(rawText, session.value.routineId, Date.now())
+    const stored = sessions.add(rawText, routineIdOverride ?? session.value.routineId, Date.now())
 
     session.value = null
     persist()
@@ -239,6 +283,8 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     addSet,
     removeSet,
     updateNote,
+    addExercise,
+    removeExercise,
     reorderExercises,
     startRestTimer,
     skipRestTimer,

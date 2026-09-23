@@ -53,12 +53,9 @@ export function emptyExercise(): RoutineDraftExercise {
   return { name: '', kind: 'reps', sets: 3, reps: 10, durationSeconds: 60 }
 }
 
-/**
- * Builds an editable {@link RoutineDraft} from a parsed template, so an existing
- * routine can be reopened in the "Create a routine" form for editing.
- */
-export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
-  const exercises = template.exercises.map((exercise) => ({
+/** Maps one parsed template exercise to its editable draft form. */
+export function templateExerciseToDraft(exercise: WorkoutTemplate['exercises'][number]): RoutineDraftExercise {
+  return {
     name: exercise.name,
     kind: exercise.kind,
     sets: exercise.kind === 'reps' ? exercise.sets : 3,
@@ -76,7 +73,15 @@ export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
             return { type, weight: entry.weight, reps: entry.reps }
           })
         : undefined,
-  }))
+  }
+}
+
+/**
+ * Builds an editable {@link RoutineDraft} from a parsed template, so an existing
+ * routine can be reopened in the "Create a routine" form for editing.
+ */
+export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
+  const exercises = template.exercises.map(templateExerciseToDraft)
 
   return {
     name: template.name,
