@@ -18,9 +18,9 @@ Shoulders, Arms, Abs, Legs, Neck) via the `MUSCLE_GROUP_BY_MUSCLE` table in
 `scripts/sync-exercise-db.mjs`, which throws if it meets an upstream muscle
 it doesn't recognize. Other dropped fields — `force`, `level`, `mechanic`,
 `secondaryMuscles`, `instructions`, `equipment`, `images` — aren't used yet.
-`images` is the notable one: exercise matching is text-only for now, so the
-upstream images aren't vendored. Re-run the sync script once image support
-is built to see what else is needed from upstream.
+
+`images` is handled separately from this catalog — see "Exercise images"
+below.
 
 A handful of upstream names also carry a competition-discipline suffix
 (e.g. `"Bench Press - Powerlifting"`) — same reasoning as dropping
@@ -34,3 +34,27 @@ and the sync throws if that ever produces a duplicate name.
 Run `pnpm sync:exercises` (see `scripts/sync-exercise-db.mjs`). It pulls
 `dist/exercises.json` at the pinned ref, re-applies the trim, and rewrites
 `exerciseCatalog.json`. Review the diff and bump the commit hash above.
+
+## Exercise images
+
+Images are never bundled into the app or vendored into this repo — they're
+fetched on demand from a jsDelivr CDN and persisted on-device only once an
+exercise is actually used (see `src/lib/exercises/imageCache.ts` and
+`src/config/exerciseImages.ts`).
+
+They're served from
+[`jcrucesdeveloper/free-exercise-db`](https://github.com/jcrucesdeveloper/free-exercise-db),
+a fork of upstream with every `exercises/<id>/{0,1}.jpg` resized to 480px
+wide and converted to WebP (`scripts/optimize-images.sh` in that repo),
+cutting the image payload from ~122MB to ~34MB. The CDN URL is pinned to
+the fork's `wtx-v1` tag (`EXERCISE_IMAGES_REF` in
+`src/config/exerciseImages.ts`) so images never change under us
+unexpectedly — bump it deliberately, same as this file's upstream commit.
+
+Upstream's per-exercise folder names already match this catalog's `id`
+field exactly (verified at fork time), so image URLs are built directly
+from `id` with no separate mapping. Of the 876 catalog entries, 3 have no
+upstream images at all (`Kettlebell_Halo`,
+`Kettlebell_Halo_With_Overhead_Extension`,
+`Kettlebell_Overhead_Triceps_Extension`) — the UI treats a missing image as
+an expected, silent case, not an error.

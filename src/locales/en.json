@@ -30,6 +30,11 @@
   "bottomSheet": {
     "closeAria": "Close"
   },
+  "exerciseImage": {
+    "start": "Start",
+    "finish": "Finish",
+    "noImage": "No photo for this one yet"
+  },
   "load": {
     "title": "Load a routine",
     "tabPaste": "Paste",
@@ -116,7 +121,8 @@
     "exercisePicker": {
       "title": "Choose exercise",
       "searchPlaceholder": "Search exercises or muscle group",
-      "useCustom": "Use \"{query}\""
+      "useCustom": "Use \"{query}\"",
+      "previewAria": "Preview {name}"
     },
     "routineForm": {
       "routineName": "Routine name",

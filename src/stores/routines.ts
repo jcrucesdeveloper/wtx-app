@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { parseTemplateText, type ParseResult } from '@/lib/parseRoutine'
 import { DEFAULT_TEMPLATES } from '@/lib/wtx/defaultTemplates'
+import { warmExerciseImages } from '@/lib/exercises/imageCache'
 
 /** A `.wtt` template as stored in the library. Raw text is the source of truth. */
 export interface StoredRoutine {
@@ -69,6 +70,19 @@ export const useRoutinesStore = defineStore('routines', () => {
       }
     },
     { deep: true },
+  )
+
+  /** Warms the on-device image cache for every exercise across the library, on init and on any change. */
+  watch(
+    routines,
+    (value) => {
+      const names = value.flatMap((r) => {
+        const result = parseTemplateText(r.rawText)
+        return result.ok ? result.template.exercises.map((e) => e.name) : []
+      })
+      void warmExerciseImages(names)
+    },
+    { deep: true, immediate: true },
   )
 
   /** Display order — newest first by default, but user-reorderable via {@link reorder}. */

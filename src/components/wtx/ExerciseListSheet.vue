@@ -2,6 +2,8 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import { searchExerciseCatalog } from '@/lib/exercises/exerciseCatalog'
 
 const props = defineProps<{
@@ -44,6 +46,8 @@ function choose(name: string) {
   emit('select', name)
   emit('close')
 }
+
+const previewName = ref<string | null>(null)
 </script>
 
 <template>
@@ -68,7 +72,15 @@ function choose(name: string) {
             {{ t('wtx.exercisePicker.useCustom', { query: trimmedQuery }) }}
           </button>
         </li>
-        <li v-for="entry in results" :key="entry.id">
+        <li v-for="entry in results" :key="entry.id" class="picker__row">
+          <button
+            type="button"
+            class="picker__thumb-btn"
+            :aria-label="t('wtx.exercisePicker.previewAria', { name: entry.name })"
+            @click="previewName = entry.name"
+          >
+            <ExerciseThumb :name="entry.name" />
+          </button>
           <button type="button" class="picker__item" @click="choose(entry.name)">
             <span class="picker__name">{{ entry.name }}</span>
             <span class="picker__meta">{{ entry.muscleGroup }}</span>
@@ -76,6 +88,12 @@ function choose(name: string) {
         </li>
       </ul>
     </div>
+
+    <ExerciseImageSheet
+      :open="previewName !== null"
+      :name="previewName ?? ''"
+      @close="previewName = null"
+    />
   </BottomSheet>
 </template>
 
@@ -109,6 +127,20 @@ function choose(name: string) {
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+}
+
+.picker__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.picker__thumb-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .picker__item {
