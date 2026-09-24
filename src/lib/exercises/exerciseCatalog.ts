@@ -40,3 +40,16 @@ export function searchExerciseCatalog(query: string, limit = 50): ExerciseCatalo
 
   return [...nameStartsWith, ...groupMatch, ...nameIncludes].slice(0, limit)
 }
+
+/**
+ * Exact (case-insensitive) name lookup, for resolving a routine/session
+ * exercise's free-text name to its catalog entry — e.g. to build an image
+ * URL. Unlike {@link searchExerciseCatalog}, this never fuzzy-matches: a
+ * custom exercise name with no exact catalog match simply has no entry
+ * (and so no image), rather than risking showing the wrong exercise's image.
+ */
+export function findCatalogEntryByName(name: string): ExerciseCatalogEntry | undefined {
+  const needle = name.trim().toLowerCase()
+  if (!needle) return undefined
+  return EXERCISE_CATALOG.find((entry) => entry.name.toLowerCase() === needle)
+}
