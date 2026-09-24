@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { ImageOff } from '@lucide/vue'
+import { Dumbbell } from '@lucide/vue'
 import { exerciseImageUrl } from '@/config/exerciseImages'
 import { findCatalogEntryByName } from '@/lib/exercises/exerciseCatalog'
 
@@ -35,7 +35,7 @@ watch(src, () => {
     @error="failed = true"
   />
   <div v-else class="thumb thumb--empty" aria-hidden="true">
-    <ImageOff :size="16" :stroke-width="1.75" />
+    <Dumbbell :size="16" :stroke-width="1.75" />
   </div>
 </template>
 
@@ -52,8 +52,8 @@ watch(src, () => {
 .thumb--empty {
   display: grid;
   place-items: center;
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
-  opacity: 0.4;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-background-mute));
+  color: var(--color-accent);
+  opacity: 0.75;
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ImageOff } from '@lucide/vue'
+import { Dumbbell } from '@lucide/vue'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import { findCatalogEntryByName } from '@/lib/exercises/exerciseCatalog'
 import { getCachedImageObjectUrl } from '@/lib/exercises/imageCache'
@@ -95,7 +95,7 @@ onBeforeUnmount(revoke)
         </div>
       </template>
       <div v-else class="placeholder">
-        <ImageOff :size="28" :stroke-width="1.5" />
+        <Dumbbell :size="26" :stroke-width="1.5" />
         <span>{{ t('exerciseImage.noImage') }}</span>
       </div>
     </div>
@@ -126,10 +126,18 @@ onBeforeUnmount(revoke)
   justify-content: center;
   gap: 8px;
   border-radius: var(--radius-md);
-  background: var(--color-background-mute);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-background-mute));
   color: var(--color-text);
-  opacity: 0.5;
   font-size: 13px;
+}
+
+.placeholder svg {
+  color: var(--color-accent);
+  opacity: 0.8;
+}
+
+.placeholder span {
+  opacity: 0.6;
 }
 
 .image {

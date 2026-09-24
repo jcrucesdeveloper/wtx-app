@@ -33,7 +33,7 @@
   "exerciseImage": {
     "start": "Inicio",
     "finish": "Final",
-    "noImage": "Sin imagen disponible"
+    "noImage": "Todavía no hay foto"
   },
   "load": {
     "title": "Cargar una rutina",
