@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Check, Trash2 } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
@@ -16,6 +17,7 @@ const props = defineProps<{
   targetReps: number
 }>()
 
+const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 
 /** Prefers "last time" data; falls back to the template's planned value so it's never a bare 0. */
@@ -81,7 +83,7 @@ function cycleType() {
     <button
       type="button"
       class="row__label"
-      :aria-label="`Set ${label} type, tap to change`"
+      :aria-label="t('session.activeSetRow.setTypeAria', { label })"
       @click="cycleType"
     >
       {{ label }}
@@ -108,7 +110,7 @@ function cycleType() {
       type="button"
       class="row__check"
       :class="{ active: set.completed, 'row__check--bounce': justCompleted }"
-      aria-label="Mark set complete"
+      :aria-label="t('session.activeSetRow.markCompleteAria')"
       @click="toggleComplete"
     >
       <Check :size="16" :stroke-width="2.5" />

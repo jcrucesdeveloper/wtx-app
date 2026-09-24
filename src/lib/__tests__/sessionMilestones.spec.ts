@@ -10,7 +10,6 @@ describe('detectMilestone', () => {
     expect(detectMilestone(50, 2)).toEqual({
       kind: 'total-sessions',
       count: 50,
-      label: '50 workouts logged',
     })
   })
 
@@ -18,7 +17,6 @@ describe('detectMilestone', () => {
     expect(detectMilestone(51, 4)).toEqual({
       kind: 'week-streak',
       count: 4,
-      label: '4-week streak',
     })
   })
 
@@ -26,7 +24,6 @@ describe('detectMilestone', () => {
     expect(detectMilestone(100, 4)).toEqual({
       kind: 'total-sessions',
       count: 100,
-      label: '100 workouts logged',
     })
   })
 })

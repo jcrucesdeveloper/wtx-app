@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { PartyPopper, TrendingDown, TrendingUp } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
@@ -13,6 +14,7 @@ import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { HapticsService } from '@/services/haptics'
 import { AdService } from '@/services/ads'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const sessions = useSessionsStore()
@@ -58,32 +60,32 @@ function onDone() {
 </script>
 
 <template>
-  <AppPage :title="result?.ok ? result.session.name : 'Workout complete'">
+  <AppPage :title="result?.ok ? result.session.name : t('sessionComplete.fallbackTitle')">
     <template #actions>
-      <button type="button" class="done-btn" @click="onDone">Done</button>
+      <button type="button" class="done-btn" @click="onDone">{{ t('sessionComplete.done') }}</button>
     </template>
 
-    <p v-if="!stored || !result?.ok" class="msg">This session is no longer in your history.</p>
+    <p v-if="!stored || !result?.ok" class="msg">{{ t('sessionDetail.notFound') }}</p>
 
     <template v-else>
       <div class="headline">
-        <p class="headline__title">Workout complete</p>
+        <p class="headline__title">{{ t('sessionComplete.workoutComplete') }}</p>
         <div class="headline__stats">
           <div v-if="recap" class="headline__stat">
             <span class="headline__value">{{ formatClock(recap.elapsedSeconds) }}</span>
-            <span class="headline__label">time</span>
+            <span class="headline__label">{{ t('sessionComplete.time') }}</span>
           </div>
           <div class="headline__stat">
             <span class="headline__value">{{ result.session.exerciseCount }}</span>
-            <span class="headline__label">exercises</span>
+            <span class="headline__label">{{ t('sessionComplete.exercises') }}</span>
           </div>
           <div class="headline__stat">
             <span class="headline__value">{{ result.session.totalWorkingSets }}</span>
-            <span class="headline__label">sets</span>
+            <span class="headline__label">{{ t('sessionComplete.sets') }}</span>
           </div>
           <div v-if="result.session.totalVolume > 0" class="headline__stat">
             <span class="headline__value">{{ formatNumber(result.session.totalVolume) }}</span>
-            <span class="headline__label">{{ result.session.unit }} volume</span>
+            <span class="headline__label">{{ t('sessionComplete.volumeUnit', { unit: result.session.unit }) }}</span>
           </div>
         </div>
       </div>
@@ -108,8 +110,12 @@ function onDone() {
             :class="recap.comparison.isVolumeUp ? 'compare__icon--up' : 'compare__icon--down'"
           />
           <span class="compare__text">
-            {{ formatNumber(Math.abs(recap.comparison.volumeDelta)) }} {{ result.session.unit }}
-            {{ recap.comparison.isVolumeUp ? 'more' : 'less' }} volume vs. last time
+            {{
+              t(
+                recap.comparison.isVolumeUp ? 'sessionComplete.moreVolume' : 'sessionComplete.lessVolume',
+                { value: formatNumber(Math.abs(recap.comparison.volumeDelta)), unit: result.session.unit },
+              )
+            }}
           </span>
         </div>
       </Transition>
@@ -119,7 +125,14 @@ function onDone() {
           <StreakRecapCard :week-streak="recap.weekStreak" />
           <div v-if="recap.milestone" class="milestone">
             <PartyPopper :size="20" :stroke-width="2.25" class="milestone__icon" />
-            <span class="milestone__label">{{ recap.milestone.label }}</span>
+            <span class="milestone__label">{{
+              t(
+                recap.milestone.kind === 'total-sessions'
+                  ? 'sessionComplete.milestoneSessions'
+                  : 'sessionComplete.milestoneStreak',
+                { count: recap.milestone.count },
+              )
+            }}</span>
           </div>
         </div>
       </Transition>

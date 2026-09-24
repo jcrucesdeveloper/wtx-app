@@ -8,9 +8,12 @@ import StartTrainingSheet from './components/routine/StartTrainingSheet.vue'
 import ResumeSessionBanner from './components/session/ResumeSessionBanner.vue'
 import { useThemeStore } from './stores/theme'
 import { useUiStore } from './stores/ui'
+import { useLocaleStore } from './stores/locale'
 
 // Initialise the theme so the stored accent color is applied on load.
 useThemeStore()
+// Initialise the locale so the stored/detected language is applied on load.
+useLocaleStore()
 
 const ui = useUiStore()
 </script>

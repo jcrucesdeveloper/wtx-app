@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{ routineName: string }>()
+const { t } = useI18n()
 const emit = defineEmits<{ done: [] }>()
 
 const DURATION_MS = 750
@@ -16,7 +18,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 <template>
   <Teleport to="body">
     <div class="intro" role="presentation" @click="emit('done')">
-      <p class="intro__eyebrow">Let's go</p>
+      <p class="intro__eyebrow">{{ t('session.preSessionTransition.letsGo') }}</p>
       <h2 class="intro__name">{{ routineName }}</h2>
     </div>
   </Teleport>

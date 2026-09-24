@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import QrScanner from 'qr-scanner'
@@ -11,6 +12,7 @@ import BottomSheet from '@/components/ui/BottomSheet.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const ui = useUiStore()
 const { loadSheetOpen } = storeToRefs(ui)
@@ -60,7 +62,7 @@ watch(
 function onScan(scanned: string) {
   const routineText = readScannedRoutine(scanned)
   if (!routineText) {
-    qrMessage.value = "That QR code isn't a wtx routine."
+    qrMessage.value = t('load.qrNotWtx')
     return
   }
   text.value = routineText
@@ -83,7 +85,7 @@ async function startScanner() {
     qrState.value = 'scanning'
   } catch {
     qrState.value = 'error'
-    qrMessage.value = 'Camera unavailable. Scan a QR image instead.'
+    qrMessage.value = t('load.qrCameraUnavailable')
     stopScanner()
   }
 }
@@ -104,7 +106,7 @@ async function onQrImage(event: Event) {
     const detected = await QrScanner.scanImage(file, { returnDetailedScanResult: true })
     onScan(detected.data)
   } catch {
-    qrMessage.value = 'No QR code found in that image.'
+    qrMessage.value = t('load.qrNoCodeFound')
   }
 }
 
@@ -114,14 +116,14 @@ async function onFile(event: Event) {
   const file = input.files?.[0]
   if (!file) return
   if (!/\.wtt$/i.test(file.name)) {
-    fileError.value = 'Pick a .wtt template file.'
+    fileError.value = t('load.fileWrongType')
     return
   }
   try {
     text.value = await file.text()
     filename.value = file.name
   } catch {
-    fileError.value = 'Could not read that file.'
+    fileError.value = t('load.fileReadError')
   }
 }
 
@@ -140,14 +142,16 @@ onBeforeUnmount(stopScanner)
 </script>
 
 <template>
-  <BottomSheet :open="loadSheetOpen" title="Load a routine" @close="ui.close()">
+  <BottomSheet :open="loadSheetOpen" :title="t('load.title')" @close="ui.close()">
     <div class="segmented">
       <button type="button" :class="{ active: mode === 'paste' }" @click="mode = 'paste'">
-        Paste
+        {{ t('load.tabPaste') }}
       </button>
-      <button type="button" :class="{ active: mode === 'qr' }" @click="mode = 'qr'">QR</button>
+      <button type="button" :class="{ active: mode === 'qr' }" @click="mode = 'qr'">
+        {{ t('load.tabQr') }}
+      </button>
       <button type="button" :class="{ active: mode === 'file' }" @click="mode = 'file'">
-        File
+        {{ t('load.tabFile') }}
       </button>
     </div>
 
@@ -156,25 +160,25 @@ onBeforeUnmount(stopScanner)
         v-model="text"
         rows="7"
         spellcheck="false"
-        placeholder="# Push Day&#10;unit: kg&#10;&#10;Bench Press | reps 4x8 | 60 | rest 1m30s"
+        :placeholder="t('load.pastePlaceholder')"
       />
       <input
         v-model="filename"
         class="filename-input"
         type="text"
-        placeholder="file name (optional)"
+        :placeholder="t('load.filenamePlaceholder')"
       />
     </div>
 
     <div v-else-if="mode === 'qr'" class="field">
       <div class="qr-frame">
         <video ref="video" class="qr-video" muted playsinline />
-        <p v-if="qrState === 'starting'" class="qr-hint">Starting camera…</p>
-        <p v-else-if="qrState === 'scanning'" class="qr-hint">Point at a routine QR code</p>
+        <p v-if="qrState === 'starting'" class="qr-hint">{{ t('load.qrStarting') }}</p>
+        <p v-else-if="qrState === 'scanning'" class="qr-hint">{{ t('load.qrPointHint') }}</p>
       </div>
       <label class="qr-image-btn">
         <input type="file" accept="image/*" @change="onQrImage" />
-        <span>Scan a QR image instead</span>
+        <span>{{ t('load.qrScanImage') }}</span>
       </label>
       <p v-if="qrMessage" class="error">{{ qrMessage }}</p>
     </div>
@@ -182,7 +186,7 @@ onBeforeUnmount(stopScanner)
     <div v-else class="field">
       <label class="file-drop">
         <input type="file" accept=".wtt,text/plain" @change="onFile" />
-        <span>{{ filename || 'Choose a .wtt file' }}</span>
+        <span>{{ filename || t('load.fileChoose') }}</span>
       </label>
       <p v-if="fileError" class="error">{{ fileError }}</p>
     </div>
@@ -206,7 +210,7 @@ onBeforeUnmount(stopScanner)
     <p v-if="submitError" class="error">{{ submitError }}</p>
 
     <button type="button" class="primary" :disabled="!result?.ok" @click="onSubmit">
-      Add to library
+      {{ t('load.addToLibrary') }}
     </button>
   </BottomSheet>
 </template>

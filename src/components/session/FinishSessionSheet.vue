@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
 import { routineDraftFromSession } from '@/lib/sessionToRoutine'
@@ -14,6 +15,7 @@ const emit = defineEmits<{
   finish: [routineIdOverride: string | undefined]
 }>()
 
+const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 const routines = useRoutinesStore()
 
@@ -24,7 +26,7 @@ const template = computed(() => {
   return result?.ok ? result.template : undefined
 })
 
-const routineName = computed(() => template.value?.name ?? 'this routine')
+const routineName = computed(() => template.value?.name ?? t('session.finishSheet.thisRoutine'))
 
 const mode = ref<'choose' | 'save-new'>('choose')
 const newName = ref('')
@@ -35,7 +37,7 @@ watch(
   (open) => {
     if (!open) return
     mode.value = 'choose'
-    newName.value = `${routineName.value} (edited)`
+    newName.value = t('session.finishSheet.editedSuffix', { name: routineName.value })
     error.value = ''
   },
 )
@@ -74,39 +76,40 @@ function onSaveNew() {
 </script>
 
 <template>
-  <BottomSheet :open="open" title="Workout changed" @close="close">
+  <BottomSheet :open="open" :title="t('session.finishSheet.title')" @close="close">
     <template v-if="mode === 'choose'">
       <p class="hint">
-        You added or removed exercises — this workout no longer matches
-        "{{ routineName }}".
+        {{ t('session.finishSheet.changedHint', { name: routineName }) }}
       </p>
 
       <div class="choices">
         <button type="button" class="choice" @click="mode = 'save-new'">
-          <span class="choice__title">Save as a new routine</span>
-          <span class="choice__desc">Keep "{{ routineName }}" as-is and create a separate one.</span>
+          <span class="choice__title">{{ t('session.finishSheet.saveNew') }}</span>
+          <span class="choice__desc">{{ t('session.finishSheet.saveNewDesc', { name: routineName }) }}</span>
         </button>
         <button type="button" class="choice" @click="onKeepAsIs">
-          <span class="choice__title">Just finish this workout</span>
-          <span class="choice__desc">Leave "{{ routineName }}" untouched.</span>
+          <span class="choice__title">{{ t('session.finishSheet.keepFinish') }}</span>
+          <span class="choice__desc">{{ t('session.finishSheet.keepFinishDesc', { name: routineName }) }}</span>
         </button>
         <button type="button" class="choice" @click="onUpdate">
-          <span class="choice__title">Update "{{ routineName }}"</span>
-          <span class="choice__desc">Match the routine to this workout going forward.</span>
+          <span class="choice__title">{{ t('session.finishSheet.update', { name: routineName }) }}</span>
+          <span class="choice__desc">{{ t('session.finishSheet.updateDesc') }}</span>
         </button>
       </div>
     </template>
 
     <template v-else>
       <label class="field">
-        <span class="field__label">New routine name</span>
+        <span class="field__label">{{ t('session.finishSheet.newRoutineName') }}</span>
         <input v-model="newName" type="text" maxlength="80" />
       </label>
 
       <div class="actions">
-        <button type="button" class="secondary" @click="mode = 'choose'">Back</button>
+        <button type="button" class="secondary" @click="mode = 'choose'">
+          {{ t('session.finishSheet.back') }}
+        </button>
         <button type="button" class="primary" :disabled="!newName.trim()" @click="onSaveNew">
-          Save &amp; finish
+          {{ t('session.finishSheet.saveAndFinish') }}
         </button>
       </div>
     </template>

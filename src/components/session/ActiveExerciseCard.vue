@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ArrowDownUp, EllipsisVertical, Plus } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
@@ -14,6 +15,7 @@ const props = defineProps<{
   canRemove: boolean
 }>()
 
+const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 
 const emit = defineEmits<{
@@ -36,9 +38,12 @@ function removeExercise() {
   menuOpen.value = false
   const loggedCount = props.exercise.loggedSets.filter((s) => s.completed).length
   if (loggedCount > 0) {
-    const noun = loggedCount === 1 ? 'set' : 'sets'
-    if (!confirm(`Remove ${props.exercise.name}? You've already logged ${loggedCount} ${noun} for it.`))
-      return
+    const message = t(
+      'session.activeExerciseCard.removeConfirm',
+      { name: props.exercise.name, count: loggedCount },
+      loggedCount,
+    )
+    if (!confirm(message)) return
   }
   activeSession.removeExercise(props.exerciseIndex)
 }
@@ -85,7 +90,7 @@ function onNoteInput(event: Event) {
         <button
           type="button"
           class="card__kebab"
-          aria-label="Exercise options"
+          :aria-label="t('session.activeExerciseCard.optionsAria')"
           @click.stop="menuOpen = !menuOpen"
         >
           <EllipsisVertical :size="16" :stroke-width="2.25" />
@@ -97,7 +102,8 @@ function onNoteInput(event: Event) {
             :disabled="!canRemove"
             @click="reorderExercises"
           >
-            <ArrowDownUp :size="14" :stroke-width="2.25" /> Reorder exercises
+            <ArrowDownUp :size="14" :stroke-width="2.25" />
+            {{ t('session.activeExerciseCard.reorderExercises') }}
           </button>
           <button
             type="button"
@@ -105,7 +111,7 @@ function onNoteInput(event: Event) {
             :disabled="!canRemove"
             @click="removeExercise"
           >
-            Remove exercise
+            {{ t('session.activeExerciseCard.removeExercise') }}
           </button>
         </div>
       </div>
@@ -114,8 +120,12 @@ function onNoteInput(event: Event) {
     <div class="rows">
       <div class="rows__head">
         <span />
-        <span>Weight</span>
-        <span>{{ exercise.kind === 'time' ? 'Seconds' : 'Reps' }}</span>
+        <span>{{ t('session.activeExerciseCard.weight') }}</span>
+        <span>{{
+          exercise.kind === 'time'
+            ? t('session.activeExerciseCard.seconds')
+            : t('session.activeExerciseCard.reps')
+        }}</span>
         <span />
         <span />
       </div>
@@ -133,14 +143,14 @@ function onNoteInput(event: Event) {
 
     <div class="actions">
       <button type="button" class="actions__btn" @click="addSet">
-        <Plus :size="14" :stroke-width="2.5" /> Add set
+        <Plus :size="14" :stroke-width="2.5" /> {{ t('session.activeExerciseCard.addSet') }}
       </button>
     </div>
 
     <textarea
       class="note"
       rows="1"
-      placeholder="Note (optional)"
+      :placeholder="t('session.activeExerciseCard.notePlaceholder')"
       :value="exercise.note"
       @input="onNoteInput"
       @focus="scrollFocusedIntoView"

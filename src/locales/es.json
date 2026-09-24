@@ -1,0 +1,317 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "back": "Atrás",
+    "close": "Cerrar"
+  },
+  "nav": {
+    "routines": "Rutinas",
+    "sessions": "Sesiones",
+    "social": "Social",
+    "config": "Ajustes",
+    "mainNavAria": "Navegación principal",
+    "openActionsAria": "Abrir acciones de WTX",
+    "wtxLabel": "WTX"
+  },
+  "colorPicker": {
+    "accentColorAria": "Color de acento"
+  },
+  "themeModePicker": {
+    "titleAria": "Tema",
+    "native": "Nativo",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "unitPicker": {
+    "titleAria": "Unidad de peso predeterminada",
+    "kilograms": "Kilogramos",
+    "pounds": "Libras"
+  },
+  "bottomSheet": {
+    "closeAria": "Cerrar"
+  },
+  "load": {
+    "title": "Cargar una rutina",
+    "tabPaste": "Pegar",
+    "tabQr": "QR",
+    "tabFile": "Archivo",
+    "pastePlaceholder": "# Día de empuje\nunit: kg\n\nPress de banca | reps 4x8 | 60 | rest 1m30s",
+    "filenamePlaceholder": "nombre de archivo (opcional)",
+    "qrStarting": "Iniciando cámara…",
+    "qrPointHint": "Apunta a un código QR de rutina",
+    "qrScanImage": "Escanear una imagen QR en su lugar",
+    "qrNotWtx": "Ese código QR no es una rutina de wtx.",
+    "qrCameraUnavailable": "Cámara no disponible. Escanea una imagen QR en su lugar.",
+    "qrNoCodeFound": "No se encontró ningún código QR en esa imagen.",
+    "fileChoose": "Elige un archivo .wtt",
+    "fileWrongType": "Elige un archivo de plantilla .wtt.",
+    "fileReadError": "No se pudo leer ese archivo.",
+    "addToLibrary": "Añadir a la biblioteca"
+  },
+  "routine": {
+    "exerciseList": {
+      "rest": "descanso {duration}"
+    },
+    "summary": {
+      "exercise": "sin ejercicios | {count} ejercicio | {count} ejercicios",
+      "volume": "{amount} de volumen"
+    },
+    "startButton": "Iniciar rutina",
+    "startTrainingSheet": {
+      "title": "Comenzar entrenamiento",
+      "emptyTitle": "Aún no hay rutinas",
+      "emptyHint": "Carga una plantilla {ext} para empezar.",
+      "emptyBtn": "Cargar una rutina",
+      "parseError": "No se pudo interpretar — edítala desde la pestaña Rutinas"
+    }
+  },
+  "routines": {
+    "title": "Rutinas",
+    "load": "+ Cargar",
+    "emptyTitle": "Aún no hay rutinas",
+    "emptyHint": "Carga una plantilla {ext} para empezar.",
+    "emptyBtn": "Cargar una rutina",
+    "parseError": "No se pudo interpretar — toca para revisar"
+  },
+  "routineDetail": {
+    "fallbackTitle": "Rutina",
+    "backAria": "Atrás",
+    "playAria": "Iniciar rutina",
+    "playFriendsAria": "Entrenar con amigos",
+    "editAria": "Editar rutina",
+    "shareAria": "Compartir rutina",
+    "optionsAria": "Opciones de rutina",
+    "deleteRoutine": "Eliminar rutina",
+    "deleteConfirm": "¿Quitar esta rutina de tu biblioteca?",
+    "notFound": "Esta rutina ya no está en tu biblioteca.",
+    "showSource": "Mostrar fuente",
+    "hideSource": "Ocultar fuente"
+  },
+  "share": {
+    "title": "Compartir rutina",
+    "hint": "Escanea el QR para abrir esta rutina en wtx, o comparte el enlace de otra forma.",
+    "shareNative": "Compartir con otra app…",
+    "copyLink": "Copiar enlace",
+    "copyText": "Copiar texto .wtt",
+    "copied": "Copiado",
+    "qrTooLarge": "Esta rutina es demasiado grande para un código QR. Usa «Copiar enlace».",
+    "importLinkSrOnly": "Enlace de importación",
+    "shareToOpen": "{name} — abrir en wtx"
+  },
+  "wtx": {
+    "actionSheetTitle": "WTX",
+    "actions": {
+      "start": { "title": "Comenzar entrenamiento", "hint": "Elige una rutina y empieza" },
+      "group": { "title": "Entrenar en grupo", "hint": "Entrena junto a un amigo", "badge": "Pronto" },
+      "load": { "title": "Cargar una rutina", "hint": "Importa un archivo .wtt o pega su texto" },
+      "create": { "title": "Crear una rutina", "hint": "Crea una plantilla nueva desde cero" }
+    },
+    "createRoutine": {
+      "title": "Crear una rutina",
+      "submit": "Crear rutina"
+    },
+    "editRoutine": {
+      "title": "Editar rutina"
+    },
+    "exercisePicker": {
+      "title": "Elegir ejercicio",
+      "searchPlaceholder": "Buscar ejercicios o grupo muscular",
+      "useCustom": "Usar \"{query}\""
+    },
+    "routineForm": {
+      "routineName": "Nombre de la rutina",
+      "routineNamePlaceholder": "Día de empuje",
+      "unit": "Unidad",
+      "tags": "Etiquetas",
+      "tagsPlaceholder": "empuje, tren superior",
+      "notes": "Notas",
+      "notesPlaceholder": "Se centra sobre todo en el pecho.",
+      "exercises": "Ejercicios",
+      "add": "+ Añadir",
+      "unnamedExercise": "Ejercicio sin nombre",
+      "dragAria": "Arrastra para reordenar",
+      "optionsAria": "Opciones de ejercicio",
+      "changeExercise": "Cambiar ejercicio",
+      "removeExercise": "Eliminar ejercicio",
+      "reps": "Reps",
+      "time": "Tiempo",
+      "duration": "Duración",
+      "durationPlaceholder": "1m30s",
+      "rest": "Descanso",
+      "weightWithUnit": "Peso ({unit})",
+      "removeSetAria": "Eliminar serie {n}",
+      "addSet": "+ Añadir serie",
+      "setTypeAria": "Tipo de la serie {n}, toca para cambiar"
+    }
+  },
+  "session": {
+    "activeExerciseCard": {
+      "optionsAria": "Opciones de ejercicio",
+      "reorderExercises": "Reordenar ejercicios",
+      "removeExercise": "Eliminar ejercicio",
+      "removeConfirm": "¿Eliminar {name}? Ya has registrado {count} serie para este ejercicio. | ¿Eliminar {name}? Ya has registrado {count} series para este ejercicio.",
+      "weight": "Peso",
+      "seconds": "Segundos",
+      "reps": "Reps",
+      "addSet": "Añadir serie",
+      "notePlaceholder": "Nota (opcional)"
+    },
+    "activeSetRow": {
+      "setTypeAria": "Tipo de la serie {label}, toca para cambiar",
+      "markCompleteAria": "Marcar serie como completada"
+    },
+    "finishSheet": {
+      "title": "El entrenamiento cambió",
+      "thisRoutine": "esta rutina",
+      "changedHint": "Añadiste o quitaste ejercicios — este entrenamiento ya no coincide con \"{name}\".",
+      "saveNew": "Guardar como rutina nueva",
+      "saveNewDesc": "Deja \"{name}\" tal cual y crea una aparte.",
+      "keepFinish": "Solo terminar este entrenamiento",
+      "keepFinishDesc": "Deja \"{name}\" sin cambios.",
+      "update": "Actualizar \"{name}\"",
+      "updateDesc": "Ajusta la rutina a este entrenamiento de ahora en adelante.",
+      "newRoutineName": "Nombre de la nueva rutina",
+      "back": "Atrás",
+      "saveAndFinish": "Guardar y terminar",
+      "editedSuffix": "{name} (editada)"
+    },
+    "loggedExerciseList": {
+      "incomplete": "Incompleto",
+      "setsProgress": "{done}/{total} series"
+    },
+    "personalRecordBanner": {
+      "title": "Nuevo récord personal",
+      "was": "(antes {value} {unit})"
+    },
+    "postSessionTransition": {
+      "workoutLogged": "Entrenamiento registrado"
+    },
+    "preSessionTransition": {
+      "letsGo": "Vamos"
+    },
+    "reorderSheet": {
+      "title": "Reordenar ejercicios",
+      "hint": "Arrastra para reordenar. Esto solo cambia este entrenamiento, no la rutina.",
+      "dragAria": "Arrastra para reordenar"
+    },
+    "restTimer": {
+      "rest": "Descanso",
+      "skip": "Saltar"
+    },
+    "resumeBanner": {
+      "resume": "Reanudar"
+    },
+    "streakRecap": {
+      "weekInARow": "{count} semana seguida | {count} semanas seguidas",
+      "lowStreak": "Ya empezaste — vuelve la próxima semana para seguir así.",
+      "highStreak": "No la rompas ahora — entrena de nuevo la próxima semana para extender la racha."
+    }
+  },
+  "activeSession": {
+    "fallbackTitle": "Entrenamiento",
+    "backAria": "Atrás",
+    "groupAria": "Iniciar entrenamiento en grupo",
+    "optionsAria": "Opciones de entrenamiento",
+    "addExercise": "Añadir ejercicio",
+    "reorderExercises": "Reordenar ejercicios",
+    "discardWorkout": "Descartar entrenamiento",
+    "discardConfirm": "¿Descartar este entrenamiento? Esto no se puede deshacer.",
+    "finish": "Terminar",
+    "noWorkout": "No hay ningún entrenamiento en curso. Inicia uno desde una rutina para verlo aquí.",
+    "elapsed": "Transcurrido",
+    "exercisesChip": "{done}/{total} ejercicios",
+    "setsChip": "{done}/{total} series",
+    "allSetsDone": "Todas las series completadas",
+    "setsDone": "{count} serie completada | {count} series completadas",
+    "setsToGo": "{count} serie restante | {count} series restantes"
+  },
+  "sessionComplete": {
+    "done": "Listo",
+    "fallbackTitle": "Entrenamiento completo",
+    "workoutComplete": "Entrenamiento completo",
+    "time": "tiempo",
+    "exercises": "ejercicios",
+    "sets": "series",
+    "volumeUnit": "{unit} de volumen",
+    "moreVolume": "{value} {unit} más de volumen que la última vez",
+    "lessVolume": "{value} {unit} menos de volumen que la última vez",
+    "milestoneSessions": "{count} entrenamientos registrados",
+    "milestoneStreak": "{count} semanas de racha"
+  },
+  "sessionDetail": {
+    "fallbackTitle": "Sesión",
+    "backAria": "Atrás",
+    "optionsAria": "Opciones de sesión",
+    "deleteSession": "Eliminar sesión",
+    "deleteConfirm": "¿Eliminar esta sesión de tu historial?",
+    "notFound": "Esta sesión ya no está en tu historial.",
+    "exercises": "{count} ejercicios",
+    "sets": "{count} series",
+    "volume": "{amount} de volumen",
+    "complete": "Completa",
+    "incomplete": "Incompleta"
+  },
+  "sessions": {
+    "title": "Sesiones",
+    "continueWorkout": "Continuar entrenamiento",
+    "trainThisWeek": "Entrena esta semana para empezar una racha",
+    "weekStreak": "{count} semana seguida | {count} semanas seguidas",
+    "lastNWeeks": "Últimas {count} semanas",
+    "noSessionsTitle": "Aún no hay sesiones",
+    "noSessionsHint": "Inicia una rutina para registrar tu primer entrenamiento.",
+    "groupThisWeek": "Esta semana",
+    "groupLastWeek": "La semana pasada",
+    "groupEarlier": "Anteriores",
+    "done": "Listo",
+    "partial": "Parcial",
+    "error": "Error",
+    "exercises": "{count} ejercicios",
+    "sets": "{count} series"
+  },
+  "social": {
+    "comingSoonTitle": "Próximamente",
+    "comingSoonHint": "Entrenar con amigos, sesiones grupales y el resto de social todavía están en desarrollo."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "removeAds": "Quitar anuncios para siempre",
+    "removeAdsHint": "Pago único. Sin suscripciones, sin anuncios, nunca.",
+    "theme": "Tema",
+    "themeHint": "Nativo sigue el ajuste de tu dispositivo.",
+    "accentColor": "Color de acento",
+    "accentColorHint": "Elige el color usado en toda la app.",
+    "units": "Unidades",
+    "unitsHint": "Se usa para las rutinas nuevas. Las existentes mantienen su propia unidad.",
+    "language": "Idioma",
+    "languageHint": "Elige el idioma de la app.",
+    "languageEnglish": "English",
+    "languageSpanish": "Español",
+    "data": "Datos",
+    "dataExportHint": "Descarga cada plantilla y sesión como un .zip de archivos .wtt/.wts.",
+    "exportData": "Exportar todos los datos",
+    "exported": "Exportado",
+    "dataImportHint": "Restaura plantillas y sesiones desde una exportación.",
+    "importData": "Importar datos",
+    "importing": "Importando…",
+    "importSuccess": "Se importaron {routines} y {sessions}.",
+    "importedRoutines": "ninguna rutina | {count} rutina | {count} rutinas",
+    "importedSessions": "ninguna sesión | {count} sesión | {count} sesiones",
+    "importNothing": "Nada nuevo que importar — todo en ese archivo ya está aquí.",
+    "importError": "No se pudo leer ese archivo — elige un .zip exportado desde WTX.",
+    "dataDeleteHint": "Borra permanentemente cada rutina y sesión.",
+    "deleteAllData": "Eliminar todos los datos",
+    "deleteAllConfirm": "¿Eliminar cada rutina y sesión? Esto no se puede deshacer.",
+    "about": "Acerca de",
+    "version": "WTX v{version}"
+  },
+  "import": {
+    "title": "Importar rutina",
+    "cancel": "Cancelar",
+    "emptyMsg": "Este enlace no contiene ninguna rutina. Abre un enlace compartido desde otro dispositivo, o carga un archivo desde Rutinas.",
+    "badLink": "Este enlace compartido está dañado y no se puede leer.",
+    "invalidPrefix": "Se recibió una rutina, pero no es válida:",
+    "alreadyInLibrary": "Ya está en tu biblioteca — ábrela",
+    "addToLibrary": "Añadir a la biblioteca",
+    "addAnotherCopy": "Añadir otra copia"
+  }
+}

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useUiStore, type Sheet } from '@/stores/ui'
@@ -6,6 +8,7 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import AppIcon, { type IconName } from '@/components/AppIcon.vue'
 
+const { t } = useI18n()
 const ui = useUiStore()
 const { menuOpen } = storeToRefs(ui)
 const router = useRouter()
@@ -19,33 +22,33 @@ interface Action {
   badge?: string
 }
 
-const actions: Action[] = [
+const actions = computed<Action[]>(() => [
   {
     key: 'start',
     icon: 'start',
-    title: 'Start training',
-    hint: 'Pick a routine and go',
+    title: t('wtx.actions.start.title'),
+    hint: t('wtx.actions.start.hint'),
   },
   {
     key: 'group',
     icon: 'group',
-    title: 'Train in group',
-    hint: 'Train alongside a friend',
-    badge: 'Soon',
+    title: t('wtx.actions.group.title'),
+    hint: t('wtx.actions.group.hint'),
+    badge: t('wtx.actions.group.badge'),
   },
   {
     key: 'load',
     icon: 'load',
-    title: 'Load a routine',
-    hint: 'Import a .wtt file or paste its text',
+    title: t('wtx.actions.load.title'),
+    hint: t('wtx.actions.load.hint'),
   },
   {
     key: 'create',
     icon: 'create',
-    title: 'Create a routine',
-    hint: 'Build a new template from scratch',
+    title: t('wtx.actions.create.title'),
+    hint: t('wtx.actions.create.hint'),
   },
-]
+])
 
 function onSelect(action: Action) {
   if (action.key === 'start') {
@@ -69,7 +72,7 @@ function onSelect(action: Action) {
 </script>
 
 <template>
-  <BottomSheet :open="menuOpen" title="WTX" @close="ui.close()">
+  <BottomSheet :open="menuOpen" :title="t('wtx.actionSheetTitle')" @close="ui.close()">
     <ul class="actions">
       <li v-for="action in actions" :key="action.key">
         <button

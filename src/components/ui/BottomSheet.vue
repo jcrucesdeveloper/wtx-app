@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { X } from '@lucide/vue'
+
+const { t } = useI18n()
 
 withDefaults(
   defineProps<{
@@ -34,7 +37,12 @@ const emit = defineEmits<{
             <h2>{{ title }}</h2>
             <div class="sheet__actions">
               <slot name="actions" />
-              <button type="button" class="icon-btn" aria-label="Close" @click="emit('close')">
+              <button
+                type="button"
+                class="icon-btn"
+                :aria-label="t('bottomSheet.closeAria')"
+                @click="emit('close')"
+              >
                 <X :size="18" :stroke-width="2.25" />
               </button>
             </div>

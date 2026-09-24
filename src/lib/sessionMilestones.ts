@@ -3,7 +3,6 @@ export type MilestoneKind = 'total-sessions' | 'week-streak'
 export interface Milestone {
   kind: MilestoneKind
   count: number
-  label: string
 }
 
 /** Lifetime session-count thresholds worth a milestone callout. */
@@ -25,19 +24,11 @@ export function detectMilestone(
   weekStreakAfter: number,
 ): Milestone | undefined {
   if (SESSION_MILESTONES.includes(totalSessionsAfter)) {
-    return {
-      kind: 'total-sessions',
-      count: totalSessionsAfter,
-      label: `${totalSessionsAfter} workouts logged`,
-    }
+    return { kind: 'total-sessions', count: totalSessionsAfter }
   }
 
   if (STREAK_MILESTONES.includes(weekStreakAfter)) {
-    return {
-      kind: 'week-streak',
-      count: weekStreakAfter,
-      label: `${weekStreakAfter}-week streak`,
-    }
+    return { kind: 'week-streak', count: weekStreakAfter }
   }
 
   return undefined

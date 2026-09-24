@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { WorkoutExercise } from '@/lib/wtx'
 import { formatCompactDuration } from '@/lib/format'
+
+const { t } = useI18n()
 
 defineProps<{
   exercises: WorkoutExercise[]
@@ -27,7 +30,8 @@ function prescription(exercise: WorkoutExercise): string {
             · {{ exercise.targetWeight }} {{ unit }}
           </template>
           <template v-if="exercise.restSeconds">
-            · rest {{ formatCompactDuration(exercise.restSeconds) }}
+            ·
+            {{ t('routine.exerciseList.rest', { duration: formatCompactDuration(exercise.restSeconds) }) }}
           </template>
         </span>
       </div>

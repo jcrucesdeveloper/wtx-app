@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { WorkoutTemplate } from '@/lib/wtx'
 import { formatNumber } from '@/lib/format'
 
@@ -7,12 +8,15 @@ const props = defineProps<{
   template: WorkoutTemplate
 }>()
 
+const { t: translate } = useI18n()
+
 const chips = computed(() => {
-  const t = props.template
-  const items = [`${t.exerciseCount} ${t.exerciseCount === 1 ? 'exercise' : 'exercises'}`]
-  if (t.totalTime > 0) items.push(`~${t.totalTimeHumanReadable}`)
-  if (t.estimatedVolume > 0) {
-    items.push(`${formatNumber(t.estimatedVolume)} ${t.unit ?? ''}`.trim() + ' volume')
+  const tmpl = props.template
+  const items = [translate('routine.summary.exercise', { count: tmpl.exerciseCount }, tmpl.exerciseCount)]
+  if (tmpl.totalTime > 0) items.push(`~${tmpl.totalTimeHumanReadable}`)
+  if (tmpl.estimatedVolume > 0) {
+    const amount = `${formatNumber(tmpl.estimatedVolume)} ${tmpl.unit ?? ''}`.trim()
+    items.push(translate('routine.summary.volume', { amount }))
   }
   return items
 })

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, EllipsisVertical, Play, Share2, SquarePen, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
@@ -12,6 +13,7 @@ import { useRoutinesStore } from '@/stores/routines'
 import { useStartRoutine } from '@/composables/useStartRoutine'
 import { parseTemplateText } from '@/lib/parseRoutine'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const routines = useRoutinesStore()
@@ -54,16 +56,16 @@ function onPlayWithFriends() {
 function onDelete() {
   menuOpen.value = false
   if (!routine.value) return
-  if (!confirm('Remove this routine from your library?')) return
+  if (!confirm(t('routineDetail.deleteConfirm'))) return
   routines.remove(routine.value.id)
   router.replace('/')
 }
 </script>
 
 <template>
-  <AppPage :title="result?.ok ? result.template.name : 'Routine'">
+  <AppPage :title="result?.ok ? result.template.name : t('routineDetail.fallbackTitle')">
     <template #leading>
-      <button type="button" class="icon-btn" aria-label="Back" @click="goBack">
+      <button type="button" class="icon-btn" :aria-label="t('routineDetail.backAria')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
       </button>
     </template>
@@ -71,7 +73,7 @@ function onDelete() {
       <button
         type="button"
         class="icon-btn icon-btn--primary"
-        aria-label="Play routine"
+        :aria-label="t('routineDetail.playAria')"
         @click="onPlay"
       >
         <Play :size="18" :stroke-width="2.25" fill="currentColor" />
@@ -79,35 +81,45 @@ function onDelete() {
       <button
         type="button"
         class="icon-btn"
-        aria-label="Play with friends"
+        :aria-label="t('routineDetail.playFriendsAria')"
         @click="onPlayWithFriends"
       >
         <Users :size="18" :stroke-width="2.25" />
       </button>
-      <button type="button" class="icon-btn" aria-label="Edit routine" @click="editOpen = true">
+      <button
+        type="button"
+        class="icon-btn"
+        :aria-label="t('routineDetail.editAria')"
+        @click="editOpen = true"
+      >
         <SquarePen :size="18" :stroke-width="2.25" />
       </button>
-      <button type="button" class="icon-btn" aria-label="Share routine" @click="shareOpen = true">
+      <button
+        type="button"
+        class="icon-btn"
+        :aria-label="t('routineDetail.shareAria')"
+        @click="shareOpen = true"
+      >
         <Share2 :size="18" :stroke-width="2.25" />
       </button>
       <div class="menu">
         <button
           type="button"
           class="icon-btn"
-          aria-label="Routine options"
+          :aria-label="t('routineDetail.optionsAria')"
           @click.stop="menuOpen = !menuOpen"
         >
           <EllipsisVertical :size="18" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
           <button type="button" class="menu__item menu__item--danger" @click="onDelete">
-            Delete routine
+            {{ t('routineDetail.deleteRoutine') }}
           </button>
         </div>
       </div>
     </template>
 
-    <p v-if="!routine" class="msg">This routine is no longer in your library.</p>
+    <p v-if="!routine" class="msg">{{ t('routineDetail.notFound') }}</p>
 
     <template v-else-if="result">
       <div v-if="result.ok" class="stack">
@@ -119,7 +131,7 @@ function onDelete() {
         <StartRoutineButton :routine-id="routine.id" />
 
         <button type="button" class="link" @click="showSource = !showSource">
-          {{ showSource ? 'Hide' : 'Show' }} source
+          {{ showSource ? t('routineDetail.hideSource') : t('routineDetail.showSource') }}
         </button>
         <pre v-if="showSource" class="source">{{ routine.rawText }}</pre>
       </div>

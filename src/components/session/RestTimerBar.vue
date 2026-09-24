@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock } from '@/lib/format'
 
+const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 
 const visible = computed(() => activeSession.session?.restEndsAt != null)
@@ -20,12 +22,14 @@ const progressPercent = computed(() => {
       <div class="bar__fill" :style="{ width: progressPercent + '%' }" />
     </div>
     <div class="bar__row">
-      <span class="bar__label">Rest</span>
+      <span class="bar__label">{{ t('session.restTimer.rest') }}</span>
       <span class="bar__time">{{ formatClock(activeSession.restRemainingSeconds) }}</span>
       <div class="bar__actions">
         <button type="button" @click="activeSession.adjustRestTimer(-15)">−15s</button>
         <button type="button" @click="activeSession.adjustRestTimer(15)">+15s</button>
-        <button type="button" class="bar__skip" @click="activeSession.skipRestTimer()">Skip</button>
+        <button type="button" class="bar__skip" @click="activeSession.skipRestTimer()">
+          {{ t('session.restTimer.skip') }}
+        </button>
       </div>
     </div>
   </div>

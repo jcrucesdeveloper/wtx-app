@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useStartRoutine } from '@/composables/useStartRoutine'
 
 const props = defineProps<{
   routineId: string
 }>()
 
+const { t } = useI18n()
 const { startRoutine } = useStartRoutine()
 
 function onClick() {
@@ -13,7 +15,9 @@ function onClick() {
 </script>
 
 <template>
-  <button type="button" class="start-btn" @click.stop.prevent="onClick">Start routine</button>
+  <button type="button" class="start-btn" @click.stop.prevent="onClick">
+    {{ t('routine.startButton') }}
+  </button>
 </template>
 
 <style scoped>

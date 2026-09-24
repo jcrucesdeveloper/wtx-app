@@ -1,25 +1,29 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Flame } from '@lucide/vue'
 
 const props = defineProps<{
   weekStreak: number
 }>()
 
+const { t } = useI18n()
+
 /** Loss-aversion framing: emphasize keeping the streak alive, not just its size. */
-const label = computed(() => {
-  if (props.weekStreak <= 1) return "You're on the board — come back next week to keep it going."
-  return "Don't break it now — train again next week to extend the streak."
-})
+const label = computed(() =>
+  props.weekStreak <= 1
+    ? t('session.streakRecap.lowStreak')
+    : t('session.streakRecap.highStreak'),
+)
 </script>
 
 <template>
   <div class="streak">
     <Flame :size="22" :stroke-width="2.25" class="streak__icon" />
     <div class="streak__body">
-      <span class="streak__value"
-        >{{ weekStreak }} week{{ weekStreak === 1 ? '' : 's' }} in a row</span
-      >
+      <span class="streak__value">{{
+        t('session.streakRecap.weekInARow', { count: weekStreak }, weekStreak)
+      }}</span>
       <span class="streak__label">{{ label }}</span>
     </div>
   </div>

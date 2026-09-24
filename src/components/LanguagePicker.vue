@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { WeightUnit } from '@/stores/settings'
+import type { Locale } from '@/i18n'
 
 defineProps<{
-  modelValue: WeightUnit
+  modelValue: Locale
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: WeightUnit]
+  'update:modelValue': [value: Locale]
 }>()
 
 const { t } = useI18n()
 
-const OPTIONS = computed<{ value: WeightUnit; label: string }[]>(() => [
-  { value: 'kg', label: t('unitPicker.kilograms') },
-  { value: 'lb', label: t('unitPicker.pounds') },
+const OPTIONS = computed<{ value: Locale; label: string }[]>(() => [
+  { value: 'en', label: t('settings.languageEnglish') },
+  { value: 'es', label: t('settings.languageSpanish') },
 ])
 </script>
 
 <template>
-  <div class="unit-picker" role="radiogroup" :aria-label="t('unitPicker.titleAria')">
+  <div class="language-picker" role="radiogroup" :aria-label="t('settings.language')">
     <button
       v-for="option in OPTIONS"
       :key="option.value"
@@ -37,7 +37,7 @@ const OPTIONS = computed<{ value: WeightUnit; label: string }[]>(() => [
 </template>
 
 <style scoped>
-.unit-picker {
+.language-picker {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 6px;

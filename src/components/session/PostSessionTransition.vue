@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { CheckCircle2 } from '@lucide/vue'
 import { HapticsService } from '@/services/haptics'
 
+const { t } = useI18n()
 const emit = defineEmits<{ done: [] }>()
 
 const DURATION_MS = 900
@@ -19,7 +21,7 @@ onBeforeUnmount(() => clearTimeout(timer))
   <Teleport to="body">
     <div class="outro" role="presentation" @click="emit('done')">
       <CheckCircle2 :size="56" :stroke-width="2" class="outro__check" />
-      <h2 class="outro__label">Workout logged</h2>
+      <h2 class="outro__label">{{ t('session.postSessionTransition.workoutLogged') }}</h2>
     </div>
   </Teleport>
 </template>

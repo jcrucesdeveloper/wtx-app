@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Check, EllipsisVertical, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
@@ -18,6 +19,7 @@ import { formatClock } from '@/lib/format'
 import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { AdService } from '@/services/ads'
 
+const { t } = useI18n()
 const router = useRouter()
 const activeSession = useActiveSessionStore()
 const routines = useRoutinesStore()
@@ -60,11 +62,12 @@ const progressPercent = computed(() =>
 const progressLabel = computed(() => {
   const { totalSets, completedSets } = stats.value
   if (totalSets === 0) return ''
-  if (completedSets >= totalSets) return 'All sets done'
+  if (completedSets >= totalSets) return t('activeSession.allSetsDone')
 
   const remaining = totalSets - completedSets
-  if (completedSets < remaining) return `${completedSets} set${completedSets === 1 ? '' : 's'} done`
-  return `${remaining} set${remaining === 1 ? '' : 's'} to go`
+  if (completedSets < remaining)
+    return t('activeSession.setsDone', { count: completedSets }, completedSets)
+  return t('activeSession.setsToGo', { count: remaining }, remaining)
 })
 
 const menuOpen = ref(false)
@@ -88,7 +91,7 @@ function goBack() {
 
 function onDiscard() {
   menuOpen.value = false
-  if (!confirm('Discard this workout? This cannot be undone.')) return
+  if (!confirm(t('activeSession.discardConfirm'))) return
   activeSession.discard()
   router.replace('/sessions')
 }
@@ -150,9 +153,9 @@ function onStartGroupWorkout() {
 </script>
 
 <template>
-  <AppPage :title="draft?.name || 'Workout'">
+  <AppPage :title="draft?.name || t('activeSession.fallbackTitle')">
     <template #leading>
-      <button type="button" class="icon-btn" aria-label="Back" @click="goBack">
+      <button type="button" class="icon-btn" :aria-label="t('activeSession.backAria')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
       </button>
     </template>
@@ -160,7 +163,7 @@ function onStartGroupWorkout() {
       <button
         type="button"
         class="icon-btn"
-        aria-label="Start group workout"
+        :aria-label="t('activeSession.groupAria')"
         @click="onStartGroupWorkout"
       >
         <Users :size="18" :stroke-width="2.25" />
@@ -169,49 +172,51 @@ function onStartGroupWorkout() {
         <button
           type="button"
           class="icon-btn"
-          aria-label="Workout options"
+          :aria-label="t('activeSession.optionsAria')"
           @click.stop="menuOpen = !menuOpen"
         >
           <EllipsisVertical :size="18" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
-          <button type="button" class="menu__item" @click="onAddExercise">Add exercise</button>
+          <button type="button" class="menu__item" @click="onAddExercise">
+            {{ t('activeSession.addExercise') }}
+          </button>
           <button
             type="button"
             class="menu__item"
             :disabled="stats.totalExercises < 2"
             @click="onReorder"
           >
-            Reorder exercises
+            {{ t('activeSession.reorderExercises') }}
           </button>
           <button type="button" class="menu__item menu__item--danger" @click="onDiscard">
-            Discard workout
+            {{ t('activeSession.discardWorkout') }}
           </button>
         </div>
       </div>
       <button type="button" class="finish-btn" @click="onFinish">
-        <Check :size="16" :stroke-width="2.5" /> Finish
+        <Check :size="16" :stroke-width="2.5" /> {{ t('activeSession.finish') }}
       </button>
     </template>
 
     <p v-if="!draft" class="msg">
-      No workout in progress. Start one from a routine to see it here.
+      {{ t('activeSession.noWorkout') }}
     </p>
 
     <template v-else>
       <div class="stats-bar">
         <div class="stats-bar__row">
           <div class="stats-bar__time">
-            <span class="stats-bar__time-label">Elapsed</span>
+            <span class="stats-bar__time-label">{{ t('activeSession.elapsed') }}</span>
             <span class="stats-bar__time-value">{{
               formatClock(activeSession.elapsedSeconds)
             }}</span>
           </div>
           <div class="stats-bar__chips">
             <span class="chip">
-              {{ stats.completedExercises }}/{{ stats.totalExercises }} exercises
+              {{ t('activeSession.exercisesChip', { done: stats.completedExercises, total: stats.totalExercises }) }}
             </span>
-            <span class="chip">{{ stats.completedSets }}/{{ stats.totalSets }} sets</span>
+            <span class="chip">{{ t('activeSession.setsChip', { done: stats.completedSets, total: stats.totalSets }) }}</span>
           </div>
         </div>
 

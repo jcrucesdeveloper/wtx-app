@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppPage from '@/components/AppPage.vue'
+
+const { t } = useI18n()
 </script>
 
 <template>
-  <AppPage title="Social">
+  <AppPage :title="t('nav.social')">
     <div class="empty">
-      <p class="empty__title">Coming soon</p>
+      <p class="empty__title">{{ t('social.comingSoonTitle') }}</p>
       <p class="empty__hint">
-        Training with friends, group sessions, and the rest of social are still in the works.
+        {{ t('social.comingSoonHint') }}
       </p>
     </div>
   </AppPage>

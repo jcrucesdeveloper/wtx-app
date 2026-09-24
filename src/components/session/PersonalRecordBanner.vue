@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Trophy } from '@lucide/vue'
 import type { PersonalRecord } from '@/lib/sessionRecords'
 
@@ -6,16 +7,20 @@ defineProps<{
   record: PersonalRecord
   unit?: string
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
   <div class="pr">
     <Trophy :size="22" :stroke-width="2.25" class="pr__icon" />
     <div class="pr__body">
-      <span class="pr__title">New personal record</span>
+      <span class="pr__title">{{ t('session.personalRecordBanner.title') }}</span>
       <span class="pr__detail">
         {{ record.exerciseName }} — {{ record.weight }} {{ unit }}
-        <span class="pr__previous">(was {{ record.previousWeight }} {{ unit }})</span>
+        <span class="pr__previous">{{
+          t('session.personalRecordBanner.was', { value: record.previousWeight, unit })
+        }}</span>
       </span>
     </div>
   </div>

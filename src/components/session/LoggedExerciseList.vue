@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { WorkoutSessionExercise } from '@/lib/wtx'
 import { displayNote, isTimeExercise } from '@/lib/sessionTime'
 
@@ -6,6 +7,8 @@ defineProps<{
   exercises: WorkoutSessionExercise[]
   unit?: string
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -16,13 +19,13 @@ defineProps<{
         <div class="exercise__body">
           <span class="exercise__name">{{ exercise.name }}</span>
           <span class="exercise__meta">
-            {{ exercise.workingSets.length }}/{{ exercise.sets }} sets
+            {{ t('session.loggedExerciseList.setsProgress', { done: exercise.workingSets.length, total: exercise.sets }) }}
             <template v-if="displayNote(exercise.note)">
               · {{ displayNote(exercise.note) }}</template
             >
           </span>
         </div>
-        <span v-if="!exercise.isComplete" class="exercise__badge">Incomplete</span>
+        <span v-if="!exercise.isComplete" class="exercise__badge">{{ t('session.loggedExerciseList.incomplete') }}</span>
       </div>
 
       <ul v-if="exercise.loggedSets.length" class="sets">
