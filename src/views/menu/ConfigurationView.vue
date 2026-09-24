@@ -105,7 +105,7 @@ async function onImportFile(event: Event) {
 
 function resetAllData() {
   if (!confirm(t('settings.deleteAllConfirm'))) return
-  routines.clear()
+  routines.resetToDefaults()
   sessions.clear()
   activeSession.discard()
 }
