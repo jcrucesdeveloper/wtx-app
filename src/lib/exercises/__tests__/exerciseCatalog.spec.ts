@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { EXERCISE_CATALOG, MUSCLE_GROUPS, searchExerciseCatalog } from '../exerciseCatalog'
+import {
+  EXERCISE_CATALOG,
+  MUSCLE_GROUPS,
+  findCatalogEntryByName,
+  searchExerciseCatalog,
+} from '../exerciseCatalog'
 
 describe('searchExerciseCatalog', () => {
   it('returns a capped alphabetical slice for an empty query', () => {
@@ -61,5 +66,27 @@ describe('searchExerciseCatalog', () => {
         (MUSCLE_GROUPS as readonly string[]).includes(entry.muscleGroup),
       ),
     ).toBe(true)
+  })
+})
+
+describe('findCatalogEntryByName', () => {
+  it('finds an exact match', () => {
+    expect(findCatalogEntryByName('3/4 Sit-Up')?.id).toBe('3_4_Sit-Up')
+  })
+
+  it('matches case-insensitively', () => {
+    expect(findCatalogEntryByName('3/4 sit-up')?.id).toBe('3_4_Sit-Up')
+  })
+
+  it('does not fuzzy-match a partial name', () => {
+    expect(findCatalogEntryByName('Sit')).toBeUndefined()
+  })
+
+  it('returns undefined for a custom exercise name', () => {
+    expect(findCatalogEntryByName('My Custom Exercise')).toBeUndefined()
+  })
+
+  it('returns undefined for an empty name', () => {
+    expect(findCatalogEntryByName('  ')).toBeUndefined()
   })
 })

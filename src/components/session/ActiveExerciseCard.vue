@@ -5,6 +5,7 @@ import { ArrowDownUp, EllipsisVertical, Plus } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ActiveSetRow from '@/components/session/ActiveSetRow.vue'
+import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import { formatCompactDuration } from '@/lib/format'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
 
@@ -70,6 +71,8 @@ function addWarmup() {
   activeSession.addSet(props.exerciseIndex, { type: 'W' })
 }
 
+const showImage = ref(false)
+
 function onNoteInput(event: Event) {
   activeSession.updateNote(props.exerciseIndex, (event.target as HTMLTextAreaElement).value)
 }
@@ -78,13 +81,13 @@ function onNoteInput(event: Event) {
 <template>
   <div class="card">
     <div class="card__head">
-      <div class="card__title">
+      <button type="button" class="card__title" @click="showImage = true">
         <span class="card__name">{{ exercise.name }}</span>
         <span class="card__meta">
           {{ prescription }}
           <template v-if="exercise.weight">· {{ exercise.weight }} {{ unit }}</template>
         </span>
-      </div>
+      </button>
 
       <div class="card__menu">
         <button
@@ -156,6 +159,8 @@ function onNoteInput(event: Event) {
       @focus="scrollFocusedIntoView"
     />
   </div>
+
+  <ExerciseImageSheet :open="showImage" :name="exercise.name" @close="showImage = false" />
 </template>
 
 <style scoped>
@@ -181,6 +186,13 @@ function onNoteInput(event: Event) {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
 }
 
 .card__name {

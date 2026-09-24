@@ -13,6 +13,7 @@ import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import type { StoredRoutine } from '@/stores/routines'
 import type { WorkoutTemplate } from '@/lib/wtx'
 import { HapticsService } from '@/services/haptics'
+import { warmExerciseImages } from '@/lib/exercises/imageCache'
 
 /** The live, in-progress workout. Only one can be active at a time. */
 export interface ActiveSession {
@@ -129,6 +130,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       restSetId: null,
     }
     now.value = Date.now()
+    void warmExerciseImages(template.exercises.map((e) => e.name))
   }
 
   function findSet(exerciseIndex: number, setId: string) {
