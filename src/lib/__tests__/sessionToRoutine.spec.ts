@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { routineDraftFromSession, sessionDiffersFromRoutine } from '../sessionToRoutine'
 import { WorkoutParser } from '../wtx'
-import type { SessionDraft, SessionExerciseDraft } from '../serializeSession'
+import type { SessionDraft, SessionExerciseDraft, SessionSetDraft } from '../serializeSession'
 
 const templateText = `# Push Day
 unit: kg
@@ -12,7 +12,7 @@ Overhead Press | reps 3x10 | 20 | muscle shoulders
 
 const template = WorkoutParser.parseTemplate(templateText)
 
-function set(overrides: Partial<SessionDraft['exercises'][number]['loggedSets'][number]> = {}) {
+function set(overrides: Partial<SessionSetDraft> = {}): SessionSetDraft {
   return { id: 'set', type: 'number', weight: null, reps: null, completed: false, ...overrides }
 }
 
