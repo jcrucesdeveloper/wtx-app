@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ChevronDown, EllipsisVertical, GripVertical, X } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import {
@@ -13,6 +14,8 @@ import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 
 const draft = defineModel<RoutineDraft>({ required: true })
+
+const { t } = useI18n()
 
 const unitOptions = ['kg', 'lb'] as const
 
@@ -189,11 +192,11 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
 <template>
   <div class="form">
     <label class="field">
-      <span class="field__label">Routine name</span>
+      <span class="field__label">{{ t('wtx.routineForm.routineName') }}</span>
       <input
         v-model="draft.name"
         type="text"
-        placeholder="Push Day"
+        :placeholder="t('wtx.routineForm.routineNamePlaceholder')"
         maxlength="80"
         @focus="scrollFocusedIntoView"
       />
@@ -201,7 +204,7 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
 
     <div class="row">
       <div class="field">
-        <span class="field__label">Unit</span>
+        <span class="field__label">{{ t('wtx.routineForm.unit') }}</span>
         <div class="segmented">
           <button
             v-for="option in unitOptions"
@@ -215,30 +218,30 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
         </div>
       </div>
       <label class="field">
-        <span class="field__label">Tags</span>
+        <span class="field__label">{{ t('wtx.routineForm.tags') }}</span>
         <input
           v-model="tagsText"
           type="text"
-          placeholder="push, upper"
+          :placeholder="t('wtx.routineForm.tagsPlaceholder')"
           @focus="scrollFocusedIntoView"
         />
       </label>
     </div>
 
     <label class="field">
-      <span class="field__label">Notes</span>
+      <span class="field__label">{{ t('wtx.routineForm.notes') }}</span>
       <textarea
         v-model="draft.notes"
         rows="2"
-        placeholder="Focuses mostly on chest."
+        :placeholder="t('wtx.routineForm.notesPlaceholder')"
         @focus="scrollFocusedIntoView"
       />
     </label>
 
     <div class="exercises">
       <div class="exercises__head">
-        <span class="field__label">Exercises</span>
-        <button type="button" class="add" @click="addExercise">+ Add</button>
+        <span class="field__label">{{ t('wtx.routineForm.exercises') }}</span>
+        <button type="button" class="add" @click="addExercise">{{ t('wtx.routineForm.add') }}</button>
       </div>
 
       <VueDraggable
@@ -256,14 +259,19 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
           :class="{ 'exercise--open': isExpanded(exercise) }"
         >
           <div class="exercise__top" @click="toggleExpanded(exercise)">
-            <button type="button" class="exercise__handle" aria-label="Drag to reorder" @click.stop>
+            <button
+              type="button"
+              class="exercise__handle"
+              :aria-label="t('wtx.routineForm.dragAria')"
+              @click.stop
+            >
               <GripVertical :size="16" :stroke-width="2" />
             </button>
             <span class="exercise__index">{{ i + 1 }}</span>
 
             <div class="exercise__title">
               <button type="button" class="exercise__name-text" @click.stop="openPicker(exercise)">
-                {{ exercise.name || 'Unnamed exercise' }}
+                {{ exercise.name || t('wtx.routineForm.unnamedExercise') }}
               </button>
               <span v-if="!isExpanded(exercise)" class="exercise__summary">
                 {{ summaryFor(exercise) }}
@@ -274,14 +282,14 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
               <button
                 type="button"
                 class="exercise__kebab"
-                aria-label="Exercise options"
+                :aria-label="t('wtx.routineForm.optionsAria')"
                 @click.stop="toggleMenu(exercise)"
               >
                 <EllipsisVertical :size="16" :stroke-width="2.25" />
               </button>
               <div v-if="isMenuOpen(exercise)" class="exercise__menu-panel" @click.stop>
                 <button type="button" class="exercise__menu-item" @click="openPicker(exercise)">
-                  Change exercise
+                  {{ t('wtx.routineForm.changeExercise') }}
                 </button>
                 <button
                   type="button"
@@ -289,7 +297,7 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
                   :disabled="draft.exercises.length === 1"
                   @click="removeExercise(i)"
                 >
-                  Remove exercise
+                  {{ t('wtx.routineForm.removeExercise') }}
                 </button>
               </div>
             </div>
@@ -304,23 +312,23 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
                 :class="{ active: exercise.kind === 'reps' }"
                 @click="setKind(exercise, 'reps')"
               >
-                Reps
+                {{ t('wtx.routineForm.reps') }}
               </button>
               <button
                 type="button"
                 :class="{ active: exercise.kind === 'time' }"
                 @click="setKind(exercise, 'time')"
               >
-                Time
+                {{ t('wtx.routineForm.time') }}
               </button>
             </div>
 
             <label v-if="exercise.kind == 'time'" class="field">
-              <span class="field__label">Duration</span>
+              <span class="field__label">{{ t('wtx.routineForm.duration') }}</span>
               <input
                 :value="formatCompactDuration(exercise.durationSeconds)"
                 type="text"
-                placeholder="1m30s"
+                :placeholder="t('wtx.routineForm.durationPlaceholder')"
                 @change="
                   exercise.durationSeconds = parseDuration(
                     ($event.target as HTMLInputElement).value,
@@ -332,11 +340,11 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
 
             <div v-if="exercise.kind === 'reps'" class="row">
               <label class="field">
-                <span class="field__label">Rest</span>
+                <span class="field__label">{{ t('wtx.routineForm.rest') }}</span>
                 <input
                   :value="formatCompactDuration(exercise.restSeconds ?? 0)"
                   type="text"
-                  placeholder="1m30s"
+                  :placeholder="t('wtx.routineForm.durationPlaceholder')"
                   @change="
                     exercise.restSeconds =
                       parseDuration(($event.target as HTMLInputElement).value) || undefined
@@ -349,8 +357,8 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
             <div v-if="exercise.kind === 'reps'" class="sets">
               <div class="sets__head">
                 <span />
-                <span>Weight ({{ draft.unit || '—' }})</span>
-                <span>Reps</span>
+                <span>{{ t('wtx.routineForm.weightWithUnit', { unit: draft.unit || '—' }) }}</span>
+                <span>{{ t('wtx.routineForm.reps') }}</span>
                 <span />
               </div>
               <div v-for="(row, si) in displayRows(exercise)" :key="si" class="sets__row">
@@ -358,7 +366,7 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
                   type="button"
                   class="sets__label"
                   :class="{ 'sets__label--marked': row.type !== 'number' }"
-                  :aria-label="`Set ${si + 1} type, tap to change`"
+                  :aria-label="t('wtx.routineForm.setTypeAria', { n: si + 1 })"
                   @click="cycleSetType(exercise, si)"
                 >
                   {{ row.type === 'number' ? si + 1 : row.type }}
@@ -388,13 +396,15 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
                 <button
                   type="button"
                   class="sets__remove"
-                  :aria-label="`Remove set ${si + 1}`"
+                  :aria-label="t('wtx.routineForm.removeSetAria', { n: si + 1 })"
                   @click="removeSet(exercise, si)"
                 >
                   <X :size="14" :stroke-width="2.25" />
                 </button>
               </div>
-              <button type="button" class="sets__add" @click="addSet(exercise)">+ Add set</button>
+              <button type="button" class="sets__add" @click="addSet(exercise)">
+                {{ t('wtx.routineForm.addSet') }}
+              </button>
             </div>
           </div>
         </div>

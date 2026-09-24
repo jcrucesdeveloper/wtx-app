@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { VueDraggable } from 'vue-draggable-plus'
 import AppPage from '@/components/AppPage.vue'
@@ -9,6 +10,7 @@ import { useRoutinesStore } from '@/stores/routines'
 import { useUiStore } from '@/stores/ui'
 import { parseTemplateText } from '@/lib/parseRoutine'
 
+const { t } = useI18n()
 const routines = useRoutinesStore()
 const ui = useUiStore()
 
@@ -23,17 +25,19 @@ const items = computed({
 </script>
 
 <template>
-  <AppPage title="Routines">
+  <AppPage :title="t('routines.title')">
     <template #actions>
       <button v-if="routines.list.length" type="button" class="add" @click="ui.openLoadSheet()">
-        + Load
+        {{ t('routines.load') }}
       </button>
     </template>
 
     <div v-if="!routines.list.length" class="empty">
-      <p class="empty__title">No routines yet</p>
-      <p class="empty__hint">Load a <code>.wtt</code> template to get started.</p>
-      <button type="button" class="empty__btn" @click="ui.openLoadSheet()">Load a routine</button>
+      <p class="empty__title">{{ t('routines.emptyTitle') }}</p>
+      <p class="empty__hint">{{ t('routines.emptyHint', { ext: '.wtt' }) }}</p>
+      <button type="button" class="empty__btn" @click="ui.openLoadSheet()">
+        {{ t('routines.emptyBtn') }}
+      </button>
     </div>
 
     <VueDraggable
@@ -56,7 +60,7 @@ const items = computed({
           </template>
           <template v-else>
             <span class="card__name">{{ routine.filename }}</span>
-            <span class="card__error">Could not parse — tap to review</span>
+            <span class="card__error">{{ t('routines.parseError') }}</span>
           </template>
         </RouterLink>
       </li>

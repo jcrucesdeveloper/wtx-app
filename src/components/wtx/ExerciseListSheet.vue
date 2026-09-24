@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import { searchExerciseCatalog } from '@/lib/exercises/exerciseCatalog'
 
@@ -14,6 +15,7 @@ const emit = defineEmits<{
   select: [name: string]
 }>()
 
+const { t } = useI18n()
 const query = ref('')
 const searchInput = ref<HTMLInputElement | null>(null)
 
@@ -45,14 +47,14 @@ function choose(name: string) {
 </script>
 
 <template>
-  <BottomSheet :open="open" title="Choose exercise" full-height @close="emit('close')">
+  <BottomSheet :open="open" :title="t('wtx.exercisePicker.title')" full-height @close="emit('close')">
     <div class="picker">
       <input
         ref="searchInput"
         v-model="query"
         type="text"
         class="picker__search"
-        placeholder="Search exercises or muscle group"
+        :placeholder="t('wtx.exercisePicker.searchPlaceholder')"
         autocomplete="off"
       />
 
@@ -63,7 +65,7 @@ function choose(name: string) {
             class="picker__item picker__item--custom"
             @click="choose(trimmedQuery)"
           >
-            Use "{{ trimmedQuery }}"
+            {{ t('wtx.exercisePicker.useCustom', { query: trimmedQuery }) }}
           </button>
         </li>
         <li v-for="entry in results" :key="entry.id">

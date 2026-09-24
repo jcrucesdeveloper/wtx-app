@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Monitor, Sun, Moon } from '@lucide/vue'
 import type { ThemeMode } from '@/stores/theme'
 
@@ -10,15 +12,17 @@ const emit = defineEmits<{
   'update:modelValue': [value: ThemeMode]
 }>()
 
-const OPTIONS: { value: ThemeMode; label: string; icon: typeof Monitor }[] = [
-  { value: 'native', label: 'Native', icon: Monitor },
-  { value: 'light', label: 'Light', icon: Sun },
-  { value: 'dark', label: 'Dark', icon: Moon },
-]
+const { t } = useI18n()
+
+const OPTIONS = computed<{ value: ThemeMode; label: string; icon: typeof Monitor }[]>(() => [
+  { value: 'native', label: t('themeModePicker.native'), icon: Monitor },
+  { value: 'light', label: t('themeModePicker.light'), icon: Sun },
+  { value: 'dark', label: t('themeModePicker.dark'), icon: Moon },
+])
 </script>
 
 <template>
-  <div class="mode-picker" role="radiogroup" aria-label="Theme">
+  <div class="mode-picker" role="radiogroup" :aria-label="t('themeModePicker.titleAria')">
     <button
       v-for="option in OPTIONS"
       :key="option.value"

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock } from '@/lib/format'
 
+const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 const route = useRoute()
 
@@ -15,7 +17,7 @@ const visible = computed(() => activeSession.isActive && route.name !== 'active-
     <span class="banner__dot" />
     <span class="banner__name">{{ activeSession.session?.draft.name }}</span>
     <span class="banner__time">{{ formatClock(activeSession.elapsedSeconds) }}</span>
-    <span class="banner__cta">Resume</span>
+    <span class="banner__cta">{{ t('session.resumeBanner.resume') }}</span>
   </RouterLink>
 </template>
 

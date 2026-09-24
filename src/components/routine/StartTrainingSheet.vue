@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
 import { useRoutinesStore } from '@/stores/routines'
@@ -8,6 +9,7 @@ import { parseTemplateText } from '@/lib/parseRoutine'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 
+const { t } = useI18n()
 const ui = useUiStore()
 const { startSheetOpen } = storeToRefs(ui)
 const routines = useRoutinesStore()
@@ -31,11 +33,15 @@ function goLoad() {
 </script>
 
 <template>
-  <BottomSheet :open="startSheetOpen" title="Start training" @close="ui.close()">
+  <BottomSheet :open="startSheetOpen" :title="t('routine.startTrainingSheet.title')" @close="ui.close()">
     <div v-if="!items.length" class="empty">
-      <p class="empty__title">No routines yet</p>
-      <p class="empty__hint">Load a <code>.wtt</code> template to get started.</p>
-      <button type="button" class="empty__btn" @click="goLoad">Load a routine</button>
+      <p class="empty__title">{{ t('routine.startTrainingSheet.emptyTitle') }}</p>
+      <p class="empty__hint">
+        {{ t('routine.startTrainingSheet.emptyHint', { ext: '.wtt' }) }}
+      </p>
+      <button type="button" class="empty__btn" @click="goLoad">
+        {{ t('routine.startTrainingSheet.emptyBtn') }}
+      </button>
     </div>
 
     <ul v-else class="list">
@@ -46,7 +52,7 @@ function goLoad() {
         </button>
         <span v-else class="card card--error">
           <span class="card__name">{{ routine.filename }}</span>
-          <span class="card__error">Could not parse — edit it from the Routines tab</span>
+          <span class="card__error">{{ t('routine.startTrainingSheet.parseError') }}</span>
         </span>
       </li>
     </ul>

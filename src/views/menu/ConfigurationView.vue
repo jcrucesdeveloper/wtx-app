@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { Sparkles } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import ColorPicker from '@/components/ColorPicker.vue'
 import ThemeModePicker from '@/components/ThemeModePicker.vue'
 import UnitPicker from '@/components/UnitPicker.vue'
+import LanguagePicker from '@/components/LanguagePicker.vue'
 import { useThemeStore } from '@/stores/theme'
 import { useSettingsStore } from '@/stores/settings'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useLocaleStore } from '@/stores/locale'
 import { parseSessionText } from '@/lib/parseSession'
 import {
   buildDataExportZip,
@@ -19,11 +22,16 @@ import {
   parseDataExportZip,
 } from '@/lib/exportData'
 
+const { t } = useI18n()
+
 const theme = useThemeStore()
 const { accent, mode } = storeToRefs(theme)
 
 const settings = useSettingsStore()
 const { defaultUnit } = storeToRefs(settings)
+
+const localeStore = useLocaleStore()
+const { locale } = storeToRefs(localeStore)
 
 const routines = useRoutinesStore()
 const sessions = useSessionsStore()
@@ -83,17 +91,20 @@ async function onImportFile(event: Event) {
 
     importMessage.value =
       routinesAdded || sessionsAdded
-        ? `Imported ${routinesAdded} routine${routinesAdded === 1 ? '' : 's'} and ${sessionsAdded} session${sessionsAdded === 1 ? '' : 's'}.`
-        : 'Nothing new to import — everything in that file is already here.'
+        ? t('settings.importSuccess', {
+            routines: t('settings.importedRoutines', { count: routinesAdded }, routinesAdded),
+            sessions: t('settings.importedSessions', { count: sessionsAdded }, sessionsAdded),
+          })
+        : t('settings.importNothing')
   } catch {
-    importError.value = 'Could not read that file — pick a .zip exported from WTX.'
+    importError.value = t('settings.importError')
   } finally {
     importing.value = false
   }
 }
 
 function resetAllData() {
-  if (!confirm('Delete every routine and session? This cannot be undone.')) return
+  if (!confirm(t('settings.deleteAllConfirm'))) return
   routines.clear()
   sessions.clear()
   activeSession.discard()
@@ -106,59 +117,67 @@ function onRemoveAdsClick() {}
 </script>
 
 <template>
-  <AppPage title="Configuration">
+  <AppPage :title="t('settings.title')">
     <div class="stack">
       <button type="button" class="cta" @click="onRemoveAdsClick">
         <span class="cta__icon">
           <Sparkles :size="18" :stroke-width="2.25" />
         </span>
         <span class="cta__body">
-          <span class="cta__title">Remove ads forever</span>
-          <span class="cta__hint">One-time payment. No subscriptions, no ads, ever.</span>
+          <span class="cta__title">{{ t('settings.removeAds') }}</span>
+          <span class="cta__hint">{{ t('settings.removeAdsHint') }}</span>
         </span>
         <span class="cta__price">$2.99</span>
       </button>
 
       <div class="group">
-        <h2 class="group__title">Theme</h2>
-        <p class="group__hint">Native follows your device's setting.</p>
+        <h2 class="group__title">{{ t('settings.theme') }}</h2>
+        <p class="group__hint">{{ t('settings.themeHint') }}</p>
         <ThemeModePicker v-model="mode" />
       </div>
 
       <div class="group">
-        <h2 class="group__title">Accent color</h2>
-        <p class="group__hint">Pick the color used across the app.</p>
+        <h2 class="group__title">{{ t('settings.language') }}</h2>
+        <p class="group__hint">{{ t('settings.languageHint') }}</p>
+        <LanguagePicker v-model="locale" />
+      </div>
+
+      <div class="group">
+        <h2 class="group__title">{{ t('settings.accentColor') }}</h2>
+        <p class="group__hint">{{ t('settings.accentColorHint') }}</p>
         <ColorPicker v-model="accent" />
       </div>
 
       <div class="group">
-        <h2 class="group__title">Units</h2>
-        <p class="group__hint">Used for new routines. Existing ones keep their own unit.</p>
+        <h2 class="group__title">{{ t('settings.units') }}</h2>
+        <p class="group__hint">{{ t('settings.unitsHint') }}</p>
         <UnitPicker v-model="defaultUnit" />
       </div>
 
       <div class="group">
-        <h2 class="group__title">Data</h2>
-        <p class="group__hint">Download every template and session as a .zip of .wtt/.wts files.</p>
+        <h2 class="group__title">{{ t('settings.data') }}</h2>
+        <p class="group__hint">{{ t('settings.dataExportHint') }}</p>
         <button type="button" class="export-btn" @click="exportData">
-          {{ exported ? 'Exported' : 'Export all data' }}
+          {{ exported ? t('settings.exported') : t('settings.exportData') }}
         </button>
 
-        <p class="group__hint group__hint--spaced">Restore templates and sessions from an export.</p>
+        <p class="group__hint group__hint--spaced">{{ t('settings.dataImportHint') }}</p>
         <label class="import-btn" :class="{ 'import-btn--busy': importing }">
           <input type="file" accept=".zip" :disabled="importing" @change="onImportFile" />
-          {{ importing ? 'Importing…' : 'Import data' }}
+          {{ importing ? t('settings.importing') : t('settings.importData') }}
         </label>
         <p v-if="importMessage" class="msg">{{ importMessage }}</p>
         <p v-if="importError" class="msg msg--error">{{ importError }}</p>
 
-        <p class="group__hint group__hint--spaced">Permanently erase every routine and session.</p>
-        <button type="button" class="danger-btn" @click="resetAllData">Delete all data</button>
+        <p class="group__hint group__hint--spaced">{{ t('settings.dataDeleteHint') }}</p>
+        <button type="button" class="danger-btn" @click="resetAllData">
+          {{ t('settings.deleteAllData') }}
+        </button>
       </div>
 
       <div class="group">
-        <h2 class="group__title">About</h2>
-        <p class="group__hint group__hint--tight">WTX v{{ appVersion }}</p>
+        <h2 class="group__title">{{ t('settings.about') }}</h2>
+        <p class="group__hint group__hint--tight">{{ t('settings.version', { version: appVersion }) }}</p>
       </div>
     </div>
   </AppPage>

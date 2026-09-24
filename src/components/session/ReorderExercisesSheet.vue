@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { GripVertical } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
@@ -13,6 +14,7 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
+const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 
 /** Stable keys for draggable rows, since session exercises carry no id. */
@@ -43,8 +45,8 @@ function close() {
 </script>
 
 <template>
-  <BottomSheet :open="open" title="Reorder exercises" @close="close">
-    <p class="hint">Drag to reorder. This only changes this workout, not the routine.</p>
+  <BottomSheet :open="open" :title="t('session.reorderSheet.title')" @close="close">
+    <p class="hint">{{ t('session.reorderSheet.hint') }}</p>
 
     <VueDraggable
       v-model="exercises"
@@ -55,7 +57,7 @@ function close() {
       :animation="150"
     >
       <div v-for="(exercise, i) in exercises" :key="keyFor(exercise)" class="row">
-        <button type="button" class="row__handle" aria-label="Drag to reorder">
+        <button type="button" class="row__handle" :aria-label="t('session.reorderSheet.dragAria')">
           <GripVertical :size="16" :stroke-width="2" />
         </button>
         <span class="row__index">{{ i + 1 }}</span>

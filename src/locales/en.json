@@ -1,0 +1,317 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "back": "Back",
+    "close": "Close"
+  },
+  "nav": {
+    "routines": "Routines",
+    "sessions": "Sessions",
+    "social": "Social",
+    "config": "Config",
+    "mainNavAria": "Main navigation",
+    "openActionsAria": "Open WTX actions",
+    "wtxLabel": "WTX"
+  },
+  "colorPicker": {
+    "accentColorAria": "Accent color"
+  },
+  "themeModePicker": {
+    "titleAria": "Theme",
+    "native": "Native",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "unitPicker": {
+    "titleAria": "Default weight unit",
+    "kilograms": "Kilograms",
+    "pounds": "Pounds"
+  },
+  "bottomSheet": {
+    "closeAria": "Close"
+  },
+  "load": {
+    "title": "Load a routine",
+    "tabPaste": "Paste",
+    "tabQr": "QR",
+    "tabFile": "File",
+    "pastePlaceholder": "# Push Day\nunit: kg\n\nBench Press | reps 4x8 | 60 | rest 1m30s",
+    "filenamePlaceholder": "file name (optional)",
+    "qrStarting": "Starting camera…",
+    "qrPointHint": "Point at a routine QR code",
+    "qrScanImage": "Scan a QR image instead",
+    "qrNotWtx": "That QR code isn't a wtx routine.",
+    "qrCameraUnavailable": "Camera unavailable. Scan a QR image instead.",
+    "qrNoCodeFound": "No QR code found in that image.",
+    "fileChoose": "Choose a .wtt file",
+    "fileWrongType": "Pick a .wtt template file.",
+    "fileReadError": "Could not read that file.",
+    "addToLibrary": "Add to library"
+  },
+  "routine": {
+    "exerciseList": {
+      "rest": "rest {duration}"
+    },
+    "summary": {
+      "exercise": "no exercises | {count} exercise | {count} exercises",
+      "volume": "{amount} volume"
+    },
+    "startButton": "Start routine",
+    "startTrainingSheet": {
+      "title": "Start training",
+      "emptyTitle": "No routines yet",
+      "emptyHint": "Load a {ext} template to get started.",
+      "emptyBtn": "Load a routine",
+      "parseError": "Could not parse — edit it from the Routines tab"
+    }
+  },
+  "routines": {
+    "title": "Routines",
+    "load": "+ Load",
+    "emptyTitle": "No routines yet",
+    "emptyHint": "Load a {ext} template to get started.",
+    "emptyBtn": "Load a routine",
+    "parseError": "Could not parse — tap to review"
+  },
+  "routineDetail": {
+    "fallbackTitle": "Routine",
+    "backAria": "Back",
+    "playAria": "Play routine",
+    "playFriendsAria": "Play with friends",
+    "editAria": "Edit routine",
+    "shareAria": "Share routine",
+    "optionsAria": "Routine options",
+    "deleteRoutine": "Delete routine",
+    "deleteConfirm": "Remove this routine from your library?",
+    "notFound": "This routine is no longer in your library.",
+    "showSource": "Show source",
+    "hideSource": "Hide source"
+  },
+  "share": {
+    "title": "Share routine",
+    "hint": "Scan the QR to open this routine in wtx, or share the link another way.",
+    "shareNative": "Share to another app…",
+    "copyLink": "Copy link",
+    "copyText": "Copy .wtt text",
+    "copied": "Copied",
+    "qrTooLarge": "This routine is too large to fit in a QR code. Use “Copy link”.",
+    "importLinkSrOnly": "Import link",
+    "shareToOpen": "{name} — open in wtx"
+  },
+  "wtx": {
+    "actionSheetTitle": "WTX",
+    "actions": {
+      "start": { "title": "Start training", "hint": "Pick a routine and go" },
+      "group": { "title": "Train in group", "hint": "Train alongside a friend", "badge": "Soon" },
+      "load": { "title": "Load a routine", "hint": "Import a .wtt file or paste its text" },
+      "create": { "title": "Create a routine", "hint": "Build a new template from scratch" }
+    },
+    "createRoutine": {
+      "title": "Create a routine",
+      "submit": "Create routine"
+    },
+    "editRoutine": {
+      "title": "Edit routine"
+    },
+    "exercisePicker": {
+      "title": "Choose exercise",
+      "searchPlaceholder": "Search exercises or muscle group",
+      "useCustom": "Use \"{query}\""
+    },
+    "routineForm": {
+      "routineName": "Routine name",
+      "routineNamePlaceholder": "Push Day",
+      "unit": "Unit",
+      "tags": "Tags",
+      "tagsPlaceholder": "push, upper",
+      "notes": "Notes",
+      "notesPlaceholder": "Focuses mostly on chest.",
+      "exercises": "Exercises",
+      "add": "+ Add",
+      "unnamedExercise": "Unnamed exercise",
+      "dragAria": "Drag to reorder",
+      "optionsAria": "Exercise options",
+      "changeExercise": "Change exercise",
+      "removeExercise": "Remove exercise",
+      "reps": "Reps",
+      "time": "Time",
+      "duration": "Duration",
+      "durationPlaceholder": "1m30s",
+      "rest": "Rest",
+      "weightWithUnit": "Weight ({unit})",
+      "removeSetAria": "Remove set {n}",
+      "addSet": "+ Add set",
+      "setTypeAria": "Set {n} type, tap to change"
+    }
+  },
+  "session": {
+    "activeExerciseCard": {
+      "optionsAria": "Exercise options",
+      "reorderExercises": "Reorder exercises",
+      "removeExercise": "Remove exercise",
+      "removeConfirm": "Remove {name}? You've already logged {count} set for it. | Remove {name}? You've already logged {count} sets for it.",
+      "weight": "Weight",
+      "seconds": "Seconds",
+      "reps": "Reps",
+      "addSet": "Add set",
+      "notePlaceholder": "Note (optional)"
+    },
+    "activeSetRow": {
+      "setTypeAria": "Set {label} type, tap to change",
+      "markCompleteAria": "Mark set complete"
+    },
+    "finishSheet": {
+      "title": "Workout changed",
+      "thisRoutine": "this routine",
+      "changedHint": "You added or removed exercises — this workout no longer matches \"{name}\".",
+      "saveNew": "Save as a new routine",
+      "saveNewDesc": "Keep \"{name}\" as-is and create a separate one.",
+      "keepFinish": "Just finish this workout",
+      "keepFinishDesc": "Leave \"{name}\" untouched.",
+      "update": "Update \"{name}\"",
+      "updateDesc": "Match the routine to this workout going forward.",
+      "newRoutineName": "New routine name",
+      "back": "Back",
+      "saveAndFinish": "Save & finish",
+      "editedSuffix": "{name} (edited)"
+    },
+    "loggedExerciseList": {
+      "incomplete": "Incomplete",
+      "setsProgress": "{done}/{total} sets"
+    },
+    "personalRecordBanner": {
+      "title": "New personal record",
+      "was": "(was {value} {unit})"
+    },
+    "postSessionTransition": {
+      "workoutLogged": "Workout logged"
+    },
+    "preSessionTransition": {
+      "letsGo": "Let's go"
+    },
+    "reorderSheet": {
+      "title": "Reorder exercises",
+      "hint": "Drag to reorder. This only changes this workout, not the routine.",
+      "dragAria": "Drag to reorder"
+    },
+    "restTimer": {
+      "rest": "Rest",
+      "skip": "Skip"
+    },
+    "resumeBanner": {
+      "resume": "Resume"
+    },
+    "streakRecap": {
+      "weekInARow": "{count} week in a row | {count} weeks in a row",
+      "lowStreak": "You're on the board — come back next week to keep it going.",
+      "highStreak": "Don't break it now — train again next week to extend the streak."
+    }
+  },
+  "activeSession": {
+    "fallbackTitle": "Workout",
+    "backAria": "Back",
+    "groupAria": "Start group workout",
+    "optionsAria": "Workout options",
+    "addExercise": "Add exercise",
+    "reorderExercises": "Reorder exercises",
+    "discardWorkout": "Discard workout",
+    "discardConfirm": "Discard this workout? This cannot be undone.",
+    "finish": "Finish",
+    "noWorkout": "No workout in progress. Start one from a routine to see it here.",
+    "elapsed": "Elapsed",
+    "exercisesChip": "{done}/{total} exercises",
+    "setsChip": "{done}/{total} sets",
+    "allSetsDone": "All sets done",
+    "setsDone": "{count} set done | {count} sets done",
+    "setsToGo": "{count} set to go | {count} sets to go"
+  },
+  "sessionComplete": {
+    "done": "Done",
+    "fallbackTitle": "Workout complete",
+    "workoutComplete": "Workout complete",
+    "time": "time",
+    "exercises": "exercises",
+    "sets": "sets",
+    "volumeUnit": "{unit} volume",
+    "moreVolume": "{value} {unit} more volume vs. last time",
+    "lessVolume": "{value} {unit} less volume vs. last time",
+    "milestoneSessions": "{count} workouts logged",
+    "milestoneStreak": "{count}-week streak"
+  },
+  "sessionDetail": {
+    "fallbackTitle": "Session",
+    "backAria": "Back",
+    "optionsAria": "Session options",
+    "deleteSession": "Delete session",
+    "deleteConfirm": "Delete this session from your history?",
+    "notFound": "This session is no longer in your history.",
+    "exercises": "{count} exercises",
+    "sets": "{count} sets",
+    "volume": "{amount} volume",
+    "complete": "Complete",
+    "incomplete": "Incomplete"
+  },
+  "sessions": {
+    "title": "Sessions",
+    "continueWorkout": "Continue workout",
+    "trainThisWeek": "Train this week to start a streak",
+    "weekStreak": "{count} week in a row | {count} weeks in a row",
+    "lastNWeeks": "Last {count} weeks",
+    "noSessionsTitle": "No sessions yet",
+    "noSessionsHint": "Start a routine to log your first workout.",
+    "groupThisWeek": "This week",
+    "groupLastWeek": "Last week",
+    "groupEarlier": "Earlier",
+    "done": "Done",
+    "partial": "Partial",
+    "error": "Error",
+    "exercises": "{count} exercises",
+    "sets": "{count} sets"
+  },
+  "social": {
+    "comingSoonTitle": "Coming soon",
+    "comingSoonHint": "Training with friends, group sessions, and the rest of social are still in the works."
+  },
+  "settings": {
+    "title": "Configuration",
+    "removeAds": "Remove ads forever",
+    "removeAdsHint": "One-time payment. No subscriptions, no ads, ever.",
+    "theme": "Theme",
+    "themeHint": "Native follows your device's setting.",
+    "accentColor": "Accent color",
+    "accentColorHint": "Pick the color used across the app.",
+    "units": "Units",
+    "unitsHint": "Used for new routines. Existing ones keep their own unit.",
+    "language": "Language",
+    "languageHint": "Choose the app's display language.",
+    "languageEnglish": "English",
+    "languageSpanish": "Español",
+    "data": "Data",
+    "dataExportHint": "Download every template and session as a .zip of .wtt/.wts files.",
+    "exportData": "Export all data",
+    "exported": "Exported",
+    "dataImportHint": "Restore templates and sessions from an export.",
+    "importData": "Import data",
+    "importing": "Importing…",
+    "importSuccess": "Imported {routines} and {sessions}.",
+    "importedRoutines": "no routines | {count} routine | {count} routines",
+    "importedSessions": "no sessions | {count} session | {count} sessions",
+    "importNothing": "Nothing new to import — everything in that file is already here.",
+    "importError": "Could not read that file — pick a .zip exported from WTX.",
+    "dataDeleteHint": "Permanently erase every routine and session.",
+    "deleteAllData": "Delete all data",
+    "deleteAllConfirm": "Delete every routine and session? This cannot be undone.",
+    "about": "About",
+    "version": "WTX v{version}"
+  },
+  "import": {
+    "title": "Import routine",
+    "cancel": "Cancel",
+    "emptyMsg": "This link has no routine in it. Open a share link from another device, or load a file from Routines.",
+    "badLink": "This share link is corrupted and can't be read.",
+    "invalidPrefix": "Received a routine, but it isn't valid:",
+    "alreadyInLibrary": "Already in your library — open it",
+    "addToLibrary": "Add to library",
+    "addAnotherCopy": "Add another copy"
+  }
+}
