@@ -152,5 +152,22 @@ export const useRoutinesStore = defineStore('routines', () => {
     routines.value = []
   }
 
-  return { routines, list, getById, findByText, parsed, add, update, remove, reorder, clear }
+  /** Wipes the library and reseeds the starter routines, so the user is never left with none. */
+  function resetToDefaults() {
+    routines.value = defaultRoutines()
+  }
+
+  return {
+    routines,
+    list,
+    getById,
+    findByText,
+    parsed,
+    add,
+    update,
+    remove,
+    reorder,
+    clear,
+    resetToDefaults,
+  }
 })
