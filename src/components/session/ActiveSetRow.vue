@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Check, Trash2 } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
+import { HapticsService } from '@/services/haptics'
 import type { SessionSetDraft } from '@/lib/serializeSession'
 
 const props = defineProps<{
@@ -35,22 +36,46 @@ function onRepsInput(event: Event) {
   })
 }
 
+/** Plays the check bounce once per completion — not on every re-render while completed. */
+const justCompleted = ref(false)
+
 function toggleComplete() {
   if (props.set.completed) {
     activeSession.uncompleteSet(props.exerciseIndex, props.set.id)
   } else if (props.set.weight !== null && props.set.reps !== null) {
     activeSession.completeSet(props.exerciseIndex, props.set.id)
+    HapticsService.light()
+    justCompleted.value = true
+    setTimeout(() => (justCompleted.value = false), 220)
   }
 }
 
 function remove() {
   activeSession.removeSet(props.exerciseIndex, props.set.id)
 }
+
+function cycleType() {
+  activeSession.cycleSetType(props.exerciseIndex, props.set.id)
+}
 </script>
 
 <template>
-  <div class="row" :class="{ 'row--complete': set.completed, 'row--warmup': set.isWarmup }">
-    <span class="row__label">{{ label }}</span>
+  <div
+    class="row"
+    :class="{
+      'row--complete': set.completed,
+      'row--warmup': set.type === 'W',
+      'row--dropset': set.type === 'D',
+    }"
+  >
+    <button
+      type="button"
+      class="row__label"
+      :aria-label="`Set ${label} type, tap to change`"
+      @click="cycleType"
+    >
+      {{ label }}
+    </button>
     <input
       class="row__input"
       type="number"
@@ -72,7 +97,7 @@ function remove() {
     <button
       type="button"
       class="row__check"
-      :class="{ active: set.completed }"
+      :class="{ active: set.completed, 'row__check--bounce': justCompleted }"
       aria-label="Mark set complete"
       @click="toggleComplete"
     >
@@ -90,15 +115,29 @@ function remove() {
 }
 
 .row__label {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
   font-size: 11px;
   font-weight: 700;
   opacity: 0.55;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  color: inherit;
+  cursor: pointer;
 }
 
-.row--warmup .row__label {
+.row__label:hover,
+.row__label:focus-visible {
+  opacity: 0.85;
+}
+
+.row--warmup .row__label,
+.row--dropset .row__label {
   color: var(--color-accent);
+  opacity: 1;
 }
 
 .row__input {
@@ -135,6 +174,24 @@ function remove() {
   border-color: var(--color-accent);
   color: #fff;
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .row__check--bounce {
+    animation: row-check-bounce 0.22s ease;
+  }
+}
+
+@keyframes row-check-bounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .row__remove {

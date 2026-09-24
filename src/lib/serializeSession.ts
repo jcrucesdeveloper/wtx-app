@@ -1,11 +1,18 @@
 import type { WorkoutSession, WorkoutTemplate } from '@/lib/wtx'
 import { withTimeMarker } from '@/lib/sessionTime'
 
+/**
+ * A set's type, driving both its `.wts` label and how it's numbered:
+ * `'number'` sets get sequential 1-based labels, `'W'`/`'D'` (warm-up/drop
+ * set) are shown as-is and don't consume a number.
+ */
+export type SessionSetType = 'number' | 'W' | 'D'
+
 /** One set row in an {@link ActiveSession} draft, as logged live. */
 export interface SessionSetDraft {
   /** Stable row id for `:key`/removal — the `.wts` label is derived, not stored. */
   id: string
-  isWarmup: boolean
+  type: SessionSetType
   /** `null` = not yet entered. */
   weight: number | null
   /** Reps, or seconds held for a `kind: 'time'` exercise. `null` = not yet entered. */
@@ -82,20 +89,32 @@ export function draftFromTemplate(
   const exercises: SessionExerciseDraft[] = template.exercises.map((exercise) => {
     const last = findLastExercise(lastSession, exercise.name)
     const lastWorking = last?.workingSets ?? []
+    const lastWarmup = last?.warmupSets ?? []
 
     const templateWeight = exercise.targetWeight ?? undefined
     const templateReps = exercise.kind === 'time' ? exercise.durationSeconds : exercise.targetReps
 
+    let workingCursor = 0
+    let warmupCursor = 0
+
     const loggedSets: SessionSetDraft[] = Array.from({ length: exercise.sets }, (_, i) => {
-      const ghost = lastWorking[i] ?? lastWorking[lastWorking.length - 1]
+      const override = exercise.kind === 'reps' ? exercise.specificSets?.[i] : undefined
+      const type: SessionSetDraft['type'] =
+        override?.label === 'W' || override?.label === 'D' ? override.label : 'number'
+
+      const ghost =
+        type === 'W'
+          ? (lastWarmup[warmupCursor++] ?? lastWarmup[lastWarmup.length - 1])
+          : (lastWorking[workingCursor++] ?? lastWorking[lastWorking.length - 1])
+
       return {
         id: newSetId(),
-        isWarmup: false,
+        type,
         weight: null,
         reps: null,
         completed: false,
-        ghostWeight: ghost?.weight ?? templateWeight,
-        ghostReps: ghost?.reps ?? templateReps,
+        ghostWeight: ghost?.weight ?? override?.weight ?? templateWeight,
+        ghostReps: ghost?.reps ?? override?.reps ?? templateReps,
       }
     })
 
@@ -149,7 +168,7 @@ export function serializeSession(draft: SessionDraft): string {
     let workingIndex = 0
     for (const set of exercise.loggedSets) {
       if (!set.completed || set.weight === null || set.reps === null) continue
-      const label = set.isWarmup ? 'W' : String(++workingIndex)
+      const label = set.type === 'number' ? String(++workingIndex) : set.type
       const setWeight = Number.isFinite(set.weight) ? set.weight : 0
       lines.push(`${label} | ${setWeight} | ${set.reps}`)
     }

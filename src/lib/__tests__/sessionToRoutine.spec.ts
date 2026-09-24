@@ -13,7 +13,7 @@ Overhead Press | reps 3x10 | 20 | muscle shoulders
 const template = WorkoutParser.parseTemplate(templateText)
 
 function set(overrides: Partial<SessionDraft['exercises'][number]['loggedSets'][number]> = {}) {
-  return { id: 'set', isWarmup: false, weight: null, reps: null, completed: false, ...overrides }
+  return { id: 'set', type: 'number', weight: null, reps: null, completed: false, ...overrides }
 }
 
 function exercise(overrides: Partial<SessionExerciseDraft> = {}): SessionExerciseDraft {
