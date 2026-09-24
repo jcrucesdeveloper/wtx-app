@@ -12,6 +12,7 @@ import {
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import type { StoredRoutine } from '@/stores/routines'
 import type { WorkoutTemplate } from '@/lib/wtx'
+import { HapticsService } from '@/services/haptics'
 
 /** The live, in-progress workout. Only one can be active at a time. */
 export interface ActiveSession {
@@ -22,6 +23,8 @@ export interface ActiveSession {
   startedAt: number
   /** Absolute deadline for the current rest timer; `null` when none is running. */
   restEndsAt: number | null
+  /** The rest timer's original length, for rendering progress; `null` when none is running. */
+  restDurationSeconds: number | null
   restExerciseIndex: number | null
   restSetId: string | null
 }
@@ -78,7 +81,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   function tick() {
     now.value = Date.now()
     const endsAt = session.value?.restEndsAt
-    if (endsAt && now.value >= endsAt) skipRestTimer()
+    if (endsAt && now.value >= endsAt) {
+      skipRestTimer()
+      HapticsService.warning()
+    }
   }
   const tickTimer = setInterval(tick, 1000)
   window.addEventListener('visibilitychange', tick)
@@ -118,6 +124,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       routineId: routine.id,
       startedAt: Date.now(),
       restEndsAt: null,
+      restDurationSeconds: null,
       restExerciseIndex: null,
       restSetId: null,
     }
@@ -247,12 +254,14 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     session.value.restExerciseIndex = exerciseIndex
     session.value.restSetId = setId
     session.value.restEndsAt = Date.now() + seconds * 1000
+    session.value.restDurationSeconds = seconds
     now.value = Date.now()
   }
 
   function skipRestTimer() {
     if (!session.value) return
     session.value.restEndsAt = null
+    session.value.restDurationSeconds = null
     session.value.restExerciseIndex = null
     session.value.restSetId = null
   }

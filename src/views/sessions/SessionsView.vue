@@ -13,6 +13,7 @@ import {
   recentWeeksActivity,
   type RecencyGroup,
 } from '@/lib/sessionStats'
+import { compareSessions } from '@/lib/sessionComparisons'
 
 const sessions = useSessionsStore()
 const activeSession = useActiveSessionStore()
@@ -61,10 +62,9 @@ const volumeDeltas = computed(() => {
       .find((item) => item.session.routineId === routineId && item.result?.ok)
     if (!prev?.result?.ok) continue
 
-    const currentVolume = current.result.session.totalVolume
-    const prevVolume = prev.result.session.totalVolume
-    if (currentVolume === 0 && prevVolume === 0) continue
-    deltas.set(current.session.id, currentVolume - prevVolume)
+    const comparison = compareSessions(current.result.session, prev.result.session)
+    if (!comparison) continue
+    deltas.set(current.session.id, comparison.volumeDelta)
   }
 
   return deltas

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Check, Trash2 } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
+import { HapticsService } from '@/services/haptics'
 import type { SessionSetDraft } from '@/lib/serializeSession'
 
 const props = defineProps<{
@@ -35,11 +36,17 @@ function onRepsInput(event: Event) {
   })
 }
 
+/** Plays the check bounce once per completion — not on every re-render while completed. */
+const justCompleted = ref(false)
+
 function toggleComplete() {
   if (props.set.completed) {
     activeSession.uncompleteSet(props.exerciseIndex, props.set.id)
   } else if (props.set.weight !== null && props.set.reps !== null) {
     activeSession.completeSet(props.exerciseIndex, props.set.id)
+    HapticsService.light()
+    justCompleted.value = true
+    setTimeout(() => (justCompleted.value = false), 220)
   }
 }
 
@@ -90,7 +97,7 @@ function cycleType() {
     <button
       type="button"
       class="row__check"
-      :class="{ active: set.completed }"
+      :class="{ active: set.completed, 'row__check--bounce': justCompleted }"
       aria-label="Mark set complete"
       @click="toggleComplete"
     >
@@ -167,6 +174,24 @@ function cycleType() {
   border-color: var(--color-accent);
   color: #fff;
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .row__check--bounce {
+    animation: row-check-bounce 0.22s ease;
+  }
+}
+
+@keyframes row-check-bounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .row__remove {
