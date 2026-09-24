@@ -42,12 +42,22 @@ const justCompleted = ref(false)
 function toggleComplete() {
   if (props.set.completed) {
     activeSession.uncompleteSet(props.exerciseIndex, props.set.id)
-  } else if (props.set.weight !== null && props.set.reps !== null) {
-    activeSession.completeSet(props.exerciseIndex, props.set.id)
-    HapticsService.light()
-    justCompleted.value = true
-    setTimeout(() => (justCompleted.value = false), 220)
+    return
   }
+
+  // An untouched input still shows a ghost/target number as its placeholder;
+  // logging the set commits that shown value instead of forcing manual entry.
+  if (props.set.weight === null || props.set.reps === null) {
+    activeSession.updateSet(props.exerciseIndex, props.set.id, {
+      weight: props.set.weight ?? placeholderWeight.value,
+      reps: props.set.reps ?? placeholderReps.value,
+    })
+  }
+
+  activeSession.completeSet(props.exerciseIndex, props.set.id)
+  HapticsService.light()
+  justCompleted.value = true
+  setTimeout(() => (justCompleted.value = false), 220)
 }
 
 function remove() {
