@@ -29,6 +29,21 @@ A handful of upstream names also carry a competition-discipline suffix
 `- Strongman` / `- Olympic Weightlifting` / `- Weightlifting` / `- CrossFit`
 and the sync throws if that ever produces a duplicate name.
 
+## Friendlier names
+
+Upstream's equipment tagging is inconsistent (`Bench Press`, `Dumbbell Bench
+Press`, `Machine Bench Press`, `Smith Machine Bench Press` all name the same
+movement differently) and a chunk of names are more clinical than a personal
+workout tracker needs (e.g. `Standing Bent-Over One-Arm Dumbbell Triceps
+Extension`). `NAME_OVERRIDES` in `scripts/sync-exercise-db.mjs`, keyed by the
+upstream `id` (stable across renames — see "Exercise images" below), retags
+these to a `Base Movement (Equipment)` convention — equipment as a
+parenthetical suffix rather than a prefix, so variants of the same movement
+sort together; the bare name is reserved for the default/most common
+implementation (e.g. barbell for `Bench Press`, `Squat`). Applied in
+`friendlyName()`, right after `cleanName()`, so it survives every re-sync
+instead of needing hand-editing on the generated JSON.
+
 ## Re-syncing
 
 Run `pnpm sync:exercises` (see `scripts/sync-exercise-db.mjs`). It pulls
