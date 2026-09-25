@@ -11,6 +11,7 @@ import FinishSessionSheet from '@/components/session/FinishSessionSheet.vue'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import PreSessionTransition from '@/components/session/PreSessionTransition.vue'
 import PostSessionTransition from '@/components/session/PostSessionTransition.vue'
+import GroupProgressStrip from '@/components/social/GroupProgressStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
 import { useFinishSession } from '@/composables/useFinishSession'
@@ -147,8 +148,12 @@ function onFinishSheetChoice(routineIdOverride?: string) {
   finishAndNavigate(routineIdOverride)
 }
 
+const roomId = computed(() => activeSession.session?.roomId)
+
+/** In a group workout this opens its room; otherwise Social, where group workouts start. */
 function onStartGroupWorkout() {
-  // TODO: implement starting a shared/group workout.
+  if (roomId.value) router.push({ name: 'room-lobby', params: { id: roomId.value } })
+  else router.push({ name: 'social' })
 }
 </script>
 
@@ -204,6 +209,8 @@ function onStartGroupWorkout() {
     </p>
 
     <template v-else>
+      <GroupProgressStrip v-if="roomId" :room-id="roomId" />
+
       <div class="stats-bar">
         <div class="stats-bar__row">
           <div class="stats-bar__time">

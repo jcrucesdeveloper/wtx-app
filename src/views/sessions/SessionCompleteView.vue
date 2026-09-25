@@ -137,12 +137,36 @@ function onDone() {
         </div>
       </Transition>
 
+      <button
+        v-if="stored.roomId"
+        type="button"
+        class="group-recap"
+        @click="router.push({ name: 'room-recap', params: { id: stored.roomId } })"
+      >
+        {{ t('room.viewRecap') }}
+      </button>
+
       <LoggedExerciseList :exercises="result.session.exercises" :unit="result.session.unit" />
     </template>
   </AppPage>
 </template>
 
 <style scoped>
+.group-recap {
+  width: 100%;
+  margin-bottom: 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 13px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  color: #fff;
+  background: var(--color-accent);
+  cursor: pointer;
+}
+
 .done-btn {
   border: none;
   border-radius: var(--radius-md);

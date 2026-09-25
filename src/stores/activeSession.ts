@@ -20,6 +20,8 @@ export interface ActiveSession {
   draft: SessionDraft
   /** The routine this was started from. */
   routineId: string
+  /** The group workout room this session is logged in, if any. */
+  roomId?: string
   /** Epoch millis — elapsed time is always derived from this, never incremented. */
   startedAt: number
   /** Absolute deadline for the current rest timer; `null` when none is running. */
@@ -117,12 +119,13 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    * Callers are responsible for resolving any already-active session first
    * (resume or discard) — this always overwrites in place.
    */
-  function start(routine: StoredRoutine, template: WorkoutTemplate) {
+  function start(routine: StoredRoutine, template: WorkoutTemplate, opts?: { roomId?: string }) {
     const sessions = useSessionsStore()
     const lastSession = sessions.lastForRoutine(routine)
     session.value = {
       draft: draftFromTemplate(template, routine.filename, lastSession),
       routineId: routine.id,
+      ...(opts?.roomId ? { roomId: opts.roomId } : {}),
       startedAt: Date.now(),
       restEndsAt: null,
       restDurationSeconds: null,
@@ -289,7 +292,12 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (!result.ok) throw new Error(result.error)
 
     const sessions = useSessionsStore()
-    const stored = sessions.add(rawText, routineIdOverride ?? session.value.routineId, Date.now())
+    const stored = sessions.add(
+      rawText,
+      routineIdOverride ?? session.value.routineId,
+      Date.now(),
+      session.value.roomId,
+    )
 
     session.value = null
     persist()

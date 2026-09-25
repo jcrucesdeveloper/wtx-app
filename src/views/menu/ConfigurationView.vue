@@ -8,6 +8,7 @@ import ColorPicker from '@/components/ColorPicker.vue'
 import ThemeModePicker from '@/components/ThemeModePicker.vue'
 import UnitPicker from '@/components/UnitPicker.vue'
 import LanguagePicker from '@/components/LanguagePicker.vue'
+import AccountSection from '@/components/social/AccountSection.vue'
 import { useThemeStore } from '@/stores/theme'
 import { useSettingsStore } from '@/stores/settings'
 import { useRoutinesStore } from '@/stores/routines'
@@ -129,6 +130,8 @@ function onRemoveAdsClick() {}
         </span>
         <span class="cta__price">$2.99</span>
       </button>
+
+      <AccountSection />
 
       <div class="group">
         <h2 class="group__title">{{ t('settings.theme') }}</h2>

@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { newUuid } from '@/lib/uuid'
 import { parseTemplateText, type ParseResult } from '@/lib/parseRoutine'
 import { DEFAULT_TEMPLATES } from '@/lib/wtx/defaultTemplates'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
@@ -17,19 +18,11 @@ export interface StoredRoutine {
 
 const STORAGE_KEY = 'wtx:routines'
 
-function newId(): string {
-  try {
-    return crypto.randomUUID()
-  } catch {
-    return `r_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
-  }
-}
-
 /** The starter library for a visitor who has never had anything in storage. */
 function defaultRoutines(): StoredRoutine[] {
   const now = Date.now()
   const routines = DEFAULT_TEMPLATES.map((template, index) => ({
-    id: newId(),
+    id: newUuid(),
     filename: template.filename,
     rawText: template.rawText,
     addedAt: now + index,
@@ -118,7 +111,7 @@ export const useRoutinesStore = defineStore('routines', () => {
     if (!result.ok) throw new Error(result.error)
 
     const routine: StoredRoutine = {
-      id: newId(),
+      id: newUuid(),
       filename: filename.trim() || `${result.template.name || 'routine'}.wtt`,
       rawText,
       addedAt: Date.now(),
@@ -157,6 +150,14 @@ export const useRoutinesStore = defineStore('routines', () => {
     routines.value = defaultRoutines()
   }
 
+  /**
+   * Replaces the library with a synced copy. Only the sync layer calls this —
+   * it's the one action the sync store doesn't treat as a local change.
+   */
+  function applyRemote(next: StoredRoutine[]) {
+    routines.value = next
+  }
+
   return {
     routines,
     list,
@@ -169,5 +170,6 @@ export const useRoutinesStore = defineStore('routines', () => {
     reorder,
     clear,
     resetToDefaults,
+    applyRemote,
   }
 })

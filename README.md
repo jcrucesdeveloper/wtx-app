@@ -12,8 +12,7 @@
 </div>
 
 Keep your training routines as small, human-readable `.wtt` files, then load,
-build, and share them from your phone — no account, no backend, nothing to
-sync.
+build, and share them from your phone.
 
 Everything lives in the browser: routines are stored in `localStorage`, and
 sharing is done with self-contained links and QR codes that carry the whole
@@ -41,7 +40,7 @@ routine in the URL.
     </td>
     <td align="center" width="33%">
       <img src="listing/visuals/screens/02-local-first.png" alt="Local-first configuration" width="220"><br>
-      <sub>Local-first, no account</sub>
+      <sub>Configuration</sub>
     </td>
     <td align="center" width="33%">
       <img src="listing/visuals/screens/03-share-qr.png" alt="Share a routine via QR" width="220"><br>
@@ -99,7 +98,7 @@ Parsing is handled by a vendored copy of the reference parser — see
 - [`qr-scanner`](https://github.com/nimiq/qr-scanner) for reading QR codes,
   [`uqr`](https://github.com/unjs/uqr) for generating them
 - [`@lucide/vue`](https://lucide.dev/) icons
-- No backend — state is `localStorage` only
+- Local state in `localStorage`
 
 ## Getting started
 
@@ -122,6 +121,36 @@ pnpm dev          # start the dev server
 | `pnpm lint`         | oxlint + ESLint, with `--fix`                             |
 | `pnpm format`       | Prettier over `src/`                                      |
 | `pnpm sync:wtx`     | Re-vendor the wtx parser from upstream                    |
+
+### Accounts, sync and group workouts (Supabase)
+
+The app works fully on-device without an account. Creating one (Social tab)
+syncs routines and sessions to [Supabase](https://supabase.com/) and unlocks
+group workouts. To enable it:
+
+1. Create a Supabase project. In **Authentication → Providers**, enable Email
+   (turn off "Confirm email" for quick testing).
+2. Apply the schema. Each table lives in its own file under
+   `supabase/tables/` (applied in file-name order); `pnpm db:migration`
+   bundles them into `supabase/migrations/`. Either paste that migration into
+   the SQL editor, or use the CLI:
+   ```sh
+   npx supabase init        # once; keeps the existing migrations
+   npx supabase link --project-ref <ref>
+   npx supabase db push
+   ```
+3. Deploy the account-deletion function with the project's secret key
+   (`sb_secret_…`, never shipped in the app):
+   ```sh
+   npx supabase secrets set SERVICE_KEY=sb_secret_...
+   npx supabase functions deploy delete-account
+   ```
+4. Copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` (the bare
+   `https://<ref>.supabase.co`) and `VITE_SUPABASE_ANON_KEY` (the publishable
+   key, `sb_publishable_…`) from Project Settings → API Keys.
+
+Without those variables the Social tab says accounts aren't set up, and
+everything else keeps working locally.
 
 ## Project structure
 

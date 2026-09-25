@@ -2,6 +2,7 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSessionRecapStore } from '@/stores/sessionRecap'
+import { useRoomStore } from '@/stores/room'
 import { allTimeBestsByExercise, detectPersonalRecords } from '@/lib/sessionRecords'
 import { compareSessions } from '@/lib/sessionComparisons'
 import { detectMilestone } from '@/lib/sessionMilestones'
@@ -23,6 +24,7 @@ export function useFinishSession() {
   const sessions = useSessionsStore()
   const routines = useRoutinesStore()
   const sessionRecap = useSessionRecapStore()
+  const room = useRoomStore()
 
   function finishSession(routineIdOverride?: string): StoredSession {
     const current = activeSession.session
@@ -37,6 +39,8 @@ export function useFinishSession() {
     const priorBests = allTimeBestsByExercise(pastSessions)
 
     const stored = activeSession.finish(routineIdOverride)
+    // Fire-and-forget: tell the room this member is done (it closes once everyone is).
+    if (stored.roomId) void room.finishMine(stored.roomId).catch(() => {})
 
     const finishedResult = sessions.parsed(stored.id)
     const finished = finishedResult?.ok ? finishedResult.session : undefined

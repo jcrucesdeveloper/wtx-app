@@ -285,8 +285,185 @@
     "sets": "{count} series"
   },
   "social": {
-    "comingSoonTitle": "Próximamente",
-    "comingSoonHint": "Entrenar con amigos, sesiones grupales y el resto de social todavía están en desarrollo."
+    "notConfiguredTitle": "Las cuentas no están configuradas",
+    "notConfiguredHint": "Esta versión no tiene un proyecto de Supabase configurado, así que la app funciona solo en este dispositivo.",
+    "hello": "Hola, {name}",
+    "trainWithFriends": "Entrenar con amigos",
+    "trainWithFriendsHint": "Elige una rutina e invita a otros",
+    "joinWithCode": "Unirse con código",
+    "joinWithCodeHint": "Escribe o escanea el código de un amigo",
+    "currentRoom": "Tu entrenamiento en grupo",
+    "openRoom": "Abrir",
+    "historyTitle": "Entrenamientos en grupo recientes",
+    "historyEmpty": "Aún no hay entrenamientos en grupo.",
+    "historyError": "No se pudieron cargar tus entrenamientos en grupo.",
+    "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" }
+  },
+  "consent": {
+    "text": "Al crear una cuenta, tus rutinas y sesiones de entrenamiento se subirán y guardarán en nuestros servidores para mantenerlas sincronizadas y poder entrenar con amigos. Puedes eliminar tu cuenta y todos sus datos cuando quieras desde Configuración.",
+    "accept": "Acepto los {terms} y la {privacy}",
+    "terms": "Términos",
+    "privacy": "Política de privacidad"
+  },
+  "auth": {
+    "logIn": "Iniciar sesión",
+    "signUp": "Registrarse",
+    "noAccount": "¿No tienes una cuenta?",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "displayName": "Tu nombre",
+    "displayNamePlaceholder": "Lo que verán tus amigos",
+    "email": "Correo",
+    "emailPlaceholder": "tu{'@'}ejemplo.com",
+    "password": "Contraseña",
+    "passwordHint": "Al menos 6 caracteres",
+    "working": "Un momento…",
+    "syncing": "Sincronizando tus rutinas y sesiones…",
+    "confirmEmail": "Revisa tu correo para confirmarlo y luego inicia sesión.",
+    "errors": {
+      "generic": "Algo salió mal. Inténtalo de nuevo.",
+      "invalidCredentials": "Correo o contraseña incorrectos.",
+      "emailTaken": "Ya existe una cuenta con ese correo.",
+      "weakPassword": "Usa una contraseña de al menos 6 caracteres.",
+      "nameRequired": "Escribe un nombre (hasta 24 caracteres).",
+      "consentRequired": "Acepta los Términos y la Política de privacidad para continuar.",
+      "emailNotConfirmed": "Primero confirma tu correo — revisa tu bandeja de entrada."
+    }
+  },
+  "room": {
+    "createTitle": "Entrenar con amigos",
+    "createHint": "Elige una rutina — tus amigos se unen con un código.",
+    "creating": "Creando sala…",
+    "lobbyTitle": "Entrenamiento en grupo",
+    "code": "Código de sala",
+    "shareHint": "Tus amigos escanean esto o escriben el código en Social → Unirse con código.",
+    "shareLink": "Compartir invitación",
+    "shareText": "Únete a mi entrenamiento {name} en wtx — código {code}",
+    "copyCode": "Copiar código",
+    "copied": "Copiado",
+    "members": "En la sala ({count}/8)",
+    "host": "Anfitrión",
+    "you": "Tú",
+    "done": "Listo",
+    "start": "Empezar entrenamiento",
+    "starting": "Empezando…",
+    "waitingForHost": "Esperando a que {name} empiece…",
+    "theHost": "el anfitrión",
+    "goToWorkout": "Ir al entrenamiento",
+    "leave": "Salir de la sala",
+    "end": "Terminar para todos",
+    "endConfirm": "¿Terminar este entrenamiento en grupo para todos?",
+    "finishedTitle": "Este entrenamiento en grupo terminó",
+    "viewRecap": "Ver resumen del grupo",
+    "loading": "Cargando sala…",
+    "joinTitle": "Unirse a un entrenamiento en grupo",
+    "joinHint": "Escribe el código de 6 caracteres de la pantalla de tu amigo.",
+    "join": "Unirse",
+    "joining": "Uniéndose…",
+    "scan": "Escanear QR",
+    "scanStop": "Dejar de escanear",
+    "cameraUnavailable": "Cámara no disponible. Escribe el código.",
+    "codeLabel": "Código de sala",
+    "progressTitle": "Tu grupo",
+    "setsDone": "{count} series",
+    "recapTitle": "Resumen del grupo",
+    "sets": "Series",
+    "volume": "Volumen ({unit})",
+    "noSets": "—",
+    "memberSession": {
+      "viewAria": "Ver el entrenamiento de {name}",
+      "setsProgress": "{done}/{total} series",
+      "onExercise": "En {name}",
+      "notStarted": "Aún no registra series",
+      "finished": "Terminó su entrenamiento",
+      "now": "Ahora",
+      "added": "añadido"
+    },
+    "live": {
+      "reaction": "{name} te envió {emoji}",
+      "pr": "{name} logró un récord: {exercise} {weight} {unit} × {reps}",
+      "myPr": "¡Nuevo récord! {exercise} {weight} {unit} × {reps}",
+      "exerciseDone": "{name} terminó {exercise}",
+      "finished": "{name} terminó el entrenamiento",
+      "joined": "{name} se unió",
+      "cheerBackAria": "Enviar {emoji} a {name}",
+      "sent": "¡Enviado!",
+      "teamCleared": "El equipo completó {exercise} ✅",
+      "teamFinished": "¡El equipo terminó {routine}! 🎉"
+    },
+    "cheer": {
+      "title": "Anima a {name}",
+      "sendAria": "Enviar {emoji}"
+    },
+    "team": {
+      "title": "Equipo",
+      "sets": "{done}/{total} series",
+      "lastOne": "Ya casi — a {name} le queda {count} serie 💪 | Ya casi — a {name} le quedan {count} series 💪",
+      "lastOneFinishing": "Ya casi — {name} está terminando 💪",
+      "lastIsYou": "Los demás ya terminaron — el equipo está contigo 💪",
+      "allDone": "Equipo terminado 🎉",
+      "muteAria": "Silenciar alertas del grupo",
+      "unmuteAria": "Activar alertas del grupo",
+      "startingTogether": "Empezamos juntos",
+      "go": "¡Ya!",
+      "recapTitle": "Juntos",
+      "finishedLabel": "terminaron",
+      "contributions": "El aporte de cada uno"
+    },
+    "errors": {
+      "room_not_found": "No hay una sala abierta con ese código.",
+      "room_full": "Esa sala está llena (máximo 8 personas).",
+      "not_authenticated": "Inicia sesión primero.",
+      "unknown": "Algo salió mal. Inténtalo de nuevo."
+    }
+  },
+  "account": {
+    "title": "Cuenta",
+    "loggedOutHint": "Crea una cuenta en Social para sincronizar tus datos y entrenar con amigos.",
+    "goToSocial": "Ir a Social",
+    "signedInAs": "Sesión iniciada como {email}",
+    "displayName": "Nombre visible",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "sync": "Sincronización",
+    "syncNow": "Sincronizar ahora",
+    "lastSynced": "Última sincronización {time}",
+    "syncStatus": {
+      "off": "Desactivada",
+      "idle": "Al día",
+      "syncing": "Sincronizando…",
+      "offline": "Sin conexión — se sincronizará después",
+      "error": "Falló la sincronización — reintentando"
+    },
+    "logout": "Cerrar sesión",
+    "logoutConfirm": "¿Cerrar sesión? La copia de tus datos en este dispositivo se borrará — siguen seguros en tu cuenta.",
+    "deleteHint": "Elimina para siempre tu cuenta y todo lo sincronizado. Los datos de este dispositivo también se borran.",
+    "delete": "Eliminar cuenta",
+    "deletePrompt": "Escribe ELIMINAR para borrar para siempre tu cuenta y todos sus datos.",
+    "deleteWord": "ELIMINAR",
+    "deleting": "Eliminando…",
+    "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+  },
+  "legal": {
+    "back": "Volver",
+    "terms": {
+      "title": "Términos",
+      "body": [
+        "wtx se ofrece tal cual para ayudarte a planificar y registrar tu entrenamiento. Usa tu propio criterio sobre lo que es seguro para tu cuerpo.",
+        "Tener una cuenta es opcional. Si creas una, eres responsable de proteger tu contraseña y de lo que compartes en los entrenamientos en grupo.",
+        "No uses los entrenamientos en grupo para acosar a otras personas. Podemos eliminar cuentas que abusen del servicio.",
+        "Puedes dejar de usar wtx y eliminar tu cuenta en cualquier momento desde Configuración."
+      ]
+    },
+    "privacy": {
+      "title": "Política de privacidad",
+      "body": [
+        "Sin cuenta, todo se queda en tu dispositivo.",
+        "Con una cuenta guardamos tu correo, tu nombre visible, tus rutinas y tus sesiones de entrenamiento para sincronizarlas entre dispositivos.",
+        "En un entrenamiento en grupo, los demás miembros ven tu nombre visible y las series que completas en esa sala.",
+        "Los datos se guardan con nuestro proveedor de base de datos (Supabase). No los vendemos ni los usamos para publicidad.",
+        "Eliminar tu cuenta desde Configuración borra para siempre todos estos datos."
+      ]
+    }
   },
   "settings": {
     "title": "Ajustes",

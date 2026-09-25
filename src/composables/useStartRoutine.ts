@@ -8,9 +8,16 @@ export function useStartRoutine() {
   const routines = useRoutinesStore()
   const activeSession = useActiveSessionStore()
 
-  function startRoutine(routineId: string) {
+  /**
+   * @param opts.roomId - Logs the session in a group workout room.
+   */
+  function startRoutine(routineId: string, opts?: { roomId?: string }) {
     if (activeSession.isActive) {
-      if (activeSession.session?.routineId === routineId) {
+      const current = activeSession.session
+      const sameWorkout = opts?.roomId
+        ? current?.roomId === opts.roomId
+        : current?.routineId === routineId && !current?.roomId
+      if (sameWorkout) {
         router.push({ name: 'active-session' })
         return
       }
@@ -22,7 +29,7 @@ export function useStartRoutine() {
     const routine = routines.getById(routineId)
     if (!result?.ok || !routine) return
 
-    activeSession.start(routine, result.template)
+    activeSession.start(routine, result.template, opts)
     router.push({ name: 'active-session' })
   }
 

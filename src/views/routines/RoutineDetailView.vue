@@ -11,6 +11,9 @@ import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { useStartRoutine } from '@/composables/useStartRoutine'
+import { useAuthStore } from '@/stores/auth'
+import { RoomError, useRoomStore } from '@/stores/room'
+import { isSupabaseConfigured } from '@/services/supabase'
 import { parseTemplateText } from '@/lib/parseRoutine'
 
 const { t } = useI18n()
@@ -18,6 +21,8 @@ const route = useRoute()
 const router = useRouter()
 const routines = useRoutinesStore()
 const { startRoutine } = useStartRoutine()
+const auth = useAuthStore()
+const room = useRoomStore()
 
 const id = computed(() => String(route.params.id))
 const routine = computed(() => routines.getById(id.value))
@@ -49,8 +54,24 @@ function onPlay() {
   startRoutine(routine.value.id)
 }
 
-function onPlayWithFriends() {
-  router.push({ name: 'social' })
+const creatingRoom = ref(false)
+
+/** Creates a group workout room from this routine — or sends logged-out users to Social first. */
+async function onPlayWithFriends() {
+  if (!routine.value || creatingRoom.value) return
+  if (!isSupabaseConfigured || !auth.isLoggedIn) {
+    router.push({ name: 'social' })
+    return
+  }
+  creatingRoom.value = true
+  try {
+    const created = await room.create(routine.value.id)
+    router.push({ name: 'room-lobby', params: { id: created.id } })
+  } catch (e) {
+    alert(t(`room.errors.${e instanceof RoomError ? e.code : 'unknown'}`))
+  } finally {
+    creatingRoom.value = false
+  }
 }
 
 function onDelete() {
@@ -82,6 +103,7 @@ function onDelete() {
         type="button"
         class="icon-btn"
         :aria-label="t('routineDetail.playFriendsAria')"
+        :disabled="creatingRoom"
         @click="onPlayWithFriends"
       >
         <Users :size="18" :stroke-width="2.25" />
