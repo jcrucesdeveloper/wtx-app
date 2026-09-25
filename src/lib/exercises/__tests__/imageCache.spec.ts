@@ -37,7 +37,7 @@ describe('imageCache', () => {
 
   describe('warmExerciseImages', () => {
     it('fetches and caches both frames for a name that matches the catalog', async () => {
-      await warmExerciseImages(['Barbell Squat'])
+      await warmExerciseImages(['Squat'])
       expect(fetchMock).toHaveBeenCalledWith(SQUAT_URL_0)
       expect(fetchMock).toHaveBeenCalledWith(SQUAT_URL_1)
       expect(cache.put).toHaveBeenCalledTimes(2)
@@ -49,16 +49,16 @@ describe('imageCache', () => {
     })
 
     it('does not re-fetch an image already in the cache', async () => {
-      await warmExerciseImages(['Barbell Squat'])
+      await warmExerciseImages(['Squat'])
       fetchMock.mockClear()
-      await warmExerciseImages(['Barbell Squat'])
+      await warmExerciseImages(['Squat'])
       expect(fetchMock).not.toHaveBeenCalled()
     })
   })
 
   describe('getCachedImageObjectUrl', () => {
     it('resolves an already-cached image to an object URL', async () => {
-      await warmExerciseImages(['Barbell Squat'])
+      await warmExerciseImages(['Squat'])
       const url = await getCachedImageObjectUrl('Barbell_Squat', 0)
       expect(url).toBe('blob:fake')
     })

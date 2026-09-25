@@ -15,16 +15,16 @@ describe('searchExerciseCatalog', () => {
 
   it('matches case-insensitively', () => {
     const results = searchExerciseCatalog('bench press')
-    expect(results.some((entry) => entry.name === 'Barbell Bench Press - Medium Grip')).toBe(true)
+    expect(results.some((entry) => entry.name === 'Bench Press (Medium Grip)')).toBe(true)
   })
 
   it('ranks a name-starts-with match above a mid-string match', () => {
     const results = searchExerciseCatalog('squat', 100)
     const squatJerk = results.findIndex((entry) => entry.name === 'Squat Jerk')
-    const barbellSquat = results.findIndex((entry) => entry.name === 'Barbell Squat')
+    const gobletSquat = results.findIndex((entry) => entry.name === 'Goblet Squat')
     expect(squatJerk).toBeGreaterThanOrEqual(0)
-    expect(barbellSquat).toBeGreaterThanOrEqual(0)
-    expect(squatJerk).toBeLessThan(barbellSquat)
+    expect(gobletSquat).toBeGreaterThanOrEqual(0)
+    expect(squatJerk).toBeLessThan(gobletSquat)
   })
 
   it('respects the limit', () => {
@@ -39,7 +39,7 @@ describe('searchExerciseCatalog', () => {
   it('matches a muscle group, surfacing exercises with no matching name', () => {
     const results = searchExerciseCatalog('legs', 1000)
     // Legs-group exercise with no "legs" in its name.
-    const groupMatch = results.findIndex((entry) => entry.name === 'Barbell Squat')
+    const groupMatch = results.findIndex((entry) => entry.name === 'Squat')
     // Non-Legs-group exercise that happens to say "legs" in its name.
     const nameMatch = results.findIndex(
       (entry) => entry.name === 'Kettlebell Pass Between The Legs',
