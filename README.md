@@ -12,8 +12,7 @@
 </div>
 
 Keep your training routines as small, human-readable `.wtt` files, then load,
-build, and share them from your phone — no account, no backend, nothing to
-sync.
+build, and share them from your phone.
 
 Everything lives in the browser: routines are stored in `localStorage`, and
 sharing is done with self-contained links and QR codes that carry the whole
@@ -41,7 +40,7 @@ routine in the URL.
     </td>
     <td align="center" width="33%">
       <img src="listing/visuals/screens/02-local-first.png" alt="Local-first configuration" width="220"><br>
-      <sub>Local-first, no account</sub>
+      <sub>Configuration</sub>
     </td>
     <td align="center" width="33%">
       <img src="listing/visuals/screens/03-share-qr.png" alt="Share a routine via QR" width="220"><br>
@@ -99,7 +98,7 @@ Parsing is handled by a vendored copy of the reference parser — see
 - [`qr-scanner`](https://github.com/nimiq/qr-scanner) for reading QR codes,
   [`uqr`](https://github.com/unjs/uqr) for generating them
 - [`@lucide/vue`](https://lucide.dev/) icons
-- No backend — state is `localStorage` only
+- Local state in `localStorage`
 
 ## Getting started
 
