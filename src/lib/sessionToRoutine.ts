@@ -1,4 +1,5 @@
-import type { WorkoutTemplate } from '@/lib/wtx'
+import type { WorkoutSession, WorkoutTemplate } from '@/lib/wtx'
+import { isTimeExercise } from '@/lib/sessionTime'
 import type { SessionDraft, SessionExerciseDraft } from '@/lib/serializeSession'
 import {
   templateExerciseToDraft,
@@ -68,5 +69,32 @@ export function routineDraftFromSession(
     notes: template.notes ?? '',
     tags: [...template.tags],
     exercises,
+  }
+}
+
+/**
+ * Builds a routine from a logged workout — e.g. a friend's, seen in the feed —
+ * with no template to fall back on. Each exercise keeps its planned sets×reps
+ * and takes its heaviest logged working weight, so the copy starts where they
+ * actually trained.
+ */
+export function routineDraftFromWorkout(session: WorkoutSession, name?: string): RoutineDraft {
+  return {
+    name: name ?? session.name,
+    unit: session.unit ?? 'kg',
+    notes: '',
+    tags: [],
+    exercises: session.exercises.map((exercise) => {
+      const isTime = isTimeExercise(exercise.note)
+      const planned = exercise.reps || exercise.topSet?.reps || 10
+      return {
+        name: exercise.name,
+        kind: isTime ? 'time' : 'reps',
+        sets: Math.max(1, exercise.sets || exercise.workingSets.length),
+        reps: isTime ? 10 : planned,
+        durationSeconds: isTime ? planned : 60,
+        weight: exercise.topSet?.weight ?? (exercise.weight || undefined),
+      }
+    }),
   }
 }

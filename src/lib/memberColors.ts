@@ -14,3 +14,12 @@ export function initials(name: string): string {
     .map((p) => p[0]!.toUpperCase())
     .join('')
 }
+
+/** A stable color for a person across the app (feed, profiles), from their account id. */
+export function colorForId(id: string): string {
+  // FNV-1a, with the high bits folded down: the palette index only reads the low bits.
+  let hash = 0x811c9dc5
+  for (let i = 0; i < id.length; i++) hash = Math.imul(hash ^ id.charCodeAt(i), 0x01000193)
+  hash ^= hash >>> 16
+  return memberColor(hash >>> 0)
+}

@@ -1,8 +1,8 @@
 -- Shared helpers used by the table files that follow.
 --
--- The room helpers are plpgsql on purpose: unlike `language sql`, their bodies
+-- The room and social helpers are plpgsql on purpose: unlike `language sql`, their bodies
 -- aren't resolved until they run, so tables created earlier (profiles, rooms)
--- can use them in policies before `room_members` exists.
+-- can use them in policies before `room_members` / `follows` exist.
 
 -- Server-owned `updated_at`, so a device with a wrong clock can't break the
 -- "changed since" sync cursor.
@@ -48,7 +48,9 @@ begin
 end;
 $$;
 
-create function public.shares_room_with(p_user_id uuid)
+-- Social: whose workouts the caller may see — their own, plus anyone they
+-- follow who shares workouts. Used by the sessions / kudos / comments policies.
+create function public.can_view_workouts(p_user_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -56,11 +58,28 @@ security definer
 set search_path = ''
 as $$
 begin
-  return exists (
+  return p_user_id = auth.uid() or exists (
     select 1
-    from public.room_members me
-    join public.room_members them on them.room_id = me.room_id
-    where me.user_id = auth.uid() and them.user_id = p_user_id
+    from public.follows f
+    join public.profiles p on p.id = f.followee_id
+    where f.follower_id = auth.uid() and f.followee_id = p_user_id and p.share_workouts
   );
+end;
+$$;
+
+create function public.can_view_session(p_session_id uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_owner uuid;
+begin
+  select user_id into v_owner
+  from public.sessions
+  where id = p_session_id and deleted_at is null;
+  return v_owner is not null and public.can_view_workouts(v_owner);
 end;
 $$;

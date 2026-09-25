@@ -17,7 +17,8 @@ create trigger sessions_updated_at
   before insert or update on public.sessions
   for each row execute function public.set_updated_at();
 
--- RLS: strictly your own rows.
+-- RLS: you own your rows; followers can read the live (non-deleted) ones when
+-- you share workouts. The sync pull filters on user_id so those never mix in.
 alter table public.sessions enable row level security;
 revoke all on public.sessions from anon;
 
@@ -25,3 +26,9 @@ create policy "sessions: own rows" on public.sessions
   for all to authenticated
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
+
+create policy "sessions: followers read" on public.sessions
+  for select to authenticated
+  using (deleted_at is null and public.can_view_workouts(user_id));
+
+create index sessions_user_created on public.sessions (user_id, created_at desc) where deleted_at is null;

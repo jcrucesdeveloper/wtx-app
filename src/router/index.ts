@@ -49,6 +49,24 @@ const router = createRouter({
       component: () => import('../views/social/SocialView.vue'),
     },
     {
+      path: '/social/people',
+      name: 'social-people',
+      component: () => import('../views/social/FindPeopleView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/social/u/:id',
+      name: 'social-profile',
+      component: () => import('../views/social/ProfileView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/social/post/:id',
+      name: 'social-post',
+      component: () => import('../views/social/PostView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/social/join',
       name: 'room-join',
       component: () => import('../views/social/JoinRoomView.vue'),

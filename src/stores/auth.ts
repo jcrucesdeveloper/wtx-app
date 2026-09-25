@@ -8,6 +8,7 @@ import { useRoomStore } from '@/stores/room'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useSocialStore } from '@/stores/social'
 
 export type Profile = Tables<'profiles'>
 
@@ -111,6 +112,7 @@ export const useAuthStore = defineStore('auth', () => {
     useRoutinesStore().resetToDefaults()
     useSessionsStore().clear()
     useSyncStore().reset()
+    useSocialStore().reset()
   }
 
   /**
@@ -143,6 +145,20 @@ export const useAuthStore = defineStore('auth', () => {
     profile.value = data
   }
 
+  /** Whether followers see this account's workouts in their feed. */
+  async function updateShareWorkouts(share: boolean) {
+    const uid = user.value?.id
+    if (!uid) return
+    const { data, error } = await requireSupabase()
+      .from('profiles')
+      .update({ share_workouts: share })
+      .eq('id', uid)
+      .select()
+      .single()
+    if (error) throw error
+    profile.value = data
+  }
+
   /** Permanently deletes the account and everything synced to it, then clears this device. */
   async function deleteAccount() {
     const sb = requireSupabase()
@@ -166,6 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
     signIn,
     signOut,
     updateDisplayName,
+    updateShareWorkouts,
     deleteAccount,
   }
 })

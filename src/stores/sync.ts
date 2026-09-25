@@ -255,9 +255,18 @@ export const useSyncStore = defineStore('sync', () => {
 
   async function fetchSince<T extends 'routines' | 'sessions'>(table: T, cursor: string | null) {
     const sb = requireSupabase()
+    const uid = userId
+    if (!uid) return []
     const rows: Tables<T>[] = []
     for (let from = 0; ; from += PAGE_SIZE) {
-      let query = sb.from(table).select('*').order('updated_at').order('id').range(from, from + PAGE_SIZE - 1)
+      // RLS also lets followers read shared sessions — only ever pull our own rows.
+      let query = sb
+        .from(table)
+        .select('*')
+        .filter('user_id', 'eq', uid)
+        .order('updated_at')
+        .order('id')
+        .range(from, from + PAGE_SIZE - 1)
       if (cursor) query = query.gt('updated_at', new Date(Date.parse(cursor) - CURSOR_OVERLAP_MS).toISOString())
       const { data, error } = await query
       if (error) throw error

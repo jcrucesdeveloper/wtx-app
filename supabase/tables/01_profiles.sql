@@ -3,6 +3,7 @@
 create table public.profiles (
   id           uuid primary key references auth.users (id) on delete cascade,
   display_name text not null check (char_length(trim(display_name)) between 1 and 24),
+  share_workouts boolean not null default true,  -- followers see this account's workouts in their feed
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
@@ -39,13 +40,14 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- RLS: see yourself and people you share a room with; edit only your own name.
+-- RLS: any account can find and follow any other, so names are readable by
+-- everyone logged in; edit only your own name and sharing choice.
 alter table public.profiles enable row level security;
 revoke all on public.profiles from anon;
 
-create policy "profiles: read self and roommates" on public.profiles
+create policy "profiles: read all" on public.profiles
   for select to authenticated
-  using (id = (select auth.uid()) or public.shares_room_with(id));
+  using (true);
 
 create policy "profiles: update self" on public.profiles
   for update to authenticated
@@ -53,4 +55,4 @@ create policy "profiles: update self" on public.profiles
   with check (id = (select auth.uid()));
 
 revoke insert, update, delete on public.profiles from authenticated;
-grant update (display_name) on public.profiles to authenticated;
+grant update (display_name, share_workouts) on public.profiles to authenticated;
