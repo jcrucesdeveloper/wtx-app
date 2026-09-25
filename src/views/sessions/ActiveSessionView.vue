@@ -1,18 +1,39 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, Check, EllipsisVertical, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import ActiveExerciseCard from '@/components/session/ActiveExerciseCard.vue'
 import RestTimerBar from '@/components/session/RestTimerBar.vue'
+import ReorderExercisesSheet from '@/components/session/ReorderExercisesSheet.vue'
+import FinishSessionSheet from '@/components/session/FinishSessionSheet.vue'
+import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
+import PreSessionTransition from '@/components/session/PreSessionTransition.vue'
+import PostSessionTransition from '@/components/session/PostSessionTransition.vue'
+import GroupProgressStrip from '@/components/social/GroupProgressStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useRoutinesStore } from '@/stores/routines'
+import { useFinishSession } from '@/composables/useFinishSession'
+import { sessionDiffersFromRoutine } from '@/lib/sessionToRoutine'
 import { formatClock } from '@/lib/format'
+import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { AdService } from '@/services/ads'
 
+const { t } = useI18n()
 const router = useRouter()
 const activeSession = useActiveSessionStore()
+const routines = useRoutinesStore()
+const { finishSession } = useFinishSession()
 
 const draft = computed(() => activeSession.session?.draft)
+
+/** Only the moment a workout truly starts, not every time this view is re-entered. */
+const showIntro = ref(false)
+
+/** Set once finishing, so the outro beat can outlive `draft` going null. */
+const finishing = ref(false)
+const finishedSessionId = ref<string | null>(null)
 
 const stats = computed(() => {
   const exercises = draft.value?.exercises ?? []
@@ -20,7 +41,7 @@ const stats = computed(() => {
   let completedSets = 0
   let completedExercises = 0
   for (const exercise of exercises) {
-    const workingSets = exercise.loggedSets.filter((s) => !s.isWarmup)
+    const workingSets = exercise.loggedSets.filter((s) => s.type !== 'W')
     const doneSets = workingSets.filter((s) => s.completed)
     totalSets += workingSets.length
     completedSets += doneSets.length
@@ -42,11 +63,12 @@ const progressPercent = computed(() =>
 const progressLabel = computed(() => {
   const { totalSets, completedSets } = stats.value
   if (totalSets === 0) return ''
-  if (completedSets >= totalSets) return 'All sets done'
+  if (completedSets >= totalSets) return t('activeSession.allSetsDone')
 
   const remaining = totalSets - completedSets
-  if (completedSets < remaining) return `${completedSets} set${completedSets === 1 ? '' : 's'} done`
-  return `${remaining} set${remaining === 1 ? '' : 's'} to go`
+  if (completedSets < remaining)
+    return t('activeSession.setsDone', { count: completedSets }, completedSets)
+  return t('activeSession.setsToGo', { count: remaining }, remaining)
 })
 
 const menuOpen = ref(false)
@@ -57,6 +79,9 @@ onMounted(() => {
   document.addEventListener('click', closeMenu)
   // Pre-load now so it's ready to show the moment the workout finishes.
   AdService.loadInterstitial()
+  // A freshly-started session is a few seconds old at most — resuming an
+  // already-in-progress one (e.g. backgrounding and returning) shouldn't replay it.
+  if (!prefersReducedMotion() && activeSession.elapsedSeconds < 2) showIntro.value = true
 })
 onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 
@@ -67,28 +92,75 @@ function goBack() {
 
 function onDiscard() {
   menuOpen.value = false
-  if (!confirm('Discard this workout? This cannot be undone.')) return
+  if (!confirm(t('activeSession.discardConfirm'))) return
   activeSession.discard()
   router.replace('/sessions')
 }
 
-function onFinish() {
-  const stored = activeSession.finish()
-  router.replace({ name: 'session-detail', params: { id: stored.id } })
-  // Let the summary render first so the interstitial reads as a break after
-  // the result, not something blocking it.
-  setTimeout(() => AdService.showInterstitial(), 500)
+const reorderOpen = ref(false)
+function onReorder() {
+  menuOpen.value = false
+  reorderOpen.value = true
 }
 
+const addExerciseOpen = ref(false)
+function onAddExercise() {
+  menuOpen.value = false
+  addExerciseOpen.value = true
+}
+function onPickExercise(name: string) {
+  activeSession.addExercise(name)
+  addExerciseOpen.value = false
+}
+
+function finishAndNavigate(routineIdOverride?: string) {
+  const stored = finishSession(routineIdOverride)
+  if (prefersReducedMotion()) {
+    router.replace({ name: 'session-complete', params: { id: stored.id } })
+    return
+  }
+  finishedSessionId.value = stored.id
+  finishing.value = true
+}
+
+function onFinishTransitionDone() {
+  finishing.value = false
+  if (finishedSessionId.value) {
+    router.replace({ name: 'session-complete', params: { id: finishedSessionId.value } })
+  }
+}
+
+const finishSheetOpen = ref(false)
+function onFinish() {
+  const session = activeSession.session
+  const routineId = session?.routineId
+  const template = routineId ? routines.parsed(routineId) : undefined
+
+  if (session && template?.ok && sessionDiffersFromRoutine(session.draft, template.template)) {
+    finishSheetOpen.value = true
+    return
+  }
+  finishAndNavigate()
+}
+
+function onFinishSheetChoice(routineIdOverride?: string) {
+  finishSheetOpen.value = false
+  finishAndNavigate(routineIdOverride)
+}
+
+const roomId = computed(() => activeSession.session?.roomId)
+
+/** In a group workout this opens its room; otherwise Social, where group workouts start. */
 function onStartGroupWorkout() {
-  // TODO: implement starting a shared/group workout.
+  if (roomId.value) router.push({ name: 'room-lobby', params: { id: roomId.value } })
+  else router.push({ name: 'social' })
 }
 </script>
 
 <template>
-  <AppPage :title="draft?.name || 'Workout'">
+  <AppPage :title="draft?.name || t('activeSession.fallbackTitle')">
     <template #leading>
-      <button type="button" class="icon-btn" aria-label="Back" @click="goBack">
+      <button type="button" class="icon-btn" :aria-label="t('activeSession.backAria')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
       </button>
     </template>
@@ -96,7 +168,7 @@ function onStartGroupWorkout() {
       <button
         type="button"
         class="icon-btn"
-        aria-label="Start group workout"
+        :aria-label="t('activeSession.groupAria')"
         @click="onStartGroupWorkout"
       >
         <Users :size="18" :stroke-width="2.25" />
@@ -105,40 +177,53 @@ function onStartGroupWorkout() {
         <button
           type="button"
           class="icon-btn"
-          aria-label="Workout options"
+          :aria-label="t('activeSession.optionsAria')"
           @click.stop="menuOpen = !menuOpen"
         >
           <EllipsisVertical :size="18" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
+          <button type="button" class="menu__item" @click="onAddExercise">
+            {{ t('activeSession.addExercise') }}
+          </button>
+          <button
+            type="button"
+            class="menu__item"
+            :disabled="stats.totalExercises < 2"
+            @click="onReorder"
+          >
+            {{ t('activeSession.reorderExercises') }}
+          </button>
           <button type="button" class="menu__item menu__item--danger" @click="onDiscard">
-            Discard workout
+            {{ t('activeSession.discardWorkout') }}
           </button>
         </div>
       </div>
       <button type="button" class="finish-btn" @click="onFinish">
-        <Check :size="16" :stroke-width="2.5" /> Finish
+        <Check :size="16" :stroke-width="2.5" /> {{ t('activeSession.finish') }}
       </button>
     </template>
 
     <p v-if="!draft" class="msg">
-      No workout in progress. Start one from a routine to see it here.
+      {{ t('activeSession.noWorkout') }}
     </p>
 
     <template v-else>
+      <GroupProgressStrip v-if="roomId" :room-id="roomId" />
+
       <div class="stats-bar">
         <div class="stats-bar__row">
           <div class="stats-bar__time">
-            <span class="stats-bar__time-label">Elapsed</span>
+            <span class="stats-bar__time-label">{{ t('activeSession.elapsed') }}</span>
             <span class="stats-bar__time-value">{{
               formatClock(activeSession.elapsedSeconds)
             }}</span>
           </div>
           <div class="stats-bar__chips">
             <span class="chip">
-              {{ stats.completedExercises }}/{{ stats.totalExercises }} exercises
+              {{ t('activeSession.exercisesChip', { done: stats.completedExercises, total: stats.totalExercises }) }}
             </span>
-            <span class="chip">{{ stats.completedSets }}/{{ stats.totalSets }} sets</span>
+            <span class="chip">{{ t('activeSession.setsChip', { done: stats.completedSets, total: stats.totalSets }) }}</span>
           </div>
         </div>
 
@@ -157,11 +242,30 @@ function onStartGroupWorkout() {
           :exercise-index="i"
           :exercise="exercise"
           :unit="draft.unit"
+          :can-remove="draft.exercises.length > 1"
+          @reorder="onReorder"
         />
       </div>
 
       <RestTimerBar />
+
+      <div class="bottom-space" aria-hidden="true" />
+
+      <ReorderExercisesSheet v-model:open="reorderOpen" />
+      <ExerciseListSheet
+        :open="addExerciseOpen"
+        @close="addExerciseOpen = false"
+        @select="onPickExercise"
+      />
+      <FinishSessionSheet v-model:open="finishSheetOpen" @finish="onFinishSheetChoice" />
     </template>
+
+    <PreSessionTransition
+      v-if="showIntro && draft"
+      :routine-name="draft.name"
+      @done="showIntro = false"
+    />
+    <PostSessionTransition v-if="finishing" @done="onFinishTransitionDone" />
   </AppPage>
 </template>
 
@@ -316,6 +420,12 @@ function onStartGroupWorkout() {
   color: #e11d48;
 }
 
+.menu__item:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: transparent;
+}
+
 .finish-btn {
   display: flex;
   align-items: center;
@@ -341,5 +451,12 @@ function onStartGroupWorkout() {
 .msg {
   font-size: 14px;
   opacity: 0.7;
+}
+
+.bottom-space {
+  /* Room for the last exercise's inputs to scroll clear of the on-screen
+     keyboard — see scrollFocusedIntoView. Without this there's nothing left
+     to scroll for sets near the end of the workout. */
+  height: 240px;
 }
 </style>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
@@ -10,6 +11,7 @@ import { emptyDraft, serializeTemplate } from '@/lib/serializeRoutine'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import RoutineForm from '@/components/wtx/RoutineForm.vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const ui = useUiStore()
 const { createSheetOpen } = storeToRefs(ui)
@@ -43,14 +45,14 @@ function onSubmit() {
 </script>
 
 <template>
-  <BottomSheet :open="createSheetOpen" title="Create a routine" @close="ui.close()">
+  <BottomSheet :open="createSheetOpen" :title="t('wtx.createRoutine.title')" @close="ui.close()">
     <RoutineForm v-model="draft" />
 
     <p v-if="!result.ok" class="error">{{ result.error }}</p>
     <p v-if="submitError" class="error">{{ submitError }}</p>
 
     <button type="button" class="primary" :disabled="!canSubmit" @click="onSubmit">
-      Create routine
+      {{ t('wtx.createRoutine.submit') }}
     </button>
   </BottomSheet>
 </template>

@@ -1,30 +1,68 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Plus } from '@lucide/vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ArrowDownUp, EllipsisVertical, Plus } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ActiveSetRow from '@/components/session/ActiveSetRow.vue'
+import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { formatCompactDuration } from '@/lib/format'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 const props = defineProps<{
   exerciseIndex: number
   exercise: SessionExerciseDraft
   unit?: string
+  canRemove: boolean
 }>()
 
+const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 const activeSession = useActiveSessionStore()
+
+const emit = defineEmits<{
+  reorder: []
+}>()
+
+const menuOpen = ref(false)
+function closeMenu() {
+  menuOpen.value = false
+}
+onMounted(() => document.addEventListener('click', closeMenu))
+onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
+
+function reorderExercises() {
+  menuOpen.value = false
+  emit('reorder')
+}
+
+function removeExercise() {
+  menuOpen.value = false
+  const loggedCount = props.exercise.loggedSets.filter((s) => s.completed).length
+  if (loggedCount > 0) {
+    const message = t(
+      'session.activeExerciseCard.removeConfirm',
+      { name: exerciseName(props.exercise.name), count: loggedCount },
+      loggedCount,
+    )
+    if (!confirm(message)) return
+  }
+  activeSession.removeExercise(props.exerciseIndex)
+}
 
 const prescription = computed(() => {
   if (props.exercise.kind === 'time') return formatCompactDuration(props.exercise.reps) || '0s'
   return `${props.exercise.sets} × ${props.exercise.reps}`
 })
 
-/** Warm-ups all show "W"; working sets get sequential numbers, in array order. */
+/** Warm-ups/drop-sets show "W"/"D"; plain sets get sequential numbers, in array order. */
 const labeledSets = computed(() => {
   let workingIndex = 0
   return props.exercise.loggedSets.map((set) => ({
     set,
-    label: set.isWarmup ? 'W' : String(++workingIndex),
+    label: set.type === 'number' ? String(++workingIndex) : set.type,
   }))
 })
 
@@ -33,8 +71,10 @@ function addSet() {
 }
 
 function addWarmup() {
-  activeSession.addSet(props.exerciseIndex, { isWarmup: true })
+  activeSession.addSet(props.exerciseIndex, { type: 'W' })
 }
+
+const showImage = ref(false)
 
 function onNoteInput(event: Event) {
   activeSession.updateNote(props.exerciseIndex, (event.target as HTMLTextAreaElement).value)
@@ -44,18 +84,57 @@ function onNoteInput(event: Event) {
 <template>
   <div class="card">
     <div class="card__head">
-      <span class="card__name">{{ exercise.name }}</span>
-      <span class="card__meta">
-        {{ prescription }}
-        <template v-if="exercise.weight">· {{ exercise.weight }} {{ unit }}</template>
-      </span>
+      <button type="button" class="card__title" @click="showImage = true">
+        <ExerciseThumb :name="exercise.name" />
+        <div class="card__title-text">
+          <span class="card__name">{{ exerciseName(exercise.name) }}</span>
+          <span class="card__meta">
+            {{ prescription }}
+            <template v-if="exercise.weight">· {{ exercise.weight }} {{ unit }}</template>
+          </span>
+        </div>
+      </button>
+
+      <div class="card__menu">
+        <button
+          type="button"
+          class="card__kebab"
+          :aria-label="t('session.activeExerciseCard.optionsAria')"
+          @click.stop="menuOpen = !menuOpen"
+        >
+          <EllipsisVertical :size="16" :stroke-width="2.25" />
+        </button>
+        <div v-if="menuOpen" class="card__menu-panel" @click.stop>
+          <button
+            type="button"
+            class="card__menu-item"
+            :disabled="!canRemove"
+            @click="reorderExercises"
+          >
+            <ArrowDownUp :size="14" :stroke-width="2.25" />
+            {{ t('session.activeExerciseCard.reorderExercises') }}
+          </button>
+          <button
+            type="button"
+            class="card__menu-item card__menu-item--danger"
+            :disabled="!canRemove"
+            @click="removeExercise"
+          >
+            {{ t('session.activeExerciseCard.removeExercise') }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="rows">
       <div class="rows__head">
         <span />
-        <span>Weight</span>
-        <span>{{ exercise.kind === 'time' ? 'Seconds' : 'Reps' }}</span>
+        <span>{{ t('session.activeExerciseCard.weight') }}</span>
+        <span>{{
+          exercise.kind === 'time'
+            ? t('session.activeExerciseCard.seconds')
+            : t('session.activeExerciseCard.reps')
+        }}</span>
         <span />
         <span />
       </div>
@@ -73,18 +152,21 @@ function onNoteInput(event: Event) {
 
     <div class="actions">
       <button type="button" class="actions__btn" @click="addSet">
-        <Plus :size="14" :stroke-width="2.5" /> Add set
+        <Plus :size="14" :stroke-width="2.5" /> {{ t('session.activeExerciseCard.addSet') }}
       </button>
     </div>
 
     <textarea
       class="note"
       rows="1"
-      placeholder="Note (optional)"
+      :placeholder="t('session.activeExerciseCard.notePlaceholder')"
       :value="exercise.note"
       @input="onNoteInput"
+      @focus="scrollFocusedIntoView"
     />
   </div>
+
+  <ExerciseImageSheet :open="showImage" :name="exercise.name" @close="showImage = false" />
 </template>
 
 <style scoped>
@@ -100,8 +182,30 @@ function onNoteInput(event: Event) {
 
 .card__head {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.card__title-text {
+  display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .card__name {
@@ -113,6 +217,72 @@ function onNoteInput(event: Event) {
   font-size: 12px;
   opacity: 0.7;
   font-variant-numeric: tabular-nums;
+}
+
+.card__menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.card__kebab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-text);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.card__menu-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-hover);
+  background: var(--color-background);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.card__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.card__menu-item:hover,
+.card__menu-item:focus-visible {
+  background: var(--color-background-mute);
+}
+
+.card__menu-item--danger {
+  color: #e11d48;
+}
+
+.card__menu-item:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: transparent;
 }
 
 .rows {

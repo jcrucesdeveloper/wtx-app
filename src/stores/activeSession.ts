@@ -6,32 +6,51 @@ import {
   newSetId,
   serializeSession,
   type SessionDraft,
+  type SessionExerciseDraft,
+  type SessionSetType,
 } from '@/lib/serializeSession'
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import type { StoredRoutine } from '@/stores/routines'
 import type { WorkoutTemplate } from '@/lib/wtx'
+import { HapticsService } from '@/services/haptics'
+import { warmExerciseImages } from '@/lib/exercises/imageCache'
 
 /** The live, in-progress workout. Only one can be active at a time. */
 export interface ActiveSession {
   draft: SessionDraft
   /** The routine this was started from. */
   routineId: string
+  /** The group workout room this session is logged in, if any. */
+  roomId?: string
   /** Epoch millis — elapsed time is always derived from this, never incremented. */
   startedAt: number
   /** Absolute deadline for the current rest timer; `null` when none is running. */
   restEndsAt: number | null
+  /** The rest timer's original length, for rendering progress; `null` when none is running. */
+  restDurationSeconds: number | null
   restExerciseIndex: number | null
   restSetId: string | null
 }
 
 const STORAGE_KEY = 'wtx:activeSession'
 
+/** Migrates a pre-`type` stored set (`isWarmup: boolean`) to the `type` field. */
+function migrateSet(set: Record<string, unknown>): void {
+  if ('type' in set) return
+  set.type = set.isWarmup ? 'W' : 'number'
+  delete set.isWarmup
+}
+
 function readStored(): ActiveSession | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw === null) return null
     const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? (parsed as ActiveSession) : null
+    if (!parsed || typeof parsed !== 'object') return null
+    for (const exercise of parsed.draft?.exercises ?? []) {
+      for (const set of exercise.loggedSets ?? []) migrateSet(set)
+    }
+    return parsed as ActiveSession
   } catch {
     return null
   }
@@ -65,7 +84,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   function tick() {
     now.value = Date.now()
     const endsAt = session.value?.restEndsAt
-    if (endsAt && now.value >= endsAt) skipRestTimer()
+    if (endsAt && now.value >= endsAt) {
+      skipRestTimer()
+      HapticsService.warning()
+    }
   }
   const tickTimer = setInterval(tick, 1000)
   window.addEventListener('visibilitychange', tick)
@@ -97,18 +119,21 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    * Callers are responsible for resolving any already-active session first
    * (resume or discard) — this always overwrites in place.
    */
-  function start(routine: StoredRoutine, template: WorkoutTemplate) {
+  function start(routine: StoredRoutine, template: WorkoutTemplate, opts?: { roomId?: string }) {
     const sessions = useSessionsStore()
     const lastSession = sessions.lastForRoutine(routine)
     session.value = {
       draft: draftFromTemplate(template, routine.filename, lastSession),
       routineId: routine.id,
+      ...(opts?.roomId ? { roomId: opts.roomId } : {}),
       startedAt: Date.now(),
       restEndsAt: null,
+      restDurationSeconds: null,
       restExerciseIndex: null,
       restSetId: null,
     }
     now.value = Date.now()
+    void warmExerciseImages(template.exercises.map((e) => e.name))
   }
 
   function findSet(exerciseIndex: number, setId: string) {
@@ -132,7 +157,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     const found = findSet(exerciseIndex, setId)
     if (!found) return
     found.set.completed = true
-    if (!found.set.isWarmup && found.exercise.restSeconds) {
+    if (found.set.type !== 'W' && found.exercise.restSeconds) {
       startRestTimer(exerciseIndex, setId, found.exercise.restSeconds)
     }
   }
@@ -142,16 +167,24 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (found) found.set.completed = false
   }
 
-  function addSet(exerciseIndex: number, opts?: { isWarmup?: boolean }) {
+  function addSet(exerciseIndex: number, opts?: { type?: SessionSetType }) {
     const exercise = session.value?.draft.exercises[exerciseIndex]
     if (!exercise) return
     exercise.loggedSets.push({
       id: newSetId(),
-      isWarmup: opts?.isWarmup ?? false,
+      type: opts?.type ?? 'number',
       weight: null,
       reps: null,
       completed: false,
     })
+  }
+
+  /** Tapping a set's number cycles it through plain number → warm-up → drop set. */
+  function cycleSetType(exerciseIndex: number, setId: string) {
+    const found = findSet(exerciseIndex, setId)
+    if (!found) return
+    const set = found.set
+    set.type = set.type === 'number' ? 'W' : set.type === 'W' ? 'D' : 'number'
   }
 
   function removeSet(exerciseIndex: number, setId: string) {
@@ -165,17 +198,75 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (exercise) exercise.note = note
   }
 
+  /**
+   * Appends a new exercise to the end of the in-progress session — e.g. when
+   * the planned equipment is unavailable and something else is subbed in.
+   * Only this session is affected until the user chooses to sync on finish.
+   */
+  function addExercise(name: string) {
+    if (!session.value) return
+    session.value.draft.exercises.push({
+      name,
+      kind: 'reps',
+      sets: 3,
+      reps: 10,
+      weight: 0,
+      note: '',
+      loggedSets: Array.from({ length: 3 }, () => ({
+        id: newSetId(),
+        type: 'number' as const,
+        weight: null,
+        reps: null,
+        completed: false,
+      })),
+    })
+  }
+
+  /**
+   * Removes an exercise from the in-progress session. Only this session is
+   * affected — the routine/template it was started from is untouched.
+   */
+  function removeExercise(index: number) {
+    if (!session.value) return
+    const restExerciseIndex = session.value.restExerciseIndex
+    if (restExerciseIndex !== null) {
+      if (restExerciseIndex === index) skipRestTimer()
+      else if (restExerciseIndex > index) session.value.restExerciseIndex = restExerciseIndex - 1
+    }
+    session.value.draft.exercises.splice(index, 1)
+  }
+
+  /**
+   * Reorders the in-progress session's exercises. Only this session is
+   * affected — the routine/template it was started from is untouched.
+   */
+  function reorderExercises(newOrder: SessionExerciseDraft[]) {
+    if (!session.value) return
+    const restExerciseIndex = session.value.restExerciseIndex
+    const restExercise =
+      restExerciseIndex !== null ? session.value.draft.exercises[restExerciseIndex] : undefined
+
+    session.value.draft.exercises = newOrder
+
+    if (restExercise) {
+      const newIndex = newOrder.indexOf(restExercise)
+      session.value.restExerciseIndex = newIndex === -1 ? null : newIndex
+    }
+  }
+
   function startRestTimer(exerciseIndex: number, setId: string, seconds: number) {
     if (!session.value) return
     session.value.restExerciseIndex = exerciseIndex
     session.value.restSetId = setId
     session.value.restEndsAt = Date.now() + seconds * 1000
+    session.value.restDurationSeconds = seconds
     now.value = Date.now()
   }
 
   function skipRestTimer() {
     if (!session.value) return
     session.value.restEndsAt = null
+    session.value.restDurationSeconds = null
     session.value.restExerciseIndex = null
     session.value.restSetId = null
   }
@@ -186,8 +277,14 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     session.value.restEndsAt = Math.max(Date.now(), session.value.restEndsAt + deltaSeconds * 1000)
   }
 
-  /** Serializes, saves to the session log, and clears the active session. */
-  function finish(): StoredSession {
+  /**
+   * Serializes, saves to the session log, and clears the active session.
+   *
+   * @param routineIdOverride Links the saved session to a different routine
+   *   than the one it was started from — e.g. when the user saved a
+   *   mid-workout exercise swap as a new routine on finish.
+   */
+  function finish(routineIdOverride?: string): StoredSession {
     if (!session.value) throw new Error('No active session to finish.')
 
     const rawText = serializeSession(session.value.draft)
@@ -195,7 +292,12 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (!result.ok) throw new Error(result.error)
 
     const sessions = useSessionsStore()
-    const stored = sessions.add(rawText, session.value.routineId, Date.now())
+    const stored = sessions.add(
+      rawText,
+      routineIdOverride ?? session.value.routineId,
+      Date.now(),
+      session.value.roomId,
+    )
 
     session.value = null
     persist()
@@ -219,7 +321,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     uncompleteSet,
     addSet,
     removeSet,
+    cycleSetType,
     updateNote,
+    addExercise,
+    removeExercise,
+    reorderExercises,
     startRestTimer,
     skipRestTimer,
     adjustRestTimer,

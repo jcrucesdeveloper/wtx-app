@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Check, Trash2 } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
+import { HapticsService } from '@/services/haptics'
 import type { SessionSetDraft } from '@/lib/serializeSession'
 
 const props = defineProps<{
@@ -14,6 +17,7 @@ const props = defineProps<{
   targetReps: number
 }>()
 
+const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 
 /** Prefers "last time" data; falls back to the template's planned value so it's never a bare 0. */
@@ -34,22 +38,56 @@ function onRepsInput(event: Event) {
   })
 }
 
+/** Plays the check bounce once per completion — not on every re-render while completed. */
+const justCompleted = ref(false)
+
 function toggleComplete() {
   if (props.set.completed) {
     activeSession.uncompleteSet(props.exerciseIndex, props.set.id)
-  } else if (props.set.weight !== null && props.set.reps !== null) {
-    activeSession.completeSet(props.exerciseIndex, props.set.id)
+    return
   }
+
+  // An untouched input still shows a ghost/target number as its placeholder;
+  // logging the set commits that shown value instead of forcing manual entry.
+  if (props.set.weight === null || props.set.reps === null) {
+    activeSession.updateSet(props.exerciseIndex, props.set.id, {
+      weight: props.set.weight ?? placeholderWeight.value,
+      reps: props.set.reps ?? placeholderReps.value,
+    })
+  }
+
+  activeSession.completeSet(props.exerciseIndex, props.set.id)
+  HapticsService.light()
+  justCompleted.value = true
+  setTimeout(() => (justCompleted.value = false), 220)
 }
 
 function remove() {
   activeSession.removeSet(props.exerciseIndex, props.set.id)
 }
+
+function cycleType() {
+  activeSession.cycleSetType(props.exerciseIndex, props.set.id)
+}
 </script>
 
 <template>
-  <div class="row" :class="{ 'row--complete': set.completed, 'row--warmup': set.isWarmup }">
-    <span class="row__label">{{ label }}</span>
+  <div
+    class="row"
+    :class="{
+      'row--complete': set.completed,
+      'row--warmup': set.type === 'W',
+      'row--dropset': set.type === 'D',
+    }"
+  >
+    <button
+      type="button"
+      class="row__label"
+      :aria-label="t('session.activeSetRow.setTypeAria', { label })"
+      @click="cycleType"
+    >
+      {{ label }}
+    </button>
     <input
       class="row__input"
       type="number"
@@ -57,6 +95,7 @@ function remove() {
       :placeholder="String(placeholderWeight)"
       :value="set.weight ?? ''"
       @input="onWeightInput"
+      @focus="scrollFocusedIntoView"
     />
     <input
       class="row__input"
@@ -65,12 +104,13 @@ function remove() {
       :placeholder="kind === 'time' && placeholderReps === 0 ? 's' : String(placeholderReps)"
       :value="set.reps ?? ''"
       @input="onRepsInput"
+      @focus="scrollFocusedIntoView"
     />
     <button
       type="button"
       class="row__check"
-      :class="{ active: set.completed }"
-      aria-label="Mark set complete"
+      :class="{ active: set.completed, 'row__check--bounce': justCompleted }"
+      :aria-label="t('session.activeSetRow.markCompleteAria')"
       @click="toggleComplete"
     >
       <Check :size="16" :stroke-width="2.5" />
@@ -87,15 +127,29 @@ function remove() {
 }
 
 .row__label {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
   font-size: 11px;
   font-weight: 700;
   opacity: 0.55;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  color: inherit;
+  cursor: pointer;
 }
 
-.row--warmup .row__label {
+.row__label:hover,
+.row__label:focus-visible {
+  opacity: 0.85;
+}
+
+.row--warmup .row__label,
+.row--dropset .row__label {
   color: var(--color-accent);
+  opacity: 1;
 }
 
 .row__input {
@@ -132,6 +186,24 @@ function remove() {
   border-color: var(--color-accent);
   color: #fff;
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .row__check--bounce {
+    animation: row-check-bounce 0.22s ease;
+  }
+}
+
+@keyframes row-check-bounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .row__remove {

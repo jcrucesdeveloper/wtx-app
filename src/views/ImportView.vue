@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
@@ -8,6 +9,7 @@ import { useRoutinesStore } from '@/stores/routines'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { decodeRoutineParam, ROUTINE_PARAM } from '@/lib/share'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const routines = useRoutinesStore()
@@ -57,29 +59,28 @@ function add() {
 </script>
 
 <template>
-  <AppPage title="Import routine">
+  <AppPage :title="t('import.title')">
     <template #actions>
-      <RouterLink to="/" class="cancel">Cancel</RouterLink>
+      <RouterLink to="/" class="cancel">{{ t('import.cancel') }}</RouterLink>
     </template>
 
     <p v-if="decoded.state === 'empty'" class="msg">
-      This link has no routine in it. Open a share link from another device, or load a file from
-      Routines.
+      {{ t('import.emptyMsg') }}
     </p>
 
     <p v-else-if="decoded.state === 'bad-link'" class="msg error">
-      This share link is corrupted and can't be read.
+      {{ t('import.badLink') }}
     </p>
 
     <div v-else-if="decoded.state === 'invalid'" class="stack">
-      <p class="error">Received a routine, but it isn't valid:</p>
+      <p class="error">{{ t('import.invalidPrefix') }}</p>
       <p class="error">{{ decoded.error }}</p>
       <pre class="source">{{ decoded.text }}</pre>
     </div>
 
     <div v-else-if="parsed?.ok" class="stack">
       <RouterLink v-if="existing" :to="`/routines/${existing.id}`" class="already">
-        Already in your library — open it
+        {{ t('import.alreadyInLibrary') }}
       </RouterLink>
 
       <h2 class="name">{{ parsed.template.name }}</h2>
@@ -89,7 +90,7 @@ function add() {
 
       <p v-if="addError" class="error">{{ addError }}</p>
       <button type="button" class="primary" @click="add">
-        {{ existing ? 'Add another copy' : 'Add to library' }}
+        {{ existing ? t('import.addAnotherCopy') : t('import.addToLibrary') }}
       </button>
     </div>
   </AppPage>

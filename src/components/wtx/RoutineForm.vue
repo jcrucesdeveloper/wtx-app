@@ -1,12 +1,24 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { ChevronDown, EllipsisVertical, GripVertical } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
+import { ChevronDown, EllipsisVertical, GripVertical, X } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
-import { emptyExercise, type RoutineDraft, type RoutineDraftExercise } from '@/lib/serializeRoutine'
+import {
+  emptyExercise,
+  type RoutineDraft,
+  type RoutineDraftExercise,
+  type RoutineDraftSet,
+} from '@/lib/serializeRoutine'
 import { formatCompactDuration } from '@/lib/format'
+import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 const draft = defineModel<RoutineDraft>({ required: true })
+
+const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 
 const unitOptions = ['kg', 'lb'] as const
 
@@ -123,7 +135,7 @@ function summaryFor(exercise: RoutineDraftExercise): string {
       ? formatCompactDuration(exercise.durationSeconds) || '0s'
       : `${exercise.sets || 0} × ${exercise.reps || 0}`,
   )
-  if (exercise.weight !== undefined)
+  if (exercise.kind === 'reps' && exercise.weight !== undefined)
     parts.push(`${exercise.weight} ${draft.value.unit ?? ''}`.trim())
   return parts.join(' · ')
 }
@@ -134,18 +146,68 @@ function numberOrUndefined(value: string): number | undefined {
   const n = Number(trimmed)
   return Number.isFinite(n) ? n : undefined
 }
+
+/**
+ * One row per prescribed set, mirroring the active session's per-set rows.
+ * Rows beyond the saved `setRows` (or when there are none yet) fall back to
+ * the plain numbered default, without writing anything until touched.
+ */
+function displayRows(exercise: RoutineDraftExercise): RoutineDraftSet[] {
+  const count = Math.max(0, Math.trunc(exercise.sets) || 0)
+  return Array.from({ length: count }, (_, i) => exercise.setRows?.[i] ?? { type: 'number' })
+}
+
+/** Lazily grows `setRows` so row `index` exists, then returns it for mutation. */
+function ensureRow(exercise: RoutineDraftExercise, index: number): RoutineDraftSet {
+  if (!exercise.setRows) exercise.setRows = []
+  while (exercise.setRows.length <= index) {
+    exercise.setRows.push({ type: 'number' })
+  }
+  return exercise.setRows[index]!
+}
+
+/** Tapping a set's number cycles it through plain number → warm-up → drop set. */
+function cycleSetType(exercise: RoutineDraftExercise, index: number) {
+  const row = ensureRow(exercise, index)
+  row.type = row.type === 'number' ? 'W' : row.type === 'W' ? 'D' : 'number'
+}
+
+function onSetWeightInput(exercise: RoutineDraftExercise, index: number, event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  ensureRow(exercise, index).weight = numberOrUndefined(value)
+}
+
+function onSetRepsInput(exercise: RoutineDraftExercise, index: number, event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  ensureRow(exercise, index).reps = numberOrUndefined(value)
+}
+
+function addSet(exercise: RoutineDraftExercise) {
+  exercise.sets = (exercise.sets || 0) + 1
+}
+
+function removeSet(exercise: RoutineDraftExercise, index: number) {
+  exercise.sets = Math.max(0, (exercise.sets || 0) - 1)
+  exercise.setRows?.splice(index, 1)
+}
 </script>
 
 <template>
   <div class="form">
     <label class="field">
-      <span class="field__label">Routine name</span>
-      <input v-model="draft.name" type="text" placeholder="Push Day" maxlength="80" />
+      <span class="field__label">{{ t('wtx.routineForm.routineName') }}</span>
+      <input
+        v-model="draft.name"
+        type="text"
+        :placeholder="t('wtx.routineForm.routineNamePlaceholder')"
+        maxlength="80"
+        @focus="scrollFocusedIntoView"
+      />
     </label>
 
     <div class="row">
       <div class="field">
-        <span class="field__label">Unit</span>
+        <span class="field__label">{{ t('wtx.routineForm.unit') }}</span>
         <div class="segmented">
           <button
             v-for="option in unitOptions"
@@ -159,20 +221,30 @@ function numberOrUndefined(value: string): number | undefined {
         </div>
       </div>
       <label class="field">
-        <span class="field__label">Tags</span>
-        <input v-model="tagsText" type="text" placeholder="push, upper" />
+        <span class="field__label">{{ t('wtx.routineForm.tags') }}</span>
+        <input
+          v-model="tagsText"
+          type="text"
+          :placeholder="t('wtx.routineForm.tagsPlaceholder')"
+          @focus="scrollFocusedIntoView"
+        />
       </label>
     </div>
 
     <label class="field">
-      <span class="field__label">Notes</span>
-      <textarea v-model="draft.notes" rows="2" placeholder="Focuses mostly on chest." />
+      <span class="field__label">{{ t('wtx.routineForm.notes') }}</span>
+      <textarea
+        v-model="draft.notes"
+        rows="2"
+        :placeholder="t('wtx.routineForm.notesPlaceholder')"
+        @focus="scrollFocusedIntoView"
+      />
     </label>
 
     <div class="exercises">
       <div class="exercises__head">
-        <span class="field__label">Exercises</span>
-        <button type="button" class="add" @click="addExercise">+ Add</button>
+        <span class="field__label">{{ t('wtx.routineForm.exercises') }}</span>
+        <button type="button" class="add" @click="addExercise">{{ t('wtx.routineForm.add') }}</button>
       </div>
 
       <VueDraggable
@@ -190,14 +262,20 @@ function numberOrUndefined(value: string): number | undefined {
           :class="{ 'exercise--open': isExpanded(exercise) }"
         >
           <div class="exercise__top" @click="toggleExpanded(exercise)">
-            <button type="button" class="exercise__handle" aria-label="Drag to reorder" @click.stop>
+            <button
+              type="button"
+              class="exercise__handle"
+              :aria-label="t('wtx.routineForm.dragAria')"
+              @click.stop
+            >
               <GripVertical :size="16" :stroke-width="2" />
             </button>
             <span class="exercise__index">{{ i + 1 }}</span>
+            <ExerciseThumb :name="exercise.name" />
 
             <div class="exercise__title">
               <button type="button" class="exercise__name-text" @click.stop="openPicker(exercise)">
-                {{ exercise.name || 'Unnamed exercise' }}
+                {{ exercise.name ? exerciseName(exercise.name) : t('wtx.routineForm.unnamedExercise') }}
               </button>
               <span v-if="!isExpanded(exercise)" class="exercise__summary">
                 {{ summaryFor(exercise) }}
@@ -208,14 +286,14 @@ function numberOrUndefined(value: string): number | undefined {
               <button
                 type="button"
                 class="exercise__kebab"
-                aria-label="Exercise options"
+                :aria-label="t('wtx.routineForm.optionsAria')"
                 @click.stop="toggleMenu(exercise)"
               >
                 <EllipsisVertical :size="16" :stroke-width="2.25" />
               </button>
               <div v-if="isMenuOpen(exercise)" class="exercise__menu-panel" @click.stop>
                 <button type="button" class="exercise__menu-item" @click="openPicker(exercise)">
-                  Change exercise
+                  {{ t('wtx.routineForm.changeExercise') }}
                 </button>
                 <button
                   type="button"
@@ -223,7 +301,7 @@ function numberOrUndefined(value: string): number | undefined {
                   :disabled="draft.exercises.length === 1"
                   @click="removeExercise(i)"
                 >
-                  Remove exercise
+                  {{ t('wtx.routineForm.removeExercise') }}
                 </button>
               </div>
             </div>
@@ -238,78 +316,100 @@ function numberOrUndefined(value: string): number | undefined {
                 :class="{ active: exercise.kind === 'reps' }"
                 @click="setKind(exercise, 'reps')"
               >
-                Reps
+                {{ t('wtx.routineForm.reps') }}
               </button>
               <button
                 type="button"
                 :class="{ active: exercise.kind === 'time' }"
                 @click="setKind(exercise, 'time')"
               >
-                Time
+                {{ t('wtx.routineForm.time') }}
               </button>
             </div>
 
-            <div v-if="exercise.kind === 'reps'" class="row">
-              <label class="field">
-                <span class="field__label">Sets</span>
-                <input v-model.number="exercise.sets" type="number" min="1" inputmode="numeric" />
-              </label>
-              <label class="field">
-                <span class="field__label">Reps</span>
-                <input v-model.number="exercise.reps" type="number" min="1" inputmode="numeric" />
-              </label>
-            </div>
-            <label v-else class="field">
-              <span class="field__label">Duration</span>
+            <label v-if="exercise.kind == 'time'" class="field">
+              <span class="field__label">{{ t('wtx.routineForm.duration') }}</span>
               <input
                 :value="formatCompactDuration(exercise.durationSeconds)"
                 type="text"
-                placeholder="1m30s"
+                :placeholder="t('wtx.routineForm.durationPlaceholder')"
                 @change="
                   exercise.durationSeconds = parseDuration(
                     ($event.target as HTMLInputElement).value,
                   )
                 "
+                @focus="scrollFocusedIntoView"
               />
             </label>
 
-            <div class="row">
+            <div v-if="exercise.kind === 'reps'" class="row">
               <label class="field">
-                <span class="field__label">Weight ({{ draft.unit || '—' }})</span>
-                <input
-                  :value="exercise.weight ?? ''"
-                  type="number"
-                  min="0"
-                  step="0.25"
-                  inputmode="decimal"
-                  placeholder="optional"
-                  @input="
-                    exercise.weight = numberOrUndefined(($event.target as HTMLInputElement).value)
-                  "
-                />
-              </label>
-              <label class="field">
-                <span class="field__label">Rest</span>
+                <span class="field__label">{{ t('wtx.routineForm.rest') }}</span>
                 <input
                   :value="formatCompactDuration(exercise.restSeconds ?? 0)"
                   type="text"
-                  placeholder="1m30s"
+                  :placeholder="t('wtx.routineForm.durationPlaceholder')"
                   @change="
                     exercise.restSeconds =
                       parseDuration(($event.target as HTMLInputElement).value) || undefined
                   "
+                  @focus="scrollFocusedIntoView"
                 />
               </label>
             </div>
 
-            <label class="field">
-              <span class="field__label">Muscle group</span>
-              <input
-                v-model="exercise.muscleGroup"
-                type="text"
-                placeholder="optional, e.g. chest"
-              />
-            </label>
+            <div v-if="exercise.kind === 'reps'" class="sets">
+              <div class="sets__head">
+                <span />
+                <span>{{ t('wtx.routineForm.weightWithUnit', { unit: draft.unit || '—' }) }}</span>
+                <span>{{ t('wtx.routineForm.reps') }}</span>
+                <span />
+              </div>
+              <div v-for="(row, si) in displayRows(exercise)" :key="si" class="sets__row">
+                <button
+                  type="button"
+                  class="sets__label"
+                  :class="{ 'sets__label--marked': row.type !== 'number' }"
+                  :aria-label="t('wtx.routineForm.setTypeAria', { n: si + 1 })"
+                  @click="cycleSetType(exercise, si)"
+                >
+                  {{ row.type === 'number' ? si + 1 : row.type }}
+                </button>
+                <input
+                  class="sets__input"
+                  type="number"
+                  min="0"
+                  step="0.25"
+                  inputmode="decimal"
+                  :placeholder="String(exercise.weight ?? 0)"
+                  :value="row.weight ?? ''"
+                  @input="onSetWeightInput(exercise, si, $event)"
+                  @focus="scrollFocusedIntoView"
+                />
+                <input
+                  class="sets__input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  :placeholder="String(exercise.reps ?? 0)"
+                  :value="row.reps ?? ''"
+                  @input="onSetRepsInput(exercise, si, $event)"
+                  @focus="scrollFocusedIntoView"
+                />
+                <button
+                  type="button"
+                  class="sets__remove"
+                  :aria-label="t('wtx.routineForm.removeSetAria', { n: si + 1 })"
+                  @click="removeSet(exercise, si)"
+                >
+                  <X :size="14" :stroke-width="2.25" />
+                </button>
+              </div>
+              <button type="button" class="sets__add" @click="addSet(exercise)">
+                {{ t('wtx.routineForm.addSet') }}
+              </button>
+            </div>
           </div>
         </div>
       </VueDraggable>
@@ -414,7 +514,7 @@ textarea {
 
 .exercise__top {
   display: grid;
-  grid-template-columns: auto auto 1fr auto auto;
+  grid-template-columns: auto auto auto 1fr auto auto;
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
@@ -582,5 +682,103 @@ textarea {
   background: var(--color-background);
   opacity: 1;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.sets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sets__head {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 24px;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  opacity: 0.5;
+}
+
+.sets__row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 24px;
+  align-items: center;
+  gap: 8px;
+}
+
+.sets__remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.sets__remove:hover {
+  opacity: 1;
+  color: #e11d48;
+  border-color: #e11d48;
+}
+
+.sets__add {
+  align-self: flex-start;
+  border: 1px dashed var(--color-border-hover);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.sets__add:hover {
+  opacity: 1;
+}
+
+.sets__label {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.sets__label--marked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+  opacity: 1;
+}
+
+.sets__input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: var(--color-text);
+  padding: 7px 8px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
 </style>

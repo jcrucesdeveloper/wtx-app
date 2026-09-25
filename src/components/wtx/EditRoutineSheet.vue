@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSettingsStore } from '@/stores/settings'
 import { parseTemplateText } from '@/lib/parseRoutine'
@@ -16,6 +17,7 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
+const { t } = useI18n()
 const routines = useRoutinesStore()
 const settings = useSettingsStore()
 
@@ -63,7 +65,7 @@ function close() {
 </script>
 
 <template>
-  <BottomSheet :open="open" title="Edit routine" full-height @close="close">
+  <BottomSheet :open="open" :title="t('wtx.editRoutine.title')" full-height @close="close">
     <RoutineForm v-model="draft" />
 
     <p v-if="!result.ok" class="error">{{ result.error }}</p>

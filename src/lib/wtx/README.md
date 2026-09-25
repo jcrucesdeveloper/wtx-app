@@ -4,7 +4,7 @@ These files are a port of the TypeScript parser from
 [`jcrucesdeveloper/wtx`](https://github.com/jcrucesdeveloper/wtx)
 (`parsers/typescript/src/`), MIT licensed.
 
-**Upstream commit:** `636fc79000395101183bf64b8393954fb5d096f2` (2026-09-04)
+**Upstream commit:** `222489466892954e1ca9640da01db08324d8ad42` (2026-09-23)
 
 ## Changes from upstream
 

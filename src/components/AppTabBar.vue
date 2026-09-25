@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 import AppIcon, { type IconName } from './AppIcon.vue'
 
@@ -10,15 +12,17 @@ interface Tab {
   match: string[]
 }
 
-const tabs: Tab[] = [
-  { to: '/', label: 'Routines', icon: 'routines', match: ['/', '/routines'] },
-  { to: '/sessions', label: 'Sessions', icon: 'sessions', match: ['/sessions'] },
-  { to: '/social', label: 'Social', icon: 'social', match: ['/social'] },
-  { to: '/settings', label: 'Config', icon: 'settings', match: ['/settings'] },
-]
+const { t } = useI18n()
 
-const leftTabs = tabs.slice(0, 2)
-const rightTabs = tabs.slice(2)
+const tabs = computed<Tab[]>(() => [
+  { to: '/', label: t('nav.routines'), icon: 'routines', match: ['/', '/routines'] },
+  { to: '/sessions', label: t('nav.sessions'), icon: 'sessions', match: ['/sessions'] },
+  { to: '/social', label: t('nav.social'), icon: 'social', match: ['/social', '/rooms'] },
+  { to: '/settings', label: t('nav.config'), icon: 'settings', match: ['/settings'] },
+])
+
+const leftTabs = computed(() => tabs.value.slice(0, 2))
+const rightTabs = computed(() => tabs.value.slice(2))
 
 const route = useRoute()
 
@@ -32,7 +36,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <nav class="tab-bar" aria-label="Main navigation">
+  <nav class="tab-bar" :aria-label="t('nav.mainNavAria')">
     <RouterLink
       v-for="tab in leftTabs"
       :key="tab.to"
@@ -44,8 +48,8 @@ const emit = defineEmits<{
       <span class="tab__label">{{ tab.label }}</span>
     </RouterLink>
 
-    <button type="button" class="fab" aria-label="Open WTX actions" @click="emit('menu')">
-      <span class="fab__label">WTX</span>
+    <button type="button" class="fab" :aria-label="t('nav.openActionsAria')" @click="emit('menu')">
+      <span class="fab__label">{{ t('nav.wtxLabel') }}</span>
     </button>
 
     <RouterLink
@@ -64,12 +68,7 @@ const emit = defineEmits<{
 <style scoped>
 .tab-bar {
   position: sticky;
-  /* Sits above a native bottom AdBanner when one is showing — see AdBanner.vue.
-     --ad-banner-inset-fix corrects for the AdMob plugin placing the banner
-     one extra system-inset above where its height alone would put it — see
-     the SizeChanged listener in services/ads.ts. Both vars are 0px whenever
-     no banner is showing, so this is a no-op the rest of the time. */
-  bottom: calc(var(--ad-banner-height, 0px) + var(--ad-banner-inset-fix, 0px));
+  bottom: 0;
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(5, 1fr);

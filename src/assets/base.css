@@ -92,6 +92,32 @@
   font-weight: normal;
 }
 
+/* Kill the WebView's default tap highlight, long-press callout, and text
+   selection so taps read as native UI rather than a web page. */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ...except where the user is actually typing or reading their own data. */
+input,
+textarea,
+[contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+button,
+a,
+[role='button'] {
+  /* No focus-ring flash on tap. */
+  outline: none;
+  /* Removes the ~300ms tap delay and double-tap-to-zoom on controls. */
+  touch-action: manipulation;
+}
+
 html {
   height: 100%;
 }

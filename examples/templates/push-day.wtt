@@ -3,7 +3,7 @@ unit: kg
 description: Chest, shoulders, and triceps.
 
 Bench Press | reps 4x8 | 60 | rest 1m30s
-Overhead Press | reps 3x10 | 30 | rest 1m
+Shoulder Press (Barbell) | reps 3x10 | 30 | rest 1m
 Incline Dumbbell Press | reps 3x10 | 22 | rest 1m30s
-Tricep Pushdown | reps 3x12 | 20 | rest 1m
-Lateral Raise | reps 3x15 | 8 | rest 1m
+Triceps Pushdown | reps 3x12 | 20 | rest 1m
+Side Lateral Raise | reps 3x15 | 8 | rest 1m

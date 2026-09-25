@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { EXERCISE_CATALOG, MUSCLE_GROUPS, searchExerciseCatalog } from '../exerciseCatalog'
+import {
+  EXERCISE_CATALOG,
+  MUSCLE_GROUPS,
+  findCatalogEntryByName,
+  searchExerciseCatalog,
+} from '../exerciseCatalog'
 
 describe('searchExerciseCatalog', () => {
   it('returns a capped alphabetical slice for an empty query', () => {
@@ -10,16 +15,16 @@ describe('searchExerciseCatalog', () => {
 
   it('matches case-insensitively', () => {
     const results = searchExerciseCatalog('bench press')
-    expect(results.some((entry) => entry.name === 'Barbell Bench Press - Medium Grip')).toBe(true)
+    expect(results.some((entry) => entry.name === 'Bench Press (Medium Grip)')).toBe(true)
   })
 
   it('ranks a name-starts-with match above a mid-string match', () => {
     const results = searchExerciseCatalog('squat', 100)
     const squatJerk = results.findIndex((entry) => entry.name === 'Squat Jerk')
-    const barbellSquat = results.findIndex((entry) => entry.name === 'Barbell Squat')
+    const gobletSquat = results.findIndex((entry) => entry.name === 'Goblet Squat')
     expect(squatJerk).toBeGreaterThanOrEqual(0)
-    expect(barbellSquat).toBeGreaterThanOrEqual(0)
-    expect(squatJerk).toBeLessThan(barbellSquat)
+    expect(gobletSquat).toBeGreaterThanOrEqual(0)
+    expect(squatJerk).toBeLessThan(gobletSquat)
   })
 
   it('respects the limit', () => {
@@ -34,7 +39,7 @@ describe('searchExerciseCatalog', () => {
   it('matches a muscle group, surfacing exercises with no matching name', () => {
     const results = searchExerciseCatalog('legs', 1000)
     // Legs-group exercise with no "legs" in its name.
-    const groupMatch = results.findIndex((entry) => entry.name === 'Barbell Squat')
+    const groupMatch = results.findIndex((entry) => entry.name === 'Squat')
     // Non-Legs-group exercise that happens to say "legs" in its name.
     const nameMatch = results.findIndex(
       (entry) => entry.name === 'Kettlebell Pass Between The Legs',
@@ -61,5 +66,47 @@ describe('searchExerciseCatalog', () => {
         (MUSCLE_GROUPS as readonly string[]).includes(entry.muscleGroup),
       ),
     ).toBe(true)
+  })
+
+  it('gives every entry a non-empty Spanish name', () => {
+    expect(EXERCISE_CATALOG.every((entry) => entry.nameEs.trim().length > 0)).toBe(true)
+  })
+
+  it('translates common lifts to natural Spanish', () => {
+    expect(findCatalogEntryByName('Squat')?.nameEs).toBe('Sentadilla')
+    expect(findCatalogEntryByName('Bench Press')?.nameEs).toBe('Press de Banca')
+    expect(findCatalogEntryByName('Deadlift')?.nameEs).toBe('Peso Muerto')
+  })
+
+  it('translates equipment variants by combining the base translation with the equipment tag', () => {
+    expect(findCatalogEntryByName('Bench Press (Dumbbell)')?.nameEs).toBe('Press de Banca (Mancuerna)')
+    expect(findCatalogEntryByName('Bench Press (Machine)')?.nameEs).toBe('Press de Banca (Máquina)')
+  })
+
+  it('matches a Spanish query, surfacing the equivalent English exercise', () => {
+    const results = searchExerciseCatalog('sentadilla', 100)
+    expect(results.some((entry) => entry.name === 'Squat')).toBe(true)
+  })
+})
+
+describe('findCatalogEntryByName', () => {
+  it('finds an exact match', () => {
+    expect(findCatalogEntryByName('3/4 Sit-Up')?.id).toBe('3_4_Sit-Up')
+  })
+
+  it('matches case-insensitively', () => {
+    expect(findCatalogEntryByName('3/4 sit-up')?.id).toBe('3_4_Sit-Up')
+  })
+
+  it('does not fuzzy-match a partial name', () => {
+    expect(findCatalogEntryByName('Sit')).toBeUndefined()
+  })
+
+  it('returns undefined for a custom exercise name', () => {
+    expect(findCatalogEntryByName('My Custom Exercise')).toBeUndefined()
+  })
+
+  it('returns undefined for an empty name', () => {
+    expect(findCatalogEntryByName('  ')).toBeUndefined()
   })
 })

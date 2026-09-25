@@ -1,6 +1,19 @@
 import { formatCompactDuration } from '@/lib/format'
 import type { WorkoutTemplate } from '@/lib/wtx'
 
+/**
+ * Rep-based only. One row per prescribed set, in order, mirroring the active
+ * session's per-set rows. `'number'` shows the set's 1-based position;
+ * `'W'`/`'D'` mark it as a warm-up/drop set instead.
+ */
+export interface RoutineDraftSet {
+  type: 'number' | 'W' | 'D'
+  /** Overridden weight for this set; `undefined` falls back to the exercise's weight. */
+  weight?: number
+  /** Overridden reps for this set; `undefined` falls back to the exercise's reps. */
+  reps?: number
+}
+
 /** One exercise row in a {@link RoutineDraft}, as edited in the create form. */
 export interface RoutineDraftExercise {
   name: string
@@ -15,8 +28,10 @@ export interface RoutineDraftExercise {
   weight?: number
   /** Optional rest after each set, in seconds. */
   restSeconds?: number
-  /** Optional primary muscle group. */
+  /** Optional primary muscle group. Not editable from the form; preserved on round-trip. */
   muscleGroup?: string
+  /** Rep-based only. Per-set weight/label overrides; `undefined` entries use the defaults. */
+  setRows?: RoutineDraftSet[]
 }
 
 /** The editable shape behind the "Create a routine" form. */
@@ -38,12 +53,9 @@ export function emptyExercise(): RoutineDraftExercise {
   return { name: '', kind: 'reps', sets: 3, reps: 10, durationSeconds: 60 }
 }
 
-/**
- * Builds an editable {@link RoutineDraft} from a parsed template, so an existing
- * routine can be reopened in the "Create a routine" form for editing.
- */
-export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
-  const exercises = template.exercises.map((exercise) => ({
+/** Maps one parsed template exercise to its editable draft form. */
+export function templateExerciseToDraft(exercise: WorkoutTemplate['exercises'][number]): RoutineDraftExercise {
+  return {
     name: exercise.name,
     kind: exercise.kind,
     sets: exercise.kind === 'reps' ? exercise.sets : 3,
@@ -52,7 +64,24 @@ export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
     weight: exercise.targetWeight,
     restSeconds: exercise.restSeconds,
     muscleGroup: exercise.muscleGroup ?? '',
-  }))
+    setRows:
+      exercise.kind === 'reps' && exercise.specificSets?.length
+        ? Array.from({ length: exercise.sets }, (_, i): RoutineDraftSet => {
+            const entry = exercise.specificSets![i]
+            if (!entry) return { type: 'number' }
+            const type = entry.label === 'W' || entry.label === 'D' ? entry.label : 'number'
+            return { type, weight: entry.weight, reps: entry.reps }
+          })
+        : undefined,
+  }
+}
+
+/**
+ * Builds an editable {@link RoutineDraft} from a parsed template, so an existing
+ * routine can be reopened in the "Create a routine" form for editing.
+ */
+export function draftFromTemplate(template: WorkoutTemplate): RoutineDraft {
+  const exercises = template.exercises.map(templateExerciseToDraft)
 
   return {
     name: template.name,
@@ -68,7 +97,12 @@ function positiveInt(value: number, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback
 }
 
-function serializeExercise(exercise: RoutineDraftExercise): string {
+/** A set row is worth writing out only once it diverges from the plain default. */
+function isCustomSetRow(row: RoutineDraftSet): boolean {
+  return row.type !== 'number' || row.weight !== undefined || row.reps !== undefined
+}
+
+function serializeExercise(exercise: RoutineDraftExercise): string[] {
   const fields: string[] = [exercise.name.trim().replace(/\|/g, '/') || 'Exercise']
 
   if (exercise.kind === 'time') {
@@ -87,7 +121,20 @@ function serializeExercise(exercise: RoutineDraftExercise): string {
     fields.push(`muscle ${exercise.muscleGroup.trim()}`)
   }
 
-  return fields.join(' | ')
+  const lines = [fields.join(' | ')]
+
+  if (exercise.kind === 'reps' && exercise.setRows?.some(isCustomSetRow)) {
+    const count = positiveInt(exercise.sets, 1)
+    for (let i = 0; i < count; i++) {
+      const row = exercise.setRows[i] ?? { type: 'number' as const }
+      const label = row.type === 'number' ? String(i + 1) : row.type
+      const weight = row.weight ?? exercise.weight ?? 0
+      const reps = row.reps ?? exercise.reps ?? 0
+      lines.push(`${label} | ${weight} | ${reps}`)
+    }
+  }
+
+  return lines
 }
 
 /**
@@ -107,7 +154,7 @@ export function serializeTemplate(draft: RoutineDraft): string {
   if (tags.length) lines.push(`tags: ${tags.join(', ')}`)
 
   lines.push('')
-  for (const exercise of draft.exercises) lines.push(serializeExercise(exercise))
+  for (const exercise of draft.exercises) lines.push(...serializeExercise(exercise))
 
   return lines.join('\n') + '\n'
 }

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { WeightUnit } from '@/stores/settings'
 
 defineProps<{
@@ -9,14 +11,16 @@ const emit = defineEmits<{
   'update:modelValue': [value: WeightUnit]
 }>()
 
-const OPTIONS: { value: WeightUnit; label: string }[] = [
-  { value: 'kg', label: 'Kilograms' },
-  { value: 'lb', label: 'Pounds' },
-]
+const { t } = useI18n()
+
+const OPTIONS = computed<{ value: WeightUnit; label: string }[]>(() => [
+  { value: 'kg', label: t('unitPicker.kilograms') },
+  { value: 'lb', label: t('unitPicker.pounds') },
+])
 </script>
 
 <template>
-  <div class="unit-picker" role="radiogroup" aria-label="Default weight unit">
+  <div class="unit-picker" role="radiogroup" :aria-label="t('unitPicker.titleAria')">
     <button
       v-for="option in OPTIONS"
       :key="option.value"

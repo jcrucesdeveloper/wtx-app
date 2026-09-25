@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ACCENT_COLORS, type AccentColor } from '@/config/theme'
+
+const { t } = useI18n()
 
 withDefaults(
   defineProps<{
@@ -21,7 +24,7 @@ function select(value: string) {
 </script>
 
 <template>
-  <div class="color-picker" role="radiogroup" aria-label="Accent color">
+  <div class="color-picker" role="radiogroup" :aria-label="t('colorPicker.accentColorAria')">
     <button
       v-for="option in options"
       :key="option.value"

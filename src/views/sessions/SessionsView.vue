@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { Flame } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
-import AdBanner from '@/components/ads/AdBanner.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock, formatNumber, formatTimeOfDay } from '@/lib/format'
@@ -14,7 +14,9 @@ import {
   recentWeeksActivity,
   type RecencyGroup,
 } from '@/lib/sessionStats'
+import { compareSessions } from '@/lib/sessionComparisons'
 
+const { t } = useI18n()
 const sessions = useSessionsStore()
 const activeSession = useActiveSessionStore()
 
@@ -32,6 +34,12 @@ const weekStreak = computed(() => computeWeekStreak(sessionDates.value))
 const recentWeeks = computed(() => recentWeeksActivity(sessionDates.value))
 
 const RECENCY_ORDER: RecencyGroup[] = ['This week', 'Last week', 'Earlier']
+
+const RECENCY_LABEL_KEYS: Record<RecencyGroup, string> = {
+  'This week': 'sessions.groupThisWeek',
+  'Last week': 'sessions.groupLastWeek',
+  Earlier: 'sessions.groupEarlier',
+}
 
 const groupedItems = computed(() => {
   const buckets = new Map<RecencyGroup, typeof items.value>()
@@ -62,10 +70,9 @@ const volumeDeltas = computed(() => {
       .find((item) => item.session.routineId === routineId && item.result?.ok)
     if (!prev?.result?.ok) continue
 
-    const currentVolume = current.result.session.totalVolume
-    const prevVolume = prev.result.session.totalVolume
-    if (currentVolume === 0 && prevVolume === 0) continue
-    deltas.set(current.session.id, currentVolume - prevVolume)
+    const comparison = compareSessions(current.result.session, prev.result.session)
+    if (!comparison) continue
+    deltas.set(current.session.id, comparison.volumeDelta)
   }
 
   return deltas
@@ -73,9 +80,9 @@ const volumeDeltas = computed(() => {
 </script>
 
 <template>
-  <AppPage title="Sessions">
+  <AppPage :title="t('sessions.title')">
     <RouterLink v-if="activeSession.isActive" to="/sessions/active" class="resume">
-      <span class="resume__label">Continue workout</span>
+      <span class="resume__label">{{ t('sessions.continueWorkout') }}</span>
       <span class="resume__name">{{ activeSession.session?.draft.name }}</span>
       <span class="resume__time">{{ formatClock(activeSession.elapsedSeconds) }}</span>
     </RouterLink>
@@ -91,11 +98,11 @@ const volumeDeltas = computed(() => {
           />
           <template v-if="weekStreak > 0">
             <span class="consistency__streak-value">{{ weekStreak }}</span>
-            <span class="consistency__streak-label"
-              >week{{ weekStreak === 1 ? '' : 's' }} in a row</span
-            >
+            <span class="consistency__streak-label">{{
+              t('sessions.weekStreak', { count: weekStreak }, weekStreak)
+            }}</span>
           </template>
-          <span v-else class="consistency__streak-label">Train this week to start a streak</span>
+          <span v-else class="consistency__streak-label">{{ t('sessions.trainThisWeek') }}</span>
         </div>
         <div class="consistency__weeks">
           <span
@@ -109,17 +116,19 @@ const volumeDeltas = computed(() => {
           />
         </div>
       </div>
-      <span class="consistency__weeks-caption">Last {{ recentWeeks.length }} weeks</span>
+      <span class="consistency__weeks-caption">{{
+        t('sessions.lastNWeeks', { count: recentWeeks.length })
+      }}</span>
     </div>
 
     <div v-if="!items.length" class="empty">
-      <p class="empty__title">No sessions yet</p>
-      <p class="empty__hint">Start a routine to log your first workout.</p>
+      <p class="empty__title">{{ t('sessions.noSessionsTitle') }}</p>
+      <p class="empty__hint">{{ t('sessions.noSessionsHint') }}</p>
     </div>
 
     <div v-else class="groups">
       <section v-for="group in groupedItems" :key="group.label" class="group">
-        <h2 class="group__label">{{ group.label }}</h2>
+        <h2 class="group__label">{{ t(RECENCY_LABEL_KEYS[group.label]) }}</h2>
         <ul class="list">
           <li v-for="{ session, result } in group.items" :key="session.id">
             <RouterLink :to="`/sessions/${session.id}`" class="row">
@@ -131,7 +140,13 @@ const volumeDeltas = computed(() => {
                   class="row__status"
                   :class="{ 'row__status--done': result?.ok && result.session.isComplete }"
                 >
-                  {{ result?.ok ? (result.session.isComplete ? 'Done' : 'Partial') : 'Error' }}
+                  {{
+                    result?.ok
+                      ? result.session.isComplete
+                        ? t('sessions.done')
+                        : t('sessions.partial')
+                      : t('sessions.error')
+                  }}
                 </span>
               </div>
 
@@ -143,8 +158,8 @@ const volumeDeltas = computed(() => {
               </div>
 
               <div v-if="result?.ok" class="row__stats">
-                <span class="chip">{{ result.session.exerciseCount }} exercises</span>
-                <span class="chip">{{ result.session.totalWorkingSets }} sets</span>
+                <span class="chip">{{ t('sessions.exercises', { count: result.session.exerciseCount }) }}</span>
+                <span class="chip">{{ t('sessions.sets', { count: result.session.totalWorkingSets }) }}</span>
                 <span v-if="result.session.totalVolume > 0" class="chip">
                   {{ formatNumber(result.session.totalVolume) }} {{ result.session.unit }}
                 </span>
@@ -162,8 +177,6 @@ const volumeDeltas = computed(() => {
         </ul>
       </section>
     </div>
-
-    <AdBanner />
   </AppPage>
 </template>
 

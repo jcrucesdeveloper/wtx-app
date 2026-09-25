@@ -3,8 +3,8 @@ unit: kg
 description: Back and biceps.
 
 Deadlift | reps 3x5 | 100 | rest 3m
-Pull Up | reps 4x8 | 0 | rest 2m
-Barbell Row | reps 4x8 | 60 | rest 1m30s
-Lat Pulldown | reps 3x10 | 45 | rest 1m30s
-Seated Cable Row | reps 3x10 | 50 | rest 1m
+Pullups | reps 4x8 | 0 | rest 2m
+Bent Over Barbell Row | reps 4x8 | 60 | rest 1m30s
+Wide-Grip Lat Pulldown | reps 3x10 | 45 | rest 1m30s
+Seated Cable Rows | reps 3x10 | 50 | rest 1m
 Bicep Curl (Dumbbell) | reps 3x12 | 12 | rest 1m

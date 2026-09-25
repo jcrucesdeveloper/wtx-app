@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { newUuid } from '@/lib/uuid'
 import { parseSessionText, type ParseSessionResult } from '@/lib/parseSession'
 import { findLastSessionForRoutine } from '@/lib/sessionMatch'
 import { formatFileTimeStamp } from '@/lib/format'
@@ -17,17 +18,11 @@ export interface StoredSession {
   addedAt: number
   /** The routine this was started from, if any — used for "last time" prefill. */
   routineId?: string
+  /** The group workout room this was logged in, if any. */
+  roomId?: string
 }
 
 const STORAGE_KEY = 'wtx:sessions'
-
-function newId(): string {
-  try {
-    return crypto.randomUUID()
-  } catch {
-    return `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
-  }
-}
 
 /** The one place the `Name-YYYY-MM-DD-HHmm.wts` naming scheme is built. */
 function canonicalFilename(name: string, date: string, addedAt: number): string {
@@ -100,16 +95,22 @@ export const useSessionsStore = defineStore('sessions', () => {
    *
    * @throws The parser's error message if `rawText` is not a valid `.wts`.
    */
-  function add(rawText: string, routineId?: string, addedAt = Date.now()): StoredSession {
+  function add(
+    rawText: string,
+    routineId?: string,
+    addedAt = Date.now(),
+    roomId?: string,
+  ): StoredSession {
     const result = parseSessionText(rawText)
     if (!result.ok) throw new Error(result.error)
 
     const session: StoredSession = {
-      id: newId(),
+      id: newUuid(),
       filename: canonicalFilename(result.session.name, result.session.date, addedAt),
       rawText,
       addedAt,
       routineId,
+      ...(roomId ? { roomId } : {}),
     }
     sessions.value.unshift(session)
     return session
@@ -124,10 +125,24 @@ export const useSessionsStore = defineStore('sessions', () => {
     sessions.value = []
   }
 
+  /**
+   * Replaces the log with a synced copy, re-deriving each filename. Only the
+   * sync layer calls this — it's the one action the sync store doesn't treat
+   * as a local change.
+   */
+  function applyRemote(next: Omit<StoredSession, 'filename'>[]) {
+    sessions.value = next.map((s) => {
+      const result = parseSessionText(s.rawText)
+      const name = result.ok ? result.session.name : ''
+      const date = result.ok ? result.session.date : ''
+      return { ...s, filename: canonicalFilename(name, date, s.addedAt) }
+    })
+  }
+
   /** Most recent completed session for a routine, for "last time" prefill. */
   function lastForRoutine(routine: StoredRoutine): WorkoutSession | undefined {
     return findLastSessionForRoutine(sessions.value, routine)
   }
 
-  return { sessions, list, getById, parsed, add, remove, clear, lastForRoutine }
+  return { sessions, list, getById, parsed, add, remove, clear, applyRemote, lastForRoutine }
 })

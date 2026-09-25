@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, EllipsisVertical } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
-import AdBanner from '@/components/ads/AdBanner.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { formatNumber } from '@/lib/format'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const sessions = useSessionsStore()
@@ -32,16 +33,16 @@ function goBack() {
 function onDelete() {
   menuOpen.value = false
   if (!stored.value) return
-  if (!confirm('Delete this session from your history?')) return
+  if (!confirm(t('sessionDetail.deleteConfirm'))) return
   sessions.remove(stored.value.id)
   router.replace('/sessions')
 }
 </script>
 
 <template>
-  <AppPage :title="result?.ok ? result.session.name : 'Session'">
+  <AppPage :title="result?.ok ? result.session.name : t('sessionDetail.fallbackTitle')">
     <template #leading>
-      <button type="button" class="icon-btn" aria-label="Back" @click="goBack">
+      <button type="button" class="icon-btn" :aria-label="t('sessionDetail.backAria')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
       </button>
     </template>
@@ -50,20 +51,20 @@ function onDelete() {
         <button
           type="button"
           class="icon-btn"
-          aria-label="Session options"
+          :aria-label="t('sessionDetail.optionsAria')"
           @click.stop="menuOpen = !menuOpen"
         >
           <EllipsisVertical :size="18" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
           <button type="button" class="menu__item menu__item--danger" @click="onDelete">
-            Delete session
+            {{ t('sessionDetail.deleteSession') }}
           </button>
         </div>
       </div>
     </template>
 
-    <p v-if="!stored" class="msg">This session is no longer in your history.</p>
+    <p v-if="!stored" class="msg">{{ t('sessionDetail.notFound') }}</p>
 
     <template v-else-if="result">
       <div v-if="result.ok" class="stack">
@@ -71,13 +72,17 @@ function onDelete() {
         <p v-if="result.session.notes" class="notes">{{ result.session.notes }}</p>
 
         <div class="summary">
-          <span class="chip">{{ result.session.exerciseCount }} exercises</span>
-          <span class="chip">{{ result.session.totalWorkingSets }} sets</span>
+          <span class="chip">{{ t('sessionDetail.exercises', { count: result.session.exerciseCount }) }}</span>
+          <span class="chip">{{ t('sessionDetail.sets', { count: result.session.totalWorkingSets }) }}</span>
           <span v-if="result.session.totalVolume > 0" class="chip">
-            {{ formatNumber(result.session.totalVolume) }} {{ result.session.unit }} volume
+            {{
+              t('sessionDetail.volume', {
+                amount: `${formatNumber(result.session.totalVolume)} ${result.session.unit ?? ''}`.trim(),
+              })
+            }}
           </span>
           <span class="chip" :class="{ 'chip--done': result.session.isComplete }">
-            {{ result.session.isComplete ? 'Complete' : 'Incomplete' }}
+            {{ result.session.isComplete ? t('sessionDetail.complete') : t('sessionDetail.incomplete') }}
           </span>
         </div>
 
@@ -89,8 +94,6 @@ function onDelete() {
         <pre class="source">{{ stored.rawText }}</pre>
       </div>
     </template>
-
-    <AdBanner v-if="stored" />
   </AppPage>
 </template>
 

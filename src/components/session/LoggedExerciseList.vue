@@ -1,11 +1,17 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { WorkoutSessionExercise } from '@/lib/wtx'
 import { displayNote, isTimeExercise } from '@/lib/sessionTime'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 defineProps<{
   exercises: WorkoutSessionExercise[]
   unit?: string
 }>()
+
+const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 </script>
 
 <template>
@@ -13,16 +19,17 @@ defineProps<{
     <li v-for="(exercise, i) in exercises" :key="i" class="exercise">
       <div class="exercise__head">
         <span class="exercise__index">{{ i + 1 }}</span>
+        <ExerciseThumb :name="exercise.name" />
         <div class="exercise__body">
-          <span class="exercise__name">{{ exercise.name }}</span>
+          <span class="exercise__name">{{ exerciseName(exercise.name) }}</span>
           <span class="exercise__meta">
-            {{ exercise.workingSets.length }}/{{ exercise.sets }} sets
+            {{ t('session.loggedExerciseList.setsProgress', { done: exercise.workingSets.length, total: exercise.sets }) }}
             <template v-if="displayNote(exercise.note)">
               · {{ displayNote(exercise.note) }}</template
             >
           </span>
         </div>
-        <span v-if="!exercise.isComplete" class="exercise__badge">Incomplete</span>
+        <span v-if="!exercise.isComplete" class="exercise__badge">{{ t('session.loggedExerciseList.incomplete') }}</span>
       </div>
 
       <ul v-if="exercise.loggedSets.length" class="sets">
@@ -64,9 +71,9 @@ defineProps<{
 
 .exercise__head {
   display: grid;
-  grid-template-columns: 22px 1fr auto;
+  grid-template-columns: 22px auto 1fr auto;
   gap: 12px;
-  align-items: baseline;
+  align-items: center;
 }
 
 .exercise__index {
