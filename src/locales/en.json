@@ -189,7 +189,21 @@
       "newRoutineName": "New routine name",
       "back": "Back",
       "saveAndFinish": "Save & finish",
-      "editedSuffix": "{name} (edited)"
+      "editedSuffix": "{name} (edited)",
+      "reviewTitle": "Finish workout?",
+      "summaryAria": "Workout summary",
+      "noSetsDone": "No sets are marked done yet — this will be saved as an empty workout.",
+      "setsLeft": "{count} set isn't marked done. It'll be saved as incomplete. | {count} sets aren't marked done. They'll be saved as incomplete.",
+      "sessionName": "Session name",
+      "saveTo": "Save to",
+      "targetProfile": "My profile",
+      "targetProfileDesc": "Synced to your account and other devices",
+      "targetProfileLoggedOutDesc": "Syncs to your account once you log in",
+      "targetDevice": "This device",
+      "targetDeviceDesc": "Stays private on this phone, never uploaded",
+      "keepTraining": "Keep training",
+      "next": "Next",
+      "finishAndSave": "Finish & save"
     },
     "loggedExerciseList": {
       "incomplete": "Incomplete",
@@ -265,7 +279,10 @@
     "sets": "{count} sets",
     "volume": "{amount} volume",
     "complete": "Complete",
-    "incomplete": "Incomplete"
+    "incomplete": "Incomplete",
+    "deviceOnly": "Only on this device",
+    "deviceOnlyHint": "This session isn't synced to your profile.",
+    "saveToProfile": "Save to profile"
   },
   "sessions": {
     "title": "Sessions",
@@ -282,7 +299,8 @@
     "partial": "Partial",
     "error": "Error",
     "exercises": "{count} exercises",
-    "sets": "{count} sets"
+    "sets": "{count} sets",
+    "deviceOnly": "Device only"
   },
   "social": {
     "notConfiguredTitle": "Accounts aren't set up",

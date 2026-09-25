@@ -189,7 +189,21 @@
       "newRoutineName": "Nombre de la nueva rutina",
       "back": "Atrás",
       "saveAndFinish": "Guardar y terminar",
-      "editedSuffix": "{name} (editada)"
+      "editedSuffix": "{name} (editada)",
+      "reviewTitle": "¿Terminar entrenamiento?",
+      "summaryAria": "Resumen del entrenamiento",
+      "noSetsDone": "Aún no marcaste ninguna serie — se guardará como un entrenamiento vacío.",
+      "setsLeft": "{count} serie no está marcada. Se guardará como incompleta. | {count} series no están marcadas. Se guardarán como incompletas.",
+      "sessionName": "Nombre de la sesión",
+      "saveTo": "Guardar en",
+      "targetProfile": "Mi perfil",
+      "targetProfileDesc": "Se sincroniza con tu cuenta y otros dispositivos",
+      "targetProfileLoggedOutDesc": "Se sincroniza con tu cuenta al iniciar sesión",
+      "targetDevice": "Este dispositivo",
+      "targetDeviceDesc": "Queda privado en este teléfono, nunca se sube",
+      "keepTraining": "Seguir entrenando",
+      "next": "Siguiente",
+      "finishAndSave": "Terminar y guardar"
     },
     "loggedExerciseList": {
       "incomplete": "Incompleto",
@@ -265,7 +279,10 @@
     "sets": "{count} series",
     "volume": "{amount} de volumen",
     "complete": "Completa",
-    "incomplete": "Incompleta"
+    "incomplete": "Incompleta",
+    "deviceOnly": "Solo en este dispositivo",
+    "deviceOnlyHint": "Esta sesión no está sincronizada con tu perfil.",
+    "saveToProfile": "Guardar en mi perfil"
   },
   "sessions": {
     "title": "Sesiones",
@@ -282,7 +299,8 @@
     "partial": "Parcial",
     "error": "Error",
     "exercises": "{count} ejercicios",
-    "sets": "{count} series"
+    "sets": "{count} series",
+    "deviceOnly": "Solo local"
   },
   "social": {
     "notConfiguredTitle": "Las cuentas no están configuradas",
