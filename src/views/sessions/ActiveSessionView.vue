@@ -13,9 +13,7 @@ import PreSessionTransition from '@/components/session/PreSessionTransition.vue'
 import PostSessionTransition from '@/components/session/PostSessionTransition.vue'
 import GroupProgressStrip from '@/components/social/GroupProgressStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
-import { useRoutinesStore } from '@/stores/routines'
-import { useFinishSession } from '@/composables/useFinishSession'
-import { sessionDiffersFromRoutine } from '@/lib/sessionToRoutine'
+import { useFinishSession, type FinishSessionOptions } from '@/composables/useFinishSession'
 import { formatClock } from '@/lib/format'
 import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { AdService } from '@/services/ads'
@@ -23,7 +21,6 @@ import { AdService } from '@/services/ads'
 const { t } = useI18n()
 const router = useRouter()
 const activeSession = useActiveSessionStore()
-const routines = useRoutinesStore()
 const { finishSession } = useFinishSession()
 
 const draft = computed(() => activeSession.session?.draft)
@@ -113,8 +110,8 @@ function onPickExercise(name: string) {
   addExerciseOpen.value = false
 }
 
-function finishAndNavigate(routineIdOverride?: string) {
-  const stored = finishSession(routineIdOverride)
+function finishAndNavigate(options: FinishSessionOptions) {
+  const stored = finishSession(options)
   if (prefersReducedMotion()) {
     router.replace({ name: 'session-complete', params: { id: stored.id } })
     return
@@ -130,22 +127,16 @@ function onFinishTransitionDone() {
   }
 }
 
+/** Finishing always goes through a review step, so a stray tap can't end the workout. */
 const finishSheetOpen = ref(false)
 function onFinish() {
-  const session = activeSession.session
-  const routineId = session?.routineId
-  const template = routineId ? routines.parsed(routineId) : undefined
-
-  if (session && template?.ok && sessionDiffersFromRoutine(session.draft, template.template)) {
-    finishSheetOpen.value = true
-    return
-  }
-  finishAndNavigate()
+  menuOpen.value = false
+  finishSheetOpen.value = true
 }
 
-function onFinishSheetChoice(routineIdOverride?: string) {
+function onFinishSheetChoice(options: FinishSessionOptions) {
   finishSheetOpen.value = false
-  finishAndNavigate(routineIdOverride)
+  finishAndNavigate(options)
 }
 
 const roomId = computed(() => activeSession.session?.roomId)

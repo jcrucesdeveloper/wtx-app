@@ -280,23 +280,30 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   /**
    * Serializes, saves to the session log, and clears the active session.
    *
-   * @param routineIdOverride Links the saved session to a different routine
-   *   than the one it was started from — e.g. when the user saved a
+   * @param opts.routineIdOverride Links the saved session to a different
+   *   routine than the one it was started from — e.g. when the user saved a
    *   mid-workout exercise swap as a new routine on finish.
+   * @param opts.name Renames the session as it's saved; blank keeps the current name.
+   * @param opts.localOnly Keeps the session on this device, out of account sync.
    */
-  function finish(routineIdOverride?: string): StoredSession {
+  function finish(
+    opts: { routineIdOverride?: string; name?: string; localOnly?: boolean } = {},
+  ): StoredSession {
     if (!session.value) throw new Error('No active session to finish.')
 
-    const rawText = serializeSession(session.value.draft)
+    const name = opts.name?.trim()
+    const draft = name ? { ...session.value.draft, name } : session.value.draft
+    const rawText = serializeSession(draft)
     const result = parseSessionText(rawText)
     if (!result.ok) throw new Error(result.error)
 
     const sessions = useSessionsStore()
     const stored = sessions.add(
       rawText,
-      routineIdOverride ?? session.value.routineId,
+      opts.routineIdOverride ?? session.value.routineId,
       Date.now(),
       session.value.roomId,
+      opts.localOnly,
     )
 
     session.value = null

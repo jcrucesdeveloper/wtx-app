@@ -2,10 +2,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
-import { Flame } from '@lucide/vue'
+import { Flame, Smartphone } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { isSupabaseConfigured } from '@/services/supabase'
 import { formatClock, formatNumber, formatTimeOfDay } from '@/lib/format'
 import {
   formatSessionDate,
@@ -155,6 +156,10 @@ const volumeDeltas = computed(() => {
                   result?.ok ? formatSessionDate(result.session.date) : '—'
                 }}</span>
                 <span class="row__time">{{ formatTimeOfDay(session.addedAt) }}</span>
+                <span v-if="session.localOnly && isSupabaseConfigured" class="row__local">
+                  <Smartphone :size="11" :stroke-width="2.5" />
+                  {{ t('sessions.deviceOnly') }}
+                </span>
               </div>
 
               <div v-if="result?.ok" class="row__stats">
@@ -363,6 +368,18 @@ const volumeDeltas = computed(() => {
   font-weight: 600;
   opacity: 0.45;
   font-variant-numeric: tabular-nums;
+}
+
+.row__local {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  opacity: 0.55;
 }
 
 .row__name {
