@@ -27,6 +27,7 @@
     "@capacitor/core": "^8.5.2",
     "@capacitor/haptics": "^8.0.2",
     "@lucide/vue": "^1.41.0",
+    "@supabase/supabase-js": "^2.117.1",
     "fflate": "^0.8.3",
     "pinia": "^4.0.2",
     "qr-scanner": "^1.4.2",
