@@ -5,8 +5,10 @@ import type { WorkoutExercise } from '@/lib/wtx'
 import { formatCompactDuration } from '@/lib/format'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 
 defineProps<{
   exercises: WorkoutExercise[]
@@ -30,7 +32,7 @@ const previewName = ref<string | null>(null)
         <span class="exercise__index">{{ i + 1 }}</span>
         <ExerciseThumb :name="exercise.name" />
         <div class="exercise__body">
-          <span class="exercise__name">{{ exercise.name }}</span>
+          <span class="exercise__name">{{ exerciseName(exercise.name) }}</span>
           <span class="exercise__meta">
             {{ prescription(exercise) }}
             <template v-if="exercise.targetWeight !== undefined">

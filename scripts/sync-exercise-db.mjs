@@ -191,6 +191,897 @@ function friendlyName(id, name) {
   return NAME_OVERRIDES[id] ?? name
 }
 
+// --- Spanish name generation -----------------------------------------------
+//
+// `nameEs` is a display-only Spanish name generated for every entry (see
+// src/lib/exercises/README.md). It never affects `id` or `name` — those stay
+// the stable, English identity used for storage/matching throughout the app.
+//
+// Three layers, checked in order:
+//  1. `BASE_PHRASE_ES` — hand-picked, natural Spanish for ~250 common/
+//     important base phrases (equipment tag stripped), so the exercises
+//     people actually search/log most read naturally. Keyed by the final
+//     (post-cleanup) English base phrase, so one entry automatically covers
+//     every equipment variant of that movement (e.g. "Bench Press" covers
+//     "Bench Press (Dumbbell)", "Bench Press (Machine)", etc.).
+//  2. `NAME_OVERRIDES_ES` — whole-name Spanish for idiomatic/nickname
+//     exercises that don't decompose sensibly word-by-word.
+//  3. A compositional fallback: translates a trailing "(Equipment)" tag via
+//     `EQUIPMENT_ES`, then the base phrase via greedy multi-word phrase
+//     matching (`PHRASES_ES` and any dictionary) falling back to word-by-word
+//     substitution, with a Spanish noun-first reorder when the phrase ends in
+//     a recognized movement noun (the common English "[modifiers] [movement]"
+//     shape). An unrecognized word passes through unchanged rather than
+//     breaking the whole name.
+
+const EQUIPMENT_ES = {
+  barbell: 'Barra',
+  dumbbell: 'Mancuerna',
+  cable: 'Polea',
+  machine: 'Máquina',
+  'smith machine': 'Máquina Smith',
+  kettlebell: 'Kettlebell',
+  band: 'Banda',
+  bodyweight: 'Peso Corporal',
+  sled: 'Trineo',
+  'medium grip': 'Agarre Medio',
+  'close-grip': 'Agarre Cerrado',
+  'close & wide grip': 'Agarre Cerrado y Abierto',
+  'wide-grip': 'Agarre Abierto',
+  'wide grip': 'Agarre Abierto',
+  'neutral grip': 'Agarre Neutro',
+  'clean grip': 'Agarre de Cargada',
+  pronated: 'Prono',
+  supinated: 'Supino',
+  'palms-up': 'Palmas Arriba',
+  'palms-down': 'Palmas Abajo',
+  'behind back': 'Detrás de la Espalda',
+  'behind head': 'Detrás de la Cabeza',
+  'behind neck': 'Detrás de la Nuca',
+  'below knees': 'Debajo de las Rodillas',
+  'to chin': 'Hasta la Barbilla',
+  'chest-supported': 'Con Pecho Apoyado',
+  'extended range': 'Rango Extendido',
+  floor: 'En el Suelo',
+  'front & back': 'Frontal y Trasero',
+  'hands overhead': 'Manos Sobre la Cabeza',
+  harness: 'Arnés',
+  'incline bench': 'Banco Inclinado',
+  'legs on ball': 'Piernas Sobre el Balón',
+  'low cable': 'Polea Baja',
+  'lunge style': 'Estilo Zancada',
+  'squat style': 'Estilo Sentadilla',
+  military: 'Militar',
+  'multiple response': 'Respuesta Múltiple',
+  'single response': 'Respuesta Simple',
+  'no bench': 'Sin Banco',
+  'oblique twist': 'Giro Oblicuo',
+  'overhead extension': 'Extensión Overhead',
+  rope: 'Cuerda',
+  side: 'Lateral',
+  'straight-arm, overhead': 'Brazo Recto, Overhead',
+  triceps: 'Tríceps',
+  chest: 'Pecho',
+  'v-bar': 'Barra V',
+  'with twist': 'Con Giro',
+  'pull through': 'Paso a Través',
+  'back extensions': 'Extensiones de Espalda',
+  bridge: 'Puente',
+  prone: 'Boca Abajo',
+  stretch: 'Estiramiento',
+  'or hurdle hops': 'o Saltos de Valla',
+}
+
+function translateEquipmentTag(tag) {
+  const key = tag.toLowerCase()
+  if (EQUIPMENT_ES[key]) return EQUIPMENT_ES[key]
+  if (tag.includes(',')) {
+    return tag
+      .split(',')
+      .map((part) => translateEquipmentTag(part.trim()))
+      .join(', ')
+  }
+  return tag
+}
+
+const MOVEMENT_ES = {
+  press: 'Press',
+  curl: 'Curl',
+  squat: 'Sentadilla',
+  squats: 'Sentadillas',
+  deadlift: 'Peso Muerto',
+  deadlifts: 'Pesos Muertos',
+  row: 'Remo',
+  rows: 'Remos',
+  raise: 'Elevación',
+  raises: 'Elevaciones',
+  extension: 'Extensión',
+  crunch: 'Abdominal',
+  crunches: 'Abdominales',
+  lunge: 'Zancada',
+  lunges: 'Zancadas',
+  shrug: 'Encogimiento de Hombros',
+  dip: 'Fondo',
+  dips: 'Fondos',
+  fly: 'Apertura',
+  flye: 'Apertura',
+  flyes: 'Aperturas',
+  clean: 'Cargada',
+  snatch: 'Arrancada',
+  jerk: 'Envión',
+  swing: 'Balanceo',
+  swings: 'Balanceos',
+  stretch: 'Estiramiento',
+  twist: 'Giro',
+  hold: 'Sostén',
+  walk: 'Caminata',
+  drag: 'Arrastre',
+  sprint: 'Sprint',
+  jump: 'Salto',
+  throw: 'Lanzamiento',
+  halo: 'Halo',
+  windmill: 'Molinillo',
+  rollout: 'Rollout',
+  chop: 'Golpe',
+  rotation: 'Rotación',
+  circle: 'Círculo',
+  circles: 'Círculos',
+  march: 'Marcha',
+  bridge: 'Puente',
+  kickback: 'Patada de Tríceps',
+  pushdown: 'Extensión en Polea',
+  pulldown: 'Jalón',
+  pullover: 'Pullover',
+  'skull crusher': 'Press Francés',
+  skullcrusher: 'Press Francés',
+  hyperextension: 'Hiperextensión',
+  hyperextensions: 'Hiperextensiones',
+  'sit-up': 'Abdominal',
+  'sit-ups': 'Abdominales',
+  situp: 'Abdominal',
+  situps: 'Abdominales',
+  'push-up': 'Flexión',
+  'push-ups': 'Flexiones',
+  pushup: 'Flexión',
+  pushups: 'Flexiones',
+  'pull-up': 'Dominada',
+  'pull-ups': 'Dominadas',
+  pullup: 'Dominada',
+  pullups: 'Dominadas',
+  'chin-up': 'Dominada Supina',
+  plank: 'Plancha',
+  superman: 'Superman',
+  carry: 'Acarreo',
+  pull: 'Tirón',
+  push: 'Empuje',
+  thrust: 'Empuje de Cadera',
+  scoop: 'Barrido',
+  slam: 'Golpe al Suelo',
+  climb: 'Escalada',
+  thruster: 'Thruster',
+  bound: 'Salto Bound',
+  skip: 'Salto de Cuerda',
+  skipping: 'Salto de Cuerda',
+  step: 'Paso',
+  'step-up': 'Step-Up',
+  'step ups': 'Elevaciones de Banco',
+  drivers: 'Piernas Alternadas',
+  glide: 'Deslizamiento',
+  vacuum: 'Vacío Abdominal',
+  wiper: 'Limpiaparabrisas',
+  wipers: 'Limpiaparabrisas',
+  crawl: 'Gateo',
+  hop: 'Salto',
+  hops: 'Saltos',
+  jogging: 'Trote',
+  running: 'Carrera',
+  walking: 'Caminata',
+  bicycling: 'Ciclismo',
+  rowing: 'Remo (Cardio)',
+  skating: 'Patinaje',
+  jackknife: 'Navaja',
+  bench: 'Banco',
+  box: 'Cajón',
+  curls: 'Curls',
+  split: 'Dividido',
+  hang: 'Colgante',
+  bar: 'Barra',
+  plate: 'Disco',
+  preacher: 'Predicador',
+  hammer: 'Martillo',
+  balance: 'Equilibrio',
+  lift: 'Levantamiento',
+  flat: 'Plano',
+  chair: 'Silla',
+  blocks: 'Bloques',
+  'ez-bar': 'Barra EZ',
+  ez: 'EZ',
+  'pull-in': 'Recogida',
+  pulley: 'Polea',
+  'single-arm': 'a Un Brazo',
+  leverage: 'Máquina',
+  head: 'Cabeza',
+  butt: 'Glúteo',
+  concentration: 'Concentración',
+  depth: 'Profundidad',
+  kick: 'Patada',
+  kicks: 'Patadas',
+  exercise: 'Ejercicio',
+  face: 'Cara',
+  flexor: 'Flexor',
+  flexors: 'Flexores',
+  hack: 'Hack',
+  iron: 'Hierro',
+  treadmill: 'Cinta de Correr',
+  pass: 'Pase',
+  muscle: 'Músculo',
+  drill: 'Drill',
+  resistance: 'Resistencia',
+  rack: 'Rack',
+  'straight-arm': 'Brazo Recto',
+  bend: 'Flexión Lateral',
+  bends: 'Flexiones Laterales',
+  speed: 'Velocidad',
+  ups: '',
+  roller: 'Rodillo',
+  bike: 'Bicicleta',
+  touchers: 'Toques',
+  board: 'Tabla',
+  'low-pulley': 'Polea Baja',
+  'two-dumbbell': 'con Dos Mancuernas',
+  'bent-arm': 'Brazo Flexionado',
+  stationary: 'Estático',
+  mid: 'Medio',
+  presses: 'Press',
+  internal: 'Interna',
+  external: 'Externa',
+  flip: 'Volteo',
+  russian: 'Ruso',
+  car: 'Auto',
+  quick: 'Rápido',
+  chain: 'Cadena',
+  chains: 'Cadenas',
+  handle: 'Mango',
+  chin: 'Barbilla',
+  dead: 'Muerto',
+  deficit: 'Déficit',
+  leap: 'Salto Largo',
+  cone: 'Cono',
+  chins: 'Dominadas',
+  ham: 'Isquiotibial',
+  hug: 'Abrazo',
+  inner: 'Interno',
+  inverted: 'Invertido',
+  load: 'Carga',
+  turkish: 'Turco',
+  'get-up': 'Levantamiento',
+  tuck: 'Encogido',
+  parallel: 'Paralelas',
+  landmine: 'Landmine',
+  jammer: 'Landmine',
+  through: 'a Través',
+  't-bar': 'Barra T',
+  middle: 'Medio',
+  olympic: 'Olímpico',
+  laterals: 'Laterales',
+  pallof: 'Pallof',
+  pelvic: 'Pélvico',
+  tilt: 'Inclinación',
+  pistol: 'Pistola',
+  feet: 'Pies',
+  foot: 'Pie',
+  rickshaw: 'Rickshaw',
+  romanian: 'Rumano',
+  stride: 'Zancada',
+  thigh: 'Muslo',
+  zottman: 'Zottman',
+  bands: 'Bandas',
+  grip: 'Agarre',
+  long: 'Largo',
+  up: 'Arriba',
+  arm: 'Brazo',
+  arms: 'Brazos',
+  upright: 'Vertical',
+  body: 'Cuerpo',
+  lower: 'Inferior',
+  upper: 'Superior',
+  stance: 'Postura',
+  ball: 'Balón',
+  stiff: 'Rígido',
+  guillotine: 'Guillotina',
+  windmills: 'Molinillos',
+  cardio: 'Cardio',
+  jerks: 'Envión',
+}
+
+const MODIFIER_ES = {
+  standing: 'de Pie',
+  seated: 'Sentado',
+  lying: 'Acostado',
+  incline: 'Inclinado',
+  inclined: 'Inclinado',
+  decline: 'Declinado',
+  declined: 'Declinado',
+  'one-arm': 'a Una Mano',
+  'one arm': 'a Una Mano',
+  'two-arm': 'a Dos Manos',
+  'two arm': 'a Dos Manos',
+  'one-legged': 'a Una Pierna',
+  'single-leg': 'a Una Pierna',
+  'single leg': 'a Una Pierna',
+  reverse: 'Inverso',
+  alternating: 'Alterno',
+  alternate: 'Alterno',
+  wide: 'Abierto',
+  'wide-grip': 'Agarre Abierto',
+  close: 'Cerrado',
+  behind: 'Detrás de',
+  overhead: 'Overhead',
+  front: 'Frontal',
+  rear: 'Trasero',
+  side: 'Lateral',
+  bent: 'Inclinado',
+  'bent-over': 'Inclinado',
+  kneeling: 'Arrodillado',
+  single: 'Simple',
+  double: 'Doble',
+  straight: 'Recto',
+  high: 'Alto',
+  low: 'Bajo',
+  weighted: 'Con Peso',
+  narrow: 'Estrecho',
+  elevated: 'Elevado',
+  suspended: 'Suspendido',
+  supine: 'Supino',
+  prone: 'Boca Abajo',
+  wall: 'En la Pared',
+  smith: 'Smith',
+  power: 'de Fuerza',
+  full: 'Completo',
+  partial: 'Parcial',
+  assisted: 'Asistido',
+  banded: 'con Banda',
+  plyo: 'Pliométrico',
+  medicine: 'Medicinal',
+  cross: 'Cruzado',
+  'cross-body': 'Cruzado',
+  crossover: 'Cruzado',
+  neutral: 'Neutro',
+  palm: 'Palma',
+  'palm-in': 'Palmas Adentro',
+  'palm-up': 'Palmas Arriba',
+  'palms-in': 'Palmas Adentro',
+  'palms-up': 'Palmas Arriba',
+  'palms-down': 'Palmas Abajo',
+  vertical: 'Vertical',
+  horizontal: 'Horizontal',
+  static: 'Estático',
+  isometric: 'Isométrico',
+  dynamic: 'Dinámico',
+  advanced: 'Avanzado',
+  intermediate: 'Intermedio',
+  natural: 'Natural',
+  open: 'Abierto',
+  mixed: 'Mixto',
+  stiff: 'Rígido',
+  'stiff-legged': 'Piernas Rígidas',
+  sumo: 'Sumo',
+  bottoms: 'Fondo',
+  'bottoms-up': 'Fondo Arriba',
+  hanging: 'Colgado',
+  world: 'del Mundo',
+  worlds: 'del Mundo',
+  around: 'Alrededor',
+  linear: 'Lineal',
+  lateral: 'Lateral',
+  diagonal: 'Diagonal',
+  scissor: 'Tijera',
+  spider: 'Araña',
+  frog: 'Rana',
+  bear: 'Oso',
+  monster: 'Monstruo',
+  cocoon: 'Capullo',
+  cocoons: 'Capullos',
+  forward: 'Hacia Adelante',
+  backward: 'Hacia Atrás',
+}
+
+const BODYPART_ES = {
+  chest: 'Pecho',
+  shoulder: 'Hombro',
+  shoulders: 'Hombros',
+  deltoid: 'Deltoides',
+  delt: 'Deltoides',
+  triceps: 'Tríceps',
+  tricep: 'Tríceps',
+  biceps: 'Bíceps',
+  bicep: 'Bíceps',
+  forearm: 'Antebrazo',
+  leg: 'Pierna',
+  legs: 'Piernas',
+  calf: 'Pantorrilla',
+  calves: 'Pantorrillas',
+  hip: 'Cadera',
+  hips: 'Caderas',
+  back: 'Espalda',
+  lat: 'Dorsal',
+  lats: 'Dorsales',
+  neck: 'Cuello',
+  wrist: 'Muñeca',
+  ankle: 'Tobillo',
+  knee: 'Rodilla',
+  knees: 'Rodillas',
+  glute: 'Glúteo',
+  glutes: 'Glúteos',
+  hamstring: 'Isquiotibial',
+  hamstrings: 'Isquiotibiales',
+  quad: 'Cuádriceps',
+  quadriceps: 'Cuádriceps',
+  groin: 'Ingle',
+  adductor: 'Aductor',
+  abductor: 'Abductor',
+  oblique: 'Oblicuo',
+  obliques: 'Oblicuos',
+  abs: 'Abdominales',
+  ab: 'Abdominal',
+  stomach: 'Estómago',
+  torso: 'Torso',
+  spine: 'Columna',
+  spinal: 'Espinal',
+  elbow: 'Codo',
+  elbows: 'Codos',
+  finger: 'Dedo',
+  fingers: 'Dedos',
+  toe: 'Dedo del Pie',
+  toes: 'Dedos del Pie',
+  gastrocnemius: 'Gastrocnemio',
+  soleus: 'Sóleo',
+  achilles: 'Aquiles',
+  sternum: 'Esternón',
+  scapular: 'Escapular',
+  rhomboid: 'Romboides',
+  rhomboids: 'Romboides',
+  brachialis: 'Braquial',
+  tibialis: 'Tibial',
+  peroneal: 'Peroneo',
+  peroneals: 'Peroneos',
+  iliotibial: 'Iliotibial',
+  piriformis: 'Piriforme',
+}
+
+const CONNECTOR_ES = {
+  with: 'con',
+  and: 'y',
+  to: 'a',
+  from: 'de',
+  on: 'en',
+  the: '',
+  over: 'sobre',
+  a: 'un',
+  an: 'un',
+  of: 'de',
+  in: 'en',
+  at: 'en',
+  or: 'o',
+  against: 'contra',
+  into: 'hacia',
+  off: 'de',
+  for: 'para',
+  by: 'por',
+  its: 'su',
+}
+
+const PHRASES_ES = {
+  'good morning': 'Buenos Días',
+  'good mornings': 'Buenos Días',
+  'skull crusher': 'Press Francés',
+  'skull crushers': 'Press Francés',
+  'iron cross': 'Cruz de Hierro',
+  'iron crosses': 'Cruces de Hierro',
+  'muscle up': 'Muscle Up',
+  'muscle snatch': 'Arrancada de Fuerza',
+  'get-up': 'Levantamiento',
+  'turkish get-up': 'Levantamiento Turco',
+  'push up': 'Flexión',
+  'push ups': 'Flexiones',
+  'pull up': 'Dominada',
+  'pull ups': 'Dominadas',
+  'chin up': 'Dominada Supina',
+  'sit up': 'Abdominal',
+  'sit ups': 'Abdominales',
+  "farmer's walk": 'Paseo del Granjero',
+  'upright row': 'Remo Vertical',
+  'face pull': 'Jalón a la Cara',
+  'wrist roller': 'Rodillo de Muñeca',
+  'bottoms up': 'Fondo Arriba',
+  'step ups': 'Elevaciones de Banco',
+  'step up': 'Elevación de Banco',
+  'latissimus dorsi': 'Dorsal Ancho',
+  'mountain climbers': 'Escaladores',
+  'mountain climber': 'Escalador',
+}
+
+// Whole-name overrides for idiomatic/nickname exercises that don't
+// decompose sensibly word-by-word.
+const NAME_OVERRIDES_ES = {
+  'Adductor/Groin': 'Aductor/Ingle',
+  'Atlas Stone Trainer': 'Entrenador de Piedra Atlas',
+  'Atlas Stones': 'Piedras Atlas',
+  'Battling Ropes': 'Cuerdas de Batalla',
+  'Body-Up': 'Elevación Corporal',
+  'Butt-Ups': 'Elevaciones de Glúteo',
+  Butterfly: 'Mariposa',
+  "Child's Pose": 'Postura del Niño',
+  'Circus Bell': 'Campana de Circo',
+  "Conan's Wheel": 'Rueda de Conan',
+  Crucifix: 'Crucifijo',
+  'Elliptical Trainer': 'Elíptica',
+  'Gorilla Chin/Crunch': 'Dominada/Abdominal Gorila',
+  Groiners: 'Estiramiento Dinámico de Ingle',
+  Inchworm: 'Oruga',
+  'London Bridges': 'Puentes de Londres',
+  'Moving Claw Series': 'Serie de Garra en Movimiento',
+  'One Half Locust': 'Media Postura de la Langosta',
+  'Otis-Up': 'Otis-Up',
+  'Rocky Pull-Ups/Pulldowns': 'Dominadas/Jalones Rocky',
+  'Spell Caster': 'Spell Caster',
+  Stairmaster: 'Escaladora',
+  'Trail Running/Walking': 'Correr/Caminar por Sendero',
+  'Wind Sprints': 'Sprints Cortos',
+  Pyramid: 'Pirámide',
+}
+
+// Hand-picked, natural-sounding Spanish for the most common/important base
+// phrases (equipment tag stripped) — see the layer explanation above.
+const BASE_PHRASE_ES = {
+  'Bench Press': 'Press de Banca',
+  Squat: 'Sentadilla',
+  Deadlift: 'Peso Muerto',
+  'Romanian Deadlift': 'Peso Muerto Rumano',
+  'Sumo Deadlift': 'Peso Muerto Sumo',
+  'Stiff-Legged Barbell Deadlift': 'Peso Muerto con Piernas Rígidas',
+  'Stiff-Legged Dumbbell Deadlift': 'Peso Muerto con Mancuernas y Piernas Rígidas',
+  'Trap Bar Deadlift': 'Peso Muerto con Barra Hexagonal',
+  'Rack Pulls': 'Peso Muerto Parcial en Rack',
+  'Rickshaw Deadlift': 'Peso Muerto Rickshaw',
+  'Deficit Deadlift': 'Peso Muerto con Déficit',
+  'Axle Deadlift': 'Peso Muerto con Barra Gruesa',
+  'Car Deadlift': 'Peso Muerto con Auto',
+  'Shoulder Press': 'Press de Hombro',
+  Shrug: 'Encogimiento de Hombros',
+  'Side Bend': 'Flexión Lateral de Torso',
+  'Chest Press': 'Press de Pecho',
+  'Bicep Curl': 'Curl de Bíceps',
+  'Preacher Curl': 'Curl Predicador',
+  'Concentration Curl': 'Curl de Concentración',
+  'Concentration Curls': 'Curl de Concentración',
+  'Reverse Crunch': 'Abdominal Inverso',
+  Clean: 'Cargada',
+  'Power Clean': 'Cargada de Potencia',
+  'Hang Clean': 'Cargada Colgante',
+  'Clean and Jerk': 'Cargada y Envión',
+  'Clean and Press': 'Cargada y Press',
+  'Clean Pull': 'Tirón de Cargada',
+  'Clean Shrug': 'Encogimiento de Cargada',
+  'Clean Deadlift': 'Peso Muerto de Cargada',
+  'Split Clean': 'Cargada con Tijera',
+  'Floor Press': 'Press en el Suelo',
+  'Overhead Triceps Extension': 'Extensión de Tríceps Overhead',
+  'Triceps Extension': 'Extensión de Tríceps',
+  'Pistol Squat': 'Sentadilla Pistola',
+  'Leg Press': 'Prensa de Piernas',
+  'Good Morning': 'Buenos Días',
+  'Hack Squat': 'Sentadilla Hack',
+  'Incline Shoulder Raise': 'Elevación Inclinada de Hombro',
+  'Seated Calf Raise': 'Elevación de Talones Sentado',
+  'Squat To A Bench': 'Sentadilla al Banco',
+  'Step Ups': 'Subidas al Banco',
+  'Walking Lunge': 'Zancada Caminando',
+  Flyes: 'Aperturas',
+  'Iron Cross': 'Cruz de Hierro',
+  'One-Arm Upright Row': 'Remo Vertical a Una Mano',
+  'Upright Row': 'Remo Vertical',
+  'Front Squat': 'Sentadilla Frontal',
+  'Goblet Squat': 'Sentadilla Goblet',
+  'Zercher Squats': 'Sentadilla Zercher',
+  'Box Squat': 'Sentadilla al Cajón',
+  'Overhead Squat': 'Sentadilla Overhead',
+  'Split Squats': 'Sentadilla Dividida',
+  'Split Squat with Dumbbells': 'Sentadilla Dividida con Mancuernas',
+  'Jump Squat': 'Sentadilla con Salto',
+  'Bent-Over Row': 'Remo Inclinado',
+  'Bent Over Barbell Row': 'Remo con Barra Inclinado',
+  'Inverted Row': 'Remo Invertido',
+  'Seated Cable Rows': 'Remo en Polea Sentado',
+  'T-Bar Row with Handle': 'Remo en Barra T',
+  'Lat Pulldown': 'Jalón al Pecho',
+  'Wide-Grip Lat Pulldown': 'Jalón al Pecho con Agarre Abierto',
+  'One Arm Lat Pulldown': 'Jalón a Una Mano',
+  'Straight-Arm Pulldown': 'Jalón con Brazos Rectos',
+  'Rope Straight-Arm Pulldown': 'Jalón con Cuerda y Brazos Rectos',
+  'Lateral Raise': 'Elevación Lateral',
+  'Side Lateral Raise': 'Elevación Lateral',
+  'Front Raise': 'Elevación Frontal',
+  'Front Dumbbell Raise': 'Elevación Frontal con Mancuernas',
+  'Front Delt Raise': 'Elevación Frontal de Deltoides',
+  'Rear Delt Raise': 'Elevación Posterior de Deltoides',
+  'Reverse Flyes': 'Aperturas Inversas',
+  'Face Pull': 'Jalón a la Cara',
+  'Triceps Pushdown': 'Extensión de Tríceps en Polea',
+  'Skull Crusher': 'Press Francés',
+  'Leg Curl': 'Curl de Pierna',
+  'Seated Leg Curl': 'Curl de Pierna Sentado',
+  'Standing Leg Curl': 'Curl de Pierna de Pie',
+  'Lying Leg Curls': 'Curl de Pierna Acostado',
+  'Leg Extensions': 'Extensión de Piernas',
+  'Calf Raise': 'Elevación de Talones',
+  'Standing Calf Raises': 'Elevación de Talones de Pie',
+  'Hip Thrust': 'Hip Thrust',
+  'Barbell Hip Thrust': 'Hip Thrust con Barra',
+  Lunge: 'Zancada',
+  Crunch: 'Abdominal',
+  Crunches: 'Abdominales',
+  Plank: 'Plancha',
+  Dip: 'Fondo',
+  'Bench Dips': 'Fondos en Banco',
+  'Parallel Bar Dip': 'Fondos en Paralelas',
+  'Ring Dips': 'Fondos en Anillas',
+  'Chin-Up': 'Dominada Supina',
+  Pullups: 'Dominadas',
+  'Muscle Up': 'Muscle Up',
+  'Military Press': 'Press Militar',
+  'Standing Military Press': 'Press Militar de Pie',
+  'Seated Barbell Military Press': 'Press Militar Sentado con Barra',
+  'Two-Arm Kettlebell Military Press': 'Press Militar con Kettlebell a Dos Manos',
+  'Arnold Dumbbell Press': 'Press Arnold',
+  "Farmer's Walk": 'Paseo del Granjero',
+  'Kettlebell Turkish Get-Up': 'Levantamiento Turco con Kettlebell',
+  'Box Jump': 'Salto al Cajón',
+  'Battling Ropes': 'Cuerdas de Batalla',
+  'Mountain Climbers': 'Escaladores',
+  'Russian Twist': 'Giro Ruso',
+  'Cable Russian Twists': 'Giro Ruso en Polea',
+  'Wrist Curl': 'Curl de Muñeca',
+  'Cable Wrist Curl': 'Curl de Muñeca en Polea',
+  'One-Arm Wrist Curl': 'Curl de Muñeca a Una Mano',
+  'Two-Arm Wrist Curl': 'Curl de Muñeca a Dos Manos',
+  'Cable Crossover': 'Cruce de Poleas',
+  'Cable Crunch': 'Abdominal en Polea',
+  'Cable Deadlifts': 'Peso Muerto en Polea',
+  'Power Clean from Blocks': 'Cargada de Potencia desde Bloques',
+  'Power Snatch': 'Arrancada de Potencia',
+  'Power Jerk': 'Envión de Potencia',
+  Snatch: 'Arrancada',
+  'Snatch Balance': 'Balance de Arrancada',
+  'Snatch Deadlift': 'Peso Muerto de Arrancada',
+  'Snatch Pull': 'Tirón de Arrancada',
+  'Snatch Shrug': 'Encogimiento de Arrancada',
+  'Split Jerk': 'Envión con Tijera',
+  'Split Jump': 'Salto con Tijera',
+  'Split Snatch': 'Arrancada con Tijera',
+  'Push Press': 'Empuje de Press',
+  'Hang Snatch': 'Arrancada Colgante',
+  'Sled Push': 'Empuje de Trineo',
+  'Sled Drag': 'Arrastre de Trineo',
+  'Sled Row': 'Remo con Trineo',
+  'Kettlebell Halo': 'Halo con Kettlebell',
+  'Kettlebell Windmill': 'Molinillo con Kettlebell',
+  'Kettlebell Thruster': 'Thruster con Kettlebell',
+  'One-Arm Kettlebell Row': 'Remo con Kettlebell a Una Mano',
+  'One-Arm Kettlebell Snatch': 'Arrancada con Kettlebell a Una Mano',
+  'One-Arm Kettlebell Swings': 'Balanceo con Kettlebell a Una Mano',
+  'Reverse Hyperextension': 'Hiperextensión Inversa',
+  Hyperextension: 'Hiperextensión',
+  Hyperextensions: 'Hiperextensiones',
+  'Glute Ham Raise': 'Elevación Glúteo-Femoral',
+  'Glute Kickback': 'Patada de Glúteo',
+  'Hip Extension with Bands': 'Extensión de Cadera con Banda',
+  'Standing Hip Flexors': 'Estiramiento de Flexores de Cadera de Pie',
+  'Torso Rotation': 'Rotación de Torso',
+  'Wide Stance Barbell Squat': 'Sentadilla con Barra y Postura Ancha',
+  'Wide Stance Stiff Legs': 'Peso Muerto Piernas Rígidas Postura Ancha',
+  'Narrow Stance Squats': 'Sentadilla con Postura Estrecha',
+  'One Arm Dumbbell Row': 'Remo con Mancuerna a Una Mano',
+  'One-Arm Dumbbell Row': 'Remo con Mancuerna a Una Mano',
+  'One-Arm Dumbbell Press': 'Press con Mancuerna a Una Mano',
+  'Reverse Grip Bent-Over Rows': 'Remo Inclinado con Agarre Supino',
+  'Reverse Barbell Curl': 'Curl Inverso con Barra',
+  'Reverse Cable Curl': 'Curl Inverso en Polea',
+  'Spider Curl': 'Curl Araña',
+  'Drag Curl': 'Curl de Arrastre',
+  'Zottman Curl': 'Curl Zottman',
+  'EZ-Bar Curl': 'Curl con Barra EZ',
+  'Barbell Curl': 'Curl con Barra',
+  'Hammer Curl': 'Curl Martillo',
+  'Hammer Curls': 'Curl Martillo',
+  'Rope Climb': 'Escalada de Cuerda',
+  'Cuban Press': 'Press Cubano',
+  'Bent Press': 'Press Inclinado',
+  'Svend Press': 'Press Svend',
+  'JM Press': 'Press JM',
+  'Tate Press': 'Press Tate',
+  'Pallof Press': 'Press Pallof',
+  'Pallof Press With Rotation': 'Press Pallof con Rotación',
+  'Neck Press': 'Press al Cuello',
+  'Board Press': 'Press con Tablas',
+  'Pin Presses': 'Press en Pines',
+  'Chain Press': 'Press con Cadenas',
+  Superman: 'Superman',
+  'Dead Bug': 'Dead Bug',
+  Inchworm: 'Oruga',
+  'Sumo Deadlift with Bands': 'Peso Muerto Sumo con Bandas',
+  'Sumo Deadlift with Chains': 'Peso Muerto Sumo con Cadenas',
+  'Deadlift with Bands': 'Peso Muerto con Bandas',
+  'Deadlift with Chains': 'Peso Muerto con Cadenas',
+  'Squat with Bands': 'Sentadilla con Bandas',
+  'Squat with Chains': 'Sentadilla con Cadenas',
+  'Ab Roller': 'Rueda Abdominal',
+  'Ab Rollout': 'Rollout Abdominal',
+  'Ab Crunch Machine': 'Máquina de Abdominales',
+  'Standing Long Jump': 'Salto Largo de Pie',
+  'Vertical Swing': 'Balanceo Vertical',
+  'Wind Sprints': 'Sprints Cortos',
+  'Depth Jump Leap': 'Salto de Profundidad',
+  'Tire Flip': 'Volteo de Llanta',
+  'Yoke Walk': 'Caminata con Yugo',
+  'Log Lift': 'Levantamiento de Tronco',
+  'Sandbag Load': 'Carga de Saco de Arena',
+  'Keg Load': 'Carga de Barril',
+  'Atlas Stones': 'Piedras Atlas',
+  'Prowler Sprint': 'Sprint con Prowler',
+  Butterfly: 'Mariposa',
+  'Incline Bench Press': 'Press de Banca Inclinado',
+  'Decline Barbell Bench Press': 'Press de Banca Declinado con Barra',
+  'Decline Dumbbell Bench Press': 'Press de Banca Declinado con Mancuernas',
+  'Wide-Grip Barbell Bench Press': 'Press de Banca con Barra y Agarre Abierto',
+  'Wide-Grip Decline Barbell Bench Press': 'Press de Banca Declinado con Barra y Agarre Abierto',
+  'Close-Grip Barbell Bench Press': 'Press de Banca con Agarre Cerrado',
+  'Decline Skull Crusher': 'Press Francés Declinado',
+  'Incline Dumbbell Press': 'Press Inclinado con Mancuernas',
+  'Decline Dumbbell Flyes': 'Aperturas Declinadas con Mancuernas',
+  'Incline Dumbbell Flye': 'Apertura Inclinada con Mancuerna',
+  'Incline Dumbbell Flyes': 'Aperturas Inclinadas con Mancuernas',
+  'Standing Dumbbell Press': 'Press de Pie con Mancuernas',
+  'Seated Dumbbell Press': 'Press Sentado con Mancuernas',
+  'Standing Barbell Calf Raise': 'Elevación de Talones de Pie con Barra',
+  'Standing Dumbbell Calf Raise': 'Elevación de Talones de Pie con Mancuernas',
+  'Seated Dumbbell Curl': 'Curl con Mancuernas Sentado',
+  'Standing Dumbbell Reverse Curl': 'Curl Inverso de Pie con Mancuernas',
+  'Standing Dumbbell Upright Row': 'Remo Vertical de Pie con Mancuernas',
+  'Standing Dumbbell Triceps Extension': 'Extensión de Tríceps de Pie con Mancuernas',
+  'One-Arm Triceps Extension': 'Extensión de Tríceps a Una Mano',
+  'Alternate Hammer Curl': 'Curl Martillo Alterno',
+  'Cross Body Hammer Curl': 'Curl Martillo Cruzado',
+  'Incline Hammer Curls': 'Curl Martillo Inclinado',
+  'Standing Concentration Curl': 'Curl de Concentración de Pie',
+  'Standing Biceps Cable Curl': 'Curl de Bíceps de Pie en Polea',
+  'Standing One-Arm Cable Curl': 'Curl en Polea de Pie a Una Mano',
+  'Lying Cable Curl': 'Curl en Polea Acostado',
+  'Reverse Plate Curls': 'Curl Inverso con Disco',
+  'Finger Curls': 'Curl de Dedos',
+  'Hip Circles': 'Círculos de Cadera',
+  'Standing Hip Circles': 'Círculos de Cadera de Pie',
+  'Ankle Circles': 'Círculos de Tobillo',
+  'Arm Circles': 'Círculos de Brazo',
+  'Wrist Circles': 'Círculos de Muñeca',
+  'Elbow Circles': 'Círculos de Codo',
+  'Knee Circles': 'Círculos de Rodilla',
+  'Shoulder Circles': 'Círculos de Hombro',
+}
+
+function stripSmrSuffix(base) {
+  const m = base.match(/^(.*)-SMR$/i)
+  return m ? m[1].trim() : null
+}
+
+const ES_DICTS = [MOVEMENT_ES, MODIFIER_ES, BODYPART_ES, CONNECTOR_ES, EQUIPMENT_ES]
+
+function lookupWordEs(word) {
+  const key = word.toLowerCase()
+  for (const dict of ES_DICTS) {
+    if (key in dict) return { found: true, es: dict[key] }
+  }
+  return { found: false, es: null }
+}
+
+/** Translates a base phrase (no trailing parenthetical), greedily matching
+ * known multi-word phrases first, then falling back to word-by-word lookup,
+ * then reordering so a trailing movement noun (the common English shape)
+ * leads, matching Spanish noun-first word order. */
+function translateBasePhrase(base) {
+  const words = base.split(/\s+/)
+  const cleanWords = words.map((w) => w.replace(/^[("]+|[)".,]+$/g, ''))
+  const segments = []
+  let i = 0
+  while (i < words.length) {
+    let matched = false
+    for (let span = Math.min(4, words.length - i); span >= 2; span--) {
+      const phrase = cleanWords
+        .slice(i, i + span)
+        .join(' ')
+        .toLowerCase()
+      let es = PHRASES_ES[phrase]
+      let isHead = false
+      if (es === undefined && phrase in MOVEMENT_ES) {
+        es = MOVEMENT_ES[phrase]
+        isHead = true
+      }
+      if (es === undefined) {
+        for (const dict of [MODIFIER_ES, BODYPART_ES, CONNECTOR_ES, EQUIPMENT_ES]) {
+          if (phrase in dict) {
+            es = dict[phrase]
+            break
+          }
+        }
+      }
+      if (es !== undefined) {
+        segments.push({ es, isHead })
+        i += span
+        matched = true
+        break
+      }
+    }
+    if (matched) continue
+
+    const raw = words[i]
+    const clean = cleanWords[i]
+    if (!clean) {
+      segments.push({ es: raw, isHead: false })
+      i++
+      continue
+    }
+    if (clean.includes('/')) {
+      const parts = clean.split('/').map((p) => {
+        const { found, es } = lookupWordEs(p)
+        return found ? es : p
+      })
+      segments.push({ es: parts.join('/'), isHead: false })
+      i++
+      continue
+    }
+    const key = clean.toLowerCase()
+    const { found, es } = lookupWordEs(clean)
+    segments.push(
+      found
+        ? { es: es === '' ? '' : raw.replace(clean, es), isHead: key in MOVEMENT_ES }
+        : { es: raw, isHead: false },
+    )
+    i++
+  }
+
+  if (segments.length > 1 && segments[segments.length - 1].isHead) {
+    const [head] = segments.splice(segments.length - 1, 1)
+    segments.unshift(head)
+  }
+
+  return segments
+    .map((s) => s.es)
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function translateName(name) {
+  const m = name.match(/^(.*?)\s*\(([^)]*)\)\s*$/)
+  let base = m ? m[1] : name
+  const tag = m ? m[2] : null
+
+  const curated = BASE_PHRASE_ES[base] ?? NAME_OVERRIDES_ES[base]
+  if (curated) {
+    const tagEs = tag ? translateEquipmentTag(tag) : null
+    return tagEs ? `${curated} (${tagEs})` : curated
+  }
+
+  const smrBase = stripSmrSuffix(base)
+  if (smrBase !== null) base = smrBase
+
+  const text = translateBasePhrase(base)
+  const tagEs = tag ? translateEquipmentTag(tag) : null
+  const finalText = smrBase !== null ? `${text} (Automasaje)` : text
+  return tagEs ? `${finalText} (${tagEs})` : finalText
+}
+
 const outFile = join(
   dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -210,12 +1101,16 @@ if (!res.ok) {
 const raw = await res.json()
 
 const trimmed = raw
-  .map((exercise) => ({
-    id: exercise.id,
-    name: friendlyName(exercise.id, cleanName(exercise.name)),
-    muscleGroup: muscleGroupFor(exercise.primaryMuscles),
-    primaryMuscles: exercise.primaryMuscles,
-  }))
+  .map((exercise) => {
+    const name = friendlyName(exercise.id, cleanName(exercise.name))
+    return {
+      id: exercise.id,
+      name,
+      nameEs: translateName(name),
+      muscleGroup: muscleGroupFor(exercise.primaryMuscles),
+      primaryMuscles: exercise.primaryMuscles,
+    }
+  })
   .sort((a, b) => a.name.localeCompare(b.name))
 
 const seenNames = new Set()
@@ -224,6 +1119,9 @@ for (const exercise of trimmed) {
     throw new Error(`Cleaning names produced a duplicate: "${exercise.name}"`)
   }
   seenNames.add(exercise.name)
+  if (!exercise.nameEs.trim()) {
+    throw new Error(`No Spanish name generated for "${exercise.name}" (${exercise.id})`)
+  }
 }
 
 await writeFile(outFile, JSON.stringify(trimmed, null, 2) + '\n')

@@ -9,6 +9,7 @@ import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { formatCompactDuration } from '@/lib/format'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 const props = defineProps<{
   exerciseIndex: number
@@ -18,6 +19,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 const activeSession = useActiveSessionStore()
 
 const emit = defineEmits<{
@@ -42,7 +44,7 @@ function removeExercise() {
   if (loggedCount > 0) {
     const message = t(
       'session.activeExerciseCard.removeConfirm',
-      { name: props.exercise.name, count: loggedCount },
+      { name: exerciseName(props.exercise.name), count: loggedCount },
       loggedCount,
     )
     if (!confirm(message)) return
@@ -85,7 +87,7 @@ function onNoteInput(event: Event) {
       <button type="button" class="card__title" @click="showImage = true">
         <ExerciseThumb :name="exercise.name" />
         <div class="card__title-text">
-          <span class="card__name">{{ exercise.name }}</span>
+          <span class="card__name">{{ exerciseName(exercise.name) }}</span>
           <span class="card__meta">
             {{ prescription }}
             <template v-if="exercise.weight">· {{ exercise.weight }} {{ unit }}</template>

@@ -8,6 +8,7 @@ import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatCompactDuration } from '@/lib/format'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 defineProps<{ open: boolean }>()
 
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 const activeSession = useActiveSessionStore()
 
 /** Stable keys for draggable rows, since session exercises carry no id. */
@@ -64,7 +66,7 @@ function close() {
         <span class="row__index">{{ i + 1 }}</span>
         <ExerciseThumb :name="exercise.name" />
         <div class="row__title">
-          <span class="row__name">{{ exercise.name }}</span>
+          <span class="row__name">{{ exerciseName(exercise.name) }}</span>
           <span class="row__summary">{{ summaryFor(exercise) }}</span>
         </div>
       </div>

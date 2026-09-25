@@ -67,6 +67,26 @@ describe('searchExerciseCatalog', () => {
       ),
     ).toBe(true)
   })
+
+  it('gives every entry a non-empty Spanish name', () => {
+    expect(EXERCISE_CATALOG.every((entry) => entry.nameEs.trim().length > 0)).toBe(true)
+  })
+
+  it('translates common lifts to natural Spanish', () => {
+    expect(findCatalogEntryByName('Squat')?.nameEs).toBe('Sentadilla')
+    expect(findCatalogEntryByName('Bench Press')?.nameEs).toBe('Press de Banca')
+    expect(findCatalogEntryByName('Deadlift')?.nameEs).toBe('Peso Muerto')
+  })
+
+  it('translates equipment variants by combining the base translation with the equipment tag', () => {
+    expect(findCatalogEntryByName('Bench Press (Dumbbell)')?.nameEs).toBe('Press de Banca (Mancuerna)')
+    expect(findCatalogEntryByName('Bench Press (Machine)')?.nameEs).toBe('Press de Banca (Máquina)')
+  })
+
+  it('matches a Spanish query, surfacing the equivalent English exercise', () => {
+    const results = searchExerciseCatalog('sentadilla', 100)
+    expect(results.some((entry) => entry.name === 'Squat')).toBe(true)
+  })
 })
 
 describe('findCatalogEntryByName', () => {

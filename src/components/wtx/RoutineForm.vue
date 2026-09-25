@@ -13,10 +13,12 @@ import { formatCompactDuration } from '@/lib/format'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 const draft = defineModel<RoutineDraft>({ required: true })
 
 const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 
 const unitOptions = ['kg', 'lb'] as const
 
@@ -273,7 +275,7 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
 
             <div class="exercise__title">
               <button type="button" class="exercise__name-text" @click.stop="openPicker(exercise)">
-                {{ exercise.name || t('wtx.routineForm.unnamedExercise') }}
+                {{ exercise.name ? exerciseName(exercise.name) : t('wtx.routineForm.unnamedExercise') }}
               </button>
               <span v-if="!isExpanded(exercise)" class="exercise__summary">
                 {{ summaryFor(exercise) }}

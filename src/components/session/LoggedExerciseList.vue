@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import type { WorkoutSessionExercise } from '@/lib/wtx'
 import { displayNote, isTimeExercise } from '@/lib/sessionTime'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 defineProps<{
   exercises: WorkoutSessionExercise[]
@@ -10,6 +11,7 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 </script>
 
 <template>
@@ -19,7 +21,7 @@ const { t } = useI18n()
         <span class="exercise__index">{{ i + 1 }}</span>
         <ExerciseThumb :name="exercise.name" />
         <div class="exercise__body">
-          <span class="exercise__name">{{ exercise.name }}</span>
+          <span class="exercise__name">{{ exerciseName(exercise.name) }}</span>
           <span class="exercise__meta">
             {{ t('session.loggedExerciseList.setsProgress', { done: exercise.workingSets.length, total: exercise.sets }) }}
             <template v-if="displayNote(exercise.note)">

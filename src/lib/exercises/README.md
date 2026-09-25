@@ -44,6 +44,36 @@ implementation (e.g. barbell for `Bench Press`, `Squat`). Applied in
 `friendlyName()`, right after `cleanName()`, so it survives every re-sync
 instead of needing hand-editing on the generated JSON.
 
+## Spanish names (`nameEs`)
+
+Every entry also carries a `nameEs` — a **display-only** Spanish name, shown
+via `useExerciseName()` (`src/composables/useExerciseName.ts`) when the app
+locale is `es`. `id` and `name` stay the stable English identity used for
+storage and matching (`findCatalogEntryByName`) everywhere else in the app
+(routines/sessions/templates store `name` as free text); `nameEs` never
+affects that.
+
+`nameEs` is generated in `scripts/sync-exercise-db.mjs`, layered like
+`friendlyName()`:
+
+1. `BASE_PHRASE_ES` — hand-picked, natural Spanish for the common/important
+   base phrases (equipment tag stripped), so one entry covers every equipment
+   variant of a movement (`"Bench Press"` covers `Bench Press (Dumbbell)`,
+   `Bench Press (Machine)`, etc.).
+2. `NAME_OVERRIDES_ES` — whole-name Spanish for idiomatic exercises that don't
+   decompose word-by-word (`Mountain Climbers`, `Good Morning`, ...).
+3. A compositional fallback for everything else: translates a trailing
+   `(Equipment)` tag via `EQUIPMENT_ES`, then the base phrase via greedy
+   multi-word phrase matching before falling back to word-by-word
+   substitution, reordering so a trailing movement noun leads (Spanish
+   noun-first order). An unrecognized word passes through unchanged rather
+   than breaking the whole name. The sync throws if any entry ends up with an
+   empty `nameEs`.
+
+This gives full coverage across all 876 entries; the long tail of rarer
+exercises gets correct terminology via the compositional engine but isn't
+individually proofread the way the curated common lifts are.
+
 ## Re-syncing
 
 Run `pnpm sync:exercises` (see `scripts/sync-exercise-db.mjs`). It pulls

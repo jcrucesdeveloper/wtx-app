@@ -10,6 +10,7 @@ import {
   type MuscleGroup,
   searchExerciseCatalog,
 } from '@/lib/exercises/exerciseCatalog'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 const RESULT_LIMIT = 50
 
@@ -25,6 +26,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 const query = ref('')
 const selectedGroup = ref<MuscleGroup | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
@@ -135,7 +137,7 @@ const previewName = ref<string | null>(null)
             <ExerciseThumb :name="entry.name" />
           </button>
           <button type="button" class="picker__item" @click="choose(entry.name)">
-            <span class="picker__name">{{ entry.name }}</span>
+            <span class="picker__name">{{ exerciseName(entry.name) }}</span>
             <span class="picker__meta">{{ groupLabel(entry.muscleGroup) }}</span>
           </button>
         </li>
