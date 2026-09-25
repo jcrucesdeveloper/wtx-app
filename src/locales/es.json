@@ -121,8 +121,18 @@
     "exercisePicker": {
       "title": "Elegir ejercicio",
       "searchPlaceholder": "Buscar ejercicios o grupo muscular",
+      "allCategories": "Todos",
       "useCustom": "Usar \"{query}\"",
       "previewAria": "Vista previa de {name}"
+    },
+    "muscleGroups": {
+      "chest": "Pecho",
+      "back": "Espalda",
+      "shoulders": "Hombros",
+      "arms": "Brazos",
+      "abs": "Abdomen",
+      "legs": "Piernas",
+      "neck": "Cuello"
     },
     "routineForm": {
       "routineName": "Nombre de la rutina",
