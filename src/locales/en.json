@@ -287,9 +287,6 @@
   "sessions": {
     "title": "Sessions",
     "continueWorkout": "Continue workout",
-    "trainThisWeek": "Train this week to start a streak",
-    "weekStreak": "{count} week in a row | {count} weeks in a row",
-    "lastNWeeks": "Last {count} weeks",
     "noSessionsTitle": "No sessions yet",
     "noSessionsHint": "Start a routine to log your first workout.",
     "groupThisWeek": "This week",
@@ -300,7 +297,19 @@
     "error": "Error",
     "exercises": "{count} exercises",
     "sets": "{count} sets",
-    "deviceOnly": "Device only"
+    "deviceOnly": "Device only",
+    "showAll": "Show all",
+    "calendar": {
+      "aria": "Training calendar",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "thisMonth": "workout this month | workouts this month",
+      "inMonth": "workout in {month} | workouts in {month}",
+      "freshStart": "New month, fresh start",
+      "thisWeek": "{count} this week",
+      "allTime": "{count} all time",
+      "workoutsOnDay": "{count} workout | {count} workouts"
+    }
   },
   "social": {
     "notConfiguredTitle": "Accounts aren't set up",

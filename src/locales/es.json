@@ -287,9 +287,6 @@
   "sessions": {
     "title": "Sesiones",
     "continueWorkout": "Continuar entrenamiento",
-    "trainThisWeek": "Entrena esta semana para empezar una racha",
-    "weekStreak": "{count} semana seguida | {count} semanas seguidas",
-    "lastNWeeks": "Últimas {count} semanas",
     "noSessionsTitle": "Aún no hay sesiones",
     "noSessionsHint": "Inicia una rutina para registrar tu primer entrenamiento.",
     "groupThisWeek": "Esta semana",
@@ -300,7 +297,19 @@
     "error": "Error",
     "exercises": "{count} ejercicios",
     "sets": "{count} series",
-    "deviceOnly": "Solo local"
+    "deviceOnly": "Solo local",
+    "showAll": "Ver todas",
+    "calendar": {
+      "aria": "Calendario de entrenamiento",
+      "prevMonth": "Mes anterior",
+      "nextMonth": "Mes siguiente",
+      "thisMonth": "entrenamiento este mes | entrenamientos este mes",
+      "inMonth": "entrenamiento en {month} | entrenamientos en {month}",
+      "freshStart": "Mes nuevo, borrón y cuenta nueva",
+      "thisWeek": "{count} esta semana",
+      "allTime": "{count} en total",
+      "workoutsOnDay": "{count} entrenamiento | {count} entrenamientos"
+    }
   },
   "social": {
     "notConfiguredTitle": "Las cuentas no están configuradas",

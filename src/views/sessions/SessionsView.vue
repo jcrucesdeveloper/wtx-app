@@ -1,23 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
-import { Flame, Smartphone } from '@lucide/vue'
+import { Smartphone, X } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import TrainingCalendar from '@/components/session/TrainingCalendar.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { isSupabaseConfigured } from '@/services/supabase'
 import { formatClock, formatNumber, formatTimeOfDay } from '@/lib/format'
-import {
-  formatSessionDate,
-  recencyGroup,
-  computeWeekStreak,
-  recentWeeksActivity,
-  type RecencyGroup,
-} from '@/lib/sessionStats'
+import { formatSessionDate, recencyGroup, type RecencyGroup } from '@/lib/sessionStats'
 import { compareSessions } from '@/lib/sessionComparisons'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const sessions = useSessionsStore()
 const activeSession = useActiveSessionStore()
 
@@ -31,8 +26,24 @@ const sessionDates = computed(() =>
     .filter((d): d is string => d !== undefined),
 )
 
-const weekStreak = computed(() => computeWeekStreak(sessionDates.value))
-const recentWeeks = computed(() => recentWeeksActivity(sessionDates.value))
+/** A day tapped on the calendar — the list shows only its sessions until cleared. */
+const selectedDate = ref<string | null>(null)
+
+const selectedDateLabel = computed(() => {
+  if (!selectedDate.value) return ''
+  const [y, m, d] = selectedDate.value.split('-').map(Number)
+  return new Date(y ?? 0, (m ?? 1) - 1, d ?? 1).toLocaleDateString(locale.value, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  })
+})
+
+const visibleItems = computed(() =>
+  selectedDate.value
+    ? items.value.filter((item) => item.result?.ok && item.result.session.date === selectedDate.value)
+    : items.value,
+)
 
 const RECENCY_ORDER: RecencyGroup[] = ['This week', 'Last week', 'Earlier']
 
@@ -44,7 +55,7 @@ const RECENCY_LABEL_KEYS: Record<RecencyGroup, string> = {
 
 const groupedItems = computed(() => {
   const buckets = new Map<RecencyGroup, typeof items.value>()
-  for (const item of items.value) {
+  for (const item of visibleItems.value) {
     const dateStr = item.result?.ok ? item.result.session.date : undefined
     const label: RecencyGroup = dateStr ? recencyGroup(dateStr) : 'Earlier'
     const bucket = buckets.get(label) ?? []
@@ -88,38 +99,19 @@ const volumeDeltas = computed(() => {
       <span class="resume__time">{{ formatClock(activeSession.elapsedSeconds) }}</span>
     </RouterLink>
 
-    <div v-if="items.length" class="consistency">
-      <div class="consistency__row">
-        <div class="consistency__streak">
-          <Flame
-            :size="20"
-            :stroke-width="2.25"
-            class="consistency__flame"
-            :class="{ 'consistency__flame--active': weekStreak > 0 }"
-          />
-          <template v-if="weekStreak > 0">
-            <span class="consistency__streak-value">{{ weekStreak }}</span>
-            <span class="consistency__streak-label">{{
-              t('sessions.weekStreak', { count: weekStreak }, weekStreak)
-            }}</span>
-          </template>
-          <span v-else class="consistency__streak-label">{{ t('sessions.trainThisWeek') }}</span>
-        </div>
-        <div class="consistency__weeks">
-          <span
-            v-for="(week, i) in recentWeeks"
-            :key="i"
-            class="consistency__week"
-            :class="{
-              'consistency__week--active': week.active,
-              'consistency__week--current': week.isCurrent,
-            }"
-          />
-        </div>
-      </div>
-      <span class="consistency__weeks-caption">{{
-        t('sessions.lastNWeeks', { count: recentWeeks.length })
-      }}</span>
+    <TrainingCalendar
+      v-if="items.length"
+      :dates="sessionDates"
+      :selected="selectedDate"
+      @select="selectedDate = $event"
+    />
+
+    <div v-if="selectedDate" class="filter">
+      <span class="filter__label">{{ selectedDateLabel }}</span>
+      <button type="button" class="filter__clear" @click="selectedDate = null">
+        {{ t('sessions.showAll') }}
+        <X :size="14" :stroke-width="2.5" />
+      </button>
     </div>
 
     <div v-if="!items.length" class="empty">
@@ -221,90 +213,36 @@ const volumeDeltas = computed(() => {
   opacity: 0.9;
 }
 
-.consistency {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 12px 14px;
-  margin-bottom: 16px;
-  border-radius: var(--radius-lg);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-}
-
-.consistency__row {
+.filter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.consistency__streak {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  min-width: 0;
+  margin: -4px 0 12px;
 }
 
-.consistency__flame {
-  flex-shrink: 0;
-  color: var(--color-text);
-  opacity: 0.35;
-}
-
-.consistency__flame--active {
-  color: var(--color-accent);
-  opacity: 1;
-}
-
-.consistency__streak-value {
-  font-size: 20px;
+.filter__label {
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-heading);
-  font-variant-numeric: tabular-nums;
 }
 
-.consistency__streak-label {
-  font-size: 12px;
-  font-weight: 600;
-  opacity: 0.7;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.consistency__weeks {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.consistency__week {
-  width: 10px;
-  height: 20px;
-  border-radius: var(--radius-xs);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-}
-
-.consistency__week--active {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-}
-
-.consistency__week--current {
-  box-shadow:
-    0 0 0 2px var(--color-background-soft),
-    0 0 0 3px var(--color-border-hover);
-}
-
-.consistency__weeks-caption {
-  align-self: flex-end;
-  font-size: 10px;
-  font-weight: 600;
+.filter__label::first-letter {
   text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.45;
+}
+
+.filter__clear {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-pill);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
 }
 
 .groups {
