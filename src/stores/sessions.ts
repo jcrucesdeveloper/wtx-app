@@ -18,6 +18,8 @@ export interface StoredSession {
   addedAt: number
   /** The routine this was started from, if any — used for "last time" prefill. */
   routineId?: string
+  /** The group workout room this was logged in, if any. */
+  roomId?: string
 }
 
 const STORAGE_KEY = 'wtx:sessions'
@@ -93,7 +95,12 @@ export const useSessionsStore = defineStore('sessions', () => {
    *
    * @throws The parser's error message if `rawText` is not a valid `.wts`.
    */
-  function add(rawText: string, routineId?: string, addedAt = Date.now()): StoredSession {
+  function add(
+    rawText: string,
+    routineId?: string,
+    addedAt = Date.now(),
+    roomId?: string,
+  ): StoredSession {
     const result = parseSessionText(rawText)
     if (!result.ok) throw new Error(result.error)
 
@@ -103,6 +110,7 @@ export const useSessionsStore = defineStore('sessions', () => {
       rawText,
       addedAt,
       routineId,
+      ...(roomId ? { roomId } : {}),
     }
     sessions.value.unshift(session)
     return session

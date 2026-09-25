@@ -9,6 +9,7 @@ import router from './router'
 import { i18n } from './i18n'
 import { AdService } from './services/ads'
 import { useAuthStore } from './stores/auth'
+import { useRoomStore } from './stores/room'
 import { useSyncStore } from './stores/sync'
 
 const app = createApp(App)
@@ -22,6 +23,8 @@ app.mount('#app')
 // Accounts are optional: this restores a stored session (and starts sync) if there is one.
 const auth = useAuthStore()
 void auth.init()
+// Created up front so it can follow the active session's sets during a group workout.
+useRoomStore()
 
 // Coming back to the app is a good moment to pick up changes from other devices.
 CapacitorApp.addListener('appStateChange', ({ isActive }) => {

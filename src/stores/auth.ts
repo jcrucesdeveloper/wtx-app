@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { isSupabaseConfigured, requireSupabase, supabase } from '@/services/supabase'
 import type { Tables } from '@/lib/supabase/database.types'
 import { useSyncStore } from '@/stores/sync'
+import { useRoomStore } from '@/stores/room'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
@@ -105,6 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /** Wipes the device copy of the account's data, back to a fresh local-first install. */
   function clearLocalData() {
+    useRoomStore().reset()
     useActiveSessionStore().discard()
     useRoutinesStore().resetToDefaults()
     useSessionsStore().clear()
