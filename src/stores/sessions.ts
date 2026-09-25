@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { newUuid } from '@/lib/uuid'
 import { parseSessionText, type ParseSessionResult } from '@/lib/parseSession'
 import { findLastSessionForRoutine } from '@/lib/sessionMatch'
 import { formatFileTimeStamp } from '@/lib/format'
@@ -20,14 +21,6 @@ export interface StoredSession {
 }
 
 const STORAGE_KEY = 'wtx:sessions'
-
-function newId(): string {
-  try {
-    return crypto.randomUUID()
-  } catch {
-    return `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
-  }
-}
 
 /** The one place the `Name-YYYY-MM-DD-HHmm.wts` naming scheme is built. */
 function canonicalFilename(name: string, date: string, addedAt: number): string {
@@ -105,7 +98,7 @@ export const useSessionsStore = defineStore('sessions', () => {
     if (!result.ok) throw new Error(result.error)
 
     const session: StoredSession = {
-      id: newId(),
+      id: newUuid(),
       filename: canonicalFilename(result.session.name, result.session.date, addedAt),
       rawText,
       addedAt,

@@ -1,5 +1,6 @@
 import type { WorkoutSession, WorkoutTemplate } from '@/lib/wtx'
 import { withTimeMarker } from '@/lib/sessionTime'
+import { newUuid } from '@/lib/uuid'
 
 /**
  * A set's type, driving both its `.wts` label and how it's numbered:
@@ -53,11 +54,7 @@ export interface SessionDraft {
 }
 
 export function newSetId(): string {
-  try {
-    return crypto.randomUUID()
-  } catch {
-    return `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
-  }
+  return newUuid()
 }
 
 /** `YYYY-MM-DD` in local time (not `toISOString()`, which is UTC). */
