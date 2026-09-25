@@ -117,10 +117,24 @@ export const useSessionsStore = defineStore('sessions', () => {
     sessions.value = []
   }
 
+  /**
+   * Replaces the log with a synced copy, re-deriving each filename. Only the
+   * sync layer calls this — it's the one action the sync store doesn't treat
+   * as a local change.
+   */
+  function applyRemote(next: Omit<StoredSession, 'filename'>[]) {
+    sessions.value = next.map((s) => {
+      const result = parseSessionText(s.rawText)
+      const name = result.ok ? result.session.name : ''
+      const date = result.ok ? result.session.date : ''
+      return { ...s, filename: canonicalFilename(name, date, s.addedAt) }
+    })
+  }
+
   /** Most recent completed session for a routine, for "last time" prefill. */
   function lastForRoutine(routine: StoredRoutine): WorkoutSession | undefined {
     return findLastSessionForRoutine(sessions.value, routine)
   }
 
-  return { sessions, list, getById, parsed, add, remove, clear, lastForRoutine }
+  return { sessions, list, getById, parsed, add, remove, clear, applyRemote, lastForRoutine }
 })

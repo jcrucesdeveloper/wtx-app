@@ -150,6 +150,14 @@ export const useRoutinesStore = defineStore('routines', () => {
     routines.value = defaultRoutines()
   }
 
+  /**
+   * Replaces the library with a synced copy. Only the sync layer calls this —
+   * it's the one action the sync store doesn't treat as a local change.
+   */
+  function applyRemote(next: StoredRoutine[]) {
+    routines.value = next
+  }
+
   return {
     routines,
     list,
@@ -162,5 +170,6 @@ export const useRoutinesStore = defineStore('routines', () => {
     reorder,
     clear,
     resetToDefaults,
+    applyRemote,
   }
 })
