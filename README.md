@@ -122,6 +122,36 @@ pnpm dev          # start the dev server
 | `pnpm format`       | Prettier over `src/`                                      |
 | `pnpm sync:wtx`     | Re-vendor the wtx parser from upstream                    |
 
+### Accounts, sync and group workouts (Supabase)
+
+The app works fully on-device without an account. Creating one (Social tab)
+syncs routines and sessions to [Supabase](https://supabase.com/) and unlocks
+group workouts. To enable it:
+
+1. Create a Supabase project. In **Authentication → Providers**, enable Email
+   (turn off "Confirm email" for quick testing).
+2. Apply the schema. Each table lives in its own file under
+   `supabase/tables/` (applied in file-name order); `pnpm db:migration`
+   bundles them into `supabase/migrations/`. Either paste that migration into
+   the SQL editor, or use the CLI:
+   ```sh
+   npx supabase init        # once; keeps the existing migrations
+   npx supabase link --project-ref <ref>
+   npx supabase db push
+   ```
+3. Deploy the account-deletion function with the project's secret key
+   (`sb_secret_…`, never shipped in the app):
+   ```sh
+   npx supabase secrets set SERVICE_KEY=sb_secret_...
+   npx supabase functions deploy delete-account
+   ```
+4. Copy `.env.example` to `.env.local` and set `VITE_SUPABASE_URL` (the bare
+   `https://<ref>.supabase.co`) and `VITE_SUPABASE_ANON_KEY` (the publishable
+   key, `sb_publishable_…`) from Project Settings → API Keys.
+
+Without those variables the Social tab says accounts aren't set up, and
+everything else keeps working locally.
+
 ## Project structure
 
 ```
