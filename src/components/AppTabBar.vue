@@ -17,7 +17,7 @@ const { t } = useI18n()
 const tabs = computed<Tab[]>(() => [
   { to: '/', label: t('nav.routines'), icon: 'routines', match: ['/', '/routines'] },
   { to: '/sessions', label: t('nav.sessions'), icon: 'sessions', match: ['/sessions'] },
-  { to: '/social', label: t('nav.social'), icon: 'social', match: ['/social'] },
+  { to: '/social', label: t('nav.social'), icon: 'social', match: ['/social', '/rooms'] },
   { to: '/settings', label: t('nav.config'), icon: 'settings', match: ['/settings'] },
 ])
 

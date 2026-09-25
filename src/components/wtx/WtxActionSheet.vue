@@ -5,6 +5,8 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useUiStore, type Sheet } from '@/stores/ui'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useAuthStore } from '@/stores/auth'
+import { isSupabaseConfigured } from '@/services/supabase'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import AppIcon, { type IconName } from '@/components/AppIcon.vue'
 
@@ -13,6 +15,7 @@ const ui = useUiStore()
 const { menuOpen } = storeToRefs(ui)
 const router = useRouter()
 const activeSession = useActiveSessionStore()
+const auth = useAuthStore()
 
 interface Action {
   key: 'start' | 'group' | 'load' | 'create'
@@ -34,7 +37,6 @@ const actions = computed<Action[]>(() => [
     icon: 'group',
     title: t('wtx.actions.group.title'),
     hint: t('wtx.actions.group.hint'),
-    badge: t('wtx.actions.group.badge'),
   },
   {
     key: 'load',
@@ -62,7 +64,12 @@ function onSelect(action: Action) {
   }
 
   if (action.key === 'group') {
+    if (isSupabaseConfigured && auth.isLoggedIn) {
+      ui.open('group')
+      return
+    }
     ui.close()
+    // Group workouts need an account — Social explains why and offers sign-up.
     router.push({ name: 'social' })
     return
   }
