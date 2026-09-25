@@ -4,7 +4,14 @@ import { useI18n } from 'vue-i18n'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
-import { searchExerciseCatalog } from '@/lib/exercises/exerciseCatalog'
+import {
+  EXERCISE_CATALOG,
+  MUSCLE_GROUPS,
+  type MuscleGroup,
+  searchExerciseCatalog,
+} from '@/lib/exercises/exerciseCatalog'
+
+const RESULT_LIMIT = 50
 
 const props = defineProps<{
   open: boolean
@@ -19,21 +26,46 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const query = ref('')
+const selectedGroup = ref<MuscleGroup | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
+const categoriesEl = ref<HTMLElement | null>(null)
+
+/** Lets a plain vertical mouse wheel scroll this row, since it has no vertical overflow of its own. */
+function onCategoriesWheel(event: WheelEvent) {
+  if (!categoriesEl.value || event.deltaY === 0) return
+  event.preventDefault()
+  categoriesEl.value.scrollLeft += event.deltaY
+}
 
 watch(
   () => props.open,
   async (open) => {
     if (!open) return
     query.value = props.initialQuery ?? ''
+    selectedGroup.value = null
     await nextTick()
     searchInput.value?.focus()
     searchInput.value?.select()
   },
 )
 
+function toggleGroup(group: MuscleGroup) {
+  selectedGroup.value = selectedGroup.value === group ? null : group
+}
+
+function groupLabel(group: MuscleGroup) {
+  return t(`wtx.muscleGroups.${group.toLowerCase()}`)
+}
+
 const trimmedQuery = computed(() => query.value.trim())
-const results = computed(() => searchExerciseCatalog(query.value))
+const results = computed(() => {
+  if (!selectedGroup.value) return searchExerciseCatalog(query.value, RESULT_LIMIT)
+  // Search the whole catalog (not just the default top-N slice) so groups
+  // that sort later alphabetically, like Neck, aren't filtered down to nothing.
+  return searchExerciseCatalog(query.value, EXERCISE_CATALOG.length)
+    .filter((entry) => entry.muscleGroup === selectedGroup.value)
+    .slice(0, RESULT_LIMIT)
+})
 
 /** Shown when nothing in the catalog is an exact (case-insensitive) match. */
 const showCustomOption = computed(() => {
@@ -62,6 +94,27 @@ const previewName = ref<string | null>(null)
         autocomplete="off"
       />
 
+      <div ref="categoriesEl" class="picker__categories" @wheel="onCategoriesWheel">
+        <button
+          type="button"
+          class="picker__category-chip"
+          :class="{ active: selectedGroup === null }"
+          @click="selectedGroup = null"
+        >
+          {{ t('wtx.exercisePicker.allCategories') }}
+        </button>
+        <button
+          v-for="group in MUSCLE_GROUPS"
+          :key="group"
+          type="button"
+          class="picker__category-chip"
+          :class="{ active: selectedGroup === group }"
+          @click="toggleGroup(group)"
+        >
+          {{ groupLabel(group) }}
+        </button>
+      </div>
+
       <ul class="picker__list">
         <li v-if="showCustomOption">
           <button
@@ -83,7 +136,7 @@ const previewName = ref<string | null>(null)
           </button>
           <button type="button" class="picker__item" @click="choose(entry.name)">
             <span class="picker__name">{{ entry.name }}</span>
-            <span class="picker__meta">{{ entry.muscleGroup }}</span>
+            <span class="picker__meta">{{ groupLabel(entry.muscleGroup) }}</span>
           </button>
         </li>
       </ul>
@@ -115,6 +168,44 @@ const previewName = ref<string | null>(null)
   border: 1px solid var(--color-border);
   background: var(--color-background-soft);
   color: var(--color-text);
+}
+
+.picker__categories {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+}
+
+.picker__categories::-webkit-scrollbar {
+  display: none;
+}
+
+.picker__category-chip {
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-background-mute);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  padding: 6px 12px;
+  border-radius: 999px;
+  opacity: 0.7;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.picker__category-chip.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-background);
+  opacity: 1;
 }
 
 .picker__list {

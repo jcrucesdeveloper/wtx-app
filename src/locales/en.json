@@ -121,8 +121,18 @@
     "exercisePicker": {
       "title": "Choose exercise",
       "searchPlaceholder": "Search exercises or muscle group",
+      "allCategories": "All",
       "useCustom": "Use \"{query}\"",
       "previewAria": "Preview {name}"
+    },
+    "muscleGroups": {
+      "chest": "Chest",
+      "back": "Back",
+      "shoulders": "Shoulders",
+      "arms": "Arms",
+      "abs": "Abs",
+      "legs": "Legs",
+      "neck": "Neck"
     },
     "routineForm": {
       "routineName": "Routine name",
