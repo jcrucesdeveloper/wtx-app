@@ -130,15 +130,17 @@ group workouts. To enable it:
 
 1. Create a Supabase project. In **Authentication → Providers**, enable Email
    (turn off "Confirm email" for quick testing).
-2. Apply the schema. Each table lives in its own file under
-   `supabase/tables/` (applied in file-name order); `pnpm db:migration`
-   bundles them into `supabase/migrations/`. Either paste that migration into
-   the SQL editor, or use the CLI:
+2. Apply the schema: the files in `supabase/migrations/`, in order. Either
+   paste them into the SQL editor, or use the CLI:
    ```sh
    npx supabase init        # once; keeps the existing migrations
    npx supabase link --project-ref <ref>
    npx supabase db push
    ```
+   Each table's current shape lives in its own file under `supabase/tables/`
+   (`pnpm db:schema` bundles them into `supabase/schema.sql` for reading).
+   Applied migrations never change: a schema change edits those table files
+   **and** adds a new migration with just the change.
 3. Deploy the account-deletion function with the project's secret key
    (`sb_secret_…`, never shipped in the app):
    ```sh
