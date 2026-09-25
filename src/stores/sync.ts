@@ -36,7 +36,7 @@ const MAX_RETRY_MS = 60_000
 
 /** Store actions that change data — everything else on those stores is a read. */
 const ROUTINE_MUTATIONS = new Set(['add', 'update', 'remove', 'reorder', 'clear', 'resetToDefaults'])
-const SESSION_MUTATIONS = new Set(['add', 'remove', 'clear'])
+const SESSION_MUTATIONS = new Set(['add', 'remove', 'clear', 'saveToProfile'])
 
 function emptyState(userId: string | null = null): SyncState {
   return {
@@ -138,12 +138,15 @@ export const useSyncStore = defineStore('sync', () => {
     stopWatching.push(
       sessions.$onAction(({ name, after }) => {
         if (!SESSION_MUTATIONS.has(name)) return
-        const before = new Set(sessions.sessions.map((s) => s.id))
+        // Device-only sessions never reach the server, so they're left out of both diffs.
+        const syncedIds = () => new Set(sessions.sessions.filter((s) => !s.localOnly).map((s) => s.id))
+        const before = syncedIds()
         after(() => {
-          const now = new Set(sessions.sessions.map((s) => s.id))
+          const now = syncedIds()
+          const present = new Set(sessions.sessions.map((s) => s.id))
           for (const id of now) if (!before.has(id)) addUnique(state.value.upsertSessionIds, id)
           for (const id of before) {
-            if (now.has(id)) continue
+            if (present.has(id)) continue
             addUnique(state.value.deletedSessionIds, id)
             state.value.upsertSessionIds = without(state.value.upsertSessionIds, [id])
           }
@@ -230,7 +233,7 @@ export const useSyncStore = defineStore('sync', () => {
     for (const batch of chunks(upsertIds)) {
       const rows = batch.flatMap((id) => {
         const s = byId.get(id)
-        return s ? [sessionToRow(s, uid)] : []
+        return s && !s.localOnly ? [sessionToRow(s, uid)] : []
       })
       if (rows.length) {
         const { error } = await sb.from('sessions').upsert(rows)
@@ -318,7 +321,9 @@ export const useSyncStore = defineStore('sync', () => {
     state.value = emptyState(uid)
     const remoteSessionIds = await pull({ dedupe: true })
     state.value.routinesDirty = true
-    state.value.upsertSessionIds = sessions.sessions.map((s) => s.id).filter((id) => !remoteSessionIds.has(id))
+    state.value.upsertSessionIds = sessions.sessions
+      .filter((s) => !s.localOnly && !remoteSessionIds.has(s.id))
+      .map((s) => s.id)
     await flush()
   }
 

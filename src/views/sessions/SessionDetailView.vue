@@ -2,20 +2,30 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, EllipsisVertical } from '@lucide/vue'
+import { ArrowLeft, CloudUpload, EllipsisVertical, Smartphone } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
 import { useSessionsStore } from '@/stores/sessions'
+import { useAuthStore } from '@/stores/auth'
+import { isSupabaseConfigured } from '@/services/supabase'
 import { formatNumber } from '@/lib/format'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const sessions = useSessionsStore()
+const auth = useAuthStore()
 
 const id = computed(() => String(route.params.id))
 const stored = computed(() => sessions.getById(id.value))
 const result = computed(() => (stored.value ? sessions.parsed(id.value) : null))
+
+/** Accounts exist in this build and the session was kept off them on finish. */
+const isDeviceOnly = computed(() => isSupabaseConfigured && !!stored.value?.localOnly)
+
+function onSaveToProfile() {
+  if (stored.value) sessions.saveToProfile(stored.value.id)
+}
 
 const menuOpen = ref(false)
 
@@ -69,6 +79,18 @@ function onDelete() {
     <template v-else-if="result">
       <div v-if="result.ok" class="stack">
         <p class="date">{{ result.session.date }}</p>
+
+        <div v-if="isDeviceOnly" class="local">
+          <Smartphone :size="18" :stroke-width="2.25" class="local__icon" />
+          <div class="local__text">
+            <span class="local__title">{{ t('sessionDetail.deviceOnly') }}</span>
+            <span class="local__hint">{{ t('sessionDetail.deviceOnlyHint') }}</span>
+          </div>
+          <button v-if="auth.isLoggedIn" type="button" class="local__btn" @click="onSaveToProfile">
+            <CloudUpload :size="14" :stroke-width="2.5" />
+            {{ t('sessionDetail.saveToProfile') }}
+          </button>
+        </div>
         <p v-if="result.session.notes" class="notes">{{ result.session.notes }}</p>
 
         <div class="summary">
@@ -171,6 +193,55 @@ function onDelete() {
   text-transform: uppercase;
   letter-spacing: var(--label-tracking);
   opacity: 0.55;
+}
+
+.local {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-background-soft);
+}
+
+.local__icon {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.local__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.local__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-heading);
+}
+
+.local__hint {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.local__btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
 }
 
 .notes {

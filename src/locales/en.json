@@ -189,7 +189,21 @@
       "newRoutineName": "New routine name",
       "back": "Back",
       "saveAndFinish": "Save & finish",
-      "editedSuffix": "{name} (edited)"
+      "editedSuffix": "{name} (edited)",
+      "reviewTitle": "Finish workout?",
+      "summaryAria": "Workout summary",
+      "noSetsDone": "No sets are marked done yet — this will be saved as an empty workout.",
+      "setsLeft": "{count} set isn't marked done. It'll be saved as incomplete. | {count} sets aren't marked done. They'll be saved as incomplete.",
+      "sessionName": "Session name",
+      "saveTo": "Save to",
+      "targetProfile": "My profile",
+      "targetProfileDesc": "Synced to your account and other devices",
+      "targetProfileLoggedOutDesc": "Syncs to your account once you log in",
+      "targetDevice": "This device",
+      "targetDeviceDesc": "Stays private on this phone, never uploaded",
+      "keepTraining": "Keep training",
+      "next": "Next",
+      "finishAndSave": "Finish & save"
     },
     "loggedExerciseList": {
       "incomplete": "Incomplete",
@@ -265,14 +279,14 @@
     "sets": "{count} sets",
     "volume": "{amount} volume",
     "complete": "Complete",
-    "incomplete": "Incomplete"
+    "incomplete": "Incomplete",
+    "deviceOnly": "Only on this device",
+    "deviceOnlyHint": "This session isn't synced to your profile.",
+    "saveToProfile": "Save to profile"
   },
   "sessions": {
     "title": "Sessions",
     "continueWorkout": "Continue workout",
-    "trainThisWeek": "Train this week to start a streak",
-    "weekStreak": "{count} week in a row | {count} weeks in a row",
-    "lastNWeeks": "Last {count} weeks",
     "noSessionsTitle": "No sessions yet",
     "noSessionsHint": "Start a routine to log your first workout.",
     "groupThisWeek": "This week",
@@ -282,7 +296,20 @@
     "partial": "Partial",
     "error": "Error",
     "exercises": "{count} exercises",
-    "sets": "{count} sets"
+    "sets": "{count} sets",
+    "deviceOnly": "Device only",
+    "showAll": "Show all",
+    "calendar": {
+      "aria": "Training calendar",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "thisMonth": "workout this month | workouts this month",
+      "inMonth": "workout in {month} | workouts in {month}",
+      "freshStart": "New month, fresh start",
+      "thisWeek": "{count} this week",
+      "allTime": "{count} all time",
+      "workoutsOnDay": "{count} workout | {count} workouts"
+    }
   },
   "social": {
     "notConfiguredTitle": "Accounts aren't set up",

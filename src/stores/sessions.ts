@@ -20,6 +20,8 @@ export interface StoredSession {
   routineId?: string
   /** The group workout room this was logged in, if any. */
   roomId?: string
+  /** Kept on this device only — never uploaded to the account, even while logged in. */
+  localOnly?: boolean
 }
 
 const STORAGE_KEY = 'wtx:sessions'
@@ -100,6 +102,7 @@ export const useSessionsStore = defineStore('sessions', () => {
     routineId?: string,
     addedAt = Date.now(),
     roomId?: string,
+    localOnly = false,
   ): StoredSession {
     const result = parseSessionText(rawText)
     if (!result.ok) throw new Error(result.error)
@@ -111,6 +114,7 @@ export const useSessionsStore = defineStore('sessions', () => {
       addedAt,
       routineId,
       ...(roomId ? { roomId } : {}),
+      ...(localOnly ? { localOnly: true } : {}),
     }
     sessions.value.unshift(session)
     return session
@@ -118,6 +122,16 @@ export const useSessionsStore = defineStore('sessions', () => {
 
   function remove(id: string) {
     sessions.value = sessions.value.filter((s) => s.id !== id)
+  }
+
+  /**
+   * Moves a device-only session to the account. One-way on purpose: taking a
+   * synced session back off the server would tombstone it, and pulling that
+   * tombstone deletes the local copy too.
+   */
+  function saveToProfile(id: string) {
+    const session = getById(id)
+    if (session?.localOnly) delete session.localOnly
   }
 
   /** Wipes the whole log, e.g. for a full data reset. */
@@ -144,5 +158,16 @@ export const useSessionsStore = defineStore('sessions', () => {
     return findLastSessionForRoutine(sessions.value, routine)
   }
 
-  return { sessions, list, getById, parsed, add, remove, clear, applyRemote, lastForRoutine }
+  return {
+    sessions,
+    list,
+    getById,
+    parsed,
+    add,
+    remove,
+    saveToProfile,
+    clear,
+    applyRemote,
+    lastForRoutine,
+  }
 })

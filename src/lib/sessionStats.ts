@@ -83,28 +83,69 @@ export function computeWeekStreak(dateStrs: string[], now: Date = new Date()): n
   return streak
 }
 
-/** One week in a {@link recentWeeksActivity} strip. */
-export interface WeekActivity {
-  active: boolean
-  isCurrent: boolean
+/** `YYYY-MM-DD` for a local date — the same shape sessions store their date in. */
+export function toDateStr(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+/** One day cell in a {@link monthCalendar} grid. */
+export interface CalendarDay {
+  /** `YYYY-MM-DD`, local. */
+  date: string
+  day: number
+  /** False for the leading/trailing days that pad the first and last week. */
+  inMonth: boolean
+  /** Sessions logged that day. */
+  count: number
+  isToday: boolean
+  isFuture: boolean
 }
 
 /**
- * The last `count` calendar weeks (Mon–Sun, oldest → current), each flagged
- * for whether it had a session. Same weekly unit as {@link computeWeekStreak},
- * so the streak number and the strip always agree.
+ * A month as Monday-first weeks (the same week unit as the rest of these
+ * stats), each day flagged with how many sessions it had. Padding days from
+ * the neighbouring months keep every week seven cells wide.
+ *
+ * @param month 0-based, like `Date#getMonth`.
  */
-export function recentWeeksActivity(
+export function monthCalendar(
   dateStrs: string[],
-  count = 8,
+  year: number,
+  month: number,
   now: Date = new Date(),
-): WeekActivity[] {
-  const weeks = weeksWithSessions(dateStrs)
-  const thisMonday = mondayOf(now)
+): CalendarDay[][] {
+  const counts = new Map<string, number>()
+  for (const d of dateStrs) counts.set(d, (counts.get(d) ?? 0) + 1)
 
-  return Array.from({ length: count }, (_, i) => {
-    const monday = new Date(thisMonday)
-    monday.setDate(monday.getDate() - (count - 1 - i) * 7)
-    return { active: weeks.has(monday.getTime()), isCurrent: i === count - 1 }
-  })
+  const today = toDateStr(now)
+  const cursor = mondayOf(new Date(year, month, 1))
+  const weeks: CalendarDay[][] = []
+
+  do {
+    const week: CalendarDay[] = []
+    for (let i = 0; i < 7; i++) {
+      const date = toDateStr(cursor)
+      week.push({
+        date,
+        day: cursor.getDate(),
+        inMonth: cursor.getMonth() === month,
+        count: counts.get(date) ?? 0,
+        isToday: date === today,
+        isFuture: date > today,
+      })
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    weeks.push(week)
+  } while (cursor.getMonth() === month)
+
+  return weeks
+}
+
+/** Sessions logged in the Monday-first week containing `now`. */
+export function sessionsThisWeek(dateStrs: string[], now: Date = new Date()): number {
+  const monday = mondayOf(now).getTime()
+  return dateStrs.filter((d) => mondayOf(parseLocalDate(d)).getTime() === monday).length
 }

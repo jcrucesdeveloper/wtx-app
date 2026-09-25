@@ -9,6 +9,16 @@ import { detectMilestone } from '@/lib/sessionMilestones'
 import { computeWeekStreak } from '@/lib/sessionStats'
 import type { WorkoutSession } from '@/lib/wtx'
 
+/** What the pre-finish review step decided — see `FinishSessionSheet`. */
+export interface FinishSessionOptions {
+  /** Link the session to this routine instead (a routine saved from it on finish). */
+  routineIdOverride?: string
+  /** Session name as saved; blank keeps the routine's name. */
+  name?: string
+  /** Keep the session on this device only, out of account sync. */
+  localOnly?: boolean
+}
+
 /**
  * Finishes the active session and computes its celebratory recap (personal
  * records, comparison to last time, streak, milestone) for
@@ -26,7 +36,7 @@ export function useFinishSession() {
   const sessionRecap = useSessionRecapStore()
   const room = useRoomStore()
 
-  function finishSession(routineIdOverride?: string): StoredSession {
+  function finishSession(opts: FinishSessionOptions = {}): StoredSession {
     const current = activeSession.session
     const elapsedSeconds = activeSession.elapsedSeconds
     const routine = current ? routines.getById(current.routineId) : undefined
@@ -38,7 +48,7 @@ export function useFinishSession() {
       .map((r) => r.session)
     const priorBests = allTimeBestsByExercise(pastSessions)
 
-    const stored = activeSession.finish(routineIdOverride)
+    const stored = activeSession.finish(opts)
     // Fire-and-forget: tell the room this member is done (it closes once everyone is).
     if (stored.roomId) void room.finishMine(stored.roomId).catch(() => {})
 
