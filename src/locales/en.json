@@ -288,6 +288,85 @@
     "comingSoonTitle": "Coming soon",
     "comingSoonHint": "Training with friends, group sessions, and the rest of social are still in the works."
   },
+  "consent": {
+    "text": "By creating an account, your routines and workout sessions will be uploaded and stored on our servers so they stay in sync and you can train with friends. You can delete your account and all of its data at any time from Configuration.",
+    "accept": "I accept the {terms} and the {privacy}",
+    "terms": "Terms",
+    "privacy": "Privacy Policy"
+  },
+  "auth": {
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "displayName": "Your name",
+    "displayNamePlaceholder": "What your friends will see",
+    "email": "Email",
+    "emailPlaceholder": "you{'@'}example.com",
+    "password": "Password",
+    "passwordHint": "At least 6 characters",
+    "working": "Please wait…",
+    "syncing": "Syncing your routines and sessions…",
+    "confirmEmail": "Check your inbox to confirm your email, then log in.",
+    "errors": {
+      "generic": "Something went wrong. Try again.",
+      "invalidCredentials": "Wrong email or password.",
+      "emailTaken": "An account with that email already exists.",
+      "weakPassword": "Use a password with at least 6 characters.",
+      "nameRequired": "Enter a name (up to 24 characters).",
+      "consentRequired": "Accept the Terms and Privacy Policy to continue.",
+      "emailNotConfirmed": "Confirm your email first — check your inbox."
+    }
+  },
+  "account": {
+    "title": "Account",
+    "loggedOutHint": "Create an account in Social to sync your data and train with friends.",
+    "goToSocial": "Go to Social",
+    "signedInAs": "Signed in as {email}",
+    "displayName": "Display name",
+    "save": "Save",
+    "saved": "Saved",
+    "sync": "Sync",
+    "syncNow": "Sync now",
+    "lastSynced": "Last synced {time}",
+    "syncStatus": {
+      "off": "Off",
+      "idle": "Up to date",
+      "syncing": "Syncing…",
+      "offline": "Offline — changes will sync later",
+      "error": "Sync failed — retrying"
+    },
+    "logout": "Log out",
+    "logoutConfirm": "Log out? This device's copy of your data will be cleared — it stays safe in your account.",
+    "deleteHint": "Permanently deletes your account and everything synced to it. Data on this device is cleared too.",
+    "delete": "Delete account",
+    "deletePrompt": "Type DELETE to permanently delete your account and all of its data.",
+    "deleteWord": "DELETE",
+    "deleting": "Deleting…",
+    "deleteError": "Couldn't delete your account. Try again."
+  },
+  "legal": {
+    "back": "Back",
+    "terms": {
+      "title": "Terms",
+      "body": [
+        "wtx is provided as-is to help you plan and log your training. Use your own judgment about what is safe for your body.",
+        "An account is optional. If you create one, you are responsible for keeping your password safe and for what you share in group workouts.",
+        "Don't use group workouts to harass other people. We may remove accounts that abuse the service.",
+        "You can stop using wtx and delete your account at any time from Configuration."
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "body": [
+        "Without an account, everything stays on your device.",
+        "With an account we store your email, your display name, your routines and your workout sessions so they sync across devices.",
+        "In a group workout, the other members see your display name and the sets you complete in that room.",
+        "Data is stored with our database provider (Supabase). We don't sell it or use it for advertising.",
+        "Deleting your account from Configuration permanently removes all of this data."
+      ]
+    }
+  },
   "settings": {
     "title": "Configuration",
     "removeAds": "Remove ads forever",

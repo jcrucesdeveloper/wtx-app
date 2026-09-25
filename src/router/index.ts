@@ -41,6 +41,11 @@ const router = createRouter({
       component: () => import('../views/social/SocialView.vue'),
     },
     {
+      path: '/legal/:doc(terms|privacy)',
+      name: 'legal',
+      component: () => import('../views/social/LegalView.vue'),
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('../views/menu/ConfigurationView.vue'),
