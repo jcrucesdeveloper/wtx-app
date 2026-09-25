@@ -366,10 +366,49 @@
     "progressTitle": "Your group",
     "setsDone": "{count} sets",
     "recapTitle": "Group recap",
-    "totals": "Totals",
     "sets": "Sets",
     "volume": "Volume ({unit})",
     "noSets": "—",
+    "memberSession": {
+      "viewAria": "See {name}'s workout",
+      "setsProgress": "{done}/{total} sets",
+      "onExercise": "On {name}",
+      "notStarted": "Hasn't logged a set yet",
+      "finished": "Finished their workout",
+      "now": "Now",
+      "added": "added"
+    },
+    "live": {
+      "reaction": "{name} sent you {emoji}",
+      "pr": "{name} hit a PR: {exercise} {weight} {unit} × {reps}",
+      "myPr": "New PR! {exercise} {weight} {unit} × {reps}",
+      "exerciseDone": "{name} finished {exercise}",
+      "finished": "{name} finished the workout",
+      "joined": "{name} joined",
+      "cheerBackAria": "Send {emoji} to {name}",
+      "sent": "Sent!",
+      "teamCleared": "Team cleared {exercise} ✅",
+      "teamFinished": "Team finished {routine}! 🎉"
+    },
+    "cheer": {
+      "title": "Cheer {name} on",
+      "sendAria": "Send {emoji}"
+    },
+    "team": {
+      "title": "Team",
+      "sets": "{done}/{total} sets",
+      "lastOne": "Almost there — {name} has {count} set left 💪 | Almost there — {name} has {count} sets left 💪",
+      "lastOneFinishing": "Almost there — {name} is wrapping up 💪",
+      "lastIsYou": "Everyone else is done — the team's with you 💪",
+      "allDone": "Team finished 🎉",
+      "muteAria": "Mute group alerts",
+      "unmuteAria": "Unmute group alerts",
+      "startingTogether": "Starting together",
+      "go": "Go!",
+      "recapTitle": "Together",
+      "finishedLabel": "finished",
+      "contributions": "Everyone's part"
+    },
     "errors": {
       "room_not_found": "No open room with that code.",
       "room_full": "That room is full (8 people max).",

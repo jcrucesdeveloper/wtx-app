@@ -49,13 +49,15 @@ function colorOf(userId: string): string {
 }
 
 function formatBest(best: BestSet | null): string {
-  return best ? `${formatNumber(best.weight)} ${unit.value} × ${best.reps}` : t('room.noSets')
+  // Raw weight: formatNumber is for volume totals and would round 47.5 to 48.
+  return best ? `${best.weight} ${unit.value} × ${best.reps}` : t('room.noSets')
 }
 
-/** Highest volume first, so the table reads like a podium. */
-const ranked = computed(() =>
-  [...recap.value.totals].sort((a, b) => b.volume - a.volume || b.sets - a.sets),
-)
+/** Team totals first — a shared result, not a podium (rankings discourage whoever's at the bottom). */
+const teamTotals = computed(() => ({
+  sets: recap.value.totals.reduce((sum, m) => sum + m.sets, 0),
+  volume: recap.value.totals.reduce((sum, m) => sum + m.volume, 0),
+}))
 
 function goBack() {
   if (window.history.length > 1) router.back()
@@ -77,11 +79,29 @@ function goBack() {
     <div v-else class="stack">
       <p class="routine">{{ current.routine_name }}</p>
 
+      <section class="together">
+        <h2 class="together__title">{{ t('room.team.recapTitle') }}</h2>
+        <div class="together__stats">
+          <span class="together__stat">
+            <span class="together__value">{{ teamTotals.sets }}</span>
+            <span class="together__label">{{ t('room.sets') }}</span>
+          </span>
+          <span class="together__stat">
+            <span class="together__value">{{ formatNumber(teamTotals.volume) }}</span>
+            <span class="together__label">{{ t('room.volume', { unit }) }}</span>
+          </span>
+          <span class="together__stat">
+            <span class="together__value">{{ room.team.finished }}/{{ room.team.members }}</span>
+            <span class="together__label">{{ t('room.team.finishedLabel') }}</span>
+          </span>
+        </div>
+      </section>
+
       <section class="section">
-        <h2 class="section__title">{{ t('room.totals') }}</h2>
+        <h2 class="section__title">{{ t('room.team.contributions') }}</h2>
         <ul class="totals">
           <li
-            v-for="total in ranked"
+            v-for="total in recap.totals"
             :key="total.userId"
             class="total"
             :class="{ 'total--me': total.userId === auth.user?.id }"
@@ -154,6 +174,47 @@ function goBack() {
   font-size: 17px;
   font-weight: 700;
   color: var(--color-heading);
+}
+
+.together {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.together__title {
+  font-size: var(--label-size);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  opacity: 0.9;
+}
+
+.together__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.together__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.together__value {
+  font-size: 24px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.together__label {
+  font-size: 11px;
+  opacity: 0.85;
 }
 
 .section {

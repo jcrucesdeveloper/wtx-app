@@ -5,7 +5,22 @@ import { requireSupabase } from '@/services/supabase'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
 import { useAuthStore } from '@/stores/auth'
+import { useSessionsStore } from '@/stores/sessions'
 import { memberProgress } from '@/lib/roomRecap'
+import { plannedWorkingSets, type PlannedExercise } from '@/lib/memberSession'
+import { clearedExercises, lastOneIn, teamProgress } from '@/lib/teamProgress'
+import { parseTemplateText } from '@/lib/parseRoutine'
+import { allTimeBestsByExercise, type ExerciseBest } from '@/lib/sessionRecords'
+import {
+  completesExercise,
+  isLiveRecord,
+  parsePrPayload,
+  parseReactionPayload,
+  type ReactionEmoji,
+  type RoomEvent,
+} from '@/lib/roomEvents'
+import { newUuid } from '@/lib/uuid'
+import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
 import type { SessionSetDraft } from '@/lib/serializeSession'
 
@@ -26,7 +41,15 @@ export class RoomError extends Error {
 }
 
 const CURRENT_KEY = 'wtx:currentRoom'
+const MUTED_KEY = 'wtx:roomAlertsMuted'
 const RETRY_MS = 5000
+const MAX_EVENTS = 30
+/** Minimum gap between two cheers from this device, so a tap-spree can't flood the room. */
+const REACTION_THROTTLE_MS = 400
+
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
+
+const nameKey = (name: string) => name.trim().toLowerCase()
 
 /** Active-session actions that change a set the room should know about. */
 const SET_ACTIONS = new Set(['completeSet', 'uncompleteSet', 'updateSet', 'cycleSetType', 'removeSet', 'removeExercise'])
@@ -37,6 +60,14 @@ function toRoomError(error: { message?: string } | null | undefined): RoomError 
     if (message.includes(code)) return new RoomError(code, message)
   }
   return new RoomError('unknown', message)
+}
+
+function readMuted(): boolean {
+  try {
+    return localStorage.getItem(MUTED_KEY) === '1'
+  } catch {
+    return false
+  }
 }
 
 function readCurrentId(): string | null {
@@ -58,6 +89,16 @@ export const useRoomStore = defineStore('room', () => {
   const setLogs = ref<SetLog[]>([])
   const onlineIds = ref<string[]>([])
   const currentRoomId = ref<string | null>(readCurrentId())
+  /** Group alerts off (toasts and bursts) — the user's call, never forced on them. */
+  const muted = ref(readMuted())
+
+  watch(muted, (value) => {
+    try {
+      localStorage.setItem(MUTED_KEY, value ? '1' : '0')
+    } catch {
+      /* storage unavailable */
+    }
+  })
 
   watch(currentRoomId, (id) => {
     try {
@@ -72,6 +113,50 @@ export const useRoomStore = defineStore('room', () => {
 
   const myId = computed(() => useAuthStore().user?.id ?? null)
   const isHost = computed(() => !!room.value && room.value.host_id === myId.value)
+
+  /** Live happenings for toasts (newest last). Cleared when the room changes. */
+  const events = ref<RoomEvent[]>([])
+
+  function addEvent(event: DistributiveOmit<RoomEvent, 'id' | 'at'>) {
+    const stamped = { ...event, id: newUuid(), at: Date.now() } as RoomEvent
+    events.value = [...events.value.slice(-(MAX_EVENTS - 1)), stamped]
+  }
+
+  const isMember = (userId: string) => members.value.some((m) => m.userId === userId)
+
+  /** The room's routine — everyone follows the same snapshot. */
+  const routineExercises = computed<PlannedExercise[]>(() => {
+    const parsed = room.value ? parseTemplateText(room.value.routine_wtt) : undefined
+    return parsed?.ok ? parsed.template.exercises : []
+  })
+
+  /** Planned working sets per exercise (by normalized name). */
+  const plannedByName = computed(
+    () => new Map(routineExercises.value.map((e) => [nameKey(e.name), plannedWorkingSets(e)])),
+  )
+
+  /** The group vs the routine: shared progress, each member's part visible but unranked. */
+  const team = computed(() => teamProgress(routineExercises.value, members.value, setLogs.value))
+  /** Whoever the team is waiting on once everyone else is done. */
+  const lastIn = computed(() => lastOneIn(routineExercises.value, members.value, setLogs.value))
+  const cleared = computed(() =>
+    clearedExercises(
+      routineExercises.value,
+      members.value.map((m) => m.userId),
+      setLogs.value,
+    ),
+  )
+
+  /** Exercises already cleared when we started following the room — only new ones are celebrated. */
+  let clearedSeen: Set<string> | null = null
+  watch(cleared, (names) => {
+    if (!clearedSeen) return
+    for (const name of names) {
+      if (clearedSeen.has(name)) continue
+      clearedSeen.add(name)
+      addEvent({ kind: 'team-cleared', from: '', exercise: name })
+    }
+  })
 
   /** Members in join order, with live progress and online state. */
   const progress = computed(() =>
@@ -90,12 +175,39 @@ export const useRoomStore = defineStore('room', () => {
       .order('joined_at')
     if (error) throw error
     if (room.value?.id !== roomId) return
-    members.value = (data ?? []).map((row) => ({
+    const previous = members.value
+    const next = (data ?? []).map((row) => ({
       userId: row.user_id,
       displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
       joinedAt: row.joined_at,
       finishedAt: row.finished_at,
     }))
+
+    // Diff against what we had (not on the first load) to announce joins and finishes.
+    if (previous.length) {
+      const before = new Map(previous.map((m) => [m.userId, m]))
+      for (const m of next) {
+        const was = before.get(m.userId)
+        if (!was) addEvent({ kind: 'joined', from: m.userId })
+        else if (!was.finishedAt && m.finishedAt) addEvent({ kind: 'finished', from: m.userId })
+      }
+      const allDone = (list: RoomMember[]) => list.length > 1 && list.every((m) => m.finishedAt)
+      if (!allDone(previous) && allDone(next)) addEvent({ kind: 'team-finished', from: '' })
+    }
+    members.value = next
+  }
+
+  /** Announces "Ana finished Squat" when someone else's set completes an exercise's plan. */
+  function noticeExerciseDone(log: SetLog) {
+    if (log.user_id === myId.value || log.set_type === 'W') return
+    if (setLogs.value.some((l) => l.id === log.id)) return
+    const key = nameKey(log.exercise_name)
+    const before = setLogs.value.filter(
+      (l) => l.user_id === log.user_id && l.set_type !== 'W' && nameKey(l.exercise_name) === key,
+    ).length
+    if (completesExercise(plannedByName.value.get(key), before)) {
+      addEvent({ kind: 'exercise-done', from: log.user_id, exercise: log.exercise_name })
+    }
   }
 
   function upsertLocalLog(log: SetLog) {
@@ -112,7 +224,9 @@ export const useRoomStore = defineStore('room', () => {
     const sb = requireSupabase()
     const filter = `room_id=eq.${roomId}`
     channel = sb
-      .channel(`room:${roomId}`, { config: { presence: { key: myId.value ?? '' } } })
+      .channel(`room:${roomId}`, {
+        config: { presence: { key: myId.value ?? '' }, broadcast: { self: false } },
+      })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` }, (p) => {
         if (room.value?.id === roomId) room.value = p.new as RoomRow
       })
@@ -127,6 +241,7 @@ export const useRoomStore = defineStore('room', () => {
         if ((p.old as { room_id?: string }).room_id === roomId) void fetchMembers(roomId)
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'set_logs', filter }, (p) => {
+        noticeExerciseDone(p.new as SetLog)
         upsertLocalLog(p.new as SetLog)
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'set_logs', filter }, (p) => {
@@ -135,6 +250,15 @@ export const useRoomStore = defineStore('room', () => {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'set_logs' }, (p) => {
         const id = (p.old as { id?: string }).id
         if (id) removeLocalLog(id)
+      })
+      // Cheers and live PRs: ephemeral Broadcast messages, validated since they come from other clients.
+      .on('broadcast', { event: 'reaction' }, ({ payload }) => {
+        const reaction = parseReactionPayload(payload)
+        if (reaction && isMember(reaction.from)) addEvent({ kind: 'reaction', ...reaction })
+      })
+      .on('broadcast', { event: 'pr' }, ({ payload }) => {
+        const pr = parsePrPayload(payload)
+        if (pr && isMember(pr.from)) addEvent({ kind: 'pr', ...pr })
       })
       .on('presence', { event: 'sync' }, () => {
         onlineIds.value = channel ? Object.keys(channel.presenceState()) : []
@@ -162,6 +286,8 @@ export const useRoomStore = defineStore('room', () => {
     room.value = data
     members.value = []
     setLogs.value = []
+    events.value = []
+    clearedSeen = null
     currentRoomId.value = roomId
 
     const [, logs] = await Promise.all([
@@ -169,7 +295,9 @@ export const useRoomStore = defineStore('room', () => {
       sb.from('set_logs').select('*').eq('room_id', roomId).order('completed_at'),
     ])
     if (logs.error) throw toRoomError(logs.error)
-    if (room.value?.id === roomId) setLogs.value = logs.data ?? []
+    if (room.value?.id !== roomId) return
+    setLogs.value = logs.data ?? []
+    clearedSeen = new Set(cleared.value)
     subscribe(roomId)
   }
 
@@ -203,8 +331,11 @@ export const useRoomStore = defineStore('room', () => {
     if (!room.value) return
     const { error } = await requireSupabase().from('rooms').update({ status: 'active' }).eq('id', room.value.id)
     if (error) throw toRoomError(error)
-    // Don't wait for the realtime echo — the host's own screen should move on now.
-    if (room.value.status === 'lobby') room.value = { ...room.value, status: 'active' }
+    // Don't wait for the realtime echo — the host's own screen should move on now
+    // (the echo then brings the server's started_at for the shared countdown).
+    if (room.value.status === 'lobby') {
+      room.value = { ...room.value, status: 'active', started_at: new Date().toISOString() }
+    }
   }
 
   /** Host only: ends the room for everyone. */
@@ -252,7 +383,63 @@ export const useRoomStore = defineStore('room', () => {
     room.value = null
     members.value = []
     setLogs.value = []
+    events.value = []
+    clearedSeen = null
     currentRoomId.value = null
+    bestsRoomId = null
+    announcedRecords.clear()
+  }
+
+  // --- Cheers and live PRs (Realtime Broadcast) -----------------------------
+
+  let lastReactionAt = 0
+
+  /**
+   * Sends a cheer to a member. Broadcast-only: nothing is stored, and it
+   * reaches whoever is connected right now.
+   *
+   * @returns Whether it was sent (false when throttled or not connected).
+   */
+  function sendReaction(to: string, emoji: ReactionEmoji): boolean {
+    const from = myId.value
+    const now = Date.now()
+    if (!channel || !from || now - lastReactionAt < REACTION_THROTTLE_MS) return false
+    lastReactionAt = now
+    void channel.send({ type: 'broadcast', event: 'reaction', payload: { from, to, emoji } })
+    return true
+  }
+
+  /** All-time bests from this user's past sessions, computed once per room workout. */
+  let bests = new Map<string, ExerciseBest>()
+  let bestsRoomId: string | null = null
+  /** Heaviest weight already announced per exercise this workout. */
+  const announcedRecords = new Map<string, number>()
+
+  function priorBests(roomId: string): Map<string, ExerciseBest> {
+    if (bestsRoomId !== roomId) {
+      const sessions = useSessionsStore()
+      const past = sessions.list
+        .map((s) => sessions.parsed(s.id))
+        .filter((r): r is { ok: true; session: WorkoutSession } => r?.ok === true)
+        .map((r) => r.session)
+      bests = allTimeBestsByExercise(past)
+      bestsRoomId = roomId
+      announcedRecords.clear()
+    }
+    return bests
+  }
+
+  /** Celebrates a new all-time best the moment the set is ticked — here and for everyone in the room. */
+  function checkLiveRecord(roomId: string, exerciseName: string, set: SessionSetDraft) {
+    const from = myId.value
+    if (!from || set.type !== 'number' || set.weight === null || set.reps === null) return
+    const key = nameKey(exerciseName)
+    if (!isLiveRecord(priorBests(roomId).get(key), announcedRecords.get(key), set.weight)) return
+    announcedRecords.set(key, set.weight)
+
+    const pr = { from, exercise: exerciseName, weight: set.weight, reps: set.reps }
+    if (room.value?.id === roomId) addEvent({ kind: 'pr', ...pr })
+    if (channel && room.value?.id === roomId) void channel.send({ type: 'broadcast', event: 'pr', payload: pr })
   }
 
   // --- Pushing the active session's sets -----------------------------------
@@ -334,8 +521,10 @@ export const useRoomStore = defineStore('room', () => {
     if (!exercise) return
     after(() => {
       const set = exercise.loggedSets.find((s) => s.id === setId)
-      if (set?.completed) pushSet(roomId, exercise.name, set)
-      else if (name === 'uncompleteSet' || name === 'removeSet') deleteSet(roomId, setId)
+      if (set?.completed) {
+        pushSet(roomId, exercise.name, set)
+        checkLiveRecord(roomId, exercise.name, set)
+      } else if (name === 'uncompleteSet' || name === 'removeSet') deleteSet(roomId, setId)
     })
   })
 
@@ -347,6 +536,11 @@ export const useRoomStore = defineStore('room', () => {
     currentRoomId,
     isHost,
     progress,
+    team,
+    lastIn,
+    muted,
+    events,
+    sendReaction,
     open,
     create,
     join,

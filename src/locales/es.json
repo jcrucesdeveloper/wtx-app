@@ -366,10 +366,49 @@
     "progressTitle": "Tu grupo",
     "setsDone": "{count} series",
     "recapTitle": "Resumen del grupo",
-    "totals": "Totales",
     "sets": "Series",
     "volume": "Volumen ({unit})",
     "noSets": "—",
+    "memberSession": {
+      "viewAria": "Ver el entrenamiento de {name}",
+      "setsProgress": "{done}/{total} series",
+      "onExercise": "En {name}",
+      "notStarted": "Aún no registra series",
+      "finished": "Terminó su entrenamiento",
+      "now": "Ahora",
+      "added": "añadido"
+    },
+    "live": {
+      "reaction": "{name} te envió {emoji}",
+      "pr": "{name} logró un récord: {exercise} {weight} {unit} × {reps}",
+      "myPr": "¡Nuevo récord! {exercise} {weight} {unit} × {reps}",
+      "exerciseDone": "{name} terminó {exercise}",
+      "finished": "{name} terminó el entrenamiento",
+      "joined": "{name} se unió",
+      "cheerBackAria": "Enviar {emoji} a {name}",
+      "sent": "¡Enviado!",
+      "teamCleared": "El equipo completó {exercise} ✅",
+      "teamFinished": "¡El equipo terminó {routine}! 🎉"
+    },
+    "cheer": {
+      "title": "Anima a {name}",
+      "sendAria": "Enviar {emoji}"
+    },
+    "team": {
+      "title": "Equipo",
+      "sets": "{done}/{total} series",
+      "lastOne": "Ya casi — a {name} le queda {count} serie 💪 | Ya casi — a {name} le quedan {count} series 💪",
+      "lastOneFinishing": "Ya casi — {name} está terminando 💪",
+      "lastIsYou": "Los demás ya terminaron — el equipo está contigo 💪",
+      "allDone": "Equipo terminado 🎉",
+      "muteAria": "Silenciar alertas del grupo",
+      "unmuteAria": "Activar alertas del grupo",
+      "startingTogether": "Empezamos juntos",
+      "go": "¡Ya!",
+      "recapTitle": "Juntos",
+      "finishedLabel": "terminaron",
+      "contributions": "El aporte de cada uno"
+    },
     "errors": {
       "room_not_found": "No hay una sala abierta con ese código.",
       "room_full": "Esa sala está llena (máximo 8 personas).",

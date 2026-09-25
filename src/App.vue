@@ -6,6 +6,7 @@ import WtxActionSheet from './components/wtx/WtxActionSheet.vue'
 import CreateRoutineSheet from './components/wtx/CreateRoutineSheet.vue'
 import StartTrainingSheet from './components/routine/StartTrainingSheet.vue'
 import ResumeSessionBanner from './components/session/ResumeSessionBanner.vue'
+import RoomLiveLayer from './components/social/RoomLiveLayer.vue'
 import { useThemeStore } from './stores/theme'
 import { useUiStore } from './stores/ui'
 import { useLocaleStore } from './stores/locale'
@@ -29,6 +30,7 @@ const ui = useUiStore()
     <StartTrainingSheet />
     <LoadRoutineSheet />
     <CreateRoutineSheet />
+    <RoomLiveLayer />
   </div>
 </template>
 

@@ -6,6 +6,8 @@ import { ArrowLeft } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoomQrCard from '@/components/social/RoomQrCard.vue'
 import RoomMemberList from '@/components/social/RoomMemberList.vue'
+import MemberSessionSheet from '@/components/social/MemberSessionSheet.vue'
+import TogetherCountdown from '@/components/social/TogetherCountdown.vue'
 import { RoomError, useRoomStore } from '@/stores/room'
 import { useAuthStore } from '@/stores/auth'
 import { useRoutinesStore } from '@/stores/routines'
@@ -26,6 +28,8 @@ const id = computed(() => String(route.params.id))
 const loading = ref(true)
 const error = ref('')
 const busy = ref(false)
+/** Whose workout is open in the sheet. */
+const watching = ref<string | null>(null)
 
 const current = computed(() => (room.room?.id === id.value ? room.room : null))
 const me = computed(() => room.members.find((m) => m.userId === auth.user?.id))
@@ -67,13 +71,27 @@ function startWorkout() {
   startRoutine(routine.id, { roomId: r.id })
 }
 
-// Everyone jumps into the workout the moment the host starts it.
+/** Shared start moment (epoch ms) while the together-countdown is showing. */
+const countdownGoAt = ref<number | null>(null)
+const COUNTDOWN_MS = 3000
+
+// When the host starts, everyone counts down to the same moment, then jumps in together.
 watch(
   () => current.value?.status,
   (status, prev) => {
-    if (prev === 'lobby' && status === 'active' && !me.value?.finishedAt) startWorkout()
+    if (prev !== 'lobby' || status !== 'active' || me.value?.finishedAt) return
+    const startedAt = Date.parse(current.value?.started_at ?? '') || Date.now()
+    const goAt = startedAt + COUNTDOWN_MS
+    // Arrived too late to count down with the others (or a skewed clock): just go.
+    if (goAt - Date.now() < 800 || goAt - Date.now() > COUNTDOWN_MS + 2000) startWorkout()
+    else countdownGoAt.value = goAt
   },
 )
+
+function onCountdownDone() {
+  countdownGoAt.value = null
+  startWorkout()
+}
 
 async function onStart() {
   busy.value = true
@@ -163,6 +181,8 @@ function goBack() {
           :host-id="current.host_id"
           :my-id="auth.user?.id ?? null"
           :show-progress="current.status !== 'lobby'"
+          :selectable="current.status !== 'lobby'"
+          @select="watching = $event"
         />
       </section>
 
@@ -171,6 +191,14 @@ function goBack() {
         :code="current.code"
         :join-url="joinUrl"
         :routine-name="current.routine_name"
+      />
+
+      <MemberSessionSheet :user-id="watching" @close="watching = null" />
+      <TogetherCountdown
+        v-if="countdownGoAt"
+        :go-at="countdownGoAt"
+        :names="room.members.map((m) => m.displayName)"
+        @done="onCountdownDone"
       />
 
       <div v-if="current.status !== 'finished'" class="footer">
