@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { GripVertical } from '@lucide/vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatCompactDuration } from '@/lib/format'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
@@ -61,6 +62,7 @@ function close() {
           <GripVertical :size="16" :stroke-width="2" />
         </button>
         <span class="row__index">{{ i + 1 }}</span>
+        <ExerciseThumb :name="exercise.name" />
         <div class="row__title">
           <span class="row__name">{{ exercise.name }}</span>
           <span class="row__summary">{{ summaryFor(exercise) }}</span>
@@ -84,7 +86,7 @@ function close() {
 
 .row {
   display: grid;
-  grid-template-columns: auto auto 1fr;
+  grid-template-columns: auto auto auto 1fr;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;

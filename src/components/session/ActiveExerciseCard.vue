@@ -6,6 +6,7 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ActiveSetRow from '@/components/session/ActiveSetRow.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { formatCompactDuration } from '@/lib/format'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
 
@@ -82,11 +83,14 @@ function onNoteInput(event: Event) {
   <div class="card">
     <div class="card__head">
       <button type="button" class="card__title" @click="showImage = true">
-        <span class="card__name">{{ exercise.name }}</span>
-        <span class="card__meta">
-          {{ prescription }}
-          <template v-if="exercise.weight">· {{ exercise.weight }} {{ unit }}</template>
-        </span>
+        <ExerciseThumb :name="exercise.name" />
+        <div class="card__title-text">
+          <span class="card__name">{{ exercise.name }}</span>
+          <span class="card__meta">
+            {{ prescription }}
+            <template v-if="exercise.weight">· {{ exercise.weight }} {{ unit }}</template>
+          </span>
+        </div>
       </button>
 
       <div class="card__menu">
@@ -183,8 +187,8 @@ function onNoteInput(event: Event) {
 
 .card__title {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
   border: none;
   background: transparent;
@@ -193,6 +197,13 @@ function onNoteInput(event: Event) {
   font: inherit;
   color: inherit;
   cursor: pointer;
+}
+
+.card__title-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .card__name {

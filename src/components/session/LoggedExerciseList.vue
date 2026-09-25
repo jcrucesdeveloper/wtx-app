@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import type { WorkoutSessionExercise } from '@/lib/wtx'
 import { displayNote, isTimeExercise } from '@/lib/sessionTime'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 
 defineProps<{
   exercises: WorkoutSessionExercise[]
@@ -16,6 +17,7 @@ const { t } = useI18n()
     <li v-for="(exercise, i) in exercises" :key="i" class="exercise">
       <div class="exercise__head">
         <span class="exercise__index">{{ i + 1 }}</span>
+        <ExerciseThumb :name="exercise.name" />
         <div class="exercise__body">
           <span class="exercise__name">{{ exercise.name }}</span>
           <span class="exercise__meta">
@@ -67,9 +69,9 @@ const { t } = useI18n()
 
 .exercise__head {
   display: grid;
-  grid-template-columns: 22px 1fr auto;
+  grid-template-columns: 22px auto 1fr auto;
   gap: 12px;
-  align-items: baseline;
+  align-items: center;
 }
 
 .exercise__index {

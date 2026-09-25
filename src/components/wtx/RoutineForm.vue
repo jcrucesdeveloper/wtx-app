@@ -12,6 +12,7 @@ import {
 import { formatCompactDuration } from '@/lib/format'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
+import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 
 const draft = defineModel<RoutineDraft>({ required: true })
 
@@ -268,6 +269,7 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
               <GripVertical :size="16" :stroke-width="2" />
             </button>
             <span class="exercise__index">{{ i + 1 }}</span>
+            <ExerciseThumb :name="exercise.name" />
 
             <div class="exercise__title">
               <button type="button" class="exercise__name-text" @click.stop="openPicker(exercise)">
@@ -510,7 +512,7 @@ textarea {
 
 .exercise__top {
   display: grid;
-  grid-template-columns: auto auto 1fr auto auto;
+  grid-template-columns: auto auto auto 1fr auto auto;
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
