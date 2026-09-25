@@ -3,7 +3,8 @@ import {
   formatSessionDate,
   recencyGroup,
   computeWeekStreak,
-  recentWeeksActivity,
+  monthCalendar,
+  sessionsThisWeek,
 } from '../sessionStats'
 
 // A Wednesday.
@@ -59,15 +60,37 @@ describe('computeWeekStreak', () => {
   })
 })
 
-describe('recentWeeksActivity', () => {
-  it('marks only the weeks that have a session, oldest to current, same unit as the streak', () => {
-    // This week (Mon 09-14) and last week (Mon 09-07) have sessions; the two before don't.
-    const result = recentWeeksActivity(['2026-09-16', '2026-09-09'], 4, NOW)
-    expect(result).toEqual([
-      { active: false, isCurrent: false }, // week of 08-24
-      { active: false, isCurrent: false }, // week of 08-31
-      { active: true, isCurrent: false }, // week of 09-07 (last week)
-      { active: true, isCurrent: true }, // week of 09-14 (this week)
-    ])
+describe('monthCalendar', () => {
+  // September 2026 starts on a Tuesday and ends on a Wednesday.
+  const weeks = monthCalendar(['2026-09-01', '2026-09-16', '2026-09-16', '2026-08-31'], 2026, 8, NOW)
+
+  it('lays the month out as full Monday-first weeks', () => {
+    expect(weeks).toHaveLength(5)
+    expect(weeks.every((w) => w.length === 7)).toBe(true)
+    expect(weeks[0]![0]).toMatchObject({ date: '2026-08-31', inMonth: false })
+    expect(weeks[0]![1]).toMatchObject({ date: '2026-09-01', day: 1, inMonth: true })
+    expect(weeks[4]![2]).toMatchObject({ date: '2026-09-30', inMonth: true })
+    expect(weeks[4]![6]).toMatchObject({ date: '2026-10-04', inMonth: false })
+  })
+
+  it('counts sessions per day, including padding days', () => {
+    const days = weeks.flat()
+    expect(days.find((d) => d.date === '2026-09-16')?.count).toBe(2)
+    expect(days.find((d) => d.date === '2026-09-01')?.count).toBe(1)
+    expect(days.find((d) => d.date === '2026-08-31')?.count).toBe(1)
+    expect(days.find((d) => d.date === '2026-09-02')?.count).toBe(0)
+  })
+
+  it('flags today and the days after it', () => {
+    const days = weeks.flat()
+    expect(days.find((d) => d.isToday)?.date).toBe('2026-09-16')
+    expect(days.find((d) => d.date === '2026-09-15')?.isFuture).toBe(false)
+    expect(days.find((d) => d.date === '2026-09-17')?.isFuture).toBe(true)
+  })
+})
+
+describe('sessionsThisWeek', () => {
+  it('counts every session from Monday to now, not just the days', () => {
+    expect(sessionsThisWeek(['2026-09-14', '2026-09-16', '2026-09-16', '2026-09-13'], NOW)).toBe(3)
   })
 })
