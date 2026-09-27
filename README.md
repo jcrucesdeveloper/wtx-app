@@ -27,6 +27,7 @@ routine in the URL.
 - [Getting started](#getting-started)
 - [Project structure](#project-structure)
 - [The wtx parser](#the-wtx-parser)
+- [Store release checklist](#store-release-checklist)
 - [Deployment](#deployment)
 - [License](#license)
 
@@ -62,10 +63,11 @@ routine in the URL.
   base64url-encoded into the query) and renders it as a QR code. Scanning it on
   another device opens the app with the routine ready to add.
 - **Configurable accent color**, remembered across visits.
-
-> The **Sessions** and **Friends** tabs are UI placeholders for now — logging
-> workouts (`.wts` files) and social features aren't wired up yet, though the
-> vendored parser already understands the session format.
+- **Sessions** — log a workout against a routine, with a rest timer, live PR
+  detection, a review step before finishing, and a training calendar.
+- **Social** (optional, see below) — sync your library across devices and
+  train live with friends in a group-workout room: shared countdown, live
+  progress, cheers, and a recap once everyone's done.
 
 ## The `.wtt` format
 
@@ -191,6 +193,26 @@ pnpm format
 
 Then review the diff and update the "Upstream commit" line in
 `src/lib/wtx/README.md`.
+
+## Store release checklist
+
+One-time steps before a build is submitted to the App Store / Play Store —
+everything here needs a real AdMob account, so it can't be done from the repo
+alone:
+
+1. Create real ad units in the [AdMob console](https://apps.admob.com/) for
+   both platforms.
+2. Replace the native App IDs, which are still Google's public sample IDs:
+   - iOS: `GADApplicationIdentifier` in `ios/App/App/Info.plist`
+   - Android: `com.google.android.gms.ads.APPLICATION_ID` in
+     `android/app/src/main/AndroidManifest.xml`
+3. Set `VITE_ADMOB_INTERSTITIAL_ID_ANDROID` / `_IOS` (see `.env.example`) to
+   the real ad unit ids for the production build.
+4. Only once 1–3 are done: flip `initializeForTesting` to `false` in
+   `capacitor.config.ts`. Leave it `true` until then — with the sample App IDs
+   still in place, turning it off would misconfigure ads, not fix them, and
+   every local `cap:sync` test build would risk serving (and clicking) real
+   ads, which AdMob's policy prohibits.
 
 ## Deployment
 
