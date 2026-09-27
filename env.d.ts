@@ -12,4 +12,6 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string
   /** Supabase anon (publishable) key. */
   readonly VITE_SUPABASE_ANON_KEY?: string
+  /** Sentry DSN for crash reporting. Crash reporting is disabled when unset. */
+  readonly VITE_SENTRY_DSN?: string
 }

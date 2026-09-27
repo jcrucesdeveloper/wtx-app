@@ -157,6 +157,21 @@ group workouts. To enable it:
 Without those variables the Social tab says accounts aren't set up, and
 everything else keeps working locally.
 
+### Crash reporting and analytics
+
+Both are optional and off by default.
+
+- **Crash reporting** is [Sentry](https://sentry.io/) (`src/services/crashReporting.ts`).
+  Set `VITE_SENTRY_DSN` (Settings → Client Keys in your Sentry project) to
+  enable it.
+- **Analytics** goes through a small provider interface
+  (`src/services/analytics.ts`) so the backend can be swapped later without
+  touching call sites. The default provider (`src/services/supabaseAnalytics.ts`)
+  writes to an `app_events` table on the same Supabase project used for sync —
+  no new vendor needed. It only starts once Supabase is configured (see
+  above), and only ever inserts an event name, platform, and app version;
+  nothing identifying and nothing readable back through the client API.
+
 ## Project structure
 
 ```

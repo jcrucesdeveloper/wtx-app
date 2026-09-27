@@ -7,6 +7,7 @@ import { allTimeBestsByExercise, detectPersonalRecords } from '@/lib/sessionReco
 import { compareSessions } from '@/lib/sessionComparisons'
 import { detectMilestone } from '@/lib/sessionMilestones'
 import { computeWeekStreak } from '@/lib/sessionStats'
+import { track } from '@/services/analytics'
 import type { WorkoutSession } from '@/lib/wtx'
 
 /** What the pre-finish review step decided — see `FinishSessionSheet`. */
@@ -49,6 +50,7 @@ export function useFinishSession() {
     const priorBests = allTimeBestsByExercise(pastSessions)
 
     const stored = activeSession.finish(opts)
+    track('session_finished')
     // Fire-and-forget: tell the room this member is done (it closes once everyone is).
     if (stored.roomId) void room.finishMine(stored.roomId).catch(() => {})
 

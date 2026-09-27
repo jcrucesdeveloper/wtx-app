@@ -10,6 +10,13 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type RoomStatus = 'lobby' | 'active' | 'finished'
 export type SetLogType = 'number' | 'W' | 'D'
+export type AppEventName =
+  | 'app_opened'
+  | 'account_created'
+  | 'routine_created'
+  | 'session_finished'
+  | 'room_created'
+  | 'room_joined'
 
 // A type alias, not an interface: supabase-js needs rows assignable to Record<string, unknown>.
 export type RoomRow = {
@@ -167,6 +174,25 @@ export type Database = {
           weight?: number
           reps?: number
         }
+        Relationships: []
+      }
+      app_events: {
+        Row: {
+          id: number
+          event: AppEventName
+          user_id: string | null
+          platform: string | null
+          app_version: string | null
+          created_at: string
+        }
+        Insert: {
+          event: AppEventName
+          user_id?: string | null
+          platform?: string | null
+          app_version?: string | null
+          created_at?: string
+        }
+        Update: never
         Relationships: []
       }
     }
