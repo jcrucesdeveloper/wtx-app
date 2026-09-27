@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { requireSupabase } from '@/services/supabase'
+import { track } from '@/services/analytics'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
 import { useAuthStore } from '@/stores/auth'
@@ -359,6 +360,7 @@ export const useRoomStore = defineStore('room', () => {
     })
     if (error || !data) throw toRoomError(error)
     await open(data.id)
+    track('room_created')
     return data
   }
 
@@ -367,6 +369,7 @@ export const useRoomStore = defineStore('room', () => {
     const { data, error } = await requireSupabase().rpc('join_room', { p_code: code })
     if (error || !data) throw toRoomError(error)
     await open(data.id)
+    track('room_joined')
     return data
   }
 

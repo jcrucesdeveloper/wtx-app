@@ -4,6 +4,7 @@ import { newUuid } from '@/lib/uuid'
 import { parseTemplateText, type ParseResult } from '@/lib/parseRoutine'
 import { DEFAULT_TEMPLATES } from '@/lib/wtx/defaultTemplates'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
+import { track } from '@/services/analytics'
 
 /** A `.wtt` template as stored in the library. Raw text is the source of truth. */
 export interface StoredRoutine {
@@ -117,6 +118,7 @@ export const useRoutinesStore = defineStore('routines', () => {
       addedAt: Date.now(),
     }
     routines.value.unshift(routine)
+    track('routine_created')
     return routine
   }
 
