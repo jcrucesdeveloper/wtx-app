@@ -24,7 +24,7 @@ import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
 import type { SessionSetDraft } from '@/lib/serializeSession'
 
-export type SetLog = Tables<'set_logs'>
+export type SetLog = Tables<'room_set_logs'>
 
 export interface RoomMember {
   userId: string
@@ -240,14 +240,14 @@ export const useRoomStore = defineStore('room', () => {
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'room_members' }, (p) => {
         if ((p.old as { room_id?: string }).room_id === roomId) void fetchMembers(roomId)
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'set_logs', filter }, (p) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_set_logs', filter }, (p) => {
         noticeExerciseDone(p.new as SetLog)
         upsertLocalLog(p.new as SetLog)
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'set_logs', filter }, (p) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'room_set_logs', filter }, (p) => {
         upsertLocalLog(p.new as SetLog)
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'set_logs' }, (p) => {
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'room_set_logs' }, (p) => {
         const id = (p.old as { id?: string }).id
         if (id) removeLocalLog(id)
       })
@@ -292,7 +292,7 @@ export const useRoomStore = defineStore('room', () => {
 
     const [, logs] = await Promise.all([
       fetchMembers(roomId),
-      sb.from('set_logs').select('*').eq('room_id', roomId).order('completed_at'),
+      sb.from('room_set_logs').select('*').eq('room_id', roomId).order('completed_at'),
     ])
     if (logs.error) throw toRoomError(logs.error)
     if (room.value?.id !== roomId) return
@@ -490,7 +490,7 @@ export const useRoomStore = defineStore('room', () => {
       upsertLocalLog({ ...row, completed_at: existing?.completed_at ?? new Date().toISOString() })
     }
     enqueue(set.id, async () => {
-      const { error } = await requireSupabase().from('set_logs').upsert(row)
+      const { error } = await requireSupabase().from('room_set_logs').upsert(row)
       if (error) throw error
     })
   }
@@ -498,7 +498,7 @@ export const useRoomStore = defineStore('room', () => {
   function deleteSet(roomId: string, setId: string) {
     if (room.value?.id === roomId) removeLocalLog(setId)
     enqueue(setId, async () => {
-      const { error } = await requireSupabase().from('set_logs').delete().eq('id', setId)
+      const { error } = await requireSupabase().from('room_set_logs').delete().eq('id', setId)
       if (error) throw error
     })
   }

@@ -11,7 +11,7 @@ export function isReactionEmoji(value: unknown): value is ReactionEmoji {
 /**
  * Something that happened in the room, for live toasts. Reactions and PRs
  * arrive over Realtime Broadcast (ephemeral, never stored); the rest are
- * derived from `room_members` / `set_logs` changes.
+ * derived from `room_members` / `room_set_logs` changes.
  */
 export type RoomEvent = { id: string; at: number; from: string } & (
   | { kind: 'reaction'; to: string; emoji: ReactionEmoji }

@@ -140,7 +140,7 @@ export type Database = {
           },
         ]
       }
-      set_logs: {
+      room_set_logs: {
         Row: {
           id: string
           room_id: string

@@ -1,6 +1,6 @@
 import type { SetLogType } from '@/lib/supabase/database.types'
 
-/** The fields of a `set_logs` row the recap needs. */
+/** The fields of a `room_set_logs` row the recap needs. */
 export interface RecapSetLog {
   user_id: string
   exercise_name: string
