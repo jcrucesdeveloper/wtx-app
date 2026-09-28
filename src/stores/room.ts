@@ -414,17 +414,6 @@ export const useRoomStore = defineStore('room', () => {
     reset()
   }
 
-  /** Recent rooms this user has been in, newest first (for the Social tab). */
-  async function history(limit = 20): Promise<RoomRow[]> {
-    const { data, error } = await requireSupabase()
-      .from('rooms')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit)
-    if (error) throw toRoomError(error)
-    return data ?? []
-  }
-
   function reset() {
     close()
     room.value = null
@@ -595,7 +584,6 @@ export const useRoomStore = defineStore('room', () => {
     end,
     finishMine,
     leave,
-    history,
     reset,
   }
 })

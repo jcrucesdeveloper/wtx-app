@@ -354,9 +354,6 @@
     "findPartnersHint": "Share your code, follow theirs",
     "currentRoom": "Your group workout",
     "openRoom": "Open",
-    "historyTitle": "Recent group workouts",
-    "historyEmpty": "No group workouts yet.",
-    "historyError": "Couldn't load your group workouts.",
     "status": { "lobby": "Waiting", "active": "In progress", "finished": "Finished" },
     "feed": {
       "emptyTitle": "Your feed is empty",
@@ -382,6 +379,7 @@
       "nowFollowing": "You're now following {name}.",
       "followingTitle": "Following",
       "followingEmpty": "You're not following anyone yet.",
+      "followingEmptyCta": "Follow your training partners",
       "unfollowAria": "Unfollow {name}",
       "errors": {
         "code_not_found": "That code doesn't match anyone.",

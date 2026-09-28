@@ -354,9 +354,6 @@
     "findPartnersHint": "Comparte tu código, sigue el suyo",
     "currentRoom": "Tu entrenamiento en grupo",
     "openRoom": "Abrir",
-    "historyTitle": "Entrenamientos en grupo recientes",
-    "historyEmpty": "Aún no hay entrenamientos en grupo.",
-    "historyError": "No se pudieron cargar tus entrenamientos en grupo.",
     "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" },
     "feed": {
       "emptyTitle": "Tu feed está vacío",
@@ -382,6 +379,7 @@
       "nowFollowing": "Ahora sigues a {name}.",
       "followingTitle": "Siguiendo",
       "followingEmpty": "Aún no sigues a nadie.",
+      "followingEmptyCta": "Sigue a tus compañeros de entrenamiento",
       "unfollowAria": "Dejar de seguir a {name}",
       "errors": {
         "code_not_found": "Ese código no coincide con nadie.",
