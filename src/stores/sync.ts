@@ -33,6 +33,10 @@ const PAGE_SIZE = 1000
 const CURSOR_OVERLAP_MS = 5000
 const FLUSH_DEBOUNCE_MS = 1500
 const MAX_RETRY_MS = 60_000
+/** Give up auto-retrying after this many failures in a row; the next trigger (edit, refocus, online) tries again. */
+const MAX_RETRIES = 5
+/** Pulls closer together than this are skipped — refocusing the app shouldn't refetch everything every time. */
+const PULL_MIN_INTERVAL_MS = 5 * 60_000
 
 /** Store actions that change data — everything else on those stores is a read. */
 const ROUTINE_MUTATIONS = new Set(['add', 'update', 'remove', 'reorder', 'clear', 'resetToDefaults'])
@@ -111,6 +115,9 @@ export const useSyncStore = defineStore('sync', () => {
   let flushTimer: ReturnType<typeof setTimeout> | undefined
   let retryTimer: ReturnType<typeof setTimeout> | undefined
   let retryDelay = 2000
+  let retries = 0
+  let lastPulledAt = 0
+  let forceNext = false
 
   function scheduleSync(delay = FLUSH_DEBOUNCE_MS) {
     if (!userId) return
@@ -327,7 +334,7 @@ export const useSyncStore = defineStore('sync', () => {
     await flush()
   }
 
-  async function runOnce() {
+  async function runOnce(force: boolean) {
     const uid = userId
     if (!uid) return
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -339,26 +346,38 @@ export const useSyncStore = defineStore('sync', () => {
       if (state.value.userId !== uid) {
         await firstSync(uid)
       } else {
+        // flush() makes no requests when nothing is pending, so only the pull needs throttling.
         await flush()
-        await pull()
+        if (force || Date.now() - lastPulledAt >= PULL_MIN_INTERVAL_MS) await pull()
       }
+      lastPulledAt = Date.now()
       if (userId !== uid) return
       status.value = 'idle'
       lastSyncedAt.value = Date.now()
       lastError.value = ''
       retryDelay = 2000
+      retries = 0
     } catch (e) {
       if (userId !== uid) return
       status.value = typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error'
       lastError.value = e instanceof Error ? e.message : String((e as { message?: string })?.message ?? e)
       clearTimeout(retryTimer)
+      if (++retries >= MAX_RETRIES) {
+        retries = 0
+        retryDelay = 2000
+        return
+      }
       retryTimer = setTimeout(() => void syncNow(), retryDelay)
       retryDelay = Math.min(retryDelay * 2, MAX_RETRY_MS)
     }
   }
 
-  /** Pushes pending changes, then pulls. Concurrent calls coalesce into one extra run. */
-  function syncNow(): Promise<void> {
+  /**
+   * Pushes pending changes, then pulls — unless the last pull was recent and
+   * `force` isn't set. Concurrent calls coalesce into one extra run.
+   */
+  function syncNow(opts: { force?: boolean } = {}): Promise<void> {
+    if (opts.force) forceNext = true
     if (running) {
       rerun = true
       return running
@@ -366,7 +385,9 @@ export const useSyncStore = defineStore('sync', () => {
     running = (async () => {
       do {
         rerun = false
-        await runOnce()
+        const force = forceNext
+        forceNext = false
+        await runOnce(force)
       } while (rerun && userId)
     })().finally(() => {
       running = null
@@ -379,6 +400,7 @@ export const useSyncStore = defineStore('sync', () => {
     if (userId === uid) return syncNow()
     stop()
     userId = uid
+    lastPulledAt = 0
     status.value = 'idle'
     watchStores()
     window.addEventListener('online', onOnline)

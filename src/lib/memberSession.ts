@@ -1,6 +1,6 @@
 import type { RecapSetLog } from '@/lib/roomRecap'
 
-/** A room `set_logs` row, as far as a member's session view needs it. */
+/** A room `room_set_logs` row, as far as a member's session view needs it. */
 export interface MemberSetLog extends RecapSetLog {
   id: string
 }

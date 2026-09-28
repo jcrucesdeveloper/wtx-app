@@ -102,7 +102,7 @@ async function deleteAccount() {
           <span class="sync__status" :class="`sync__status--${sync.status}`">
             {{ t(`account.syncStatus.${sync.status}`) }}
           </span>
-          <button type="button" class="btn btn--small" :disabled="sync.status === 'syncing'" @click="sync.syncNow()">
+          <button type="button" class="btn btn--small" :disabled="sync.status === 'syncing'" @click="sync.syncNow({ force: true })">
             {{ t('account.syncNow') }}
           </button>
         </span>

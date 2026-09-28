@@ -285,9 +285,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    *   mid-workout exercise swap as a new routine on finish.
    * @param opts.name Renames the session as it's saved; blank keeps the current name.
    * @param opts.localOnly Keeps the session on this device, out of account sync.
+   * @param opts.shareToFeed Posts the finished session to the Social feed for followers.
    */
   function finish(
-    opts: { routineIdOverride?: string; name?: string; localOnly?: boolean } = {},
+    opts: { routineIdOverride?: string; name?: string; localOnly?: boolean; shareToFeed?: boolean } = {},
   ): StoredSession {
     if (!session.value) throw new Error('No active session to finish.')
 
@@ -304,6 +305,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       Date.now(),
       session.value.roomId,
       opts.localOnly,
+      !opts.localOnly && opts.shareToFeed,
     )
 
     session.value = null

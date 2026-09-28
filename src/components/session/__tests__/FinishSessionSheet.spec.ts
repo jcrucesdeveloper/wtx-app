@@ -106,7 +106,7 @@ describe('FinishSessionSheet', () => {
     button('Finish & save').click()
 
     expect(sheet.emitted('finish')).toEqual([
-      [{ routineIdOverride: undefined, name: 'Heavy push', localOnly: false }],
+      [{ routineIdOverride: undefined, name: 'Heavy push', localOnly: false, shareToFeed: false }],
     ])
   })
 

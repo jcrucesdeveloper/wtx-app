@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Session } from '@supabase/supabase-js'
 import { isSupabaseConfigured, requireSupabase, supabase } from '@/services/supabase'
+import { track } from '@/services/analytics'
 import type { Tables } from '@/lib/supabase/database.types'
 import { useSyncStore } from '@/stores/sync'
 import { useRoomStore } from '@/stores/room'
@@ -90,6 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
       options: { data: { display_name: displayName.trim() } },
     })
     if (error) throw error
+    track('account_created')
     if (!data.session) return 'confirm-email'
     onSession(data.session)
     return 'signed-in'

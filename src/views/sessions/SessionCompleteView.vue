@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { PartyPopper, TrendingDown, TrendingUp } from '@lucide/vue'
+import { PartyPopper, Share2, TrendingDown, TrendingUp } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
 import PersonalRecordBanner from '@/components/session/PersonalRecordBanner.vue'
@@ -57,11 +57,66 @@ function onDone() {
   AdService.showInterstitial()
   router.replace('/sessions')
 }
+
+// Leads with the most exciting fact — a fresh PR beats a plain streak count.
+const shareText = computed(() => {
+  if (!result.value?.ok) return ''
+  const session = result.value.session
+  const lines = [
+    t('sessionComplete.shareIntro', { name: session.name }),
+    t('sessionComplete.shareStats', { sets: session.totalWorkingSets, exercises: session.exerciseCount }),
+  ]
+  const topPr = recap.value?.personalRecords[0]
+  if (topPr) {
+    lines.push(
+      t('sessionComplete.sharePr', {
+        exercise: topPr.exerciseName,
+        weight: formatNumber(topPr.weight),
+        unit: session.unit,
+        reps: topPr.reps,
+      }),
+    )
+  } else if (recap.value && recap.value.weekStreak >= 2) {
+    lines.push(t('sessionComplete.shareStreak', { weeks: recap.value.weekStreak }))
+  }
+  return lines.join('\n')
+})
+
+const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+const shareCopied = ref(false)
+
+async function share() {
+  if (canNativeShare) {
+    try {
+      await navigator.share({ text: shareText.value })
+    } catch {
+      /* user dismissed the share sheet, or it's unavailable */
+    }
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(shareText.value)
+    shareCopied.value = true
+    setTimeout(() => (shareCopied.value = false), 1500)
+  } catch {
+    /* clipboard blocked */
+  }
+}
 </script>
 
 <template>
   <AppPage :title="result?.ok ? result.session.name : t('sessionComplete.fallbackTitle')">
     <template #actions>
+      <button
+        v-if="result?.ok"
+        type="button"
+        class="share-btn"
+        :aria-label="t('sessionComplete.shareAria')"
+        @click="share"
+      >
+        <Share2 :size="16" :stroke-width="2.25" />
+        <span v-if="shareCopied">{{ t('sessionComplete.shareCopied') }}</span>
+      </button>
       <button type="button" class="done-btn" @click="onDone">{{ t('sessionComplete.done') }}</button>
     </template>
 
@@ -164,6 +219,21 @@ function onDone() {
   letter-spacing: var(--label-tracking);
   color: #fff;
   background: var(--color-accent);
+  cursor: pointer;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+  background: var(--color-background-soft);
   cursor: pointer;
 }
 

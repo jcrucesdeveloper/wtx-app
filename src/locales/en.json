@@ -13,6 +13,29 @@
     "openActionsAria": "Open WTX actions",
     "wtxLabel": "WTX"
   },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "getStarted": "Get started",
+    "routines": {
+      "title": "Write your routines as text",
+      "body": "Keep your training routines as small, plain-text templates — type one from scratch, paste it in, or scan a QR code from a friend."
+    },
+    "sessions": {
+      "title": "Log every workout",
+      "body": "Track sets and reps against your routine, catch a new personal record the moment you hit it, and see your streak build on the training calendar."
+    },
+    "social": {
+      "title": "Train live with friends",
+      "body": "Create an account to sync across devices, then start a room and train together in real time — same countdown, shared progress, cheers included."
+    }
+  },
+  "notifications": {
+    "reminderTitle": "Time to train",
+    "reminderBody": "You haven't logged a workout today — a quick one still counts.",
+    "streakTitle": "Your streak is on the line",
+    "streakBody": "Log a session before the week ends to keep your {count}-week streak."
+  },
   "colorPicker": {
     "accentColorAria": "Accent color"
   },
@@ -203,7 +226,9 @@
       "targetDeviceDesc": "Stays private on this phone, never uploaded",
       "keepTraining": "Keep training",
       "next": "Next",
-      "finishAndSave": "Finish & save"
+      "finishAndSave": "Finish & save",
+      "shareToFeed": "Share to feed",
+      "shareToFeedDesc": "Followers will see this workout, its stats, and any personal records."
     },
     "loggedExerciseList": {
       "incomplete": "Incomplete",
@@ -266,7 +291,13 @@
     "moreVolume": "{value} {unit} more volume vs. last time",
     "lessVolume": "{value} {unit} less volume vs. last time",
     "milestoneSessions": "{count} workouts logged",
-    "milestoneStreak": "{count}-week streak"
+    "milestoneStreak": "{count}-week streak",
+    "shareAria": "Share this workout",
+    "shareIntro": "Just finished {name} on WTX 💪",
+    "shareStats": "{sets} sets · {exercises} exercises",
+    "sharePr": "New PR on {exercise}: {weight}{unit} × {reps} 🏆",
+    "shareStreak": "{weeks}-week streak going 🔥",
+    "shareCopied": "Copied!"
   },
   "sessionDetail": {
     "fallbackTitle": "Session",
@@ -319,12 +350,44 @@
     "trainWithFriendsHint": "Pick a routine and invite people",
     "joinWithCode": "Join with code",
     "joinWithCodeHint": "Enter or scan a friend's room code",
+    "findPartners": "Find training partners",
+    "findPartnersHint": "Share your code, follow theirs",
     "currentRoom": "Your group workout",
     "openRoom": "Open",
-    "historyTitle": "Recent group workouts",
-    "historyEmpty": "No group workouts yet.",
-    "historyError": "Couldn't load your group workouts.",
-    "status": { "lobby": "Waiting", "active": "In progress", "finished": "Finished" }
+    "status": { "lobby": "Waiting", "active": "In progress", "finished": "Finished" },
+    "feed": {
+      "emptyTitle": "Your feed is empty",
+      "emptyHint": "Follow people you train with to see their workouts here — or share your code so they can follow you.",
+      "emptyCta": "Find training partners",
+      "error": "Couldn't load the feed.",
+      "loading": "Loading…",
+      "loadMore": "Load more",
+      "showExercises": "Show exercises",
+      "hideExercises": "Hide exercises",
+      "kudosAria": "Give kudos"
+    },
+    "follow": {
+      "title": "Find training partners",
+      "yourCode": "Your code",
+      "shareHint": "Share this so a friend can follow you — they can scan it, or open the link.",
+      "shareText": "Follow me on wtx",
+      "copyLink": "Copy link",
+      "enterHint": "Got a friend's code? Enter it here to follow them.",
+      "codeLabel": "Follow code",
+      "follow": "Follow",
+      "following": "Following…",
+      "nowFollowing": "You're now following {name}.",
+      "followingTitle": "Following",
+      "followingEmpty": "You're not following anyone yet.",
+      "followingEmptyCta": "Follow your training partners",
+      "unfollowAria": "Unfollow {name}",
+      "errors": {
+        "code_not_found": "That code doesn't match anyone.",
+        "cannot_follow_self": "That's your own code.",
+        "not_authenticated": "Log in to follow people.",
+        "unknown": "Something went wrong. Try again."
+      }
+    }
   },
   "consent": {
     "text": "By creating an account, your routines and workout sessions will be uploaded and stored on our servers so they stay in sync and you can train with friends. You can delete your account and all of its data at any time from Configuration.",
@@ -521,6 +584,11 @@
     "dataDeleteHint": "Permanently erase every routine and session.",
     "deleteAllData": "Delete all data",
     "deleteAllConfirm": "Delete every routine and session? This cannot be undone.",
+    "reminders": "Reminders",
+    "remindersHint": "A nudge if you haven't logged a workout by evening — never more than one a day.",
+    "enableReminders": "Enable reminders",
+    "remindersOn": "Reminders on",
+    "remindersDenied": "Notifications are off for WTX in your device settings.",
     "about": "About",
     "version": "WTX v{version}"
   },

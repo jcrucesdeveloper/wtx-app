@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { requireSupabase } from '@/services/supabase'
+import { track } from '@/services/analytics'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
 import { useAuthStore } from '@/stores/auth'
@@ -24,7 +25,7 @@ import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
 import type { SessionSetDraft } from '@/lib/serializeSession'
 
-export type SetLog = Tables<'set_logs'>
+export type SetLog = Tables<'room_set_logs'>
 
 export interface RoomMember {
   userId: string
@@ -111,6 +112,17 @@ export const useRoomStore = defineStore('room', () => {
 
   let channel: RealtimeChannel | null = null
 
+  // A finished room is immutable (no transition leads out of 'finished', and
+  // every write policy requires the room to be active) — once it flips, there's
+  // nothing left to listen for, so drop the live connection right away instead
+  // of waiting for the next `open()`/logout to close it.
+  watch(
+    () => room.value?.status,
+    (status) => {
+      if (status === 'finished') close()
+    },
+  )
+
   const myId = computed(() => useAuthStore().user?.id ?? null)
   const isHost = computed(() => !!room.value && room.value.host_id === myId.value)
 
@@ -167,6 +179,7 @@ export const useRoomStore = defineStore('room', () => {
     })),
   )
 
+  /** Full member list — only needed for the initial load; later changes arrive over Realtime. */
   async function fetchMembers(roomId: string) {
     const { data, error } = await requireSupabase()
       .from('room_members')
@@ -175,26 +188,55 @@ export const useRoomStore = defineStore('room', () => {
       .order('joined_at')
     if (error) throw error
     if (room.value?.id !== roomId) return
-    const previous = members.value
-    const next = (data ?? []).map((row) => ({
+    members.value = (data ?? []).map((row) => ({
       userId: row.user_id,
       displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
       joinedAt: row.joined_at,
       finishedAt: row.finished_at,
     }))
+  }
 
-    // Diff against what we had (not on the first load) to announce joins and finishes.
-    if (previous.length) {
-      const before = new Map(previous.map((m) => [m.userId, m]))
-      for (const m of next) {
-        const was = before.get(m.userId)
-        if (!was) addEvent({ kind: 'joined', from: m.userId })
-        else if (!was.finishedAt && m.finishedAt) addEvent({ kind: 'finished', from: m.userId })
-      }
-      const allDone = (list: RoomMember[]) => list.length > 1 && list.every((m) => m.finishedAt)
-      if (!allDone(previous) && allDone(next)) addEvent({ kind: 'team-finished', from: '' })
-    }
+  /** A joining member's row already carries everything but their name — one small lookup for that. */
+  async function fetchMemberName(userId: string): Promise<string> {
+    const { data } = await requireSupabase().from('profiles').select('display_name').eq('id', userId).maybeSingle()
+    return data?.display_name ?? '—'
+  }
+
+  interface MemberRow {
+    user_id: string
+    joined_at: string
+    finished_at: string | null
+  }
+
+  /** Someone else joined — their row arrived over Realtime; only their name needs a query. */
+  function addMember(row: MemberRow, displayName: string) {
+    if (isMember(row.user_id)) return
+    members.value = [
+      ...members.value,
+      { userId: row.user_id, displayName, joinedAt: row.joined_at, finishedAt: row.finished_at },
+    ]
+    addEvent({ kind: 'joined', from: row.user_id })
+  }
+
+  /** finished_at changed on a member we already know about — patch it in place, no query. */
+  function updateMemberFinished(row: Pick<MemberRow, 'user_id' | 'finished_at'>) {
+    const index = members.value.findIndex((m) => m.userId === row.user_id)
+    if (index < 0 || members.value[index]!.finishedAt === row.finished_at) return
+    const wasFinished = !!members.value[index]!.finishedAt
+    const next = [...members.value]
+    next[index] = { ...next[index]!, finishedAt: row.finished_at }
     members.value = next
+    if (!wasFinished && row.finished_at) {
+      addEvent({ kind: 'finished', from: row.user_id })
+      if (members.value.length > 1 && members.value.every((m) => m.finishedAt)) {
+        addEvent({ kind: 'team-finished', from: '' })
+      }
+    }
+  }
+
+  /** Someone left — their id is all a delete payload carries, and that's all removing them needs. */
+  function removeMember(userId: string) {
+    members.value = members.value.filter((m) => m.userId !== userId)
   }
 
   /** Announces "Ana finished Squat" when someone else's set completes an exercise's plan. */
@@ -230,24 +272,26 @@ export const useRoomStore = defineStore('room', () => {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` }, (p) => {
         if (room.value?.id === roomId) room.value = p.new as RoomRow
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_members', filter }, () => {
-        void fetchMembers(roomId)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_members', filter }, (p) => {
+        const row = p.new as MemberRow
+        void fetchMemberName(row.user_id).then((name) => addMember(row, name))
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'room_members', filter }, () => {
-        void fetchMembers(roomId)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'room_members', filter }, (p) => {
+        updateMemberFinished(p.new as MemberRow)
       })
       // Delete events can't be filtered server-side; the old row carries the primary key.
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'room_members' }, (p) => {
-        if ((p.old as { room_id?: string }).room_id === roomId) void fetchMembers(roomId)
+        const row = p.old as { room_id?: string; user_id?: string }
+        if (row.room_id === roomId && row.user_id) removeMember(row.user_id)
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'set_logs', filter }, (p) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_set_logs', filter }, (p) => {
         noticeExerciseDone(p.new as SetLog)
         upsertLocalLog(p.new as SetLog)
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'set_logs', filter }, (p) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'room_set_logs', filter }, (p) => {
         upsertLocalLog(p.new as SetLog)
       })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'set_logs' }, (p) => {
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'room_set_logs' }, (p) => {
         const id = (p.old as { id?: string }).id
         if (id) removeLocalLog(id)
       })
@@ -292,13 +336,14 @@ export const useRoomStore = defineStore('room', () => {
 
     const [, logs] = await Promise.all([
       fetchMembers(roomId),
-      sb.from('set_logs').select('*').eq('room_id', roomId).order('completed_at'),
+      sb.from('room_set_logs').select('*').eq('room_id', roomId).order('completed_at'),
     ])
     if (logs.error) throw toRoomError(logs.error)
     if (room.value?.id !== roomId) return
     setLogs.value = logs.data ?? []
     clearedSeen = new Set(cleared.value)
-    subscribe(roomId)
+    // A finished room can't change again — recap views need no live connection.
+    if (data.status !== 'finished') subscribe(roomId)
   }
 
   /** Creates a room from a library routine, with this user as host. */
@@ -315,6 +360,7 @@ export const useRoomStore = defineStore('room', () => {
     })
     if (error || !data) throw toRoomError(error)
     await open(data.id)
+    track('room_created')
     return data
   }
 
@@ -323,6 +369,7 @@ export const useRoomStore = defineStore('room', () => {
     const { data, error } = await requireSupabase().rpc('join_room', { p_code: code })
     if (error || !data) throw toRoomError(error)
     await open(data.id)
+    track('room_joined')
     return data
   }
 
@@ -365,17 +412,6 @@ export const useRoomStore = defineStore('room', () => {
       await requireSupabase().from('room_members').delete().eq('room_id', current.id).eq('user_id', uid)
     }
     reset()
-  }
-
-  /** Recent rooms this user has been in, newest first (for the Social tab). */
-  async function history(limit = 20): Promise<RoomRow[]> {
-    const { data, error } = await requireSupabase()
-      .from('rooms')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit)
-    if (error) throw toRoomError(error)
-    return data ?? []
   }
 
   function reset() {
@@ -490,7 +526,7 @@ export const useRoomStore = defineStore('room', () => {
       upsertLocalLog({ ...row, completed_at: existing?.completed_at ?? new Date().toISOString() })
     }
     enqueue(set.id, async () => {
-      const { error } = await requireSupabase().from('set_logs').upsert(row)
+      const { error } = await requireSupabase().from('room_set_logs').upsert(row)
       if (error) throw error
     })
   }
@@ -498,7 +534,7 @@ export const useRoomStore = defineStore('room', () => {
   function deleteSet(roomId: string, setId: string) {
     if (room.value?.id === roomId) removeLocalLog(setId)
     enqueue(setId, async () => {
-      const { error } = await requireSupabase().from('set_logs').delete().eq('id', setId)
+      const { error } = await requireSupabase().from('room_set_logs').delete().eq('id', setId)
       if (error) throw error
     })
   }
@@ -548,7 +584,6 @@ export const useRoomStore = defineStore('room', () => {
     end,
     finishMine,
     leave,
-    history,
     reset,
   }
 })

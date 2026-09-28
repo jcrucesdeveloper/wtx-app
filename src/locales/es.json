@@ -13,6 +13,29 @@
     "openActionsAria": "Abrir acciones de WTX",
     "wtxLabel": "WTX"
   },
+  "onboarding": {
+    "skip": "Omitir",
+    "next": "Siguiente",
+    "getStarted": "Empezar",
+    "routines": {
+      "title": "Escribe tus rutinas como texto",
+      "body": "Guarda tus rutinas de entrenamiento como plantillas de texto simple: escribe una desde cero, pégala, o escanea un código QR de un amigo."
+    },
+    "sessions": {
+      "title": "Registra cada entrenamiento",
+      "body": "Sigue tus series y repeticiones según tu rutina, detecta un nuevo récord personal en el momento en que lo logras, y mira crecer tu racha en el calendario de entrenamiento."
+    },
+    "social": {
+      "title": "Entrena en vivo con amigos",
+      "body": "Crea una cuenta para sincronizar entre dispositivos y luego crea una sala para entrenar juntos en tiempo real: mismo conteo, progreso compartido y porras incluidas."
+    }
+  },
+  "notifications": {
+    "reminderTitle": "Hora de entrenar",
+    "reminderBody": "Todavía no registraste un entrenamiento hoy — uno rápido también cuenta.",
+    "streakTitle": "Tu racha está en juego",
+    "streakBody": "Registra una sesión antes de que termine la semana para mantener tu racha de {count} semanas."
+  },
   "colorPicker": {
     "accentColorAria": "Color de acento"
   },
@@ -203,7 +226,9 @@
       "targetDeviceDesc": "Queda privado en este teléfono, nunca se sube",
       "keepTraining": "Seguir entrenando",
       "next": "Siguiente",
-      "finishAndSave": "Terminar y guardar"
+      "finishAndSave": "Terminar y guardar",
+      "shareToFeed": "Compartir en el feed",
+      "shareToFeedDesc": "Tus seguidores verán este entrenamiento, sus estadísticas y cualquier récord personal."
     },
     "loggedExerciseList": {
       "incomplete": "Incompleto",
@@ -266,7 +291,13 @@
     "moreVolume": "{value} {unit} más de volumen que la última vez",
     "lessVolume": "{value} {unit} menos de volumen que la última vez",
     "milestoneSessions": "{count} entrenamientos registrados",
-    "milestoneStreak": "{count} semanas de racha"
+    "milestoneStreak": "{count} semanas de racha",
+    "shareAria": "Compartir este entrenamiento",
+    "shareIntro": "Acabo de terminar {name} en WTX 💪",
+    "shareStats": "{sets} series · {exercises} ejercicios",
+    "sharePr": "Nuevo récord en {exercise}: {weight}{unit} × {reps} 🏆",
+    "shareStreak": "{weeks} semanas de racha 🔥",
+    "shareCopied": "¡Copiado!"
   },
   "sessionDetail": {
     "fallbackTitle": "Sesión",
@@ -319,12 +350,44 @@
     "trainWithFriendsHint": "Elige una rutina e invita a otros",
     "joinWithCode": "Unirse con código",
     "joinWithCodeHint": "Escribe o escanea el código de un amigo",
+    "findPartners": "Buscar compañeros de entrenamiento",
+    "findPartnersHint": "Comparte tu código, sigue el suyo",
     "currentRoom": "Tu entrenamiento en grupo",
     "openRoom": "Abrir",
-    "historyTitle": "Entrenamientos en grupo recientes",
-    "historyEmpty": "Aún no hay entrenamientos en grupo.",
-    "historyError": "No se pudieron cargar tus entrenamientos en grupo.",
-    "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" }
+    "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" },
+    "feed": {
+      "emptyTitle": "Tu feed está vacío",
+      "emptyHint": "Sigue a las personas con las que entrenas para ver sus entrenamientos aquí, o comparte tu código para que ellas te sigan.",
+      "emptyCta": "Buscar compañeros de entrenamiento",
+      "error": "No se pudo cargar el feed.",
+      "loading": "Cargando…",
+      "loadMore": "Cargar más",
+      "showExercises": "Mostrar ejercicios",
+      "hideExercises": "Ocultar ejercicios",
+      "kudosAria": "Dar ánimo"
+    },
+    "follow": {
+      "title": "Buscar compañeros de entrenamiento",
+      "yourCode": "Tu código",
+      "shareHint": "Comparte esto para que un amigo pueda seguirte: puede escanearlo o abrir el enlace.",
+      "shareText": "Sígueme en wtx",
+      "copyLink": "Copiar enlace",
+      "enterHint": "¿Tienes el código de un amigo? Escríbelo aquí para seguirlo.",
+      "codeLabel": "Código para seguir",
+      "follow": "Seguir",
+      "following": "Siguiendo…",
+      "nowFollowing": "Ahora sigues a {name}.",
+      "followingTitle": "Siguiendo",
+      "followingEmpty": "Aún no sigues a nadie.",
+      "followingEmptyCta": "Sigue a tus compañeros de entrenamiento",
+      "unfollowAria": "Dejar de seguir a {name}",
+      "errors": {
+        "code_not_found": "Ese código no coincide con nadie.",
+        "cannot_follow_self": "Ese es tu propio código.",
+        "not_authenticated": "Inicia sesión para seguir a otras personas.",
+        "unknown": "Algo salió mal. Inténtalo de nuevo."
+      }
+    }
   },
   "consent": {
     "text": "Al crear una cuenta, tus rutinas y sesiones de entrenamiento se subirán y guardarán en nuestros servidores para mantenerlas sincronizadas y poder entrenar con amigos. Puedes eliminar tu cuenta y todos sus datos cuando quieras desde Configuración.",
@@ -519,6 +582,11 @@
     "importNothing": "Nada nuevo que importar — todo en ese archivo ya está aquí.",
     "importError": "No se pudo leer ese archivo — elige un .zip exportado desde WTX.",
     "dataDeleteHint": "Borra permanentemente cada rutina y sesión.",
+    "reminders": "Recordatorios",
+    "remindersHint": "Un aviso si no has registrado un entrenamiento para la tarde — nunca más de uno por día.",
+    "enableReminders": "Activar recordatorios",
+    "remindersOn": "Recordatorios activados",
+    "remindersDenied": "Las notificaciones de WTX están desactivadas en los ajustes de tu dispositivo.",
     "deleteAllData": "Eliminar todos los datos",
     "deleteAllConfirm": "¿Eliminar cada rutina y sesión? Esto no se puede deshacer.",
     "about": "Acerca de",

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronRight, QrCode, RefreshCw, Users } from '@lucide/vue'
+import { ChevronRight, QrCode, RefreshCw, UserPlus, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import AuthForm from '@/components/social/AuthForm.vue'
+import FeedList from '@/components/social/FeedList.vue'
+import FollowingStrip from '@/components/social/FollowingStrip.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRoomStore } from '@/stores/room'
 import { useSyncStore } from '@/stores/sync'
@@ -12,7 +13,7 @@ import { useUiStore } from '@/stores/ui'
 import { isSupabaseConfigured } from '@/services/supabase'
 import type { RoomRow } from '@/lib/supabase/database.types'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -20,39 +21,10 @@ const room = useRoomStore()
 const sync = useSyncStore()
 const ui = useUiStore()
 
-const history = ref<RoomRow[]>([])
-const historyError = ref(false)
-
-async function loadHistory() {
-  historyError.value = false
-  try {
-    history.value = await room.history()
-  } catch {
-    historyError.value = true
-  }
-}
-
-onMounted(async () => {
-  await auth.whenReady()
-  if (auth.isLoggedIn) void loadHistory()
-})
-
-watch(
-  () => auth.isLoggedIn,
-  (loggedIn) => {
-    if (loggedIn) void loadHistory()
-    else history.value = []
-  },
-)
-
 /** After logging in, return to wherever sent us here (e.g. a join link), else stay on Social. */
 function onAuthDone() {
   const redirect = route.query.redirect
   if (typeof redirect === 'string' && redirect.startsWith('/')) router.replace(redirect)
-}
-
-function roomDate(row: RoomRow): string {
-  return new Date(row.created_at).toLocaleDateString(locale.value, { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
 function openRoom(row: RoomRow) {
@@ -93,6 +65,8 @@ function openRoom(row: RoomRow) {
         <span class="current__open">{{ t('social.openRoom') }}</span>
       </button>
 
+      <FeedList />
+
       <div class="actions">
         <button type="button" class="action" @click="ui.open('group')">
           <span class="action__icon"><Users :size="20" :stroke-width="2.25" /></span>
@@ -110,24 +84,17 @@ function openRoom(row: RoomRow) {
           </span>
           <ChevronRight :size="18" class="action__chevron" />
         </button>
+        <button type="button" class="action" @click="router.push({ name: 'follow' })">
+          <span class="action__icon"><UserPlus :size="20" :stroke-width="2.25" /></span>
+          <span class="action__body">
+            <span class="action__title">{{ t('social.findPartners') }}</span>
+            <span class="action__hint">{{ t('social.findPartnersHint') }}</span>
+          </span>
+          <ChevronRight :size="18" class="action__chevron" />
+        </button>
       </div>
 
-      <section class="history">
-        <h2 class="history__title">{{ t('social.historyTitle') }}</h2>
-        <p v-if="historyError" class="history__empty">{{ t('social.historyError') }}</p>
-        <p v-else-if="!history.length" class="history__empty">{{ t('social.historyEmpty') }}</p>
-        <ul v-else class="history__list">
-          <li v-for="row in history" :key="row.id">
-            <button type="button" class="history__row" @click="openRoom(row)">
-              <span class="history__body">
-                <span class="history__name">{{ row.routine_name }}</span>
-                <span class="history__meta">{{ roomDate(row) }}</span>
-              </span>
-              <span class="status" :class="`status--${row.status}`">{{ t(`social.status.${row.status}`) }}</span>
-            </button>
-          </li>
-        </ul>
-      </section>
+      <FollowingStrip />
     </div>
   </AppPage>
 </template>
@@ -303,80 +270,5 @@ function openRoom(row: RoomRow) {
 
 .action__chevron {
   opacity: 0.4;
-}
-
-.history {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.history__title {
-  font-size: var(--label-size);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.6;
-}
-
-.history__empty {
-  font-size: 13px;
-  opacity: 0.6;
-}
-
-.history__list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0;
-}
-
-.history__row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.history__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.history__name {
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.history__meta {
-  font-size: 12px;
-  opacity: 0.6;
-}
-
-.status {
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  padding: 3px 7px;
-  border-radius: var(--radius-xs);
-  background: var(--color-background-mute);
-}
-
-.status--active {
-  background: var(--color-accent);
-  color: #fff;
 }
 </style>

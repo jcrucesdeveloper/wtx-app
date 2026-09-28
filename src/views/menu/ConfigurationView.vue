@@ -15,6 +15,9 @@ import { useRoutinesStore } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useLocaleStore } from '@/stores/locale'
+import { useNotificationsStore } from '@/stores/notifications'
+import { NotificationService } from '@/services/notifications'
+import { sessionDateStrs } from '@/lib/sessionDates'
 import { parseSessionText } from '@/lib/parseSession'
 import {
   buildDataExportZip,
@@ -115,6 +118,26 @@ const appVersion = __APP_VERSION__
 
 /** No-op until ads/payment is wired up — the card is tappable but doesn't do anything yet. */
 function onRemoveAdsClick() {}
+
+const notifications = useNotificationsStore()
+const { remindersEnabled } = storeToRefs(notifications)
+const remindersDenied = ref(false)
+
+async function toggleReminders() {
+  if (remindersEnabled.value) {
+    notifications.setRemindersEnabled(false)
+    await NotificationService.cancel()
+    return
+  }
+  remindersDenied.value = false
+  const granted = await NotificationService.requestPermission()
+  if (!granted) {
+    remindersDenied.value = true
+    return
+  }
+  notifications.setRemindersEnabled(true)
+  await NotificationService.schedule(sessionDateStrs(sessions))
+}
 </script>
 
 <template>
@@ -176,6 +199,15 @@ function onRemoveAdsClick() {}
         <button type="button" class="danger-btn" @click="resetAllData">
           {{ t('settings.deleteAllData') }}
         </button>
+      </div>
+
+      <div class="group">
+        <h2 class="group__title">{{ t('settings.reminders') }}</h2>
+        <p class="group__hint">{{ t('settings.remindersHint') }}</p>
+        <button type="button" class="export-btn" @click="toggleReminders">
+          {{ remindersEnabled ? t('settings.remindersOn') : t('settings.enableReminders') }}
+        </button>
+        <p v-if="remindersDenied" class="msg msg--error">{{ t('settings.remindersDenied') }}</p>
       </div>
 
       <div class="group">

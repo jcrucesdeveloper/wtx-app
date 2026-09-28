@@ -80,9 +80,13 @@ const remainingSets = computed(() => stats.value.totalSets - stats.value.complet
 const step = ref<'review' | 'routine' | 'save-new'>('review')
 const sessionName = ref('')
 const saveTarget = ref<SessionSaveTarget>('profile')
+const shareToFeed = ref(true)
 const newRoutineName = ref('')
 const error = ref('')
 let openedAt = 0
+
+/** Sharing needs an account and a synced (non-device-only) session. */
+const canShareToFeed = computed(() => auth.isLoggedIn && saveTarget.value === 'profile')
 
 watch(
   () => props.open,
@@ -92,6 +96,7 @@ watch(
     step.value = 'review'
     sessionName.value = activeSession.session?.draft.name ?? ''
     saveTarget.value = settings.sessionSaveTarget
+    shareToFeed.value = settings.shareToFeedDefault
     newRoutineName.value = t('session.finishSheet.editedSuffix', { name: routineName.value })
     error.value = ''
   },
@@ -114,11 +119,13 @@ function reviewedOptions(routineIdOverride?: string): FinishSessionOptions {
     routineIdOverride,
     name: sessionName.value,
     localOnly: isSupabaseConfigured && saveTarget.value === 'device',
+    shareToFeed: canShareToFeed.value && shareToFeed.value,
   }
 }
 
 function finish(routineIdOverride?: string) {
   if (isSupabaseConfigured) settings.setSessionSaveTarget(saveTarget.value)
+  if (canShareToFeed.value) settings.setShareToFeedDefault(shareToFeed.value)
   emit('finish', reviewedOptions(routineIdOverride))
 }
 
@@ -246,6 +253,14 @@ const targets = computed(() => [
           </button>
         </div>
       </div>
+
+      <label v-if="canShareToFeed" class="share-toggle">
+        <input v-model="shareToFeed" type="checkbox" />
+        <span class="share-toggle__body">
+          <span class="share-toggle__title">{{ t('session.finishSheet.shareToFeed') }}</span>
+          <span class="share-toggle__desc">{{ t('session.finishSheet.shareToFeedDesc') }}</span>
+        </span>
+      </label>
 
       <div class="actions">
         <button type="button" class="secondary" @click="close">
@@ -432,6 +447,42 @@ input:focus {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.share-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-background-soft);
+  cursor: pointer;
+}
+
+.share-toggle input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  accent-color: var(--color-accent);
+}
+
+.share-toggle__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.share-toggle__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-heading);
+}
+
+.share-toggle__desc {
+  font-size: 12px;
+  opacity: 0.65;
 }
 
 .target {

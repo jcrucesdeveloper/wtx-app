@@ -32,10 +32,43 @@ describe('sync rows', () => {
       routine_id: null,
       room_id: 'room',
       raw_text: '# S',
+      shared: false,
+      feed_snapshot: null,
       created_at: new Date(0).toISOString(),
       updated_at: new Date(0).toISOString(),
       deleted_at: new Date(0).toISOString(),
     })
-    expect(session).toEqual({ id: ROUTINE_ID, rawText: '# S', addedAt: 0, routineId: undefined, roomId: 'room', deleted: true })
+    expect(session).toEqual({
+      id: ROUTINE_ID,
+      rawText: '# S',
+      addedAt: 0,
+      routineId: undefined,
+      roomId: 'room',
+      shared: false,
+      feedSnapshot: undefined,
+      deleted: true,
+    })
+  })
+
+  it('carries a shared session and its feed snapshot through the round trip', () => {
+    const snapshot = { personalRecords: [], comparison: undefined, milestone: undefined, weekStreak: 2, elapsedSeconds: 300 }
+    const row = sessionToRow({ id: ROUTINE_ID, rawText: '# S', addedAt: 0, shared: true, feedSnapshot: snapshot }, USER)
+    expect(row.shared).toBe(true)
+    expect(row.feed_snapshot).toEqual(snapshot)
+
+    const back = rowToSession({
+      id: ROUTINE_ID,
+      user_id: USER,
+      routine_id: null,
+      room_id: null,
+      raw_text: '# S',
+      shared: true,
+      feed_snapshot: row.feed_snapshot!,
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      deleted_at: null,
+    })
+    expect(back.shared).toBe(true)
+    expect(back.feedSnapshot).toEqual(snapshot)
   })
 })

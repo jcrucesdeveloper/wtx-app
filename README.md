@@ -27,6 +27,7 @@ routine in the URL.
 - [Getting started](#getting-started)
 - [Project structure](#project-structure)
 - [The wtx parser](#the-wtx-parser)
+- [Store release checklist](#store-release-checklist)
 - [Deployment](#deployment)
 - [License](#license)
 
@@ -62,10 +63,11 @@ routine in the URL.
   base64url-encoded into the query) and renders it as a QR code. Scanning it on
   another device opens the app with the routine ready to add.
 - **Configurable accent color**, remembered across visits.
-
-> The **Sessions** and **Friends** tabs are UI placeholders for now — logging
-> workouts (`.wts` files) and social features aren't wired up yet, though the
-> vendored parser already understands the session format.
+- **Sessions** — log a workout against a routine, with a rest timer, live PR
+  detection, a review step before finishing, and a training calendar.
+- **Social** (optional, see below) — sync your library across devices and
+  train live with friends in a group-workout room: shared countdown, live
+  progress, cheers, and a recap once everyone's done.
 
 ## The `.wtt` format
 
@@ -130,15 +132,18 @@ group workouts. To enable it:
 
 1. Create a Supabase project. In **Authentication → Providers**, enable Email
    (turn off "Confirm email" for quick testing).
-2. Apply the schema. Each table lives in its own file under
-   `supabase/tables/` (applied in file-name order); `pnpm db:migration`
-   bundles them into `supabase/migrations/`. Either paste that migration into
-   the SQL editor, or use the CLI:
+2. Apply the schema. `supabase/migrations/` holds the standard, hand-written
+   Supabase CLI migrations. Either paste `20260925000000_accounts_sync_rooms.sql`
+   into the SQL editor, or use the CLI:
    ```sh
    npx supabase init        # once; keeps the existing migrations
    npx supabase link --project-ref <ref>
    npx supabase db push
    ```
+   For future schema changes, scaffold a new timestamped file with
+   `npx supabase migration new <description>`, write the SQL by hand, commit
+   it, then `npx supabase db push` again. Never edit a migration that's
+   already been applied — add a new one instead.
 3. Deploy the account-deletion function with the project's secret key
    (`sb_secret_…`, never shipped in the app):
    ```sh
@@ -151,6 +156,36 @@ group workouts. To enable it:
 
 Without those variables the Social tab says accounts aren't set up, and
 everything else keeps working locally.
+
+### Crash reporting and analytics
+
+Both are optional and off by default.
+
+- **Crash reporting** is [Sentry](https://sentry.io/) (`src/services/crashReporting.ts`).
+  Set `VITE_SENTRY_DSN` (Settings → Client Keys in your Sentry project) to
+  enable it.
+- **Analytics** goes through a small provider interface
+  (`src/services/analytics.ts`) so the backend can be swapped later without
+  touching call sites. The default provider (`src/services/supabaseAnalytics.ts`)
+  writes to an `app_events` table on the same Supabase project used for sync —
+  no new vendor needed. It only starts once Supabase is configured (see
+  above), and only ever inserts an event name, platform, and app version;
+  nothing identifying and nothing readable back through the client API.
+
+### Reminders
+
+On-device, opt-in local notifications (Configuration → Reminders) —
+`src/services/notifications.ts`. A single rolling reminder that fires around
+6pm local time only if nothing's been logged that day, mentioning the streak
+by name once there's one worth protecting. Purely client-side, no server:
+requires the app to have run `pnpm cap:sync` at least once so the native
+projects pick up `@capacitor/local-notifications`.
+
+This does not cover push notifications (e.g. "a friend invited you to a
+room") — those need a friend to reach a device the app isn't currently open
+on, which needs real push infrastructure (Firebase Cloud Messaging /
+Apple Push Notification service, both requiring their own accounts and
+native setup), not just this plugin.
 
 ## Project structure
 
@@ -188,6 +223,26 @@ pnpm format
 
 Then review the diff and update the "Upstream commit" line in
 `src/lib/wtx/README.md`.
+
+## Store release checklist
+
+One-time steps before a build is submitted to the App Store / Play Store —
+everything here needs a real AdMob account, so it can't be done from the repo
+alone:
+
+1. Create real ad units in the [AdMob console](https://apps.admob.com/) for
+   both platforms.
+2. Replace the native App IDs, which are still Google's public sample IDs:
+   - iOS: `GADApplicationIdentifier` in `ios/App/App/Info.plist`
+   - Android: `com.google.android.gms.ads.APPLICATION_ID` in
+     `android/app/src/main/AndroidManifest.xml`
+3. Set `VITE_ADMOB_INTERSTITIAL_ID_ANDROID` / `_IOS` (see `.env.example`) to
+   the real ad unit ids for the production build.
+4. Only once 1–3 are done: flip `initializeForTesting` to `false` in
+   `capacitor.config.ts`. Leave it `true` until then — with the sample App IDs
+   still in place, turning it off would misconfigure ads, not fix them, and
+   every local `cap:sync` test build would risk serving (and clicking) real
+   ads, which AdMob's policy prohibits.
 
 ## Deployment
 
