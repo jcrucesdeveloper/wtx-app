@@ -13,6 +13,23 @@
     "openActionsAria": "Abrir acciones de WTX",
     "wtxLabel": "WTX"
   },
+  "onboarding": {
+    "skip": "Omitir",
+    "next": "Siguiente",
+    "getStarted": "Empezar",
+    "routines": {
+      "title": "Escribe tus rutinas como texto",
+      "body": "Guarda tus rutinas de entrenamiento como plantillas de texto simple: escribe una desde cero, pégala, o escanea un código QR de un amigo."
+    },
+    "sessions": {
+      "title": "Registra cada entrenamiento",
+      "body": "Sigue tus series y repeticiones según tu rutina, detecta un nuevo récord personal en el momento en que lo logras, y mira crecer tu racha en el calendario de entrenamiento."
+    },
+    "social": {
+      "title": "Entrena en vivo con amigos",
+      "body": "Crea una cuenta para sincronizar entre dispositivos y luego crea una sala para entrenar juntos en tiempo real: mismo conteo, progreso compartido y porras incluidas."
+    }
+  },
   "colorPicker": {
     "accentColorAria": "Color de acento"
   },

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import AppTabBar from './components/AppTabBar.vue'
 import LoadRoutineSheet from './components/load/LoadRoutineSheet.vue'
 import WtxActionSheet from './components/wtx/WtxActionSheet.vue'
@@ -17,6 +18,9 @@ useThemeStore()
 useLocaleStore()
 
 const ui = useUiStore()
+const route = useRoute()
+// The first-run intro is a standalone flow — no tab bar/banner underneath it.
+const showChrome = computed(() => route.name !== 'onboarding')
 </script>
 
 <template>
@@ -24,8 +28,10 @@ const ui = useUiStore()
     <main class="app-content">
       <RouterView />
     </main>
-    <ResumeSessionBanner />
-    <AppTabBar @menu="ui.open('menu')" />
+    <template v-if="showChrome">
+      <ResumeSessionBanner />
+      <AppTabBar @menu="ui.open('menu')" />
+    </template>
     <WtxActionSheet />
     <StartTrainingSheet />
     <LoadRoutineSheet />

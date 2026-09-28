@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import RoutinesView from '../views/routines/RoutinesView.vue'
 import { useAuthStore } from '../stores/auth'
+import { hasSeenOnboarding } from '../lib/onboarding'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -13,6 +14,11 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: RoutinesView },
+    {
+      path: '/onboarding',
+      name: 'onboarding',
+      component: () => import('../views/OnboardingView.vue'),
+    },
     {
       path: '/routines/:id',
       name: 'routine-detail',
@@ -80,6 +86,9 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  if (to.name !== 'onboarding' && !hasSeenOnboarding()) {
+    return { name: 'onboarding', query: { redirect: to.fullPath } }
+  }
   if (!to.meta.requiresAuth) return true
   const auth = useAuthStore()
   await auth.whenReady()
