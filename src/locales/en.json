@@ -30,6 +30,12 @@
       "body": "Create an account to sync across devices, then start a room and train together in real time — same countdown, shared progress, cheers included."
     }
   },
+  "notifications": {
+    "reminderTitle": "Time to train",
+    "reminderBody": "You haven't logged a workout today — a quick one still counts.",
+    "streakTitle": "Your streak is on the line",
+    "streakBody": "Log a session before the week ends to keep your {count}-week streak."
+  },
   "colorPicker": {
     "accentColorAria": "Accent color"
   },
@@ -544,6 +550,11 @@
     "dataDeleteHint": "Permanently erase every routine and session.",
     "deleteAllData": "Delete all data",
     "deleteAllConfirm": "Delete every routine and session? This cannot be undone.",
+    "reminders": "Reminders",
+    "remindersHint": "A nudge if you haven't logged a workout by evening — never more than one a day.",
+    "enableReminders": "Enable reminders",
+    "remindersOn": "Reminders on",
+    "remindersDenied": "Notifications are off for WTX in your device settings.",
     "about": "About",
     "version": "WTX v{version}"
   },

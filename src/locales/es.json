@@ -30,6 +30,12 @@
       "body": "Crea una cuenta para sincronizar entre dispositivos y luego crea una sala para entrenar juntos en tiempo real: mismo conteo, progreso compartido y porras incluidas."
     }
   },
+  "notifications": {
+    "reminderTitle": "Hora de entrenar",
+    "reminderBody": "Todavía no registraste un entrenamiento hoy — uno rápido también cuenta.",
+    "streakTitle": "Tu racha está en juego",
+    "streakBody": "Registra una sesión antes de que termine la semana para mantener tu racha de {count} semanas."
+  },
   "colorPicker": {
     "accentColorAria": "Color de acento"
   },
@@ -542,6 +548,11 @@
     "importNothing": "Nada nuevo que importar — todo en ese archivo ya está aquí.",
     "importError": "No se pudo leer ese archivo — elige un .zip exportado desde WTX.",
     "dataDeleteHint": "Borra permanentemente cada rutina y sesión.",
+    "reminders": "Recordatorios",
+    "remindersHint": "Un aviso si no has registrado un entrenamiento para la tarde — nunca más de uno por día.",
+    "enableReminders": "Activar recordatorios",
+    "remindersOn": "Recordatorios activados",
+    "remindersDenied": "Las notificaciones de WTX están desactivadas en los ajustes de tu dispositivo.",
     "deleteAllData": "Eliminar todos los datos",
     "deleteAllConfirm": "¿Eliminar cada rutina y sesión? Esto no se puede deshacer.",
     "about": "Acerca de",
