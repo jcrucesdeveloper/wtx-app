@@ -172,6 +172,21 @@ Both are optional and off by default.
   above), and only ever inserts an event name, platform, and app version;
   nothing identifying and nothing readable back through the client API.
 
+### Reminders
+
+On-device, opt-in local notifications (Configuration → Reminders) —
+`src/services/notifications.ts`. A single rolling reminder that fires around
+6pm local time only if nothing's been logged that day, mentioning the streak
+by name once there's one worth protecting. Purely client-side, no server:
+requires the app to have run `pnpm cap:sync` at least once so the native
+projects pick up `@capacitor/local-notifications`.
+
+This does not cover push notifications (e.g. "a friend invited you to a
+room") — those need a friend to reach a device the app isn't currently open
+on, which needs real push infrastructure (Firebase Cloud Messaging /
+Apple Push Notification service, both requiring their own accounts and
+native setup), not just this plugin.
+
 ## Project structure
 
 ```

@@ -7,7 +7,10 @@ import { allTimeBestsByExercise, detectPersonalRecords } from '@/lib/sessionReco
 import { compareSessions } from '@/lib/sessionComparisons'
 import { detectMilestone } from '@/lib/sessionMilestones'
 import { computeWeekStreak } from '@/lib/sessionStats'
+import { sessionDateStrs } from '@/lib/sessionDates'
 import { track } from '@/services/analytics'
+import { NotificationService } from '@/services/notifications'
+import { useNotificationsStore } from '@/stores/notifications'
 import type { WorkoutSession } from '@/lib/wtx'
 
 /** What the pre-finish review step decided — see `FinishSessionSheet`. */
@@ -60,12 +63,12 @@ export function useFinishSession() {
     const personalRecords = finished ? detectPersonalRecords(finished, priorBests) : []
     const comparison = finished ? compareSessions(finished, previousSession) : undefined
 
-    const dateStrs = sessions.list
-      .map((s) => sessions.parsed(s.id))
-      .map((r) => (r?.ok ? r.session.date : undefined))
-      .filter((d): d is string => d !== undefined)
+    const dateStrs = sessionDateStrs(sessions)
     const weekStreak = computeWeekStreak(dateStrs)
     const milestone = detectMilestone(sessions.list.length, weekStreak)
+
+    // Today's session just landed — push the reminder past it (or drop the streak warning).
+    if (useNotificationsStore().remindersEnabled) void NotificationService.schedule(dateStrs)
 
     sessionRecap.setRecap({
       sessionId: stored.id,
