@@ -1,5 +1,6 @@
-import type { Database, Tables } from '@/lib/supabase/database.types'
+import type { Database, Json, Tables } from '@/lib/supabase/database.types'
 import { isUuid } from '@/lib/uuid'
+import { parseFeedSnapshot, type FeedSnapshot } from '@/lib/feedSnapshot'
 
 type RoutineInsert = Database['public']['Tables']['routines']['Insert']
 type SessionInsert = Database['public']['Tables']['sessions']['Insert']
@@ -19,6 +20,8 @@ export interface LocalSession {
   addedAt: number
   routineId?: string
   roomId?: string
+  shared?: boolean
+  feedSnapshot?: FeedSnapshot
 }
 
 /** A routine as pulled from the server — `deleted` rows are tombstones. */
@@ -63,6 +66,11 @@ export function sessionToRow(session: LocalSession, userId: string): SessionInse
     routine_id: session.routineId && isUuid(session.routineId) ? session.routineId : null,
     room_id: session.roomId ?? null,
     raw_text: session.rawText,
+    shared: session.shared ?? false,
+    // FeedSnapshot is a plain-data shape (numbers/strings/booleans/arrays), so it
+    // serializes as jsonb directly — the cast is just past TS's lack of a
+    // structural `Json` index signature on a named interface.
+    feed_snapshot: session.feedSnapshot ? (session.feedSnapshot as unknown as Json) : null,
     created_at: new Date(session.addedAt).toISOString(),
     deleted_at: null,
   }
@@ -75,6 +83,8 @@ export function rowToSession(row: Tables<'sessions'>): RemoteSession {
     addedAt: Date.parse(row.created_at),
     routineId: row.routine_id ?? undefined,
     roomId: row.room_id ?? undefined,
+    shared: row.shared,
+    feedSnapshot: parseFeedSnapshot(row.feed_snapshot) ?? undefined,
     deleted: row.deleted_at !== null,
   }
 }

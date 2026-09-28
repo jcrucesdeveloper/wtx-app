@@ -17,6 +17,9 @@ export type AppEventName =
   | 'session_finished'
   | 'room_created'
   | 'room_joined'
+  | 'session_shared'
+  | 'kudos_given'
+  | 'user_followed'
 
 // A type alias, not an interface: supabase-js needs rows assignable to Record<string, unknown>.
 export type RoomRow = {
@@ -32,6 +35,14 @@ export type RoomRow = {
   finished_at: string | null
 }
 
+export type ProfileRow = {
+  id: string
+  display_name: string
+  invite_code: string
+  created_at: string
+  updated_at: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -39,12 +50,14 @@ export type Database = {
         Row: {
           id: string
           display_name: string
+          invite_code: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id: string
           display_name: string
+          invite_code: string
           created_at?: string
           updated_at?: string
         }
@@ -89,6 +102,8 @@ export type Database = {
           routine_id: string | null
           room_id: string | null
           raw_text: string
+          shared: boolean
+          feed_snapshot: Json | null
           created_at: string
           updated_at: string
           deleted_at: string | null
@@ -99,6 +114,8 @@ export type Database = {
           routine_id?: string | null
           room_id?: string | null
           raw_text: string
+          shared?: boolean
+          feed_snapshot?: Json | null
           created_at?: string
           updated_at?: string
           deleted_at?: string | null
@@ -107,9 +124,19 @@ export type Database = {
           routine_id?: string | null
           room_id?: string | null
           raw_text?: string
+          shared?: boolean
+          feed_snapshot?: Json | null
           deleted_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'sessions_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       rooms: {
         Row: RoomRow
@@ -195,6 +222,60 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      follows: {
+        Row: {
+          follower_id: string
+          followee_id: string
+          created_at: string
+        }
+        Insert: never
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: 'follows_follower_id_fkey'
+            columns: ['follower_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'follows_followee_id_fkey'
+            columns: ['followee_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      session_kudos: {
+        Row: {
+          session_id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          session_id: string
+          user_id: string
+          created_at?: string
+        }
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: 'session_kudos_session_id_fkey'
+            columns: ['session_id']
+            isOneToOne: false
+            referencedRelation: 'sessions'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'session_kudos_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
@@ -205,6 +286,10 @@ export type Database = {
       join_room: {
         Args: { p_code: string }
         Returns: RoomRow
+      }
+      follow_by_code: {
+        Args: { p_code: string }
+        Returns: ProfileRow
       }
     }
     Enums: { [_ in never]: never }

@@ -6,6 +6,7 @@ import { findLastSessionForRoutine } from '@/lib/sessionMatch'
 import { formatFileTimeStamp } from '@/lib/format'
 import type { StoredRoutine } from '@/stores/routines'
 import type { WorkoutSession } from '@/lib/wtx'
+import type { FeedSnapshot } from '@/lib/feedSnapshot'
 
 /** A finished `.wts` session in the log. Raw text is the source of truth. */
 export interface StoredSession {
@@ -22,6 +23,10 @@ export interface StoredSession {
   roomId?: string
   /** Kept on this device only — never uploaded to the account, even while logged in. */
   localOnly?: boolean
+  /** Posted to the Social feed for followers to see. */
+  shared?: boolean
+  /** The finish-time recap (PRs, comparison, streak, milestone), set only when `shared`. */
+  feedSnapshot?: FeedSnapshot
 }
 
 const STORAGE_KEY = 'wtx:sessions'
@@ -103,6 +108,7 @@ export const useSessionsStore = defineStore('sessions', () => {
     addedAt = Date.now(),
     roomId?: string,
     localOnly = false,
+    shared = false,
   ): StoredSession {
     const result = parseSessionText(rawText)
     if (!result.ok) throw new Error(result.error)
@@ -115,9 +121,23 @@ export const useSessionsStore = defineStore('sessions', () => {
       routineId,
       ...(roomId ? { roomId } : {}),
       ...(localOnly ? { localOnly: true } : {}),
+      ...(shared ? { shared: true } : {}),
     }
     sessions.value.unshift(session)
     return session
+  }
+
+  /**
+   * Attaches the finish-time feed recap to an already-added session.
+   *
+   * Called right after `add()`, before the sync store's debounced flush runs
+   * (`FLUSH_DEBOUNCE_MS`) — `flush()` reads each session fresh by id at
+   * upload time, so this mutation reaches the server on the same push that
+   * `add()` already queued, with no separate sync-side change needed.
+   */
+  function setFeedSnapshot(id: string, snapshot: FeedSnapshot) {
+    const session = getById(id)
+    if (session) session.feedSnapshot = snapshot
   }
 
   function remove(id: string) {
@@ -164,6 +184,7 @@ export const useSessionsStore = defineStore('sessions', () => {
     getById,
     parsed,
     add,
+    setFeedSnapshot,
     remove,
     saveToProfile,
     clear,

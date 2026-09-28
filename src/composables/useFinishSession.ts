@@ -8,6 +8,7 @@ import { compareSessions } from '@/lib/sessionComparisons'
 import { detectMilestone } from '@/lib/sessionMilestones'
 import { computeWeekStreak } from '@/lib/sessionStats'
 import { sessionDateStrs } from '@/lib/sessionDates'
+import { toFeedSnapshot } from '@/lib/feedSnapshot'
 import { track } from '@/services/analytics'
 import { NotificationService } from '@/services/notifications'
 import { useNotificationsStore } from '@/stores/notifications'
@@ -21,6 +22,8 @@ export interface FinishSessionOptions {
   name?: string
   /** Keep the session on this device only, out of account sync. */
   localOnly?: boolean
+  /** Post the finished session to the Social feed for followers. */
+  shareToFeed?: boolean
 }
 
 /**
@@ -78,6 +81,11 @@ export function useFinishSession() {
       weekStreak,
       elapsedSeconds,
     })
+
+    if (stored.shared) {
+      sessions.setFeedSnapshot(stored.id, toFeedSnapshot({ personalRecords, comparison, milestone, weekStreak, elapsedSeconds }))
+      track('session_shared')
+    }
 
     return stored
   }

@@ -61,6 +61,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/social/follow',
+      name: 'follow',
+      component: () => import('../views/social/FollowView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/rooms/:id',
       name: 'room-lobby',
       component: () => import('../views/social/RoomLobbyView.vue'),

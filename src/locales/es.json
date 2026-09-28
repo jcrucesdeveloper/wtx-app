@@ -226,7 +226,9 @@
       "targetDeviceDesc": "Queda privado en este teléfono, nunca se sube",
       "keepTraining": "Seguir entrenando",
       "next": "Siguiente",
-      "finishAndSave": "Terminar y guardar"
+      "finishAndSave": "Terminar y guardar",
+      "shareToFeed": "Compartir en el feed",
+      "shareToFeedDesc": "Tus seguidores verán este entrenamiento, sus estadísticas y cualquier récord personal."
     },
     "loggedExerciseList": {
       "incomplete": "Incompleto",
@@ -348,12 +350,46 @@
     "trainWithFriendsHint": "Elige una rutina e invita a otros",
     "joinWithCode": "Unirse con código",
     "joinWithCodeHint": "Escribe o escanea el código de un amigo",
+    "findPartners": "Buscar compañeros de entrenamiento",
+    "findPartnersHint": "Comparte tu código, sigue el suyo",
     "currentRoom": "Tu entrenamiento en grupo",
     "openRoom": "Abrir",
     "historyTitle": "Entrenamientos en grupo recientes",
     "historyEmpty": "Aún no hay entrenamientos en grupo.",
     "historyError": "No se pudieron cargar tus entrenamientos en grupo.",
-    "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" }
+    "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" },
+    "feed": {
+      "emptyTitle": "Tu feed está vacío",
+      "emptyHint": "Sigue a las personas con las que entrenas para ver sus entrenamientos aquí, o comparte tu código para que ellas te sigan.",
+      "emptyCta": "Buscar compañeros de entrenamiento",
+      "error": "No se pudo cargar el feed.",
+      "loading": "Cargando…",
+      "loadMore": "Cargar más",
+      "showExercises": "Mostrar ejercicios",
+      "hideExercises": "Ocultar ejercicios",
+      "kudosAria": "Dar ánimo"
+    },
+    "follow": {
+      "title": "Buscar compañeros de entrenamiento",
+      "yourCode": "Tu código",
+      "shareHint": "Comparte esto para que un amigo pueda seguirte: puede escanearlo o abrir el enlace.",
+      "shareText": "Sígueme en wtx",
+      "copyLink": "Copiar enlace",
+      "enterHint": "¿Tienes el código de un amigo? Escríbelo aquí para seguirlo.",
+      "codeLabel": "Código para seguir",
+      "follow": "Seguir",
+      "following": "Siguiendo…",
+      "nowFollowing": "Ahora sigues a {name}.",
+      "followingTitle": "Siguiendo",
+      "followingEmpty": "Aún no sigues a nadie.",
+      "unfollowAria": "Dejar de seguir a {name}",
+      "errors": {
+        "code_not_found": "Ese código no coincide con nadie.",
+        "cannot_follow_self": "Ese es tu propio código.",
+        "not_authenticated": "Inicia sesión para seguir a otras personas.",
+        "unknown": "Algo salió mal. Inténtalo de nuevo."
+      }
+    }
   },
   "consent": {
     "text": "Al crear una cuenta, tus rutinas y sesiones de entrenamiento se subirán y guardarán en nuestros servidores para mantenerlas sincronizadas y poder entrenar con amigos. Puedes eliminar tu cuenta y todos sus datos cuando quieras desde Configuración.",

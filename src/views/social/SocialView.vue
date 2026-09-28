@@ -2,9 +2,10 @@
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronRight, QrCode, RefreshCw, Users } from '@lucide/vue'
+import { ChevronRight, QrCode, RefreshCw, UserPlus, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import AuthForm from '@/components/social/AuthForm.vue'
+import FeedList from '@/components/social/FeedList.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRoomStore } from '@/stores/room'
 import { useSyncStore } from '@/stores/sync'
@@ -93,6 +94,8 @@ function openRoom(row: RoomRow) {
         <span class="current__open">{{ t('social.openRoom') }}</span>
       </button>
 
+      <FeedList />
+
       <div class="actions">
         <button type="button" class="action" @click="ui.open('group')">
           <span class="action__icon"><Users :size="20" :stroke-width="2.25" /></span>
@@ -107,6 +110,14 @@ function openRoom(row: RoomRow) {
           <span class="action__body">
             <span class="action__title">{{ t('social.joinWithCode') }}</span>
             <span class="action__hint">{{ t('social.joinWithCodeHint') }}</span>
+          </span>
+          <ChevronRight :size="18" class="action__chevron" />
+        </button>
+        <button type="button" class="action" @click="router.push({ name: 'follow' })">
+          <span class="action__icon"><UserPlus :size="20" :stroke-width="2.25" /></span>
+          <span class="action__body">
+            <span class="action__title">{{ t('social.findPartners') }}</span>
+            <span class="action__hint">{{ t('social.findPartnersHint') }}</span>
           </span>
           <ChevronRight :size="18" class="action__chevron" />
         </button>
