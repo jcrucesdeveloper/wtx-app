@@ -283,7 +283,13 @@
     "moreVolume": "{value} {unit} more volume vs. last time",
     "lessVolume": "{value} {unit} less volume vs. last time",
     "milestoneSessions": "{count} workouts logged",
-    "milestoneStreak": "{count}-week streak"
+    "milestoneStreak": "{count}-week streak",
+    "shareAria": "Share this workout",
+    "shareIntro": "Just finished {name} on WTX 💪",
+    "shareStats": "{sets} sets · {exercises} exercises",
+    "sharePr": "New PR on {exercise}: {weight}{unit} × {reps} 🏆",
+    "shareStreak": "{weeks}-week streak going 🔥",
+    "shareCopied": "Copied!"
   },
   "sessionDetail": {
     "fallbackTitle": "Session",
