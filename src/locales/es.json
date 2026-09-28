@@ -283,7 +283,13 @@
     "moreVolume": "{value} {unit} más de volumen que la última vez",
     "lessVolume": "{value} {unit} menos de volumen que la última vez",
     "milestoneSessions": "{count} entrenamientos registrados",
-    "milestoneStreak": "{count} semanas de racha"
+    "milestoneStreak": "{count} semanas de racha",
+    "shareAria": "Compartir este entrenamiento",
+    "shareIntro": "Acabo de terminar {name} en WTX 💪",
+    "shareStats": "{sets} series · {exercises} ejercicios",
+    "sharePr": "Nuevo récord en {exercise}: {weight}{unit} × {reps} 🏆",
+    "shareStreak": "{weeks} semanas de racha 🔥",
+    "shareCopied": "¡Copiado!"
   },
   "sessionDetail": {
     "fallbackTitle": "Sesión",
