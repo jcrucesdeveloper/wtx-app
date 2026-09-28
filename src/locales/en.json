@@ -13,6 +13,23 @@
     "openActionsAria": "Open WTX actions",
     "wtxLabel": "WTX"
   },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "getStarted": "Get started",
+    "routines": {
+      "title": "Write your routines as text",
+      "body": "Keep your training routines as small, plain-text templates — type one from scratch, paste it in, or scan a QR code from a friend."
+    },
+    "sessions": {
+      "title": "Log every workout",
+      "body": "Track sets and reps against your routine, catch a new personal record the moment you hit it, and see your streak build on the training calendar."
+    },
+    "social": {
+      "title": "Train live with friends",
+      "body": "Create an account to sync across devices, then start a room and train together in real time — same countdown, shared progress, cheers included."
+    }
+  },
   "colorPicker": {
     "accentColorAria": "Accent color"
   },
