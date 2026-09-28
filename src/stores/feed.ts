@@ -10,6 +10,8 @@ import type { ProfileRow } from '@/lib/supabase/database.types'
 import type { WorkoutSession } from '@/lib/wtx'
 
 const PAGE_SIZE = 20
+/** Re-entering the Social tab within this window reuses what's loaded instead of refetching. */
+const STALE_MS = 2 * 60_000
 
 export interface FeedPost {
   sessionId: string
@@ -101,7 +103,7 @@ export const useFeedStore = defineStore('feed', () => {
   async function fetchPage(from: number): Promise<FeedPost[]> {
     const { data, error } = await requireSupabase()
       .from('sessions')
-      .select('id, user_id, raw_text, created_at, feed_snapshot, profiles(display_name), session_kudos(count)')
+      .select('id, user_id, raw_text, created_at, feed_snapshot, profiles!sessions_user_id_fkey(display_name), session_kudos(count)')
       .eq('shared', true)
       .order('created_at', { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
@@ -112,15 +114,29 @@ export const useFeedStore = defineStore('feed', () => {
     return rows.map((r) => toFeedPost(r, kudosByMe)).filter((p): p is FeedPost => p !== null)
   }
 
-  /** Reloads the feed from the top. */
-  async function loadFeed() {
+  let feedLoadedAt = 0
+  let feedLoadedFor: string | null = null
+  let followingLoadedAt = 0
+  let followingLoadedFor: string | null = null
+
+  /** Loaded for the current account within {@link STALE_MS}. */
+  function isFresh(loadedAt: number, loadedFor: string | null) {
+    return loadedFor === myId() && Date.now() - loadedAt < STALE_MS
+  }
+
+  /** Reloads the feed from the top, unless it was loaded recently and `force` isn't set. */
+  async function loadFeed(opts: { force?: boolean } = {}) {
+    if (!opts.force && !postsError.value && isFresh(feedLoadedAt, feedLoadedFor)) return
     loadingPosts.value = true
     postsError.value = false
     try {
       const page = await fetchPage(0)
       posts.value = page
       hasMore.value = page.length === PAGE_SIZE
-    } catch {
+      feedLoadedAt = Date.now()
+      feedLoadedFor = myId()
+    } catch (e) {
+      console.error('[feed] load failed', e)
       postsError.value = true
     } finally {
       loadingPosts.value = false
@@ -175,8 +191,9 @@ export const useFeedStore = defineStore('feed', () => {
     }
   }
 
-  /** Who this account follows, newest first. */
-  async function loadFollowing() {
+  /** Who this account follows, newest first — skipped if loaded recently, unless `force` is set. */
+  async function loadFollowing(opts: { force?: boolean } = {}) {
+    if (!opts.force && isFresh(followingLoadedAt, followingLoadedFor)) return
     followingLoading.value = true
     try {
       const { data, error } = await requireSupabase()
@@ -188,6 +205,8 @@ export const useFeedStore = defineStore('feed', () => {
         id: row.followee_id,
         displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
       }))
+      followingLoadedAt = Date.now()
+      followingLoadedFor = myId()
     } catch {
       /* keep whatever was loaded before; the Following list just won't refresh this time */
     } finally {
@@ -202,7 +221,9 @@ export const useFeedStore = defineStore('feed', () => {
     })
     if (error || !data) throw toFollowError(error)
     track('user_followed')
-    void loadFollowing()
+    void loadFollowing({ force: true })
+    // A new followee's shared sessions should show up right away.
+    feedLoadedAt = 0
     return data
   }
 
@@ -211,7 +232,8 @@ export const useFeedStore = defineStore('feed', () => {
     if (!uid) return
     following.value = following.value.filter((f) => f.id !== userId)
     const { error } = await requireSupabase().from('follows').delete().eq('follower_id', uid).eq('followee_id', userId)
-    if (error) void loadFollowing()
+    if (error) void loadFollowing({ force: true })
+    feedLoadedAt = 0
   }
 
   return {
