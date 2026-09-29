@@ -116,7 +116,15 @@ function resetAllData() {
 
 const appVersion = __APP_VERSION__
 
-/** No-op until ads/payment is wired up — the card is tappable but doesn't do anything yet. */
+/**
+ * Hides the "Remove ads" purchase card until a real In-App Purchase flow exists.
+ * App Review rejects a tappable price that does nothing (guideline 2.1), and a
+ * working one must go through StoreKit / Play Billing (guideline 3.1.1) — not a
+ * web checkout. Flip to `true` only once `onRemoveAdsClick` starts a real IAP.
+ */
+const REMOVE_ADS_PURCHASE_ENABLED = false
+
+/** No-op until an IAP flow is wired up; the card is hidden by the flag above. */
 function onRemoveAdsClick() {}
 
 const notifications = useNotificationsStore()
@@ -143,7 +151,12 @@ async function toggleReminders() {
 <template>
   <AppPage :title="t('settings.title')">
     <div class="stack">
-      <button type="button" class="cta" @click="onRemoveAdsClick">
+      <button
+        v-if="REMOVE_ADS_PURCHASE_ENABLED"
+        type="button"
+        class="cta"
+        @click="onRemoveAdsClick"
+      >
         <span class="cta__icon">
           <Sparkles :size="18" :stroke-width="2.25" />
         </span>

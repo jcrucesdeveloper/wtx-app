@@ -230,19 +230,42 @@ One-time steps before a build is submitted to the App Store / Play Store —
 everything here needs a real AdMob account, so it can't be done from the repo
 alone:
 
-1. Create real ad units in the [AdMob console](https://apps.admob.com/) for
-   both platforms.
-2. Replace the native App IDs, which are still Google's public sample IDs:
-   - iOS: `GADApplicationIdentifier` in `ios/App/App/Info.plist`
-   - Android: `com.google.android.gms.ads.APPLICATION_ID` in
-     `android/app/src/main/AndroidManifest.xml`
-3. Set `VITE_ADMOB_INTERSTITIAL_ID_ANDROID` / `_IOS` (see `.env.example`) to
-   the real ad unit ids for the production build.
-4. Only once 1–3 are done: flip `initializeForTesting` to `false` in
-   `capacitor.config.ts`. Leave it `true` until then — with the sample App IDs
-   still in place, turning it off would misconfigure ads, not fix them, and
-   every local `cap:sync` test build would risk serving (and clicking) real
-   ads, which AdMob's policy prohibits.
+Every AdMob value defaults to Google's public test/sample IDs, so an
+unconfigured (dev) build can never serve real ads. For a store build:
+
+1. Create the apps and an interstitial ad unit per platform in the
+   [AdMob console](https://apps.admob.com/).
+2. Set the native **App IDs** (`ca-app-pub-XXXX~YYYY`) — build-time values,
+   not Vite env vars:
+   - Android: Gradle property `admobAppId`, e.g. in `~/.gradle/gradle.properties`
+     (`admobAppId=ca-app-pub-...~...`), or `-PadmobAppId=...` on the command
+     line, or the `ADMOB_APP_ID_ANDROID` env var. Injected into
+     `AndroidManifest.xml` via `manifestPlaceholders` in `android/app/build.gradle`.
+   - iOS: the `ADMOB_APP_ID` build setting of the App target (Xcode → App →
+     Build Settings → User-Defined → `ADMOB_APP_ID`, Release), or
+     `xcodebuild ... ADMOB_APP_ID=ca-app-pub-...~...`. `Info.plist` reads it as
+     `$(ADMOB_APP_ID)`.
+3. Set the **ad unit IDs** `VITE_ADMOB_INTERSTITIAL_ID_ANDROID` / `_IOS` and
+   `VITE_ADMOB_TESTING=false` for the production build (e.g. in a gitignored
+   `.env.production.local` or CI secrets — see `.env.example`). With
+   `VITE_ADMOB_TESTING` unset, every request uses Google's test ad unit even
+   when real IDs are set.
+4. Sync with test mode off: `pnpm build && ADMOB_TESTING=false npx cap sync`
+   (`capacitor.config.ts` reads the plain `ADMOB_TESTING` env var). Only do
+   this for the release build — clicking real ads on your own test builds
+   violates AdMob policy.
+5. Host `app-ads.txt` at the root of the developer website listed in App Store
+   Connect / Play Console (use the template in the repo, filled in with your
+   AdMob publisher ID), then verify it in the AdMob console.
+6. In AdMob → Privacy & messaging, publish a GDPR (and, optionally, US state
+   regulations and IDFA explainer) message — the app runs Google's UMP consent
+   flow before iOS App Tracking Transparency and before loading any ad.
+7. iOS privacy: `ios/App/App/PrivacyInfo.xcprivacy` declares the app's data
+   collection and tracking; keep it and the App Store Connect "App Privacy"
+   answers in sync with it (plus what Google's SDK reports in the Xcode
+   privacy report).
+8. The in-app "Remove ads" purchase is hidden (`REMOVE_ADS_PURCHASE_ENABLED`
+   in `ConfigurationView.vue`) until a real In-App Purchase flow exists.
 
 ## Deployment
 

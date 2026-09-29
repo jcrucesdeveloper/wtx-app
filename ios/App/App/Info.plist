@@ -4,14 +4,18 @@
 <dict>
   <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
-	<!-- Google's public sample AdMob App ID. Swap for the real AdMob App ID from
-	     the AdMob console before any App Store submission — this is a native
-	     build-time value and can't be sourced from the Vite env vars used for
-	     the JS-side ad unit IDs. -->
+	<!-- AdMob App ID, from the ADMOB_APP_ID build setting of the App target
+	     (defaults to Google's public sample App ID in project.pbxproj). Override
+	     it in Xcode > App target > Build Settings > ADMOB_APP_ID (Release) or via
+	     `xcodebuild ... ADMOB_APP_ID=ca-app-pub-...~...` before an App Store
+	     submission. This is a native build-time value and can't be sourced from
+	     the Vite env vars used for the JS-side ad unit IDs. -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>$(ADMOB_APP_ID)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>WTX uses the camera to scan QR codes for shared routines and workout rooms.</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>This identifier is used to show you more relevant ads.</string>
+	<string>WTX is free thanks to ads. Allowing tracking lets our ad partner (Google AdMob) use your device's advertising identifier to show ads that are more relevant to you. Your workouts are never shared with advertisers, and you'll still see ads if you decline.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

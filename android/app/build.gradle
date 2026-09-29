@@ -10,6 +10,13 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // AdMob App ID injected into AndroidManifest.xml. Set the real one for a
+        // Play release via the `admobAppId` Gradle property (~/.gradle/gradle.properties
+        // or -PadmobAppId=...) or the ADMOB_APP_ID_ANDROID env var. Falls back to
+        // Google's public sample App ID so dev builds never serve real ads.
+        manifestPlaceholders["admobAppId"] = project.findProperty('admobAppId') ?:
+            System.getenv('ADMOB_APP_ID_ANDROID') ?:
+            'ca-app-pub-3940256099942544~3347511713'
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61

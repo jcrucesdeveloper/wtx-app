@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, Trash2 } from '@lucide/vue'
+import { Check } from '@lucide/vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import { HapticsService } from '@/services/haptics'
@@ -60,10 +60,6 @@ function toggleComplete() {
   HapticsService.light()
   justCompleted.value = true
   setTimeout(() => (justCompleted.value = false), 220)
-}
-
-function remove() {
-  activeSession.removeSet(props.exerciseIndex, props.set.id)
 }
 
 function cycleType() {
@@ -204,17 +200,5 @@ function cycleType() {
   100% {
     transform: scale(1);
   }
-}
-
-.row__remove {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  color: var(--color-text);
-  opacity: 0.4;
-  cursor: pointer;
 }
 </style>

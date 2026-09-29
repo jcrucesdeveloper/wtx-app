@@ -13,6 +13,14 @@ const TEST_AD_UNIT_IDS = {
   interstitialIos: 'ca-app-pub-3940256099942544/4411468910',
 } as const
 
+/**
+ * Ad test mode — ON unless a production build explicitly opts out with
+ * VITE_ADMOB_TESTING=false. While on, every ad request uses Google's test ad
+ * unit (the plugin's `isTesting` swaps the ID) so a dev/sideloaded build can't
+ * serve or register clicks on real ads even with real IDs configured.
+ */
+const AD_TEST_MODE = import.meta.env.DEV || import.meta.env.VITE_ADMOB_TESTING !== 'false'
+
 function isNativePlatform(): boolean {
   return Capacitor.getPlatform() !== 'web'
 }
@@ -26,6 +34,8 @@ function interstitialAdUnitId(): string {
 
 let initPromise: Promise<void> | null = null
 let interstitialReady = false
+/** UMP's verdict for this launch; stays false if the consent flow couldn't run. */
+let canRequestAds = false
 
 /**
  * Thin wrapper around @capacitor-community/admob. Every call is a safe no-op
@@ -44,10 +54,14 @@ export const AdService = {
   async loadInterstitial(): Promise<void> {
     const ads = useAdsStore()
     if (!isNativePlatform() || ads.adsRemoved || interstitialReady) return
+    // Never request an ad before consent (UMP) and ATT have been resolved —
+    // a session can start while those prompts are still on screen.
+    await AdService.initAds()
+    if (!canRequestAds || interstitialReady) return
     try {
       await AdMob.prepareInterstitial({
         adId: interstitialAdUnitId(),
-        isTesting: import.meta.env.DEV,
+        isTesting: AD_TEST_MODE,
       })
       interstitialReady = true
     } catch (err) {
@@ -67,27 +81,47 @@ export const AdService = {
   },
 }
 
+/**
+ * Order matters:
+ * 1. `initialize` first — the plugin only wires its consent executor to the
+ *    native view controller inside `initialize` (on iOS `showConsentForm`
+ *    rejects with "No ViewController" otherwise). Starting the SDK doesn't
+ *    request any ad by itself.
+ * 2. UMP consent (GDPR / US state privacy) — shows the form when required and
+ *    tells us whether ads may be requested at all.
+ * 3. iOS App Tracking Transparency — after UMP, as Google recommends, and
+ *    before any ad request, so personalized ads only use the IDFA with the
+ *    user's permission. Skipped if UMP's own IDFA explainer already asked.
+ * Ads are only loaded after all of this resolves (see `loadInterstitial`).
+ */
 async function doInit(): Promise<void> {
   try {
-    const consent = await AdMob.requestConsentInfo()
-    if (consent.isConsentFormAvailable && consent.status === AdmobConsentStatus.REQUIRED) {
-      await AdMob.showConsentForm()
-    }
+    await AdMob.initialize({ initializeForTesting: AD_TEST_MODE })
   } catch (err) {
+    console.error('[ads] initialize failed', err)
+    return
+  }
+
+  try {
+    let consent = await AdMob.requestConsentInfo()
+    if (consent.isConsentFormAvailable && consent.status === AdmobConsentStatus.REQUIRED) {
+      consent = await AdMob.showConsentForm()
+    }
+    // `canRequestAds` exists since plugin 7.0.3; treat a missing value as allowed.
+    canRequestAds = consent.canRequestAds !== false
+  } catch (err) {
+    // Without a consent answer we can't know whether ads are allowed for this
+    // user (e.g. EEA), so skip ads for this launch rather than risk it.
     console.error('[ads] consent flow failed', err)
+    canRequestAds = false
   }
 
   if (Capacitor.getPlatform() === 'ios') {
     try {
-      await AdMob.requestTrackingAuthorization()
+      const { status } = await AdMob.trackingAuthorizationStatus()
+      if (status === 'notDetermined') await AdMob.requestTrackingAuthorization()
     } catch (err) {
       console.error('[ads] tracking authorization request failed', err)
     }
-  }
-
-  try {
-    await AdMob.initialize({ initializeForTesting: import.meta.env.DEV })
-  } catch (err) {
-    console.error('[ads] initialize failed', err)
   }
 }

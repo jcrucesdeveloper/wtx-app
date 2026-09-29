@@ -70,10 +70,6 @@ function addSet() {
   activeSession.addSet(props.exerciseIndex)
 }
 
-function addWarmup() {
-  activeSession.addSet(props.exerciseIndex, { type: 'W' })
-}
-
 const showImage = ref(false)
 
 function onNoteInput(event: Event) {
