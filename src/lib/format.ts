@@ -52,3 +52,13 @@ export function formatFileTimeStamp(ms: number): string {
   const minutes = String(date.getMinutes()).padStart(2, '0')
   return `${hours}${minutes}`
 }
+
+/** Short localized date for a feed post, e.g. "Mon, Sep 28". */
+export function formatPostedAt(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+/** A count in compact form for a profile's stats row: `87`, `1.2K`, `3.4M`. */
+export function formatCompactCount(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+}

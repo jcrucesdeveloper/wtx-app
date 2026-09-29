@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Plus } from '@lucide/vue'
 import { useFeedStore } from '@/stores/feed'
-import { initials, memberColor } from '@/lib/memberColors'
+import { colorForId, initials } from '@/lib/memberColors'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -33,13 +33,13 @@ function openFollow() {
 
     <div v-else class="row">
       <button
-        v-for="(user, i) in feed.following"
+        v-for="user in feed.following"
         :key="user.id"
         type="button"
         class="chip"
-        @click="openFollow"
+        @click="router.push({ name: 'profile', params: { id: user.id } })"
       >
-        <span class="chip__avatar" :style="{ background: memberColor(i) }">{{ initials(user.displayName) }}</span>
+        <span class="chip__avatar" :style="{ background: colorForId(user.id) }">{{ initials(user.displayName) }}</span>
         <span class="chip__name">{{ user.displayName }}</span>
       </button>
       <button type="button" class="chip chip--add" :aria-label="t('social.follow.title')" @click="openFollow">

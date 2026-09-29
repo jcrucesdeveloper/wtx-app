@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { requireSupabase } from '@/services/supabase'
 import { track } from '@/services/analytics'
@@ -9,7 +9,7 @@ import { normalizeFollowCode } from '@/lib/followCode'
 import type { ProfileRow } from '@/lib/supabase/database.types'
 import type { WorkoutSession } from '@/lib/wtx'
 
-const PAGE_SIZE = 20
+export const FEED_PAGE_SIZE = 20
 /** Re-entering the Social tab within this window reuses what's loaded instead of refetching. */
 const STALE_MS = 2 * 60_000
 
@@ -100,18 +100,61 @@ export const useFeedStore = defineStore('feed', () => {
     return new Set((data ?? []).map((r) => r.session_id))
   }
 
-  async function fetchPage(from: number): Promise<FeedPost[]> {
-    const { data, error } = await requireSupabase()
-      .from('sessions')
-      .select('id, user_id, raw_text, created_at, feed_snapshot, profiles!sessions_user_id_fkey(display_name), session_kudos(count)')
-      .eq('shared', true)
+  const FEED_SELECT =
+    'id, user_id, raw_text, created_at, feed_snapshot, profiles!sessions_user_id_fkey(display_name), session_kudos(count)'
+
+  /**
+   * Every post loaded anywhere (feed pages, a profile, a deep link), one
+   * reactive object per session — so a kudos tap on a profile shows up in
+   * the feed and on the post page too.
+   */
+  const known = reactive(new Map<string, FeedPost>())
+
+  function intern(post: FeedPost): FeedPost {
+    const existing = known.get(post.sessionId)
+    if (existing) {
+      Object.assign(existing, post)
+      return existing
+    }
+    known.set(post.sessionId, post)
+    return known.get(post.sessionId)!
+  }
+
+  /** A page of shared posts, newest first — everyone visible to you, or one person's. */
+  async function fetchPosts(opts: { from: number; userId?: string }): Promise<FeedPost[]> {
+    let query = requireSupabase().from('sessions').select(FEED_SELECT).eq('shared', true)
+    if (opts.userId) query = query.eq('user_id', opts.userId)
+    const { data, error } = await query
       .order('created_at', { ascending: false })
-      .range(from, from + PAGE_SIZE - 1)
+      .range(opts.from, opts.from + FEED_PAGE_SIZE - 1)
     if (error) throw error
 
     const rows = (data ?? []) as unknown as FeedRow[]
     const kudosByMe = await fetchKudosByMe(rows.map((r) => r.id))
-    return rows.map((r) => toFeedPost(r, kudosByMe)).filter((p): p is FeedPost => p !== null)
+    return rows
+      .map((r) => toFeedPost(r, kudosByMe))
+      .filter((p): p is FeedPost => p !== null)
+      .map(intern)
+  }
+
+  function getPost(sessionId: string): FeedPost | undefined {
+    return known.get(sessionId)
+  }
+
+  /** Returns an already-loaded post, or fetches it on its own (RLS decides if it's visible). */
+  async function loadPost(sessionId: string): Promise<FeedPost | null> {
+    const cached = getPost(sessionId)
+    if (cached) return cached
+    const { data, error } = await requireSupabase()
+      .from('sessions')
+      .select(FEED_SELECT)
+      .eq('id', sessionId)
+      .eq('shared', true)
+      .maybeSingle()
+    if (error || !data) return null
+    const kudosByMe = await fetchKudosByMe([sessionId])
+    const post = toFeedPost(data as unknown as FeedRow, kudosByMe)
+    return post ? intern(post) : null
   }
 
   let feedLoadedAt = 0
@@ -130,9 +173,9 @@ export const useFeedStore = defineStore('feed', () => {
     loadingPosts.value = true
     postsError.value = false
     try {
-      const page = await fetchPage(0)
+      const page = await fetchPosts({ from: 0 })
       posts.value = page
-      hasMore.value = page.length === PAGE_SIZE
+      hasMore.value = page.length === FEED_PAGE_SIZE
       feedLoadedAt = Date.now()
       feedLoadedFor = myId()
     } catch (e) {
@@ -148,9 +191,9 @@ export const useFeedStore = defineStore('feed', () => {
     if (!hasMore.value || loadingPosts.value) return
     loadingPosts.value = true
     try {
-      const page = await fetchPage(posts.value.length)
+      const page = await fetchPosts({ from: posts.value.length })
       posts.value = [...posts.value, ...page]
-      hasMore.value = page.length === PAGE_SIZE
+      hasMore.value = page.length === FEED_PAGE_SIZE
     } catch {
       /* leave the existing page up; the user can retry via "load more" again */
     } finally {
@@ -165,7 +208,7 @@ export const useFeedStore = defineStore('feed', () => {
    */
   async function toggleKudos(sessionId: string) {
     const uid = myId()
-    const post = posts.value.find((p) => p.sessionId === sessionId)
+    const post = getPost(sessionId)
     if (!uid || !post) return
 
     const giving = !post.kudosByMe
@@ -193,12 +236,15 @@ export const useFeedStore = defineStore('feed', () => {
 
   /** Who this account follows, newest first — skipped if loaded recently, unless `force` is set. */
   async function loadFollowing(opts: { force?: boolean } = {}) {
-    if (!opts.force && isFresh(followingLoadedAt, followingLoadedFor)) return
+    const uid = myId()
+    if (!uid || (!opts.force && isFresh(followingLoadedAt, followingLoadedFor))) return
     followingLoading.value = true
     try {
+      // RLS returns edges in both directions (so the followers list works) — keep only ours.
       const { data, error } = await requireSupabase()
         .from('follows')
         .select('followee_id, profiles!follows_followee_id_fkey(display_name)')
+        .eq('follower_id', uid)
         .order('created_at', { ascending: false })
       if (error) throw error
       following.value = (data ?? []).map((row) => ({
@@ -227,13 +273,38 @@ export const useFeedStore = defineStore('feed', () => {
     return data
   }
 
+  /** Follows someone you can already see (a follower or a roommate) — "Follow back". */
+  async function followUser(userId: string): Promise<ProfileRow> {
+    const { data, error } = await requireSupabase().rpc('follow_user', { p_user_id: userId })
+    if (error || !data) throw toFollowError(error)
+    track('user_followed')
+    if (!following.value.some((f) => f.id === userId)) {
+      following.value = [{ id: userId, displayName: data.display_name }, ...following.value]
+    }
+    void loadFollowing({ force: true })
+    feedLoadedAt = 0
+    return data
+  }
+
+  /** Stops following — silently, the other person isn't notified. Throws if it didn't go through. */
   async function unfollow(userId: string) {
     const uid = myId()
     if (!uid) return
     following.value = following.value.filter((f) => f.id !== userId)
-    const { error } = await requireSupabase().from('follows').delete().eq('follower_id', uid).eq('followee_id', userId)
-    if (error) void loadFollowing({ force: true })
     feedLoadedAt = 0
+    const { error } = await requireSupabase().from('follows').delete().eq('follower_id', uid).eq('followee_id', userId)
+    if (error) {
+      void loadFollowing({ force: true })
+      throw error
+    }
+  }
+
+  /** Removes someone from your followers — silently, like unfollowing. */
+  async function removeFollower(userId: string) {
+    const uid = myId()
+    if (!uid) return
+    const { error } = await requireSupabase().from('follows').delete().eq('follower_id', userId).eq('followee_id', uid)
+    if (error) throw error
   }
 
   return {
@@ -245,9 +316,14 @@ export const useFeedStore = defineStore('feed', () => {
     followingLoading,
     loadFeed,
     loadMore,
+    fetchPosts,
+    getPost,
+    loadPost,
     toggleKudos,
     loadFollowing,
     followByCode,
+    followUser,
     unfollow,
+    removeFollower,
   }
 })

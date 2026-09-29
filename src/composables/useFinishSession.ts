@@ -3,6 +3,7 @@ import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSessionRecapStore } from '@/stores/sessionRecap'
 import { useRoomStore } from '@/stores/room'
+import { useAuthStore } from '@/stores/auth'
 import { allTimeBestsByExercise, detectPersonalRecords } from '@/lib/sessionRecords'
 import { compareSessions } from '@/lib/sessionComparisons'
 import { detectMilestone } from '@/lib/sessionMilestones'
@@ -83,7 +84,22 @@ export function useFinishSession() {
     })
 
     if (stored.shared) {
-      sessions.setFeedSnapshot(stored.id, toFeedSnapshot({ personalRecords, comparison, milestone, weekStreak, elapsedSeconds }))
+      // Room members are only known while this device still has the room open.
+      const trainedWith =
+        stored.roomId && room.room?.id === stored.roomId
+          ? room.members.filter((m) => m.userId !== useAuthStore().user?.id).map((m) => m.displayName)
+          : []
+      sessions.setFeedSnapshot(
+        stored.id,
+        toFeedSnapshot({
+          personalRecords,
+          comparison,
+          milestone,
+          weekStreak,
+          elapsedSeconds,
+          ...(trainedWith.length ? { trainedWith } : {}),
+        }),
+      )
       track('session_shared')
     }
 
