@@ -5,13 +5,17 @@ import { useRouter } from 'vue-router'
 import { UserPlus } from '@lucide/vue'
 import FeedPostCard from '@/components/social/FeedPostCard.vue'
 import { useFeedStore } from '@/stores/feed'
+import { useModerationStore } from '@/stores/moderation'
 
 const { t } = useI18n()
 const router = useRouter()
 const feed = useFeedStore()
+const moderation = useModerationStore()
 
 onMounted(() => {
   void feed.loadFeed()
+  // Once per account: fills the feed's hidden set in case a blocked account slips through.
+  void moderation.loadBlocked()
 })
 </script>
 

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { BIO_MAX, NAME_MAX, isValidBio, isValidDisplayName } from '@/lib/profileFields'
+import { containsBlockedTerms } from '@/lib/contentFilter'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
@@ -33,7 +34,16 @@ const changed = computed(
     name.value.trim() !== (auth.profile?.display_name ?? '') ||
     bio.value.trim() !== (auth.profile?.bio ?? ''),
 )
-const valid = computed(() => isValidDisplayName(name.value) && isValidBio(bio.value))
+// Others see both, so they go through the same word filter the server enforces.
+const nameBlocked = computed(() => containsBlockedTerms(name.value))
+const bioBlocked = computed(() => containsBlockedTerms(bio.value))
+const valid = computed(
+  () =>
+    isValidDisplayName(name.value) &&
+    isValidBio(bio.value) &&
+    !nameBlocked.value &&
+    !bioBlocked.value,
+)
 
 async function save() {
   if (!valid.value || !changed.value || saving.value) return
@@ -57,6 +67,7 @@ async function save() {
       <label class="field">
         <span class="field__label">{{ t('account.displayName') }}</span>
         <input v-model="name" :maxlength="NAME_MAX" autocomplete="nickname" />
+        <span v-if="nameBlocked" class="error">{{ t('social.moderation.filter.name') }}</span>
       </label>
 
       <label class="field">
@@ -72,6 +83,7 @@ async function save() {
           :maxlength="BIO_MAX"
           :placeholder="t('social.profile.bioPlaceholder')"
         />
+        <span v-if="bioBlocked" class="error">{{ t('social.moderation.filter.bio') }}</span>
       </label>
 
       <p v-if="failed" class="error">{{ t('social.profile.saveFailed') }}</p>

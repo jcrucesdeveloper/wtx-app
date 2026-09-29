@@ -441,6 +441,47 @@
         "not_authenticated": "Inicia sesión para seguir a otras personas.",
         "unknown": "Algo salió mal. Inténtalo de nuevo."
       }
+    },
+    "moderation": {
+      "postMoreAria": "Opciones de la publicación",
+      "reportPost": "Reportar publicación",
+      "reportAccount": "Reportar cuenta",
+      "block": "Bloquear",
+      "unblock": "Desbloquear",
+      "blockTitle": "¿Bloquear a {name}?",
+      "blockHint": "No verá tu perfil ni tus entrenamientos, y tú no verás los suyos. Se eliminan los seguimientos entre ustedes. No se le notificará.",
+      "blockedTitle": "Bloqueaste a {name}",
+      "blockedHint": "No verán el perfil ni los entrenamientos del otro.",
+      "unblockHint": "{name} podrá volver a encontrarte con tu código. Los seguimientos entre ustedes no se restauran.",
+      "blockedAccounts": "Cuentas bloqueadas",
+      "blockedEmptyTitle": "No has bloqueado a nadie",
+      "blockedEmptyHint": "Las personas que bloquees aparecerán aquí. Puedes desbloquearlas cuando quieras.",
+      "failed": "No se pudo completar. Inténtalo de nuevo.",
+      "report": {
+        "postTitle": "Reportar publicación",
+        "accountTitle": "Reportar a {name}",
+        "intro": "¿Por qué lo reportas? {name} no sabrá que fuiste tú.",
+        "reasonsAria": "Motivo",
+        "reasons": {
+          "spam": "Spam",
+          "harassment": "Acoso o intimidación",
+          "inappropriate": "Contenido inapropiado u ofensivo",
+          "other": "Otro motivo"
+        },
+        "details": "Detalles (opcional)",
+        "detailsPlaceholder": "Cualquier cosa que nos ayude a revisarlo",
+        "submit": "Enviar reporte",
+        "sending": "Enviando…",
+        "doneTitle": "Reporte enviado",
+        "done": "Gracias — revisamos los reportes en un plazo de 24 horas.",
+        "blockToo": "También puedes bloquear a {name} para que no se vean entre ustedes.",
+        "close": "Listo"
+      },
+      "filter": {
+        "name": "Ese nombre no está permitido. Elige otro.",
+        "bio": "Tu bio tiene palabras que no están permitidas.",
+        "share": "Este entrenamiento no se puede compartir en el feed: su nombre, notas o ejercicios tienen palabras que no están permitidas. Igual se guardará en tu perfil."
+      }
     }
   },
   "consent": {

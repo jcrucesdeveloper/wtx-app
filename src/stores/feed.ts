@@ -89,6 +89,44 @@ export const useFeedStore = defineStore('feed', () => {
 
   const myId = () => useAuthStore().user?.id ?? null
 
+  /**
+   * Accounts this user has blocked (set by the moderation store). The server
+   * already hides them once the block lands, but a page fetched just before,
+   * or a request racing the block, must not bring their posts back.
+   */
+  const hiddenUserIds = ref(new Set<string>())
+
+  function isHidden(userId: string) {
+    return hiddenUserIds.value.has(userId)
+  }
+
+  /** Replaces the hidden set and drops anything already loaded from those accounts. */
+  function setHiddenUsers(ids: Iterable<string>) {
+    hiddenUserIds.value = new Set(ids)
+    for (const id of hiddenUserIds.value) dropUser(id)
+  }
+
+  /** Hides one account from now on — right after blocking it. */
+  function hideUser(userId: string) {
+    hiddenUserIds.value = new Set(hiddenUserIds.value).add(userId)
+    dropUser(userId)
+  }
+
+  function unhideUser(userId: string) {
+    const next = new Set(hiddenUserIds.value)
+    next.delete(userId)
+    hiddenUserIds.value = next
+  }
+
+  /** Removes an account's posts and follow edge from everything loaded. */
+  function dropUser(userId: string) {
+    posts.value = posts.value.filter((p) => p.posterId !== userId)
+    for (const [sessionId, post] of known) {
+      if (post.posterId === userId) known.delete(sessionId)
+    }
+    following.value = following.value.filter((f) => f.id !== userId)
+  }
+
   async function fetchKudosByMe(sessionIds: string[]): Promise<Set<string>> {
     const uid = myId()
     if (!uid || !sessionIds.length) return new Set()
@@ -129,7 +167,7 @@ export const useFeedStore = defineStore('feed', () => {
       .range(opts.from, opts.from + FEED_PAGE_SIZE - 1)
     if (error) throw error
 
-    const rows = (data ?? []) as unknown as FeedRow[]
+    const rows = ((data ?? []) as unknown as FeedRow[]).filter((r) => !isHidden(r.user_id))
     const kudosByMe = await fetchKudosByMe(rows.map((r) => r.id))
     return rows
       .map((r) => toFeedPost(r, kudosByMe))
@@ -151,7 +189,7 @@ export const useFeedStore = defineStore('feed', () => {
       .eq('id', sessionId)
       .eq('shared', true)
       .maybeSingle()
-    if (error || !data) return null
+    if (error || !data || isHidden((data as unknown as FeedRow).user_id)) return null
     const kudosByMe = await fetchKudosByMe([sessionId])
     const post = toFeedPost(data as unknown as FeedRow, kudosByMe)
     return post ? intern(post) : null
@@ -247,10 +285,12 @@ export const useFeedStore = defineStore('feed', () => {
         .eq('follower_id', uid)
         .order('created_at', { ascending: false })
       if (error) throw error
-      following.value = (data ?? []).map((row) => ({
-        id: row.followee_id,
-        displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
-      }))
+      following.value = (data ?? [])
+        .filter((row) => !isHidden(row.followee_id))
+        .map((row) => ({
+          id: row.followee_id,
+          displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
+        }))
       followingLoadedAt = Date.now()
       followingLoadedFor = myId()
     } catch {
@@ -325,5 +365,9 @@ export const useFeedStore = defineStore('feed', () => {
     followUser,
     unfollow,
     removeFollower,
+    isHidden,
+    setHiddenUsers,
+    hideUser,
+    unhideUser,
   }
 })

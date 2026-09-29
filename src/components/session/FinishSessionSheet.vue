@@ -10,6 +10,7 @@ import { isSupabaseConfigured } from '@/services/supabase'
 import { routineDraftFromSession, sessionDiffersFromRoutine } from '@/lib/sessionToRoutine'
 import { serializeTemplate } from '@/lib/serializeRoutine'
 import { formatClock, formatNumber } from '@/lib/format'
+import { containsBlockedTerms } from '@/lib/contentFilter'
 import type { FinishSessionOptions } from '@/composables/useFinishSession'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 
@@ -85,8 +86,23 @@ const newRoutineName = ref('')
 const error = ref('')
 let openedAt = 0
 
+/**
+ * Everything free-text a follower would read on the feed post. Names and
+ * notes with a blocked term can't be shared (the workout still saves).
+ */
+const shareBlockedByFilter = computed(() => {
+  const draft = activeSession.session?.draft
+  if (!draft) return false
+  return containsBlockedTerms(
+    sessionName.value.trim() || draft.name,
+    draft.notes,
+    ...draft.exercises.flatMap((e) => [e.name, e.note]),
+  )
+})
+
 /** Sharing needs an account and a synced (non-device-only) session. */
-const canShareToFeed = computed(() => auth.isLoggedIn && saveTarget.value === 'profile')
+const shareEligible = computed(() => auth.isLoggedIn && saveTarget.value === 'profile')
+const canShareToFeed = computed(() => shareEligible.value && !shareBlockedByFilter.value)
 
 watch(
   () => props.open,
@@ -261,6 +277,10 @@ const targets = computed(() => [
           <span class="share-toggle__desc">{{ t('session.finishSheet.shareToFeedDesc') }}</span>
         </span>
       </label>
+      <p v-else-if="shareEligible && shareBlockedByFilter" class="notice" role="status">
+        <TriangleAlert :size="16" :stroke-width="2.25" class="notice__icon" />
+        {{ t('social.moderation.filter.share') }}
+      </p>
 
       <div class="actions">
         <button type="button" class="secondary" @click="close">
