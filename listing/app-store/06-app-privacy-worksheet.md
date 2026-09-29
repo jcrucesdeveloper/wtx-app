@@ -1,45 +1,64 @@
 # App Store — App Privacy ("Nutrition Label") Worksheet
 
-Fill this in App Store Connect → App Privacy. Full reasoning:
-`research/05-privacy-compliance-notes.md`. This is the condensed,
-fill-in-order version — Apple rejects on label/behavior mismatches more
-often than almost any other metadata field, so don't guess on the items
-marked "verify."
+Fill this in App Store Connect → App Privacy. Full reasoning and code
+references: `research/05-privacy-compliance-notes.md`. Apple rejects on
+label/behavior mismatches more often than almost any other metadata field —
+don't guess on the items marked **Verify**.
+
+"Linked to you" = tied to the account (Supabase user id / email). "Tracking"
+= combined with other companies' data for ads, or shared with a data broker.
 
 ## Data types to declare
 
-| Data type | Collected? | Linked to identity? | Used for tracking? | Notes |
-|---|---|---|---|---|
-| Identifiers (Device ID) | **Yes** | No (device-level, not account — app has no accounts) | **Verify** against production AdMob config | Comes from the AdMob SDK, not WTX's own code |
-| Location (Coarse) | **Verify** | — | — | Only if AdMob is configured for location-based ad targeting; check before answering |
-| Usage Data | **Verify** | No | **Verify** | AdMob may collect ad-interaction data depending on config |
-| User Content (routines, exercises entered) | **No** | — | — | Confirmed: stays in local `localStorage`, no backend, no transmission |
-| Contact Info / Account Info | **No** | — | — | App has no accounts |
+| Data type | Collected? | Linked to you? | Tracking? | Purposes | Source |
+|---|---|---|---|---|---|
+| Contact Info → Email Address | Yes | Yes | No | App Functionality | Supabase Auth (accounts) |
+| Contact Info → Name | Yes (display name — declare it; it's a name the user picks) | Yes | No | App Functionality | `profiles.display_name` |
+| User Content → Other User Content | Yes (routines, workouts incl. notes, bio, shared workouts) | Yes | No | App Functionality | `routines`, `sessions`, `profiles.bio` |
+| User Content → Customer Support / Other | Only if reports are stored with free text — **Verify** after moderation lands | Yes | No | App Functionality | `content_reports` |
+| Identifiers → User ID | Yes | Yes | No | App Functionality, Analytics | Supabase user id (also on `app_events`) |
+| Identifiers → Device ID (IDFA) | Yes, when the user allows tracking | No (not tied to the account by us) | **Yes** — ATT prompt is shown | Third-Party Advertising | AdMob |
+| Usage Data → Product Interaction | Yes | Yes when signed in (`app_events.user_id`) | No | Analytics | `app_events` |
+| Usage Data → Advertising Data | Yes | No | **Yes** | Third-Party Advertising | AdMob |
+| Diagnostics → Crash Data | Yes (when `VITE_SENTRY_DSN` is set) | No (no `setUser`) | No | App Functionality | Sentry |
+| Diagnostics → Other Diagnostic Data | Yes (breadcrumbs, device/OS) | No | No | App Functionality | Sentry |
+| Location → Coarse Location | **Verify** — AdMob derives approximate location from IP | No | **Verify** (Yes if used for ad targeting) | Third-Party Advertising | AdMob |
+| Health & Fitness → Fitness | **Verify with counsel** — workout logs are arguably "Fitness"; declaring it is the conservative answer | Yes | No | App Functionality | `sessions` |
+| Purchases | **No** — purchase flow is hidden until it ships | — | — | — | — |
+| Contacts, Photos, Audio, Browsing/Search History, Sensitive Info, Financial | No | — | — | — | Camera is used only to scan QR codes on-device |
 
 ## App Tracking Transparency (ATT)
 
-Apple requires an ATT permission prompt at runtime **if** the app uses IDFA
-or otherwise tracks the user across apps/websites owned by other companies
-for advertising — this is exactly what "personalized ads" mode in AdMob
-does. This is a binary yes/no determined by the actual production AdMob
-configuration (not yet finalized as of this writing — see
-`capacitor.config.ts`, still in `initializeForTesting: true`).
+The app **already shows the ATT prompt** on iOS (`src/services/ads.ts`,
+`requestTrackingAuthorization`) before initializing AdMob.
 
-- [ ] Before submission: confirm whether production AdMob is configured for
-      personalized or non-personalized/contextual ads.
-- [ ] If personalized → implement the ATT prompt (`AppTrackingTransparency`
-      framework) and declare "Data Used to Track You" in the label.
-- [ ] If non-personalized/contextual only → ATT prompt likely not required;
-      declare accordingly, but confirm against Apple's current guidelines at
-      submission time since this area gets policy updates periodically.
+- [ ] `NSUserTrackingUsageDescription` is present in `ios/App/App/Info.plist`
+      with a clear, localized reason (**Verify**).
+- [ ] Declare "Data Used to Track You": Device ID and Advertising Data (and
+      Coarse Location if AdMob uses it for targeting) — consistent with
+      showing the prompt. If you'd rather not track, remove the prompt and
+      serve non-personalized ads only; never one without the other.
+- [ ] The iOS privacy manifest (`PrivacyInfo.xcprivacy`, added separately)
+      lists the same data types and tracking domains.
+
+## Account deletion (guideline 5.1.1(v))
+
+- In-app path: **Configuration → Account → Delete account** (type DELETE to
+  confirm) — deletes the account and synced data server-side
+  (`supabase/functions/delete-account`).
+- [ ] Mention the path in App Review notes and give the reviewer a demo
+      account (email + password) with a shared workout and a follower.
 
 ## Before you submit
 
-- [ ] Privacy policy URL is live and entered in App Store Connect → App
-      Information (required for every app).
-- [ ] Re-run this worksheet if an IAP/remove-ads flow ships before
-      submission.
-- [ ] Cross-check this label against the Play Store Data Safety worksheet
-      (`play-store/05-data-safety-worksheet.md`) — they should tell the same
-      factual story, since it's the same binary/SDK behavior on both
-      platforms.
+- [ ] Privacy Policy URL live: `https://<site>/privacy.html` (App Store
+      Connect → App Information). Terms/EULA: `https://<site>/terms.html`.
+- [ ] `VITE_LEGAL_NAME` / `VITE_SUPPORT_EMAIL` set for the production build
+      (they appear in both the app and the pages).
+- [ ] Production AdMob config confirmed (personalized vs non-personalized,
+      location targeting) — **Verify** rows above updated to match.
+- [ ] Sentry "Prevent storing of IP addresses" on (**Verify**), or declare
+      accordingly.
+- [ ] Re-run this worksheet if an IAP/remove-ads flow ships.
+- [ ] Cross-check against `play-store/05-data-safety-worksheet.md` — same
+      binary, same story.

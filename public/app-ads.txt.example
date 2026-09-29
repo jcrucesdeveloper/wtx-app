@@ -1,0 +1,19 @@
+# app-ads.txt for WTX — EXAMPLE, not live.
+#
+# AdMob verifies that the ads in WTX are authorized by fetching
+#   https://<your-developer-website>/app-ads.txt
+# where <your-developer-website> is the exact domain entered as the
+# "Developer website" / "Marketing URL" on the App Store and Google Play
+# listings. It must be served from the ROOT of that domain (not a
+# subdirectory), as plain text, over HTTP or HTTPS.
+#
+# To use it:
+#   1. Replace pub-0000000000000000 below with your AdMob publisher ID
+#      (AdMob console -> Settings -> Account information, "Publisher ID").
+#   2. Remove these comment lines if you like (comments are allowed).
+#   3. Save it as app-ads.txt at the developer website's root. If that
+#      website is this app's own deployment, rename this file to
+#      public/app-ads.txt so the build serves it at /app-ads.txt.
+#
+# Format: <ad system domain>, <publisher ID>, <relationship>, <certification authority ID>
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

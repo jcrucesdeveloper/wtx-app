@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "node scripts/build-legal.mjs && run-p type-check \"build-only {@}\" --",
+    "build:legal": "node scripts/build-legal.mjs",
     "preview": "vite preview",
     "test:unit": "vitest",
     "build-only": "vite build",

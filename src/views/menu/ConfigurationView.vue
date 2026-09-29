@@ -226,6 +226,11 @@ async function toggleReminders() {
       <div class="group">
         <h2 class="group__title">{{ t('settings.about') }}</h2>
         <p class="group__hint group__hint--tight">{{ t('settings.version', { version: appVersion }) }}</p>
+        <p class="group__hint group__hint--tight legal-links">
+          <RouterLink :to="{ name: 'legal', params: { doc: 'privacy' } }">{{ t('legal.privacy.title') }}</RouterLink>
+          ·
+          <RouterLink :to="{ name: 'legal', params: { doc: 'terms' } }">{{ t('legal.terms.title') }}</RouterLink>
+        </p>
       </div>
     </div>
   </AppPage>
@@ -388,5 +393,9 @@ async function toggleReminders() {
 .msg--error {
   color: #e11d48;
   opacity: 1;
+}
+
+.legal-links a {
+  color: var(--color-accent);
 }
 </style>

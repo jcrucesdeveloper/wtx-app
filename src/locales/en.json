@@ -630,23 +630,230 @@
   },
   "legal": {
     "back": "Back",
+    "updated": "Last updated: September 29, 2026",
+    "fallback": {
+      "controller": "the independent developer of WTX (named on its App Store and Google Play pages)",
+      "contactEmail": "the contact email shown on WTX's App Store and Google Play pages"
+    },
     "terms": {
-      "title": "Terms",
+      "title": "Terms of Use",
       "body": [
-        "wtx is provided as-is to help you plan and log your training. Use your own judgment about what is safe for your body.",
-        "An account is optional. If you create one, you are responsible for keeping your password safe and for what you share in group workouts.",
-        "Don't use group workouts to harass other people. We may remove accounts that abuse the service.",
-        "You can stop using wtx and delete your account at any time from Configuration."
+        "These Terms are an agreement between you and {controller} (“we”, “us”). By using WTX or creating an account you accept them. If you don't agree, please don't use the app.",
+        {
+          "heading": "The service",
+          "body": [
+            "WTX lets you write training routines as plain text and log your workouts. With an optional account you can also sync your data, follow friends, share workouts and train together in live group workouts (rooms). The app is free and supported by ads."
+          ]
+        },
+        {
+          "heading": "Who can use WTX",
+          "body": [
+            "You must be at least 16 years old to create an account, or older if the law where you live requires it. WTX is not directed at children under 13."
+          ]
+        },
+        {
+          "heading": "Your account",
+          "body": [
+            "Use a valid email address and keep your password secret. You're responsible for what happens on your account. If you forget your password, you can reset it with a link sent to your email. Tell us right away if you think someone else has access to your account."
+          ]
+        },
+        {
+          "heading": "Your content",
+          "body": [
+            "Your routines, workouts, notes, display name and bio are yours. You give us a limited, worldwide, non-exclusive, royalty-free license to store, copy and display them only as needed to run WTX, for example to sync them between your devices and to show the workouts you share to your followers. This license ends when you delete the content or your account.",
+            "You're responsible for what you post, and you confirm you have the right to post it."
+          ]
+        },
+        {
+          "heading": "Zero tolerance for objectionable content and abusive users",
+          "body": [
+            "There is no place in WTX for objectionable content or abusive behavior. You must not use your display name, bio, notes, shared workouts, rooms, invite codes or any other feature to:",
+            "• harass, bully, threaten, intimidate or stalk anyone;",
+            "• post hateful or discriminatory content, including content targeting race, ethnicity, nationality, religion, sex, gender identity, sexual orientation, disability or age;",
+            "• post sexual or pornographic content, or anything that sexualizes minors;",
+            "• promote violence, self-harm, eating disorders, dangerous challenges or illegal or performance-enhancing drugs;",
+            "• impersonate anyone or mislead others about who you are;",
+            "• share other people's personal information without their permission;",
+            "• spam, advertise, scam, or break the law or infringe anyone's rights.",
+            "You also must not interfere with WTX: no hacking, scraping, automated accounts, overloading our servers, or getting around blocks, bans or security features."
+          ]
+        },
+        {
+          "heading": "Reporting and blocking",
+          "body": [
+            "You can report a profile or a shared workout from the app, and you can block any user. Blocking someone stops them from following you and from seeing your profile and shared workouts. You can also remove followers at any time, or write to us at {contactEmail}.",
+            "We review every report within 24 hours. When content breaks these Terms we remove it, and we suspend or permanently remove the account of the user who posted it. WTX also automatically filters objectionable language in names, bios and shared workouts."
+          ]
+        },
+        {
+          "heading": "Removing content and ending accounts",
+          "body": [
+            "We may remove content, limit features, or suspend or terminate an account, with or without notice, if we reasonably believe it breaks these Terms, puts other people at risk or exposes us to legal liability. Where appropriate we'll tell you why, and you can reply to {contactEmail}.",
+            "You can stop using WTX at any time and delete your account from Configuration → Account → Delete account."
+          ]
+        },
+        {
+          "heading": "Health and safety",
+          "body": [
+            "WTX is a training log, not medical advice. Personal records, streaks, volume comparisons and anything else the app calculates are for information only and may be inaccurate.",
+            "Talk to a doctor or a qualified professional before starting or changing an exercise program, especially if you have a health condition, are pregnant or are coming back from an injury. Exercise carries a risk of injury: train within your limits, use proper technique and equipment, and stop if you feel pain, dizziness or shortness of breath. You exercise at your own risk."
+          ]
+        },
+        {
+          "heading": "Ads",
+          "body": [
+            "WTX shows ads from third parties. We don't endorse and aren't responsible for advertised products or websites; any dealings with advertisers are between you and them."
+          ]
+        },
+        {
+          "heading": "Changes to the service",
+          "body": [
+            "We may change, suspend or discontinue features, including sync and social features. Keep your own backup with Configuration → Data → Export all data. We'll give reasonable notice before discontinuing a feature that holds your data."
+          ]
+        },
+        {
+          "heading": "Disclaimer and limitation of liability",
+          "body": [
+            "WTX is provided “as is” and “as available”, without warranties of any kind, to the fullest extent the law allows. We don't promise that it will always work, be free of errors or never lose data.",
+            "To the fullest extent the law allows, we're not liable for indirect, incidental, special or consequential damages, or for lost data, lost profits or injuries arising from your use of WTX or from other users' content or behavior. Our total liability for any claim is limited to the greater of what you paid us in the 12 months before the claim or USD 50.",
+            "Nothing in these Terms limits rights you have as a consumer that can't be waived, including under Chile's Consumer Protection Law (Law 19.496)."
+          ]
+        },
+        {
+          "heading": "App stores",
+          "body": [
+            "If you downloaded WTX from Apple's App Store, these Terms are between you and us, not Apple. Apple has no obligation to provide support or maintenance for WTX and isn't responsible for claims relating to it. Apple and its subsidiaries are third-party beneficiaries of these Terms and may enforce them against you. The same applies to Google if you downloaded WTX from Google Play."
+          ]
+        },
+        {
+          "heading": "Governing law",
+          "body": [
+            "These Terms are governed by the laws of the Republic of Chile. Disputes will be heard by the competent courts of Santiago, Chile, without affecting your right as a consumer to go to the courts where you live, to file a complaint with SERNAC, or to rely on the mandatory protections of your country."
+          ]
+        },
+        {
+          "heading": "Changes to these Terms",
+          "body": [
+            "We may update these Terms. We'll tell you about important changes in the app before they take effect. If you keep using WTX afterwards, you accept the new Terms; if you don't agree, stop using WTX and delete your account."
+          ]
+        },
+        {
+          "heading": "Contact",
+          "body": [
+            "{controller}. Email: {contactEmail}."
+          ]
+        }
       ]
     },
     "privacy": {
       "title": "Privacy Policy",
       "body": [
-        "Without an account, everything stays on your device.",
-        "With an account we store your email, your display name, your routines and your workout sessions so they sync across devices.",
-        "In a group workout, the other members see your display name and the sets you complete in that room.",
-        "Data is stored with our database provider (Supabase). We don't sell it or use it for advertising.",
-        "Deleting your account from Configuration permanently removes all of this data."
+        "This policy explains what WTX collects, why, who can see it and the choices you have.",
+        "The data controller responsible for your personal data is {controller}, based in Chile (“we”, “us”). You can reach us at {contactEmail}.",
+        {
+          "heading": "The short version",
+          "body": [
+            "Without an account, your routines and workouts stay on your device. With an account, they're stored on our servers so they sync, and you decide what you share with other people.",
+            "The free app shows ads from Google AdMob. You're asked for consent where the law requires it, and on iPhone and iPad you choose whether WTX may track you.",
+            "We don't sell your personal data."
+          ]
+        },
+        {
+          "heading": "What we collect and why",
+          "body": [
+            "On your device only: your routines, workouts and settings are saved in the app's local storage and aren't sent to us unless you create an account. Reminders are scheduled by your phone as local notifications. When you scan a QR code, the camera image is processed on the device and never stored or uploaded.",
+            "Account details: your email address, your password (kept by our authentication provider only as a secure hash), your display name, an optional bio of up to 150 characters and a permanent invite code that lets people follow you. We use them to run your account, sign you in, send account emails (such as confirming your address or resetting your password) and show your profile to the people described below.",
+            "Training data: with an account, your routines and workouts are synced to our servers so they're backed up and available on your other devices. A workout includes its exercises, sets, weights, reps, times, date and duration, and any notes you write in it. WTX doesn't ask for body measurements or medical information; please don't write health details in your notes or bio.",
+            "Social data: who you follow and who follows you, kudos you give and receive, the rooms you join and the sets you complete in them. For each workout you share, we also keep a summary: personal records, your weekly streak, milestones, a comparison with your previous workout and the display names of the people you trained with.",
+            "Reports and blocks: if you report content or block someone, we keep who reported or blocked whom, what was reported and why, so we can review it and enforce our Terms.",
+            "Usage events: the app records a few events (such as app opened, account created, routine created, workout finished, room created or joined, workout shared, kudos given and person followed) with the platform, the app version and the time. If you're signed in, the event is linked to your account; if not, it isn't linked to any account. We use these only to understand which features are used and to improve WTX.",
+            "Crash reports: when the app crashes or hits an unexpected error, a report is sent to Sentry with technical details: the error and where it happened in the code, the app version, your device and system type, the screen you were on and the app's last actions before the error. We don't add your email or display name to these reports, and we don't record your screen.",
+            "Advertising: Google AdMob shows ads in WTX, for example after you finish a workout. To do this, Google's software in the app may collect your device's advertising identifier, your IP address and the approximate location derived from it, device information and how you interact with ads. Where the law requires it (for example in the European Economic Area, the United Kingdom and Switzerland), Google's consent form asks whether ads may be personalized. On iPhone and iPad, Apple asks whether WTX may track you; if you say no, your advertising identifier isn't shared. Ads may still be shown without personalization. Google explains how it uses this data at policies.google.com/technologies/partner-sites."
+          ]
+        },
+        {
+          "heading": "Why we're allowed to use it (legal bases)",
+          "body": [
+            "To provide the service you asked for under our Terms: your account, sync, rooms, following and sharing.",
+            "Your consent: creating an account (you accept this policy when you sign up), sharing a workout, personalized ads and tracking, and reminders. You can withdraw consent at any time; this doesn't affect what was done before.",
+            "Our legitimate interests, balanced against your rights: keeping WTX secure and working (crash reports), basic usage statistics, and preventing abuse and moderating content.",
+            "Legal obligations: when the law requires us to keep or disclose information."
+          ]
+        },
+        {
+          "heading": "Who can see what",
+          "body": [
+            "Only you can see your email address, your routines, the workouts you don't share and your settings.",
+            "People who follow you can see your display name, bio, the date you joined, your follower and following counts, and the workouts you share, in full: exercises, sets, notes, stats, records, kudos count and the names of the people you trained with. Your profile also shows them the dates of your shared workouts.",
+            "Anyone with your invite code, link or QR code can follow you without approval, so only share it with people you trust. You can remove a follower or block someone at any time, and you can turn off sharing when you finish a workout. To remove a workout you already shared, delete it.",
+            "In a room (up to 8 people), the other members see your display name, the routine being trained and each set you complete, live. When a room finishes, everyone in it automatically follows each other.",
+            "People you follow and people you've trained with in a room can see your display name, bio and profile counts, including how many times you've trained together, but not your workouts unless they follow you.",
+            "WTX has no public profiles and no people search: your profile is visible only to the people described here."
+          ]
+        },
+        {
+          "heading": "Service providers",
+          "body": [
+            "Supabase: database, sign-in and account emails. It stores your account, training and social data and our usage events.",
+            "Google (AdMob and its consent tools): showing and measuring ads. For some of this data Google acts as an independent controller under its own privacy policy.",
+            "Sentry (Functional Software, Inc.): crash and error diagnostics.",
+            "Apple and Google as app stores: they distribute WTX and process data such as downloads under their own policies.",
+            "These providers may store data outside Chile, including in the United States. We use providers that commit to adequate safeguards, such as standard contractual clauses, and we give each one only what it needs. We may also disclose data when the law requires it or to protect someone's safety. We don't sell or rent your personal data."
+          ]
+        },
+        {
+          "heading": "How long we keep it",
+          "body": [
+            "Account, training and social data: while your account exists. When you delete your account, it's removed from our live database right away; copies in our provider's backups are overwritten in their normal cycle, usually within 30 days.",
+            "Rooms close automatically after at most 7 hours and stay in the history of the people who took part. If you delete your account, your membership and sets are removed; a room you hosted keeps its routine for the other members. Workouts that others shared before you deleted your account may still list your display name among the people they trained with.",
+            "Usage events: kept to measure usage over time. When you delete your account they're unlinked from you and kept only in anonymous form.",
+            "Crash reports: kept by Sentry for up to 90 days.",
+            "Reports and blocks: kept while the accounts involved exist and as long as needed to handle a report, protect users or comply with the law.",
+            "Data on your device stays there until you delete it in the app, log out (synced data is cleared from the device) or uninstall WTX."
+          ]
+        },
+        {
+          "heading": "Your choices: export and deletion",
+          "body": [
+            "Export: Configuration → Data → Export all data saves your routines and workouts as a .zip of plain-text files you can open in other apps. For a copy of everything else (profile, follows, kudos), email us.",
+            "Delete: Configuration → Account → Delete account permanently deletes your account, profile, synced routines and workouts, shared workouts, kudos, follows and room activity. If you can't use the app, email us from your account's address and we'll delete it for you.",
+            "Ads: on iPhone and iPad, change tracking in Settings → Privacy & Security → Tracking. On Android, reset or delete your advertising ID in your device's settings.",
+            "Reminders: turn them on or off in Configuration → Reminders or in your device's notification settings."
+          ]
+        },
+        {
+          "heading": "Your rights",
+          "body": [
+            "Under Chilean Law 19.628 as amended by Law 21.719, and similar laws elsewhere such as the GDPR, you have the right to: access your data; correct it (rectification); have it deleted (erasure); object to its use, including for profiling and direct marketing (objection); receive it in a structured, commonly used format or have it sent to another service (portability); and ask us to temporarily stop processing it while a request is resolved (blocking). You can also withdraw your consent at any time, and you won't be subject to decisions based only on automated processing that significantly affect you.",
+            "To use these rights, use the in-app tools above or email {contactEmail} from the address linked to your account so we can confirm it's you. It's free. We'll answer within 30 calendar days; if we need more time, the law lets us extend this once by up to 30 more days, and we'll tell you why.",
+            "If you're not satisfied with our answer, you can complain to Chile's Personal Data Protection Agency (Agencia de Protección de Datos Personales) or to the data protection authority where you live."
+          ]
+        },
+        {
+          "heading": "Children",
+          "body": [
+            "WTX is not directed at children under 13, and you must be at least 16 to create an account. We don't knowingly collect personal data from children below these ages. If you think a child has given us data, contact us and we'll delete it."
+          ]
+        },
+        {
+          "heading": "Security",
+          "body": [
+            "Data travels encrypted (HTTPS). Our database enforces access rules so each person can only read what this policy describes, and passwords are stored only as secure hashes. No system is perfectly secure, though, so please use a strong password you don't use elsewhere.",
+            "If a security incident puts your personal data at risk, we'll notify the Chilean data protection authority and the people affected without undue delay, as the law requires, and explain what happened and what you can do."
+          ]
+        },
+        {
+          "heading": "Changes to this policy",
+          "body": [
+            "We'll update this policy when WTX changes. We'll tell you about important changes in the app before they take effect, and ask for your consent again where it's needed. The date at the top shows the current version."
+          ]
+        },
+        {
+          "heading": "Contact",
+          "body": [
+            "{controller}. Email: {contactEmail}."
+          ]
+        }
       ]
     }
   },
