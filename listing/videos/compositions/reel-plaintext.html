@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX reel — just text</title>
+    <!--
+      TikTok / Reels / Shorts, 1080×1920, 18 s. The differentiator angle: a
+      routine is a few lines of plain text. Opens on the text itself being
+      typed (a pattern-interrupt for a fitness feed), then shows the real app
+      parsing it live, the source view, and QR sharing.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as K from '../lib/kit.js'
+      import { reelBase, reelPhone, caption, endCard, phoneOut, SAFE } from '../lib/reel.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 18,
+        clips: ['plaintext', 'routine'],
+        async build(ctx) {
+          const { tl, el, m } = ctx
+          const { world } = reelBase(ctx)
+
+          ctx.music([
+            { at: 0, bars: 2, part: 'break' },
+            { at: 4, bars: 5, part: 'drop' },
+            { at: 14, bars: 2, part: 'outro' },
+          ])
+          ctx.sfx(2, 'riser', { dur: 2 })
+          ctx.sfx(4, 'impact', { gain: 0.7 })
+
+          /* ---------- 0:00 hook — the text itself ---------- */
+          const cap0 = caption(ctx, { at: 0, out: 3.6, kicker: 'Workout tracker', lines: ['What if your', 'workout was', '<em>just text?</em>'], size: 100 })
+          void cap0
+          const code = el('div', 'code')
+          Object.assign(code.style, { left: SAFE.left - 20 + 'px', top: '690px', width: '850px', height: '520px', fontSize: '42px', zIndex: 10 })
+          code.innerHTML = '<div class="bar"><i></i><i></i><i></i><span>push-day.wtt</span></div><div class="body"></div>'
+          tl.set(code, { opacity: 0 }, 0)
+          tl.fromTo(code, { opacity: 0, y: 80, rotateX: 18 }, { opacity: 1, y: 0, rotateX: 0, duration: 0.6, ease: 'expo.out', immediateRender: false }, 0.1)
+          const text = '# Push Day\nunit: kg\n\nBench Press | reps 4x8 | 60\nSquat | reps 5x5 | 100\nPullups | reps 4x8 | 0'
+          const typed = K.typewrite(ctx, code.querySelector('.body'), text, 0.35, { cps: 36, format: K.highlightWtt })
+          for (let t = 0.35; t < typed; t += 0.09) ctx.sfx(t, 'tick', { gain: 0.45 })
+          // The text card dives into the phone screen.
+          tl.to(code, { scale: 0.42, y: 330, opacity: 0, filter: 'blur(6px)', duration: 0.55, ease: 'power3.in' }, 3.45)
+
+          /* ---------- 0:04 the app reads it ---------- */
+          const ph = reelPhone(ctx, world, 'plaintext', { at: 3.75 })
+          const q0 = m('plaintext', 'textarea') - 0.3
+          const q1 = m('plaintext', 'added') + 1.2
+          const t1 = K.playWithTaps(ctx, ph.view, ph.viewport, { at: 3.75, from: q0, to: q1, speed: (q1 - q0) / 5.25 }, { vw: ph.vw })
+          for (let i = 0; i < 5; i++) {
+            const seg = { at: 3.75, from: q0, speed: (q1 - q0) / 5.25 }
+            ctx.sfx(ctx.at(seg, m('plaintext', 'line', i)), 'tick', { gain: 0.8 })
+          }
+          caption(ctx, { at: 4.0, out: 6.4, kicker: 'Paste or type', lines: ['Write it', '<em>as text.</em>'] })
+          caption(ctx, { at: 6.55, out: t1 - 0.3, kicker: 'Live preview', lines: ['The app', '<em>reads it.</em>'] })
+
+          /* ---------- 0:09 the source is right there ---------- */
+          const rt = K.swapClip(ctx, ph, 'routine', t1)
+          ctx.sfx(t1 - 0.05, 'whoosh', { gain: 0.6 })
+          tl.fromTo(ph.root, { scale: 0.95 }, { scale: 1, duration: 0.5, ease: 'expo.out' }, t1)
+          const u0 = m('routine', 'detail') + 0.2
+          const u1 = m('routine', 'source') + 1.6
+          const t2 = K.playWithTaps(ctx, rt, ph.viewport, { at: t1, from: u0, to: u1, speed: (u1 - u0) / 3.2 }, { vw: ph.vw })
+          caption(ctx, { at: t1 + 0.05, out: t2 - 0.3, kicker: 'Every routine', lines: ['Is a file', '<em>you own.</em>'] })
+
+          /* ---------- 0:12 share with a scan ---------- */
+          const v0 = m('routine', 'share') - 0.5
+          const v1 = m('routine', 'qr') + 1.5
+          const t3 = K.playWithTaps(ctx, rt, ph.viewport, { at: t2, from: v0, to: v1, speed: (v1 - v0) / (13.4 - t2) }, { vw: ph.vw })
+          void t3
+          caption(ctx, { at: t2 + 0.05, out: 13.3, kicker: 'No account needed', lines: ['Share it', 'with a <em>scan.</em>'] })
+
+          /* ---------- 0:14 end card ---------- */
+          phoneOut(ctx, ph, 13.45)
+          endCard(ctx, 14, { tagline: 'Your workouts.<br><span class="accent">Plain and simple.</span>' })
+        },
+      })
+    </script>
+  </body>
+</html>

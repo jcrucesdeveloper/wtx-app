@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX promo 16:9</title>
+    <!--
+      YouTube main video + Google Play promo video (Play takes a YouTube URL).
+      30 s, 1920×1080, 30 fps. Google Play only autoplays the first 30 s and
+      asks for ≥80% real in-app experience with the core features inside the
+      first 10 s — so the hook itself is real UI (the recap's PR card), the
+      phone is on screen from 0:02 to 0:26, and logging a set lands by 0:05.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .copy {
+        position: absolute;
+        left: 150px;
+        top: 0;
+        bottom: 0;
+        width: 960px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 30px;
+      }
+      .copy .kicker {
+        font-size: 26px;
+      }
+      .copy .headline {
+        font-size: 124px;
+      }
+      .copy .sub {
+        font-size: 36px;
+        max-width: 820px;
+      }
+      .copy.right {
+        left: auto;
+        right: 110px;
+        width: 900px;
+      }
+      .stage3d {
+        position: absolute;
+        inset: 0;
+        perspective: 1800px;
+      }
+      .hook {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .hook .num {
+        font-size: 330px;
+        font-weight: 900;
+        letter-spacing: -0.06em;
+        line-height: 0.85;
+      }
+      .hook .num small {
+        font-size: 0.32em;
+        letter-spacing: -0.02em;
+        color: var(--text-1);
+        margin-left: 0.12em;
+      }
+      .stamp {
+        position: absolute;
+        font-size: 44px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        padding: 14px 30px;
+        border: 6px solid var(--signal);
+        color: var(--signal);
+        border-radius: 14px;
+        text-transform: uppercase;
+        background: rgba(5, 8, 10, 0.6);
+      }
+      .code {
+        position: absolute;
+        left: 150px;
+        top: 360px;
+        width: 860px;
+        padding: 40px 46px;
+        border-radius: 28px;
+        background: rgba(9, 12, 15, 0.92);
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+        font-family: var(--mono);
+        font-size: 33px;
+        line-height: 1.6;
+        color: #cbd5e1;
+        min-height: 420px;
+      }
+      .code .bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 26px;
+        align-items: center;
+        font-family: var(--sans);
+        font-size: 22px;
+        color: var(--text-2);
+        font-weight: 600;
+      }
+      .code .bar i {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #2a3038;
+      }
+      .code .bar span {
+        margin-left: 12px;
+      }
+      .c-h {
+        color: var(--signal-hi);
+        font-weight: 800;
+      }
+      .c-k {
+        color: #7dd3fc;
+      }
+      .c-p {
+        color: #56606b;
+      }
+      .c-n {
+        color: #fbbf24;
+      }
+      .caret {
+        display: inline-block;
+        width: 0.55em;
+        height: 1.1em;
+        vertical-align: -0.18em;
+        background: var(--signal);
+        margin-left: 2px;
+      }
+      .end {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 34px;
+      }
+      .end .wordmark {
+        font-size: 210px;
+      }
+      .end .tag {
+        font-size: 58px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .end .pill {
+        font-size: 32px;
+      }
+      .tint {
+        position: absolute;
+        inset: 0;
+        mix-blend-mode: color;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as K from '../lib/kit.js'
+
+      const hl = (s) =>
+        K.escape(s)
+          .replace(/^(#.*)$/gm, '<span class="c-h">$1</span>')
+          .replace(/^(\w+:)/gm, '<span class="c-k">$1</span>')
+          .replace(/\|/g, '<span class="c-p">|</span>')
+          .replace(/\b(reps|rest)\b/g, '<span class="c-k">$1</span>')
+          .replace(/\b(\d+x\d+|\d+(?:\.\d+)?)\b/g, '<span class="c-n">$1</span>')
+
+      composition({
+        width: 1920,
+        height: 1080,
+        fps: 30,
+        duration: 30,
+        clips: ['workout', 'history', 'routine', 'plaintext', 'accent'],
+        async build(ctx) {
+          const { tl, el, m } = ctx
+          const bg = K.background(ctx, { floor: true })
+          // Recolors only the background (it lives inside the bg layer, under everything else).
+          const tint = el('div', 'tint', bg.root)
+
+          ctx.music([
+            { at: 0, bars: 1, part: 'build' },
+            { at: 2, bars: 6, part: 'drop' },
+            { at: 14, bars: 2, part: 'break' },
+            { at: 18, bars: 4, part: 'drop' },
+            { at: 26, bars: 2, part: 'outro' },
+          ])
+          ctx.sfx(0, 'riser', { dur: 2 })
+          ctx.sfx(16, 'riser', { dur: 2, gain: 0.8 })
+          ctx.sfx(2, 'impact', { gain: 0.7 })
+          ctx.sfx(18, 'impact', { gain: 0.6 })
+
+          /* ---------- the phone (real app footage), stage right ---------- */
+          const world = el('div', 'stage3d')
+          const PW = 470
+          const ph = K.phone(ctx, world, 'workout', { w: PW, x: 1230, y: 0 })
+          ph.root.style.top = (1080 - ph.h) / 2 + 'px'
+          const scale = ph.vw / 886
+          const phoneTop = (1080 - ph.h) / 2
+          /** Clip-pixel y → stage y, for lining up callouts with the screen. */
+          const sy = (y) => phoneTop + PW * 0.135 + y * scale
+
+          tl.set(ph.root, { opacity: 0 }, 0)
+          tl.fromTo(
+            ph.root,
+            { opacity: 0, x: 520, rotateY: -48, rotateX: 8, filter: 'blur(18px)' },
+            { opacity: 1, x: 0, rotateY: -16, rotateX: 4, filter: 'blur(0px)', duration: 0.9, ease: 'expo.out' },
+            1.96,
+          )
+          // Slow living drift for the rest of the film.
+          tl.to(ph.root, { rotateY: -8, rotateX: 2, y: -10, duration: 11, ease: 'sine.inOut' }, 2.9)
+          tl.to(ph.root, { rotateY: -14, rotateX: 3, y: 6, duration: 12, ease: 'sine.inOut' }, 13.9)
+
+          /* ---------- 0:00 hook — the PR, huge ---------- */
+          const hook = el('div', 'hook')
+          hook.style.zIndex = 5
+          const kick = el('div', 'kicker', hook)
+          kick.style.fontSize = '30px'
+          kick.textContent = 'Bench press'
+          const num = el('div', 'num', hook)
+          const val = el('span', '', num)
+          el('small', '', num, 'KG')
+          K.counter(ctx, val, 60, 72.5, 0.05, 1.05, { decimals: 1, ease: 'expo.out' })
+          K.slam(ctx, num, 0, { from: 1.8, dur: 0.5 })
+          K.flash(ctx, 0, 0.5)
+          tl.fromTo(kick, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 0.15)
+          for (let i = 0; i < 12; i++) ctx.sfx(0.05 + i * 0.07 * (1 + i * 0.08), 'tick', { gain: 0.6 })
+          const stamp = el('div', 'stamp', hook, 'New PR')
+          Object.assign(stamp.style, { right: '380px', top: '300px' })
+          tl.fromTo(stamp, { scale: 3, rotate: -24, opacity: 0 }, { scale: 1, rotate: -9, opacity: 1, duration: 0.35, ease: 'expo.out' }, 1.0)
+          ctx.sfx(1.0, 'hit')
+          K.shake(ctx, hook, 1.02, 16)
+          tl.to(hook, { scale: 0.9, opacity: 0, filter: 'blur(20px)', duration: 0.3, ease: 'power2.in' }, 1.7)
+          K.wipe(ctx, 1.75)
+
+          /* ---------- 0:02 log a workout ---------- */
+          const w = ph.view
+          const t1 = K.playWithTaps(ctx, w, ph.viewport, { at: 1.97, from: m('workout', 'start') - 0.3, to: m('workout', 'start') + 0.75 }, { vw: ph.vw })
+          const s2from = m('workout', 'session') - 0.25
+          const s2to = m('workout', 'bench-done')
+          const t2 = K.playWithTaps(ctx, w, ph.viewport, { at: t1, from: s2from, to: s2to }, { vw: ph.vw })
+          const seg2 = { at: t1, from: s2from }
+          const prAt = ctx.at(seg2, m('workout', 'pr-set'))
+          ctx.sfx(prAt, 'confirm')
+          for (const n of [2, 3, 4]) ctx.sfx(ctx.at(seg2, m('workout', `set-${n}`)), 'confirm', { gain: 0.6 })
+
+          const c1 = el('div', 'copy')
+          const k1 = el('div', 'kicker', c1, 'Log your workout')
+          const h1 = el('div', 'headline', c1)
+          const s1 = el('div', 'sub', c1, 'Last session’s numbers are already filled in — most sets are a single tap.')
+          tl.fromTo(k1, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5 }, 2.2)
+          const l1 = el('div', '', h1, 'Log every')
+          const l2 = el('div', '', h1, '<em>set.</em>')
+          const h1parts = [...K.rise(ctx, l1, 2.3), ...K.rise(ctx, l2, 2.5)]
+          tl.fromTo(s1, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6 }, 3.0)
+
+          // The logged set, lifted out of the screen.
+          const rowY = 548
+          const co1 = K.callout(ctx, world, w, { x: 30, y: rowY, w: 826, h: 104 }, { x: 890, y: sy(rowY) - 30, scale: 0.86 })
+          K.popIn(ctx, co1, prAt - 0.02, { from: { scale: 0.7, x: 200, y: 0, rotate: 0 }, sound: false })
+          K.shake(ctx, co1, prAt + 0.05, 6)
+          K.popOut(ctx, co1, prAt + 2.4)
+          const check = el('div', '', world, K.ICONS.check)
+          Object.assign(check.style, { position: 'absolute', width: '120px', height: '120px', left: '820px', top: sy(rowY) - 120 + 'px', color: '#fff', background: 'var(--signal)', borderRadius: '50%', padding: '24px', boxShadow: '0 0 60px rgba(224,38,58,.7)' })
+          tl.set(check, { opacity: 0 }, 0)
+          K.popIn(ctx, check, prAt + 0.08, { from: { scale: 0, rotate: -90, y: 0 }, sound: false })
+          K.popOut(ctx, check, prAt + 2.3)
+
+          K.riseOut(ctx, h1parts, t2 - 0.35)
+          tl.to([k1, s1], { opacity: 0, duration: 0.3 }, t2 - 0.35)
+
+          /* ---------- rest timer, sped up ---------- */
+          const f0 = m('workout', 'bench-done') + 0.2
+          const f1 = m('workout', 'fast-end') + 0.2
+          const t3 = K.playWithTaps(ctx, w, ph.viewport, { at: t2, from: f0, to: f1, speed: (f1 - f0) / 2 }, { vw: ph.vw, sound: false })
+          for (let k = 0; k < 8; k++) ctx.sfx(t2 + k * 0.25, 'tap', { gain: 0.5 })
+          const c2 = el('div', 'copy')
+          const k2 = el('div', 'kicker', c2, 'Rest timer built in')
+          const h2 = el('div', 'headline', c2)
+          const h2a = el('div', '', h2, 'Train.')
+          const h2b = el('div', '', h2, '<span class="outline">Rest.</span>')
+          const h2c = el('div', '', h2, '<em>Repeat.</em>')
+          tl.fromTo(k2, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, t2)
+          const p2 = [...K.rise(ctx, h2a, t2), ...K.rise(ctx, h2b.firstChild, t2 + 0.5), ...K.rise(ctx, h2c.firstChild, t2 + 1.0)]
+          K.riseOut(ctx, p2, t3 - 0.3)
+          tl.to(k2, { opacity: 0, duration: 0.25 }, t3 - 0.3)
+          tl.to(ph.root, { keyframes: [{ scale: 1.03, duration: 0.08 }, { scale: 1, duration: 0.3 }] }, t2 + 1.0)
+
+          /* ---------- finish → recap ---------- */
+          const g0 = m('workout', 'finish') - 0.3
+          const g1 = m('workout', 'recap') - 0.6
+          const t4 = K.playWithTaps(ctx, w, ph.viewport, { at: t3, from: g0, to: g1, speed: (g1 - g0) / 1.7 }, { vw: ph.vw })
+          // Stretch the still recap so the take's own scroll (recap + 2.6 s) never
+          // starts: the callouts are cropped from fixed screen positions.
+          const r0 = m('workout', 'recap') - 0.2
+          const r1 = Math.min(r0 + (14 - t4), m('workout', 'recap') + 2.3)
+          K.playWithTaps(ctx, w, ph.viewport, { at: t4, from: r0, to: r1, speed: (r1 - r0) / (14 - t4) }, { vw: ph.vw })
+          ctx.sfx(t4 - 0.9, 'whoosh', { gain: 0.6 })
+
+          const c3 = el('div', 'copy')
+          const k3 = el('div', 'kicker', c3, 'Personal records')
+          const h3 = el('div', 'headline', c3)
+          const h3a = el('div', '', h3, 'Every PR,')
+          const h3b = el('div', '', h3, '<em>caught.</em>')
+          const s3 = el('div', 'sub', c3, 'Records, streaks and milestones — worked out the moment you finish.')
+          tl.fromTo(k3, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, t3)
+          const p3 = [...K.rise(ctx, h3a, t3 + 0.05), ...K.rise(ctx, h3b.firstChild, t3 + 0.3)]
+          tl.fromTo(s3, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5 }, t3 + 0.8)
+
+          const prCard = K.callout(ctx, world, w, { x: 38, y: 316, w: 810, h: 138 }, { x: 800, y: sy(316) + 40, scale: 0.86 })
+          K.popIn(ctx, prCard, t4 + 0.25, { sound: 'hit' })
+          const streak = K.callout(ctx, world, w, { x: 38, y: 592, w: 810, h: 180 }, { x: 860, y: sy(592) + 90, scale: 0.74 })
+          K.popIn(ctx, streak, t4 + 0.85)
+          K.popOut(ctx, prCard, 13.7)
+          K.popOut(ctx, streak, 13.72)
+          K.riseOut(ctx, p3, 13.6)
+          tl.to([k3, s3], { opacity: 0, duration: 0.25 }, 13.6)
+
+          /* ---------- 0:14 routines are plain text (break) ---------- */
+          K.wipe(ctx, 13.78, { dir: -1 })
+          const pt = K.swapClip(ctx, ph, 'plaintext', 14)
+          tl.to(ph.root, { x: -1000, rotateY: 14, duration: 0.01 }, 14)
+          const q0 = m('plaintext', 'load') - 0.25
+          const q1 = m('plaintext', 'added') + 0.9
+          const t6 = K.playWithTaps(ctx, pt, ph.viewport, { at: 14, from: q0, to: q1, speed: (q1 - q0) / 4 }, { vw: ph.vw })
+          void t6
+          const code = el('div', 'code')
+          code.style.left = 'auto'
+          code.style.right = '150px'
+          code.style.top = '430px'
+          code.innerHTML = '<div class="bar"><i></i><i></i><i></i><span>upper-power.wtt</span></div><div class="body"></div>'
+          const kc = el('div', 'kicker')
+          Object.assign(kc.style, { position: 'absolute', right: '150px', top: '150px', fontSize: '26px', width: '860px' })
+          kc.textContent = 'Plain-text routines'
+          const hc = el('div', 'headline')
+          Object.assign(hc.style, { position: 'absolute', right: '150px', top: '200px', fontSize: '96px', width: '860px' })
+          hc.innerHTML = 'Routines are<br><em>just text.</em>'
+          tl.set([code, kc, hc], { opacity: 0 }, 0)
+          tl.fromTo(kc, { opacity: 0 }, { opacity: 1, duration: 0.3 }, 14.1)
+          tl.fromTo(hc, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, 14.15)
+          tl.fromTo(code, { opacity: 0, y: 60, rotateX: 12 }, { opacity: 1, y: 0, rotateX: 0, duration: 0.7, ease: 'expo.out' }, 14.2)
+          const text = '# Upper Power\nunit: kg\n\nBench Press | reps 5x5 | 75\nPullups | reps 4x8 | 0\nSide Lateral Raise | reps 3x15 | 10'
+          K.typewrite(ctx, code.querySelector('.body'), text, 14.5, { cps: 34, format: hl })
+          for (let i = 0; i < 26; i++) ctx.sfx(14.5 + i * 0.1, 'tick', { gain: 0.35 })
+          tl.to([code, kc, hc], { opacity: 0, x: 80, duration: 0.3, ease: 'power2.in' }, 17.75)
+
+          /* ---------- 0:18 share with a scan ---------- */
+          K.wipe(ctx, 17.78)
+          const rt = K.swapClip(ctx, ph, 'routine', 18)
+          tl.to(ph.root, { x: 0, rotateY: -14, duration: 0.01 }, 18)
+          const u0 = m('routine', 'share') - 0.6
+          const u1 = m('routine', 'qr') + 1.6
+          K.playWithTaps(ctx, rt, ph.viewport, { at: 18, from: u0, to: u1, speed: (u1 - u0) / 3 }, { vw: ph.vw })
+          const c5 = el('div', 'copy')
+          const k5 = el('div', 'kicker', c5, 'Share a routine')
+          const h5 = el('div', 'headline', c5)
+          const h5a = el('div', '', h5, 'Share it')
+          const h5b = el('div', '', h5, 'with a <em>scan.</em>')
+          const s5 = el('div', 'sub', c5, 'The whole routine travels inside the QR code. No account needed.')
+          tl.fromTo(k5, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 18.1)
+          const p5 = [...K.rise(ctx, h5a, 18.1), ...K.rise(ctx, h5b, 18.3)]
+          tl.fromTo(s5, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5 }, 18.7)
+          K.riseOut(ctx, p5, 20.7)
+          tl.to([k5, s5], { opacity: 0, duration: 0.25 }, 20.7)
+
+          /* ---------- 0:21 streak calendar ---------- */
+          const hs = K.swapClip(ctx, ph, 'history', 21)
+          ctx.sfx(20.95, 'whoosh', { gain: 0.5 })
+          tl.fromTo(ph.root, { scale: 0.94 }, { scale: 1, duration: 0.5, ease: 'expo.out' }, 21)
+          const v0 = m('history', 'sessions-tab') - 0.2
+          K.playWithTaps(ctx, hs, ph.viewport, { at: 21, from: v0, to: v0 + 3 }, { vw: ph.vw })
+          const c6 = el('div', 'copy')
+          const k6 = el('div', 'kicker', c6, 'Training history')
+          const h6 = el('div', 'headline', c6)
+          const h6a = el('div', '', h6, 'Watch your')
+          const h6b = el('div', '', h6, '<em>streak</em> grow.')
+          tl.fromTo(k6, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.4 }, 21.1)
+          const p6 = [...K.rise(ctx, h6a, 21.1), ...K.rise(ctx, h6b, 21.3)]
+          const cal = K.callout(ctx, world, hs, { x: 40, y: 140, w: 806, h: 486 }, { x: 880, y: sy(140) + 40, scale: 0.62 })
+          K.popIn(ctx, cal, 21.9)
+          K.popOut(ctx, cal, 23.65)
+          K.riseOut(ctx, p6, 23.7)
+          tl.to(k6, { opacity: 0, duration: 0.25 }, 23.7)
+
+          /* ---------- 0:24 make it yours ---------- */
+          const ac = K.swapClip(ctx, ph, 'accent', 24)
+          ctx.sfx(23.95, 'whoosh', { gain: 0.5 })
+          tl.fromTo(ph.root, { scale: 0.94 }, { scale: 1, duration: 0.5, ease: 'expo.out' }, 24)
+          const a0 = m('accent', 'settings') + 1.1
+          const a1 = m('accent', 'swatch-0') + 0.3
+          const segA = { at: 24, from: a0, to: a1, speed: (a1 - a0) / 2 }
+          K.playWithTaps(ctx, ac, ph.viewport, segA, { vw: ph.vw })
+          const c7 = el('div', 'copy')
+          const h7 = el('div', 'headline', c7)
+          const h7a = el('div', '', h7, 'Make it')
+          const h7b = el('div', '', h7, '<em>yours.</em>')
+          const p7 = [...K.rise(ctx, h7a, 24.05), ...K.rise(ctx, h7b.firstChild, 24.25)]
+          K.riseOut(ctx, p7, 25.7)
+          // The background light and the headline's accent follow each color the app switches to.
+          const colors = { 1: '#10b981', 3: '#8b5cf6', 5: '#f59e0b', 6: '#06b6d4', 0: '#e0263a' }
+          for (const [i, c] of Object.entries(colors)) {
+            const t = ctx.at(segA, m('accent', `swatch-${i}`))
+            tl.to(tint, { backgroundColor: c, opacity: i === '0' ? 0 : 0.5, duration: 0.25 }, t + 0.05)
+            tl.to(h7b.firstChild, { color: c, duration: 0.2 }, t + 0.05)
+          }
+
+          /* ---------- 0:26 end card ---------- */
+          tl.to(ph.root, { x: 500, rotateY: -40, opacity: 0, filter: 'blur(14px)', duration: 0.45, ease: 'power3.in' }, 25.6)
+          tl.to(tint, { opacity: 0, duration: 0.3 }, 25.8)
+          const end = el('div', 'end')
+          const mark = K.logoMark(ctx, end, 26.0, { size: 230, x: 0, y: 0 })
+          mark.style.position = 'relative'
+          const wm = el('div', 'wordmark', end, 'WTX')
+          const tag = el('div', 'tag', end, 'Log every set. <span class="accent">Beat every PR.</span>')
+          const pill = el('div', 'pill', end, `${K.ICONS.check}<span>Free on iOS &amp; Android</span>`)
+          pill.querySelector('svg').style.color = 'var(--signal)'
+          const wmParts = K.rise(ctx, wm, 26.35, { stagger: 0.06, dur: 0.8 })
+          void wmParts
+          tl.fromTo(tag, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6 }, 26.9)
+          tl.fromTo(pill, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(2)' }, 27.4)
+          ctx.sfx(27.4, 'pop')
+          tl.fromTo(end, { scale: 1 }, { scale: 1.04, duration: 4, ease: 'none' }, 26)
+          tl.to(bg.glows, { opacity: 0.6, duration: 1 }, 26)
+        },
+      })
+    </script>
+  </body>
+</html>
