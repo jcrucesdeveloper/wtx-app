@@ -10,9 +10,15 @@ import type { SessionRecap } from '@/stores/sessionRecap'
  * client-side the way `SessionCompleteView` recomputes its own — they're
  * captured once, at finish time, instead.
  */
-export type FeedSnapshot = Omit<SessionRecap, 'sessionId'>
+export type FeedSnapshot = Omit<SessionRecap, 'sessionId'> & {
+  /** Display names of the other room members, when the workout was done in a room. */
+  trainedWith?: string[]
+}
 
-export function toFeedSnapshot(recap: Omit<SessionRecap, 'sessionId'>): FeedSnapshot {
+/** Most names a snapshot keeps — a room holds at most 8, so 7 partners. */
+const MAX_PARTNERS = 7
+
+export function toFeedSnapshot(recap: FeedSnapshot): FeedSnapshot {
   return { ...recap }
 }
 
@@ -55,6 +61,12 @@ function parseComparison(value: unknown): SessionComparison | undefined {
   return { volumeDelta: c.volumeDelta, workingSetsDelta: c.workingSetsDelta, isVolumeUp: c.isVolumeUp }
 }
 
+function parseTrainedWith(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const names = value.filter((n) => isShortString(n, 48)).slice(0, MAX_PARTNERS)
+  return names.length ? names : undefined
+}
+
 function parseMilestone(value: unknown): Milestone | undefined {
   if (value == null) return undefined
   const m = value as Partial<Milestone> | null
@@ -74,6 +86,7 @@ export function parseFeedSnapshot(value: unknown): FeedSnapshot | null {
   if (!Array.isArray(s.personalRecords) || !isCount(s.weekStreak) || !isCount(s.elapsedSeconds)) return null
 
   const personalRecords = s.personalRecords.map(parsePersonalRecord).filter((r): r is PersonalRecord => r !== null)
+  const trainedWith = parseTrainedWith(s.trainedWith)
 
   return {
     personalRecords,
@@ -81,5 +94,6 @@ export function parseFeedSnapshot(value: unknown): FeedSnapshot | null {
     milestone: parseMilestone(s.milestone),
     weekStreak: s.weekStreak,
     elapsedSeconds: s.elapsedSeconds,
+    ...(trainedWith ? { trainedWith } : {}),
   }
 }

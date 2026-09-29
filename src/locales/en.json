@@ -362,9 +362,11 @@
       "error": "Couldn't load the feed.",
       "loading": "Loading…",
       "loadMore": "Load more",
-      "showExercises": "Show exercises",
-      "hideExercises": "Hide exercises",
-      "kudosAria": "Give kudos"
+      "kudosAria": "Give kudos",
+      "trainedWith": "with {names}",
+      "postTitle": "Workout",
+      "notFound": "This workout isn't available — it may have been deleted or unshared.",
+      "backAria": "Back"
     },
     "follow": {
       "title": "Find training partners",

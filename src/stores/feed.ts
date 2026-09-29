@@ -100,10 +100,13 @@ export const useFeedStore = defineStore('feed', () => {
     return new Set((data ?? []).map((r) => r.session_id))
   }
 
+  const FEED_SELECT =
+    'id, user_id, raw_text, created_at, feed_snapshot, profiles!sessions_user_id_fkey(display_name), session_kudos(count)'
+
   async function fetchPage(from: number): Promise<FeedPost[]> {
     const { data, error } = await requireSupabase()
       .from('sessions')
-      .select('id, user_id, raw_text, created_at, feed_snapshot, profiles!sessions_user_id_fkey(display_name), session_kudos(count)')
+      .select(FEED_SELECT)
       .eq('shared', true)
       .order('created_at', { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
@@ -112,6 +115,33 @@ export const useFeedStore = defineStore('feed', () => {
     const rows = (data ?? []) as unknown as FeedRow[]
     const kudosByMe = await fetchKudosByMe(rows.map((r) => r.id))
     return rows.map((r) => toFeedPost(r, kudosByMe)).filter((p): p is FeedPost => p !== null)
+  }
+
+  /** A post opened directly (deep link, reload) that isn't in the loaded feed pages. */
+  const standalonePost = ref<FeedPost | null>(null)
+
+  function getPost(sessionId: string): FeedPost | undefined {
+    return (
+      posts.value.find((p) => p.sessionId === sessionId) ??
+      (standalonePost.value?.sessionId === sessionId ? standalonePost.value : undefined)
+    )
+  }
+
+  /** Returns the post from the loaded feed, or fetches it on its own (RLS decides if it's visible). */
+  async function loadPost(sessionId: string): Promise<FeedPost | null> {
+    const cached = getPost(sessionId)
+    if (cached) return cached
+    const { data, error } = await requireSupabase()
+      .from('sessions')
+      .select(FEED_SELECT)
+      .eq('id', sessionId)
+      .eq('shared', true)
+      .maybeSingle()
+    if (error || !data) return null
+    const kudosByMe = await fetchKudosByMe([sessionId])
+    const post = toFeedPost(data as unknown as FeedRow, kudosByMe)
+    standalonePost.value = post
+    return post
   }
 
   let feedLoadedAt = 0
@@ -165,7 +195,7 @@ export const useFeedStore = defineStore('feed', () => {
    */
   async function toggleKudos(sessionId: string) {
     const uid = myId()
-    const post = posts.value.find((p) => p.sessionId === sessionId)
+    const post = getPost(sessionId)
     if (!uid || !post) return
 
     const giving = !post.kudosByMe
@@ -245,6 +275,8 @@ export const useFeedStore = defineStore('feed', () => {
     followingLoading,
     loadFeed,
     loadMore,
+    getPost,
+    loadPost,
     toggleKudos,
     loadFollowing,
     followByCode,

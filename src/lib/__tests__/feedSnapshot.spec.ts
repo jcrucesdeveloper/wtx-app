@@ -21,6 +21,13 @@ describe('feed snapshot', () => {
     expect(parseFeedSnapshot(roundTripped)).toEqual({ ...bare, comparison: undefined, milestone: undefined })
   })
 
+  it('round-trips training partners and drops malformed names', () => {
+    const withPartners: FeedSnapshot = { ...full, trainedWith: ['Ana', 'Bruno'] }
+    expect(parseFeedSnapshot(JSON.parse(JSON.stringify(withPartners)))).toEqual(withPartners)
+    expect(parseFeedSnapshot({ ...full, trainedWith: ['Ana', 42, ''] })?.trainedWith).toEqual(['Ana'])
+    expect(parseFeedSnapshot({ ...full, trainedWith: 'Ana' })).not.toHaveProperty('trainedWith')
+  })
+
   it('rejects malformed input rather than throwing', () => {
     expect(parseFeedSnapshot(null)).toBeNull()
     expect(parseFeedSnapshot('not an object')).toBeNull()

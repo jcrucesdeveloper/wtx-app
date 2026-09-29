@@ -362,9 +362,11 @@
       "error": "No se pudo cargar el feed.",
       "loading": "Cargando…",
       "loadMore": "Cargar más",
-      "showExercises": "Mostrar ejercicios",
-      "hideExercises": "Ocultar ejercicios",
-      "kudosAria": "Dar ánimo"
+      "kudosAria": "Dar ánimo",
+      "trainedWith": "con {names}",
+      "postTitle": "Entrenamiento",
+      "notFound": "Este entrenamiento no está disponible: puede que se haya eliminado o dejado de compartir.",
+      "backAria": "Volver"
     },
     "follow": {
       "title": "Buscar compañeros de entrenamiento",
