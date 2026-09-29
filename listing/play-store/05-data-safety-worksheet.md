@@ -1,39 +1,62 @@
 # Google Play — Data Safety Section Worksheet
 
-Fill this in Play Console → App content → Data safety. Full reasoning is in
-`research/05-privacy-compliance-notes.md`; this file is the condensed,
-fill-in-order version.
+Fill this in Play Console → App content → Data safety. Full reasoning and
+code references are in `research/05-privacy-compliance-notes.md`; this is the
+condensed, fill-in-order version. Items marked **Verify** depend on
+production config.
+
+"Shared" in Google's sense = transferred to a third party. Data sent to a
+**service provider** processing it on our behalf (Supabase, Sentry) is *not*
+"shared"; AdMob data *is* shared (Google uses it for its own purposes too).
 
 ## 1. Does your app collect or share any of the required user data types?
 
-**Yes.** (The AdMob SDK collects advertising/device identifiers even though
-WTX's own code collects nothing — see below.)
+**Yes.**
 
-## 2. Data types
+## 2. Is all of the user data collected by your app encrypted in transit?
 
-| Data type | Collected? | Shared? | Purpose |
-|---|---|---|---|
-| Device or other IDs (advertising ID) | Yes (via AdMob SDK) | Yes, with Google | Advertising |
-| Approximate location | Verify against production AdMob config — mark Yes if location-based ad targeting is enabled, No otherwise | Same as collected | Advertising |
-| App activity / interactions | Possibly, via AdMob | Same as collected | Advertising, analytics |
-| Any routine/exercise data the user enters | **No** | No | N/A — stays in local `localStorage`, never transmitted |
-| Account info | **No** | No | App has no accounts |
+**Yes** (HTTPS to Supabase, Sentry and Google).
 
-## 3. Security practices
+## 3. Do you provide a way for users to request that their data is deleted?
 
-- Is data encrypted in transit? **Yes** (AdMob SDK traffic is HTTPS by
-  default — standard Google Mobile Ads SDK behavior).
-- Can users request data deletion? For WTX's own data: **not applicable**,
-  nothing is collected server-side. For the AdMob-collected advertising ID:
-  governed by the user's device-level ad ID / opt-out settings, not by WTX.
+**Yes** — in-app: Configuration → Account → Delete account; outside the app:
+email the contact address (see the Privacy Policy). Play also asks for a
+**Delete account URL**: use `https://<site>/privacy.html` (section "Your
+choices: export and deletion") or a dedicated page — **Verify** it's
+accepted.
 
-## 4. Before you submit
+## 4. Data types
 
-- [ ] Confirm production AdMob config (personalized vs. non-personalized
-      ads) — determines the "approximate location" and tracking-related
-      answers above. Don't guess; check the actual `AdMob` init call and
-      Google AdMob console settings.
-- [ ] Privacy policy URL is live and linked (required regardless of the
-      answers above — see `research/05-privacy-compliance-notes.md`).
-- [ ] Re-run this worksheet if an IAP/remove-ads flow ships before
-      submission — that would add a "Purchase history" data type.
+| Category → type | Collected | Shared | Optional? | Purposes | Source |
+|---|---|---|---|---|---|
+| Personal info → Email address | Yes | No | Optional (only with an account) | Account management, App functionality | Supabase Auth |
+| Personal info → Name | Yes (display name) | No | Optional | App functionality, Account management | `profiles` |
+| Personal info → User IDs | Yes | No | Optional | Account management, Analytics | Supabase user id |
+| Personal info → Other info | Yes (bio) | No | Optional | App functionality | `profiles.bio` |
+| Health and fitness → Fitness info | Yes — workouts (exercises, sets, weights, reps, notes) synced with an account | No | Optional | App functionality | `sessions`, `routines` |
+| Messages → Other in-app messages | No (no chat/DMs/comments) | — | — | — | — |
+| App activity → App interactions | Yes | No | Required (sent without an account too) | Analytics | `app_events` |
+| App activity → Other user-generated content | Yes (shared workouts, reports once moderation lands) | No | Optional | App functionality | `sessions.shared`, `content_reports` |
+| App info and performance → Crash logs | Yes (when Sentry DSN set) | No | Required | Analytics (app stability) | Sentry |
+| App info and performance → Diagnostics | Yes | No (Sentry) / Yes (AdMob) | Required | Analytics, Advertising | Sentry, AdMob |
+| Device or other IDs | Yes (advertising ID, app set ID) | **Yes** (Google) | Required | Advertising or marketing, Fraud prevention/security, Analytics | AdMob |
+| Location → Approximate location | **Verify** (AdMob derives it from IP) | **Verify** | Required | Advertising | AdMob |
+| Financial info → Purchase history | **No** — purchase flow hidden until it ships | — | — | — | — |
+
+Photos/videos, contacts, calendar, files, audio, precise location, web
+browsing: **No** (the camera is used only to decode QR codes on-device).
+
+## 5. Also in Play Console → App content
+
+- [ ] **Ads:** "Yes, my app contains ads."
+- [ ] **Privacy policy:** `https://<site>/privacy.html`.
+- [ ] **Account deletion:** as in section 3.
+- [ ] **Target audience:** 16+ (matches the Terms; avoids the Families
+      policy). Don't select under-13 age groups.
+- [ ] **Data safety** answers above, re-checked against the AdMob console
+      (personalized vs non-personalized, location) — **Verify**.
+- [ ] `app-ads.txt` served at the developer website root
+      (`public/app-ads.txt.example`).
+- [ ] Re-run this worksheet if an IAP/remove-ads flow ships (adds "Purchase
+      history") or moderation stores new data types.
+- [ ] Cross-check with `app-store/06-app-privacy-worksheet.md`.

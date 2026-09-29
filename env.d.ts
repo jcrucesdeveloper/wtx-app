@@ -14,4 +14,9 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY?: string
   /** Sentry DSN for crash reporting. Crash reporting is disabled when unset. */
   readonly VITE_SENTRY_DSN?: string
+
+  /** Public contact email shown in the Terms and Privacy Policy (in-app and public/*.html). */
+  readonly VITE_SUPPORT_EMAIL?: string
+  /** Legal name of the developer (data controller) shown in the Terms and Privacy Policy. */
+  readonly VITE_LEGAL_NAME?: string
 }

@@ -169,8 +169,9 @@ Both are optional and off by default.
   touching call sites. The default provider (`src/services/supabaseAnalytics.ts`)
   writes to an `app_events` table on the same Supabase project used for sync —
   no new vendor needed. It only starts once Supabase is configured (see
-  above), and only ever inserts an event name, platform, and app version;
-  nothing identifying and nothing readable back through the client API.
+  above), and only ever inserts an event name, platform, app version and —
+  when signed in — the account's user id (set to null if the account is
+  deleted); nothing is readable back through the client API.
 
 ### Reminders
 
@@ -243,6 +244,26 @@ alone:
    still in place, turning it off would misconfigure ads, not fix them, and
    every local `cap:sync` test build would risk serving (and clicking) real
    ads, which AdMob's policy prohibits.
+
+### Legal pages
+
+The Terms and Privacy Policy live in `src/locales/{en,es}.json` (`legal.*`) —
+shown in the app (Configuration → About, and at sign-up) and generated into
+static, no-JS pages `public/privacy.html` and `public/terms.html` by
+`pnpm build:legal` (also run by `pnpm build`). Edit the locale files, never
+the generated HTML. Once deployed, use `https://<site>/privacy.html` (Spanish:
+`…/privacy.html#es`) as the store privacy policy URL and `…/terms.html` as the
+Terms / EULA link.
+
+- **Not legal advice** — have the texts reviewed by a lawyer (Chile's Ley
+  21.719 applies from 1 Dec 2026) before submitting.
+- Fill the placeholders: `VITE_LEGAL_NAME` (developer / data controller name)
+  and `VITE_SUPPORT_EMAIL` (public contact email) in the production env, then
+  rebuild. Update the `legal.updated` date in both locales when the texts change.
+- `public/app-ads.txt.example`: put your AdMob publisher ID in it and serve it
+  as `app-ads.txt` at the root of the developer website listed in both stores.
+- Store questionnaires (App Privacy, Data safety, age ratings) are drafted in
+  `listing/` — re-check every "Verify" item against the production config.
 
 ## Deployment
 

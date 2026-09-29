@@ -4,15 +4,21 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import { LEGAL_NAME, SUPPORT_EMAIL } from '@/config/legal'
+import { toLegalBlocks, type LegalVars } from '@/lib/legalDoc'
 
 const { t, tm, rt } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
 const doc = computed(() => (route.params.doc === 'privacy' ? 'privacy' : 'terms'))
-const paragraphs = computed(() =>
-  (tm(`legal.${doc.value}.body`) as unknown as Parameters<typeof rt>[0][]).map((p) => rt(p)),
-)
+const blocks = computed(() => {
+  const vars: LegalVars = {
+    controller: LEGAL_NAME || t('legal.fallback.controller'),
+    contactEmail: SUPPORT_EMAIL || t('legal.fallback.contactEmail'),
+  }
+  return toLegalBlocks<Parameters<typeof rt>[0]>(tm(`legal.${doc.value}.body`), (m) => rt(m, vars))
+})
 
 function goBack() {
   if (window.history.length > 1) router.back()
@@ -28,7 +34,11 @@ function goBack() {
       </button>
     </template>
     <div class="body">
-      <p v-for="(p, i) in paragraphs" :key="i">{{ p }}</p>
+      <p class="updated">{{ t('legal.updated') }}</p>
+      <template v-for="(block, i) in blocks" :key="i">
+        <h2 v-if="block.kind === 'heading'" class="heading">{{ block.text }}</h2>
+        <p v-else>{{ block.text }}</p>
+      </template>
     </div>
   </AppPage>
 </template>
@@ -54,5 +64,18 @@ function goBack() {
   gap: 14px;
   font-size: 14px;
   line-height: 1.6;
+}
+
+.updated {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.heading {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-heading);
 }
 </style>
