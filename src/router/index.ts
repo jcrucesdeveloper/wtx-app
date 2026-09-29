@@ -73,6 +73,23 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/social/u/:id',
+      name: 'profile',
+      component: () => import('../views/social/ProfileView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/social/u/:id/connections',
+      name: 'connections',
+      component: () => import('../views/social/ConnectionsView.vue'),
+      meta: { requiresAuth: true },
+      // Follow lists are private: only your own can be opened.
+      beforeEnter: (to) => {
+        if (to.params.id === useAuthStore().user?.id) return true
+        return { name: 'profile', params: { id: to.params.id } }
+      },
+    },
+    {
       path: '/rooms/:id',
       name: 'room-lobby',
       component: () => import('../views/social/RoomLobbyView.vue'),

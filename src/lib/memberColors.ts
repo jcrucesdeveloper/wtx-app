@@ -6,6 +6,13 @@ export function memberColor(index: number): string {
   return MEMBER_COLORS[((index % MEMBER_COLORS.length) + MEMBER_COLORS.length) % MEMBER_COLORS.length]!
 }
 
+/** A person's color from their user id — the same on every screen and device, unlike {@link memberColor}. */
+export function colorForId(id: string): string {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0
+  return memberColor(hash)
+}
+
 /** Up to two initials for an avatar: "Ana María" → "AM", "tomi" → "T". */
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)

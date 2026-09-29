@@ -132,17 +132,25 @@ export const useAuthStore = defineStore('auth', () => {
     clearLocalData()
   }
 
-  async function updateDisplayName(name: string) {
+  /** Saves the public profile fields — name (1–24 chars) and bio (up to 150). */
+  async function updateProfile(fields: { displayName?: string; bio?: string }) {
     const uid = user.value?.id
     if (!uid) return
     const { data, error } = await requireSupabase()
       .from('profiles')
-      .update({ display_name: name.trim() })
+      .update({
+        ...(fields.displayName !== undefined ? { display_name: fields.displayName.trim() } : {}),
+        ...(fields.bio !== undefined ? { bio: fields.bio.trim() } : {}),
+      })
       .eq('id', uid)
       .select()
       .single()
     if (error) throw error
     profile.value = data
+  }
+
+  async function updateDisplayName(name: string) {
+    await updateProfile({ displayName: name })
   }
 
   /** Permanently deletes the account and everything synced to it, then clears this device. */
@@ -167,6 +175,7 @@ export const useAuthStore = defineStore('auth', () => {
     signUp,
     signIn,
     signOut,
+    updateProfile,
     updateDisplayName,
     deleteAccount,
   }

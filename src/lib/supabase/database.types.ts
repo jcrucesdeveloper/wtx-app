@@ -50,6 +50,7 @@ export type Database = {
         Row: {
           id: string
           display_name: string
+          bio: string
           invite_code: string
           created_at: string
           updated_at: string
@@ -57,12 +58,14 @@ export type Database = {
         Insert: {
           id: string
           display_name: string
+          bio?: string
           invite_code: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           display_name?: string
+          bio?: string
         }
         Relationships: []
       }
@@ -290,6 +293,26 @@ export type Database = {
       follow_by_code: {
         Args: { p_code: string }
         Returns: ProfileRow
+      }
+      follow_user: {
+        Args: { p_user_id: string }
+        Returns: ProfileRow
+      }
+      get_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          display_name: string
+          bio: string
+          created_at: string
+          workout_count: number
+          follower_count: number
+          following_count: number
+          i_follow: boolean
+          follows_me: boolean
+          trained_together: number
+          workout_times: string[]
+        }[]
       }
     }
     Enums: { [_ in never]: never }

@@ -121,7 +121,7 @@ function goBack() {
               type="button"
               class="unfollow"
               :aria-label="t('social.follow.unfollowAria', { name: user.displayName })"
-              @click="feed.unfollow(user.id)"
+              @click="feed.unfollow(user.id).catch(() => {})"
             >
               <UserMinus :size="16" :stroke-width="2.25" />
             </button>
