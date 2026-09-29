@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 import type { Session } from '@supabase/supabase-js'
 import { isSupabaseConfigured, requireSupabase, supabase } from '@/services/supabase'
 import { track } from '@/services/analytics'
+import { accessTokenUserId, parseAuthCallback } from '@/lib/authCallback'
+import { publicRouteUrl } from '@/lib/publicUrl'
 import type { Tables } from '@/lib/supabase/database.types'
 import { useSyncStore } from '@/stores/sync'
 import { useRoomStore } from '@/stores/room'
@@ -15,6 +17,17 @@ export type Profile = Tables<'profiles'>
 /** Outcome of {@link useAuthStore}'s `signUp`. */
 export type SignUpResult = 'signed-in' | 'confirm-email'
 
+/** Where Supabase sends the sign-up confirmation link. Must be in the project's Redirect URLs allowlist. */
+export const AUTH_CALLBACK_PATH = '/auth/callback'
+/** Where Supabase sends the password recovery link. Must be in the project's Redirect URLs allowlist. */
+export const AUTH_RESET_PATH = '/auth/reset'
+
+/** Outcome of {@link useAuthStore}'s `completeAuthRedirect`. */
+export type AuthRedirectResult =
+  | { status: 'none' }
+  | { status: 'signed-in'; recovery: boolean }
+  | { status: 'error'; reason: 'expired' | 'invalid' }
+
 /**
  * The account, if any. Without one the app is purely local-first; creating
  * one (or logging in) turns on sync and group workouts.
@@ -23,6 +36,8 @@ export const useAuthStore = defineStore('auth', () => {
   const session = ref<Session | null>(null)
   const profile = ref<Profile | null>(null)
   const ready = ref(!isSupabaseConfigured)
+  /** True while the session came from a password-recovery link and a new password is still due. */
+  const recovering = ref(false)
 
   const user = computed(() => session.value?.user ?? null)
   const isLoggedIn = computed(() => user.value !== null)
@@ -70,7 +85,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!supabase) return
     const { data } = await supabase.auth.getSession()
     onSession(data.session)
-    supabase.auth.onAuthStateChange((_event, next) => {
+    supabase.auth.onAuthStateChange((event, next) => {
+      if (event === 'PASSWORD_RECOVERY') recovering.value = true
       // Supabase warns against awaiting other client calls inside this callback.
       setTimeout(() => onSession(next), 0)
     })
@@ -88,7 +104,10 @@ export const useAuthStore = defineStore('auth', () => {
     const { data, error } = await requireSupabase().auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { display_name: displayName.trim() } },
+      options: {
+        data: { display_name: displayName.trim() },
+        emailRedirectTo: publicRouteUrl(AUTH_CALLBACK_PATH),
+      },
     })
     if (error) throw error
     track('account_created')
@@ -104,6 +123,66 @@ export const useAuthStore = defineStore('auth', () => {
     })
     if (error) throw error
     onSession(data.session)
+  }
+
+  /**
+   * Turns an auth email's redirect URL (sign-up confirmation or password
+   * recovery) into a session. Works for both the web page the link opened
+   * and a deep link handed to the native app.
+   *
+   * @param urlOrPath - The full URL or the router `fullPath` (with hash).
+   */
+  async function completeAuthRedirect(urlOrPath: string): Promise<AuthRedirectResult> {
+    const parsed = parseAuthCallback(urlOrPath)
+    if (!parsed) return { status: 'none' }
+    if (parsed.kind === 'error') return { status: 'error', reason: parsed.reason }
+
+    await whenReady()
+    // A link for another account than the one on this device: log that one out
+    // properly first (push its changes, clear its local copy), as a manual
+    // switch would, so its data never syncs into the other account.
+    const linkUserId = parsed.kind === 'tokens' ? accessTokenUserId(parsed.accessToken) : null
+    if (user.value && linkUserId !== user.value.id) await signOut()
+
+    const auth = requireSupabase().auth
+    let response: { data: { session: Session | null }; error: unknown }
+    let recovery = false
+    if (parsed.kind === 'tokens') {
+      recovery = parsed.type === 'recovery'
+      response = await auth.setSession({
+        access_token: parsed.accessToken,
+        refresh_token: parsed.refreshToken,
+      })
+    } else if (parsed.kind === 'token-hash') {
+      recovery = parsed.type === 'recovery'
+      response = await auth.verifyOtp({ token_hash: parsed.tokenHash, type: parsed.type })
+    } else {
+      response = await auth.exchangeCodeForSession(parsed.code)
+    }
+
+    const session = response.data.session
+    if (response.error || !session) {
+      const code = (response.error as { code?: string } | null)?.code
+      return { status: 'error', reason: code === 'otp_expired' ? 'expired' : 'invalid' }
+    }
+    if (recovery) recovering.value = true
+    onSession(session)
+    return { status: 'signed-in', recovery: recovery || recovering.value }
+  }
+
+  /** Emails a password reset link that opens the app's reset screen. */
+  async function requestPasswordReset(email: string) {
+    const { error } = await requireSupabase().auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: publicRouteUrl(AUTH_RESET_PATH),
+    })
+    if (error) throw error
+  }
+
+  /** Sets a new password for the logged-in (or recovering) account. */
+  async function updatePassword(password: string) {
+    const { error } = await requireSupabase().auth.updateUser({ password })
+    if (error) throw error
+    recovering.value = false
   }
 
   /** Wipes the device copy of the account's data, back to a fresh local-first install. */
@@ -169,12 +248,16 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     profile,
     ready,
+    recovering,
     isLoggedIn,
     whenReady,
     init,
     signUp,
     signIn,
     signOut,
+    completeAuthRedirect,
+    requestPasswordReset,
+    updatePassword,
     updateProfile,
     updateDisplayName,
     deleteAccount,

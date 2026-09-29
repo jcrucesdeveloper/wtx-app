@@ -463,6 +463,36 @@
     "working": "Please wait…",
     "syncing": "Syncing your routines and sessions…",
     "confirmEmail": "Check your inbox to confirm your email, then log in.",
+    "forgotLink": "Forgot password?",
+    "forgot": {
+      "title": "Reset your password",
+      "hint": "Enter your account's email and we'll send you a link to choose a new password.",
+      "send": "Send reset link",
+      "sent": "If there's an account for {email}, a reset link is on its way. Open it on this phone to choose a new password.",
+      "backToLogIn": "Back to log in"
+    },
+    "reset": {
+      "title": "New password",
+      "checking": "Checking your link…",
+      "hint": "Choose a new password for your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat new password",
+      "save": "Save password",
+      "mismatch": "The passwords don't match.",
+      "samePassword": "Use a different password from your current one.",
+      "done": "Password updated — you're logged in.",
+      "continue": "Continue",
+      "expired": "This reset link has expired or was already used. Request a new one.",
+      "invalid": "This reset link isn't valid. Request a new one.",
+      "requestNew": "Request a new link"
+    },
+    "callback": {
+      "title": "Account",
+      "working": "Confirming your email…",
+      "expired": "This confirmation link has expired or was already used. Try logging in — if it says your email isn't confirmed, sign up again for a new link.",
+      "invalid": "This link isn't valid. Try logging in instead.",
+      "goToSocial": "Go to Social"
+    },
     "errors": {
       "generic": "Something went wrong. Try again.",
       "invalidCredentials": "Wrong email or password.",
@@ -470,7 +500,9 @@
       "weakPassword": "Use a password with at least 6 characters.",
       "nameRequired": "Enter a name (up to 24 characters).",
       "consentRequired": "Accept the Terms and Privacy Policy to continue.",
-      "emailNotConfirmed": "Confirm your email first — check your inbox."
+      "emailNotConfirmed": "Confirm your email first — check your inbox.",
+      "emailRequired": "Enter your email.",
+      "rateLimited": "Too many emails requested. Wait a few minutes and try again."
     }
   },
   "room": {

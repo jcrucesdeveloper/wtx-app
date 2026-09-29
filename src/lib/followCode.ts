@@ -6,6 +6,8 @@
  * (a room code frees up when the room finishes; a follow code never does).
  */
 
+import { publicUrl } from './publicUrl'
+
 /** Same no-ambiguous-character alphabet as room codes: no 0/O or 1/I/L. */
 export const FOLLOW_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 export const FOLLOW_CODE_LENGTH = 8
@@ -32,9 +34,8 @@ export function isValidFollowCode(code: string): boolean {
  * @param followPath - The resolved follow route path (from the router), including base.
  */
 export function buildFollowUrl(code: string, followPath: string): string {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
   const sep = followPath.includes('?') ? '&' : '?'
-  return `${origin}${followPath}${sep}${FOLLOW_CODE_PARAM}=${code}`
+  return publicUrl(`${followPath}${sep}${FOLLOW_CODE_PARAM}=${code}`)
 }
 
 /**

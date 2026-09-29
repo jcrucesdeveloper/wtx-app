@@ -12,6 +12,7 @@ import { initCrashReporting } from './services/crashReporting'
 import { setAnalyticsProvider, track } from './services/analytics'
 import { supabaseAnalytics } from './services/supabaseAnalytics'
 import { NotificationService } from './services/notifications'
+import { initDeepLinks } from './services/deepLinks'
 import { useAuthStore } from './stores/auth'
 import { useRoomStore } from './stores/room'
 import { useSyncStore } from './stores/sync'
@@ -25,6 +26,9 @@ initCrashReporting(app)
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
+
+// Before mount, so a link that launched the app is routed as early as possible.
+initDeepLinks(router)
 
 app.mount('#app')
 

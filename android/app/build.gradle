@@ -15,6 +15,13 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        // Host of VITE_PUBLIC_URL (e.g. wtx.app), for the App Links intent filter in
+        // AndroidManifest.xml. Set via the `publicHost` Gradle property
+        // (-PpublicHost=... or ~/.gradle/gradle.properties) or the WTX_PUBLIC_HOST env var.
+        // The default is a reserved, never-resolving host, so links simply don't verify.
+        manifestPlaceholders["publicHost"] = project.findProperty('publicHost') ?:
+            System.getenv('WTX_PUBLIC_HOST') ?:
+            'wtx.invalid'
     }
     buildTypes {
         release {

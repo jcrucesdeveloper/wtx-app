@@ -244,6 +244,48 @@ alone:
    every local `cap:sync` test build would risk serving (and clicking) real
    ads, which AdMob's policy prohibits.
 
+### Links & auth
+
+Share links, QR codes, deep links and auth emails all hang off one public web
+address. Until these are done, links shared from the phone apps point at
+`localhost` and auth emails can't reach real users — a release blocker.
+
+1. **Public URL.** Set `VITE_PUBLIC_URL` (scheme + host, e.g. `https://wtx.app`)
+   for the production build — see `.env.example`. The web build falls back to
+   its own origin; the native apps can't (they run on `localhost`). The same
+   host must be serving the web build, so links still work for people without
+   the app.
+2. **Supabase → Authentication → URL Configuration.**
+   - Site URL: the public URL.
+   - Redirect URLs: add `https://<host>/auth/callback` (sign-up confirmation) and
+     `https://<host>/auth/reset` (password reset), plus
+     `http://localhost:5173/auth/*` for local development. Supabase ignores any
+     redirect not on this allowlist and falls back to the Site URL.
+3. **Custom SMTP** (Authentication → Emails → SMTP Settings). The built-in email
+   service only delivers to the project's team members and is limited to a few
+   emails an hour, so sign-up confirmations and password resets won't reach real
+   users without it. Any transactional provider works (Resend, Postmark, SES…).
+4. **Host the `.well-known` files** from `public/.well-known/` at the root of the
+   public host (the web build already includes them):
+   - `/.well-known/assetlinks.json` (Android App Links)
+   - `/.well-known/apple-app-site-association` (iOS universal links) — **no file
+     extension**, served as `Content-Type: application/json`, over HTTPS with
+     no redirects. `public/_headers` sets the content type on Cloudflare.
+5. **Android.** Replace the placeholder in `assetlinks.json` with the SHA-256 of
+   the **app signing key** from Play Console → Test and release → App integrity
+   → App signing (not your upload key; add the upload key's too if you want to
+   test local release builds). Build with the host:
+   `./gradlew bundleRelease -PpublicHost=wtx.app` (or `publicHost=` in
+   `~/.gradle/gradle.properties`, or the `WTX_PUBLIC_HOST` env var) — it fills
+   the App Links intent filter in `AndroidManifest.xml`. Check with
+   `adb shell pm get-app-links com.wtx.app`.
+6. **iOS.** Replace `TEAMID` in `apple-app-site-association` with the Apple
+   Developer Team ID. Enable the **Associated Domains** capability for the
+   `com.wtx.app` App ID (Xcode does this with automatic signing; free personal
+   teams don't support it). Set the App target's `PUBLIC_HOST` build setting
+   (Build Settings → User-Defined; default `wtx.invalid`) to the host —
+   `App/App.entitlements` reads it as `applinks:$(PUBLIC_HOST)`.
+
 ## Deployment
 
 Deployed on Cloudflare as a static-assets app. It's a single-page app, so the

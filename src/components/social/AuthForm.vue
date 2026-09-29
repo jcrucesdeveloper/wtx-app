@@ -6,12 +6,17 @@ import { reactive } from 'vue'
  * trip to the Terms / Privacy pages and back. Never persisted.
  */
 const draft = reactive({
-  mode: 'login' as 'login' | 'signup',
+  mode: 'login' as 'login' | 'signup' | 'forgot',
   name: '',
   email: '',
   password: '',
   consent: false,
 })
+
+/** Opens the form on "forgot password" — e.g. from an expired reset link. */
+export function openForgotPassword() {
+  draft.mode = 'forgot'
+}
 </script>
 
 <script setup lang="ts">
@@ -30,10 +35,10 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const sync = useSyncStore()
 
-const phase = ref<'form' | 'working' | 'syncing' | 'confirm-email'>('form')
+const phase = ref<'form' | 'working' | 'syncing' | 'confirm-email' | 'reset-sent'>('form')
 const error = ref('')
 
-function setMode(mode: 'login' | 'signup') {
+function setMode(mode: 'login' | 'signup' | 'forgot') {
   draft.mode = mode
   error.value = ''
   phase.value = 'form'
@@ -45,10 +50,14 @@ function messageFor(e: unknown): string {
   if (code === 'user_already_exists' || code === 'email_exists') return t('auth.errors.emailTaken')
   if (code === 'weak_password') return t('auth.errors.weakPassword')
   if (code === 'email_not_confirmed') return t('auth.errors.emailNotConfirmed')
+  if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit') {
+    return t('auth.errors.rateLimited')
+  }
   return (e as { message?: string })?.message || t('auth.errors.generic')
 }
 
 function validate(): string {
+  if (draft.mode === 'forgot') return draft.email.trim() ? '' : t('auth.errors.emailRequired')
   if (draft.mode === 'signup') {
     const name = draft.name.trim()
     if (name.length < 1 || name.length > 24) return t('auth.errors.nameRequired')
@@ -64,6 +73,11 @@ async function submit() {
 
   phase.value = 'working'
   try {
+    if (draft.mode === 'forgot') {
+      await auth.requestPasswordReset(draft.email)
+      phase.value = 'reset-sent'
+      return
+    }
     if (draft.mode === 'signup') {
       const result = await auth.signUp(draft.email, draft.password, draft.name)
       if (result === 'confirm-email') {
@@ -94,10 +108,25 @@ async function submit() {
     <button type="button" class="primary" @click="setMode('login')">{{ t('auth.logIn') }}</button>
   </div>
 
+  <div v-else-if="phase === 'reset-sent'" class="notice">
+    <p>{{ t('auth.forgot.sent', { email: draft.email.trim() }) }}</p>
+    <button type="button" class="primary" @click="setMode('login')">{{ t('auth.forgot.backToLogIn') }}</button>
+  </div>
+
   <p v-else-if="phase === 'syncing'" class="notice">{{ t('auth.syncing') }}</p>
 
   <form v-else class="form" novalidate @submit.prevent="submit">
-    <h2 class="title">{{ draft.mode === 'login' ? t('auth.logIn') : t('auth.signUp') }}</h2>
+    <h2 class="title">
+      {{
+        draft.mode === 'login'
+          ? t('auth.logIn')
+          : draft.mode === 'signup'
+            ? t('auth.signUp')
+            : t('auth.forgot.title')
+      }}
+    </h2>
+
+    <p v-if="draft.mode === 'forgot'" class="hint">{{ t('auth.forgot.hint') }}</p>
 
     <label v-if="draft.mode === 'signup'" class="field">
       <span class="field__label">{{ t('auth.displayName') }}</span>
@@ -122,7 +151,7 @@ async function submit() {
       />
     </label>
 
-    <label class="field">
+    <label v-if="draft.mode !== 'forgot'" class="field">
       <span class="field__label">{{ t('auth.password') }}</span>
       <input
         v-model="draft.password"
@@ -131,6 +160,15 @@ async function submit() {
         :placeholder="draft.mode === 'signup' ? t('auth.passwordHint') : ''"
       />
     </label>
+
+    <button
+      v-if="draft.mode === 'login'"
+      type="button"
+      class="switch__link forgot"
+      @click="setMode('forgot')"
+    >
+      {{ t('auth.forgotLink') }}
+    </button>
 
     <ConsentNotice v-if="draft.mode === 'signup'" v-model="draft.consent" />
 
@@ -146,7 +184,9 @@ async function submit() {
           ? t('auth.working')
           : draft.mode === 'login'
             ? t('auth.logIn')
-            : t('auth.signUp')
+            : draft.mode === 'signup'
+              ? t('auth.signUp')
+              : t('auth.forgot.send')
       }}
     </button>
 
@@ -155,9 +195,12 @@ async function submit() {
         {{ t('auth.noAccount') }}
         <button type="button" class="switch__link" @click="setMode('signup')">{{ t('auth.signUp') }}</button>
       </template>
-      <template v-else>
+      <template v-else-if="draft.mode === 'signup'">
         {{ t('auth.haveAccount') }}
         <button type="button" class="switch__link" @click="setMode('login')">{{ t('auth.logIn') }}</button>
+      </template>
+      <template v-else>
+        <button type="button" class="switch__link" @click="setMode('login')">{{ t('auth.forgot.backToLogIn') }}</button>
       </template>
     </p>
   </form>
@@ -238,6 +281,17 @@ input {
   font-weight: 700;
   color: var(--color-accent);
   cursor: pointer;
+}
+
+.forgot {
+  align-self: flex-end;
+  margin-top: -6px;
+  font-size: 13px;
+}
+
+.hint {
+  font-size: 13px;
+  opacity: 0.75;
 }
 
 .notice {

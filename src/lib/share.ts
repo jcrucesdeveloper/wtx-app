@@ -1,3 +1,5 @@
+import { publicUrl } from './publicUrl'
+
 /** URL-safe base64 (no padding) of a UTF-8 string. */
 export function encodeRoutineParam(text: string): string {
   const bytes = new TextEncoder().encode(text)
@@ -29,9 +31,8 @@ export const ROUTINE_PARAM = 'r'
  * @returns An absolute URL that opens the app on the import screen.
  */
 export function buildImportUrl(text: string, importPath: string): string {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
   const sep = importPath.includes('?') ? '&' : '?'
-  return `${origin}${importPath}${sep}${ROUTINE_PARAM}=${encodeRoutineParam(text)}`
+  return publicUrl(`${importPath}${sep}${ROUTINE_PARAM}=${encodeRoutineParam(text)}`)
 }
 
 /**

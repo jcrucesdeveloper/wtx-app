@@ -7,6 +7,12 @@ declare module 'vue-router' {
   interface RouteMeta {
     /** Sends logged-out visitors to log in on the Social tab first, then back here. */
     requiresAuth?: boolean
+    /**
+     * Reachable before the first-run intro has been seen — auth email links
+     * must be handled on arrival (their tokens are one-time), not after a
+     * detour through onboarding.
+     */
+    skipOnboarding?: boolean
   }
 }
 
@@ -102,6 +108,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/auth/callback',
+      name: 'auth-callback',
+      component: () => import('../views/auth/AuthCallbackView.vue'),
+      meta: { skipOnboarding: true },
+    },
+    {
+      path: '/auth/reset',
+      name: 'auth-reset',
+      component: () => import('../views/auth/ResetPasswordView.vue'),
+      meta: { skipOnboarding: true },
+    },
+    {
       path: '/legal/:doc(terms|privacy)',
       name: 'legal',
       component: () => import('../views/social/LegalView.vue'),
@@ -115,7 +133,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  if (to.name !== 'onboarding' && !hasSeenOnboarding()) {
+  if (to.name !== 'onboarding' && !to.meta.skipOnboarding && !hasSeenOnboarding()) {
     return { name: 'onboarding', query: { redirect: to.fullPath } }
   }
   if (!to.meta.requiresAuth) return true
