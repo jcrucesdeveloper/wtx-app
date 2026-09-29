@@ -2,22 +2,53 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft } from '@lucide/vue'
+import { ArrowLeft, Ban, EllipsisVertical, Flag } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import BottomSheet from '@/components/ui/BottomSheet.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
 import FeedPostSummary from '@/components/social/FeedPostSummary.vue'
 import FeedKudosButton from '@/components/social/FeedKudosButton.vue'
+import ReportSheet from '@/components/social/ReportSheet.vue'
+import BlockConfirmSheet from '@/components/social/BlockConfirmSheet.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useFeedStore } from '@/stores/feed'
 import { formatPostedAt } from '@/lib/format'
 
 const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const feed = useFeedStore()
 
 const id = computed(() => String(route.params.id))
 const post = computed(() => feed.getPost(id.value))
 const loading = ref(false)
+
+// ⋯ on someone else's post → report it, or block its author. Kept here rather
+// than on every feed card so the feed stays uncluttered; every card opens this page.
+const isMine = computed(() => post.value?.posterId === auth.user?.id)
+const menuOpen = ref(false)
+const reportOpen = ref(false)
+const blockOpen = ref(false)
+/** Captured when the menu opens — blocking removes the post from the store. */
+const author = ref({ id: '', name: '' })
+
+function openMenu() {
+  if (!post.value) return
+  author.value = { id: post.value.posterId, name: post.value.posterName }
+  menuOpen.value = true
+}
+
+function openReport() {
+  menuOpen.value = false
+  reportOpen.value = true
+}
+
+function openBlock() {
+  menuOpen.value = false
+  reportOpen.value = false
+  blockOpen.value = true
+}
 
 // Opened from the feed the post is already loaded; on a deep link or reload, fetch it.
 watch(
@@ -52,6 +83,16 @@ function goBack() {
         <ArrowLeft :size="20" :stroke-width="2.25" />
       </button>
     </template>
+    <template v-if="post && !isMine" #actions>
+      <button
+        type="button"
+        class="icon-btn icon-btn--action"
+        :aria-label="t('social.moderation.postMoreAria')"
+        @click="openMenu"
+      >
+        <EllipsisVertical :size="18" :stroke-width="2.25" />
+      </button>
+    </template>
 
     <p v-if="loading" class="msg">{{ t('social.feed.loading') }}</p>
     <p v-else-if="!post" class="msg">{{ t('social.feed.notFound') }}</p>
@@ -70,6 +111,37 @@ function goBack() {
 
       <FeedKudosButton :post="post" />
     </div>
+
+    <BottomSheet :open="menuOpen" :title="author.name" @close="menuOpen = false">
+      <div class="sheet">
+        <button type="button" class="sheet__row" @click="openReport">
+          <Flag :size="18" :stroke-width="2.25" />
+          {{ t('social.moderation.reportPost') }}
+        </button>
+        <button type="button" class="sheet__row sheet__row--danger" @click="openBlock">
+          <Ban :size="18" :stroke-width="2.25" />
+          {{ t('social.moderation.block') }}
+        </button>
+      </div>
+    </BottomSheet>
+
+    <ReportSheet
+      :open="reportOpen"
+      :user-id="author.id"
+      :name="author.name"
+      :session-id="id"
+      can-block
+      @close="reportOpen = false"
+      @block="openBlock"
+    />
+
+    <BlockConfirmSheet
+      :open="blockOpen"
+      :user-id="author.id"
+      :name="author.name"
+      @close="blockOpen = false"
+      @blocked="goBack"
+    />
   </AppPage>
 </template>
 
@@ -90,6 +162,47 @@ function goBack() {
 
 .icon-btn:active {
   background: var(--color-background-mute);
+}
+
+/* Matches ProfileView's header actions: a full 44px target, flush right. */
+.icon-btn--action {
+  width: 44px;
+  height: 44px;
+  margin-left: 0;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0 12px;
+}
+
+.sheet__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background-soft);
+  color: var(--color-heading);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sheet__row:active {
+  background: var(--color-background-mute);
+}
+
+.sheet__row--danger {
+  border-color: #e11d48;
+  color: #e11d48;
 }
 
 .msg {

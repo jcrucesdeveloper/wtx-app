@@ -169,10 +169,12 @@ export const useProfileStore = defineStore('profile', () => {
         .eq('followee_id', uid)
         .order('created_at', { ascending: false })
       if (error) throw error
-      followers.value = (data ?? []).map((row) => ({
-        id: row.follower_id,
-        displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
-      }))
+      followers.value = (data ?? [])
+        .filter((row) => !feed.isHidden(row.follower_id))
+        .map((row) => ({
+          id: row.follower_id,
+          displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
+        }))
     } catch {
       /* keep the previous list */
     } finally {
@@ -245,6 +247,21 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
+  /**
+   * Drops everything cached about someone after a block or unblock changed
+   * what you may see, and marks your own profile stale — the server removed
+   * the follows between you, so its counts are off. A blocked profile reads
+   * as unavailable right away instead of waiting on a refetch.
+   */
+  function forget(id: string, opts: { blocked?: boolean } = {}) {
+    if (opts.blocked) entries.set(id, { ...emptyEntry(), error: 'not_found' })
+    else entries.delete(id)
+    followers.value = followers.value.filter((f) => f.id !== id)
+    const uid = myId()
+    const mine = uid ? entries.get(uid) : undefined
+    if (mine) mine.loadedAt = 0
+  }
+
   function get(id: string): Entry {
     return entries.get(id) ?? emptyEntry()
   }
@@ -260,5 +277,6 @@ export const useProfileStore = defineStore('profile', () => {
     follow,
     unfollow,
     removeFollower,
+    forget,
   }
 })

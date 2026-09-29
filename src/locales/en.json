@@ -441,6 +441,47 @@
         "not_authenticated": "Log in to follow people.",
         "unknown": "Something went wrong. Try again."
       }
+    },
+    "moderation": {
+      "postMoreAria": "Post options",
+      "reportPost": "Report post",
+      "reportAccount": "Report account",
+      "block": "Block",
+      "unblock": "Unblock",
+      "blockTitle": "Block {name}?",
+      "blockHint": "They won't see your profile or workouts, and you won't see theirs. Follows between you are removed. They won't be notified.",
+      "blockedTitle": "You blocked {name}",
+      "blockedHint": "You won't see each other's profiles or workouts.",
+      "unblockHint": "{name} will be able to find you again with your code. Follows between you aren't restored.",
+      "blockedAccounts": "Blocked accounts",
+      "blockedEmptyTitle": "No blocked accounts",
+      "blockedEmptyHint": "People you block show up here. You can unblock them at any time.",
+      "failed": "That didn't go through. Try again.",
+      "report": {
+        "postTitle": "Report post",
+        "accountTitle": "Report {name}",
+        "intro": "Why are you reporting this? {name} won't know it was you.",
+        "reasonsAria": "Reason",
+        "reasons": {
+          "spam": "Spam",
+          "harassment": "Harassment or bullying",
+          "inappropriate": "Inappropriate or offensive",
+          "other": "Something else"
+        },
+        "details": "Details (optional)",
+        "detailsPlaceholder": "Anything that helps us review it",
+        "submit": "Send report",
+        "sending": "Sending…",
+        "doneTitle": "Report sent",
+        "done": "Thanks — we review reports within 24 hours.",
+        "blockToo": "You can also block {name} so you won't see each other.",
+        "close": "Done"
+      },
+      "filter": {
+        "name": "That name isn't allowed. Choose another one.",
+        "bio": "Your bio contains words that aren't allowed.",
+        "share": "This workout can't be shared to the feed — its name, notes, or exercise names contain words that aren't allowed. It'll still be saved to your profile."
+      }
     }
   },
   "consent": {

@@ -20,6 +20,7 @@ import { useI18n } from 'vue-i18n'
 import ConsentNotice from '@/components/social/ConsentNotice.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSyncStore } from '@/stores/sync'
+import { containsBlockedTerms } from '@/lib/contentFilter'
 
 const emit = defineEmits<{
   /** Logged in (or signed up) and the first sync has run. */
@@ -52,6 +53,8 @@ function validate(): string {
   if (draft.mode === 'signup') {
     const name = draft.name.trim()
     if (name.length < 1 || name.length > 24) return t('auth.errors.nameRequired')
+    // The server would quietly swap a filtered name for a neutral one; say so up front instead.
+    if (containsBlockedTerms(name)) return t('social.moderation.filter.name')
   }
   if (draft.password.length < 6) return t('auth.errors.weakPassword')
   if (draft.mode === 'signup' && !draft.consent) return t('auth.errors.consentRequired')

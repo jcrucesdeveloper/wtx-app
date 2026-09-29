@@ -10,6 +10,8 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type RoomStatus = 'lobby' | 'active' | 'finished'
 export type SetLogType = 'number' | 'W' | 'D'
+export type ReportReason = 'spam' | 'harassment' | 'inappropriate' | 'other'
+export type ReportStatus = 'open' | 'actioned' | 'dismissed'
 export type AppEventName =
   | 'app_opened'
   | 'account_created'
@@ -279,6 +281,38 @@ export type Database = {
           },
         ]
       }
+      user_blocks: {
+        Row: {
+          blocker_id: string
+          blocked_id: string
+          created_at: string
+        }
+        // Written only through the block_user RPC.
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      content_reports: {
+        // Insert-only from the app; reviewed in the dashboard.
+        Row: {
+          id: string
+          reporter_id: string | null
+          reported_user_id: string | null
+          session_id: string | null
+          reason: ReportReason
+          details: string
+          status: ReportStatus
+          created_at: string
+        }
+        Insert: {
+          reported_user_id: string
+          session_id?: string | null
+          reason: ReportReason
+          details?: string
+        }
+        Update: never
+        Relationships: []
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
@@ -313,6 +347,14 @@ export type Database = {
           trained_together: number
           workout_times: string[]
         }[]
+      }
+      block_user: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      get_blocked_users: {
+        Args: Record<PropertyKey, never>
+        Returns: { id: string; display_name: string; blocked_at: string }[]
       }
     }
     Enums: { [_ in never]: never }

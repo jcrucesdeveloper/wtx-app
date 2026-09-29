@@ -67,6 +67,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/social/blocked',
+      name: 'blocked',
+      component: () => import('../views/social/BlockedView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/social/posts/:id',
       name: 'feed-post',
       component: () => import('../views/social/FeedPostView.vue'),

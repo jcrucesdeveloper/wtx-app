@@ -157,6 +157,65 @@ group workouts. To enable it:
 Without those variables the Social tab says accounts aren't set up, and
 everything else keeps working locally.
 
+### Moderation
+
+The social feed is user-generated content, so the app ships the tools App
+Store guideline 1.2 and Google Play's UGC policy ask for
+(`supabase/migrations/20260930000000_moderation.sql`):
+
+- **Report** — the ⋯ menu on someone's profile (Report account) or on a
+  shared workout (Report post) files a row in `content_reports` with a reason
+  and optional details. The app can only insert; reading and resolving
+  happens in the dashboard.
+- **Block** — the same ⋯ menus. Blocking removes the follows between both
+  people, hides each other's profiles and workouts, and stops any follow
+  path (code, "Follow back", finishing a room together). The other person
+  isn't notified. Your blocked list is under your own profile → ⋯ → Blocked
+  accounts.
+- **Word filter** — `public.contains_blocked_terms()` (mirrored in
+  `src/lib/contentFilter.ts`, keep them in sync) rejects a short list of
+  slurs and explicit terms in display names and bios, and the app won't
+  share a workout to the feed whose name, notes or exercise names contain
+  one.
+
+**Review reports within 24 hours** (that's the promise the app makes to
+reporters). In the Supabase dashboard, open **Table Editor → content_reports**
+filtered to `status = open`, or run in the SQL editor:
+
+```sql
+select r.created_at, r.reason, r.details,
+       reporter.display_name as reporter, reported.display_name as reported,
+       r.reported_user_id, r.session_id, s.raw_text
+from content_reports r
+left join profiles reporter on reporter.id = r.reporter_id
+left join profiles reported on reported.id = r.reported_user_id
+left join sessions s on s.id = r.session_id
+where r.status = 'open'
+order by r.created_at;
+```
+
+Then act and close the report:
+
+```sql
+-- Take a workout off the feed (it stays in its owner's history).
+update sessions set shared = false, feed_snapshot = null where id = '<session_id>';
+
+-- Clear an offensive name or bio.
+update profiles set display_name = 'Athlete', bio = '' where id = '<user_id>';
+
+-- Ban: delete the account. Cascades to their profile, sessions, follows and
+-- kudos; reports about them are kept with reported_user_id set to null.
+-- (They could sign up again with a new email.)
+delete from auth.users where id = '<user_id>';
+
+-- Close the report: 'actioned' or 'dismissed'.
+update content_reports set status = 'actioned' where id = '<report_id>';
+```
+
+The dashboard doesn't alert you to new reports. For an email per report, add
+a Database Webhook on `content_reports` inserts that calls an Edge Function
+which sends the email — not built yet.
+
 ### Crash reporting and analytics
 
 Both are optional and off by default.
