@@ -28,6 +28,19 @@ export type AuthRedirectResult =
   | { status: 'signed-in'; recovery: boolean }
   | { status: 'error'; reason: 'expired' | 'invalid' }
 
+/** What logging out right now would leave behind — from {@link useAuthStore}'s `checkLogout`. */
+export interface LogoutCheck {
+  /** Everything reached the account and nothing is pending. */
+  synced: boolean
+  offline: boolean
+  /** Sessions not (known to be) in the account — kept on the device as device-only on log-out. */
+  unsyncedSessions: number
+  /** Device-only sessions, which stay on the device after log-out. */
+  deviceOnlySessions: number
+  /** A workout in progress, which log-out discards. */
+  activeWorkout: boolean
+}
+
 /**
  * The account, if any. Without one the app is purely local-first; creating
  * one (or logging in) turns on sync and group workouts.
@@ -72,6 +85,13 @@ export const useAuthStore = defineStore('auth', () => {
     lastUserId = uid
     const sync = useSyncStore()
     if (uid) {
+      // The device still holds another account's data (it was signed out by
+      // the server, not by logging out): put it aside before syncing, or the
+      // first sync would upload it into this account.
+      if (sync.ownerId && sync.ownerId !== uid) {
+        sync.stop()
+        releaseAccountData({ keepActiveWorkout: true })
+      }
       void loadProfile()
       void sync.start(uid)
     } else {
@@ -195,20 +215,53 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Logs out. Pending changes are pushed first (best effort), then this
-   * device's copy is cleared — it all lives in the account now.
+   * Takes the synced account's data off the device without losing anything
+   * that isn't in the account: device-only sessions stay, and sessions that
+   * never reached the account are kept as device-only (so they can't be
+   * uploaded into whichever account signs in next). Unsynced routine edits
+   * and deletions are what's lost — {@link checkLogout} warns about those.
+   */
+  function releaseAccountData(opts: { keepActiveWorkout: boolean }) {
+    const sessions = useSessionsStore()
+    const keep = new Set(useSyncStore().unsyncedSessionIds())
+    useRoomStore().reset()
+    if (!opts.keepActiveWorkout) useActiveSessionStore().discard()
+    useRoutinesStore().resetToDefaults()
+    sessions.applyRemote(
+      sessions.sessions.filter((s) => s.localOnly || keep.has(s.id)).map((s) => ({ ...s, localOnly: true })),
+    )
+    useSyncStore().reset()
+  }
+
+  /**
+   * Pushes pending changes, then reports what logging out now would leave
+   * behind, so the UI can warn before anything is lost.
+   */
+  async function checkLogout(): Promise<LogoutCheck> {
+    const sync = useSyncStore()
+    await sync.syncNow()
+    const synced = sync.isFullySynced()
+    return {
+      synced,
+      offline: sync.status === 'offline',
+      unsyncedSessions: synced ? 0 : sync.unsyncedSessionIds().length,
+      deviceOnlySessions: useSessionsStore().sessions.filter((s) => s.localOnly).length,
+      activeWorkout: useActiveSessionStore().session !== null,
+    }
+  }
+
+  /**
+   * Logs out. Pending changes are pushed first (best effort), then the
+   * account's data is cleared from the device — see {@link releaseAccountData}
+   * for what stays. Check {@link checkLogout} first to warn about losses.
    */
   async function signOut() {
     const sync = useSyncStore()
-    try {
-      await sync.syncNow()
-    } catch {
-      /* offline — the local copy goes anyway; the account keeps what it has */
-    }
+    await sync.syncNow()
     sync.stop()
     await requireSupabase().auth.signOut({ scope: 'local' })
     onSession(null)
-    clearLocalData()
+    releaseAccountData({ keepActiveWorkout: false })
   }
 
   /** Saves the public profile fields — name (1–24 chars) and bio (up to 150). */
@@ -255,6 +308,7 @@ export const useAuthStore = defineStore('auth', () => {
     signUp,
     signIn,
     signOut,
+    checkLogout,
     completeAuthRedirect,
     requestPasswordReset,
     updatePassword,

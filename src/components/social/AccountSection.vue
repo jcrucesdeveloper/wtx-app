@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore, type LogoutCheck } from '@/stores/auth'
 import { useSyncStore } from '@/stores/sync'
 import { isSupabaseConfigured } from '@/services/supabase'
 
@@ -27,13 +27,19 @@ const nameValid = computed(() => {
 })
 const nameChanged = computed(() => name.value.trim() !== (auth.profile?.display_name ?? ''))
 
+const nameError = ref('')
+watch(name, () => (nameError.value = ''))
+
 async function saveName() {
-  if (!nameValid.value || !nameChanged.value) return
+  if (!nameValid.value || !nameChanged.value || saving.value) return
   saving.value = true
+  nameError.value = ''
   try {
     await auth.updateDisplayName(name.value)
     saved.value = true
     setTimeout(() => (saved.value = false), 1500)
+  } catch {
+    nameError.value = t('account.nameError')
   } finally {
     saving.value = false
   }
@@ -47,9 +53,34 @@ const lastSynced = computed(() =>
     : '',
 )
 
+const loggingOut = ref(false)
+
+/** The log-out confirmation, spelling out anything that won't be in the account afterwards. */
+function logoutMessage(check: LogoutCheck): string {
+  const lines: string[] = []
+  if (!check.synced) {
+    lines.push(t(check.offline ? 'account.logoutOffline' : 'account.logoutSyncFailed'))
+    if (check.unsyncedSessions) lines.push(t('account.logoutUnsyncedSessions', check.unsyncedSessions))
+    lines.push(t('account.logoutUnsyncedChanges'))
+  }
+  if (check.activeWorkout) lines.push(t('account.logoutActiveWorkout'))
+  if (check.deviceOnlySessions) lines.push(t('account.logoutDeviceOnly', check.deviceOnlySessions))
+  const warned = !check.synced || check.activeWorkout
+  if (!warned) lines.unshift(t('account.logoutConfirm'))
+  else lines.push(t('account.logoutAnyway'))
+  return lines.join('\n\n')
+}
+
 async function logout() {
-  if (!confirm(t('account.logoutConfirm'))) return
-  await auth.signOut()
+  if (loggingOut.value) return
+  loggingOut.value = true
+  try {
+    const check = await auth.checkLogout()
+    if (!confirm(logoutMessage(check))) return
+    await auth.signOut()
+  } finally {
+    loggingOut.value = false
+  }
 }
 
 const deleting = ref(false)
@@ -95,6 +126,7 @@ async function deleteAccount() {
           </button>
         </span>
       </label>
+      <p v-if="nameError" class="error">{{ nameError }}</p>
 
       <div class="sync">
         <span class="field__label">{{ t('account.sync') }}</span>
@@ -109,7 +141,9 @@ async function deleteAccount() {
         <span v-if="lastSynced" class="sync__time">{{ lastSynced }}</span>
       </div>
 
-      <button type="button" class="btn" @click="logout">{{ t('account.logout') }}</button>
+      <button type="button" class="btn" :disabled="loggingOut" @click="logout">
+        {{ loggingOut ? t('account.logoutChecking') : t('account.logout') }}
+      </button>
 
       <p class="group__hint group__hint--spaced">{{ t('account.deleteHint') }}</p>
       <button v-if="!deleteOpen" type="button" class="danger-btn" @click="deleteOpen = true">
