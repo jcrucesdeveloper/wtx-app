@@ -494,7 +494,7 @@
   },
   "consent": {
     "text": "Al crear una cuenta, tus rutinas y sesiones de entrenamiento se subirán y guardarán en nuestros servidores para mantenerlas sincronizadas y poder entrenar con amigos. Puedes eliminar tu cuenta y todos sus datos cuando quieras desde Configuración.",
-    "accept": "Acepto los {terms} y la {privacy}",
+    "accept": "Tengo 16 años o más y acepto los {terms} y la {privacy}",
     "terms": "Términos",
     "privacy": "Política de privacidad"
   },
@@ -548,7 +548,7 @@
       "emailTaken": "Ya existe una cuenta con ese correo.",
       "weakPassword": "Usa una contraseña de al menos 6 caracteres.",
       "nameRequired": "Escribe un nombre (hasta 24 caracteres).",
-      "consentRequired": "Acepta los Términos y la Política de privacidad para continuar.",
+      "consentRequired": "Confirma que tienes 16 años o más y acepta los Términos y la Política de privacidad para continuar.",
       "emailNotConfirmed": "Primero confirma tu correo — revisa tu bandeja de entrada.",
       "emailRequired": "Escribe tu correo.",
       "rateLimited": "Pediste demasiados correos. Espera unos minutos e inténtalo de nuevo."
@@ -905,6 +905,36 @@
           ]
         }
       ]
+    },
+    "deletion": {
+      "title": "Eliminar tu cuenta de WTX",
+      "body": [
+        "Puedes eliminar tu cuenta de WTX y los datos asociados en cualquier momento, tengas o no la app instalada.",
+        {
+          "heading": "Desde la app",
+          "body": [
+            "Abre Ajustes → Cuenta → Eliminar cuenta, escribe ELIMINAR y confirma. La eliminación es inmediata y permanente."
+          ]
+        },
+        {
+          "heading": "Sin la app",
+          "body": [
+            "Escribe a {contactEmail} desde el correo con el que te registraste, con el asunto \"Eliminar mi cuenta de WTX\". Podemos pedirte que confirmes la solicitud desde ese correo; luego eliminaremos la cuenta y te responderemos dentro de 30 días."
+          ]
+        },
+        {
+          "heading": "Qué se elimina",
+          "body": [
+            "Tu acceso, tu perfil (nombre y bio), rutinas, sesiones de entrenamiento, entrenamientos compartidos, ánimos, seguidores y seguidos, y tu participación en entrenamientos grupales se eliminan de forma permanente. Las copias en respaldos de la base de datos se sobrescriben en unos 30 días."
+          ]
+        },
+        {
+          "heading": "Qué se conserva",
+          "body": [
+            "Los entrenamientos grupales que creaste siguen disponibles para sus otros miembros, sin tu nombre. Los eventos de uso se conservan sin nada que los vincule contigo. Tu nombre puede seguir apareciendo en la lista \"entrenó con\" de entrenamientos que otras personas compartieron antes de que eliminaras tu cuenta."
+          ]
+        }
+      ]
     }
   },
   "settings": {
@@ -943,6 +973,7 @@
     "deleteAllConfirm": "¿Eliminar cada rutina y sesión? Esto no se puede deshacer.",
     "about": "Acerca de",
     "version": "WTX v{version}",
+    "contactSupport": "Contactar soporte",
     "adPrivacy": "Privacidad de anuncios",
     "adPrivacyHint": "Revisa o cambia cómo los anuncios usan tus datos."
   },

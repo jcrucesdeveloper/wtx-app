@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { renderSVG } from 'uqr'
 import { buildImportUrl } from '@/lib/share'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
+import { canShare, shareLink } from '@/services/nativeShare'
 
 const props = defineProps<{
   open: boolean
@@ -40,11 +41,11 @@ const qr = computed<{ svg: string } | { error: string }>(() => {
 
 const copied = ref<'link' | 'text' | null>(null)
 
-const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+const canNativeShare = canShare()
 
 async function nativeShare() {
   try {
-    await navigator.share({
+    await shareLink({
       title: props.name || 'wtx',
       text: t('share.shareToOpen', { name: props.name }),
       url: url.value,

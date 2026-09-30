@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { canShare, shareLink } from '@/services/nativeShare'
 
 /** How long "Link copied" stays up after falling back to the clipboard. */
 const COPIED_MS = 1500
@@ -11,9 +12,9 @@ export function useShareLink() {
   const copied = ref(false)
 
   async function share(payload: { url: string; text?: string }) {
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+    if (canShare()) {
       try {
-        await navigator.share(payload)
+        await shareLink(payload)
       } catch {
         /* dismissed */
       }

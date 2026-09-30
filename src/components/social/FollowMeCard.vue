@@ -5,6 +5,7 @@ import { renderSVG } from 'uqr'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { isRateLimited } from '@/lib/supabase/limits'
+import { canShare, shareLink } from '@/services/nativeShare'
 
 const props = defineProps<{
   code: string
@@ -24,7 +25,7 @@ const svg = computed(() =>
 )
 
 const copied = ref(false)
-const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+const canNativeShare = canShare()
 
 async function copyLink() {
   try {
@@ -63,7 +64,7 @@ async function confirmReset() {
 
 async function share() {
   try {
-    await navigator.share({
+    await shareLink({
       text: t('social.follow.shareText'),
       url: props.followUrl,
     })

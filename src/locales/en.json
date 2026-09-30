@@ -494,7 +494,7 @@
   },
   "consent": {
     "text": "By creating an account, your routines and workout sessions will be uploaded and stored on our servers so they stay in sync and you can train with friends. You can delete your account and all of its data at any time from Configuration.",
-    "accept": "I accept the {terms} and the {privacy}",
+    "accept": "I'm 16 or older and I accept the {terms} and the {privacy}",
     "terms": "Terms",
     "privacy": "Privacy Policy"
   },
@@ -548,7 +548,7 @@
       "emailTaken": "An account with that email already exists.",
       "weakPassword": "Use a password with at least 6 characters.",
       "nameRequired": "Enter a name (up to 24 characters).",
-      "consentRequired": "Accept the Terms and Privacy Policy to continue.",
+      "consentRequired": "Confirm you're 16 or older and accept the Terms and Privacy Policy to continue.",
       "emailNotConfirmed": "Confirm your email first — check your inbox.",
       "emailRequired": "Enter your email.",
       "rateLimited": "Too many emails requested. Wait a few minutes and try again."
@@ -905,6 +905,36 @@
           ]
         }
       ]
+    },
+    "deletion": {
+      "title": "Delete your WTX account",
+      "body": [
+        "You can delete your WTX account and the data linked to it at any time, with or without the app installed.",
+        {
+          "heading": "In the app",
+          "body": [
+            "Open Configuration → Account → Delete account, type DELETE and confirm. Deletion is immediate and permanent."
+          ]
+        },
+        {
+          "heading": "Without the app",
+          "body": [
+            "Email {contactEmail} from the email address you signed up with, with the subject \"Delete my WTX account\". We may ask you to confirm the request from that address, then delete the account and reply within 30 days."
+          ]
+        },
+        {
+          "heading": "What is deleted",
+          "body": [
+            "Your sign-in, profile (name and bio), routines, workout sessions, shared workouts, kudos, follows and group-workout memberships are deleted permanently. Copies in database backups are overwritten within about 30 days."
+          ]
+        },
+        {
+          "heading": "What is kept",
+          "body": [
+            "Group workouts you hosted stay available to their other members, without your name. Usage events are kept with nothing linking them to you. Your display name may remain in the \"trained with\" list of workouts other people shared before you deleted your account."
+          ]
+        }
+      ]
     }
   },
   "settings": {
@@ -943,6 +973,7 @@
     "remindersDenied": "Notifications are off for WTX in your device settings.",
     "about": "About",
     "version": "WTX v{version}",
+    "contactSupport": "Contact support",
     "adPrivacy": "Ad privacy settings",
     "adPrivacyHint": "Review or change how ads use your data."
   },

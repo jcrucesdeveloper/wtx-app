@@ -16,7 +16,13 @@ export const LOCALES = [
   { code: 'es', label: 'Español' },
 ]
 
-export const DOCS = ['privacy', 'terms']
+export const DOCS = ['privacy', 'terms', 'deletion']
+
+/**
+ * Published file name per doc. `deletion` is the account-deletion page Google
+ * Play requires as a web link (request deletion without the app installed).
+ */
+export const PAGE_FILES = { privacy: 'privacy.html', terms: 'terms.html', deletion: 'delete-account.html' }
 
 export function escapeHtml(text) {
   return String(text)
@@ -120,8 +126,9 @@ footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
 }
 `
 
-/** One whole page (`privacy.html` / `terms.html`), all locales, as an HTML string. */
+/** One whole page (see {@link PAGE_FILES}), all locales, as an HTML string. */
 export function buildLegalPage(doc, messagesByLocale, env) {
+  // The footer links to the companion page: privacy ↔ terms, deletion → privacy.
   const other = doc === 'privacy' ? 'terms' : 'privacy'
   const titles = LOCALES.map(({ code }) => messagesByLocale[code].legal[doc].title)
 
@@ -140,7 +147,7 @@ export function buildLegalPage(doc, messagesByLocale, env) {
       `    <h1>${escapeHtml(legal[doc].title)}</h1>`,
       `    <p class="updated">${escapeHtml(legal.updated)}</p>`,
       body,
-      `    <p class="lang-note"><a href="${other}.html#${code}">${escapeHtml(legal[other].title)}</a></p>`,
+      `    <p class="lang-note"><a href="${PAGE_FILES[other]}#${code}">${escapeHtml(legal[other].title)}</a></p>`,
       `  </article>`,
     ].join('\n')
   }).join('\n')
@@ -194,9 +201,9 @@ async function main() {
   )
 
   for (const doc of DOCS) {
-    const out = `${root}public/${doc}.html`
+    const out = `${root}public/${PAGE_FILES[doc]}`
     writeFileSync(out, buildLegalPage(doc, messagesByLocale, env))
-    console.log(`[build-legal] wrote public/${doc}.html`)
+    console.log(`[build-legal] wrote public/${PAGE_FILES[doc]}`)
   }
 }
 

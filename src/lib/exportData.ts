@@ -1,6 +1,7 @@
 import { unzipSync, zipSync, type Zippable } from 'fflate'
 import type { StoredRoutine } from '@/stores/routines'
 import type { StoredSession } from '@/stores/sessions'
+import { saveFile } from '@/services/nativeShare'
 
 /** Avoids collisions when two entries share a filename (e.g. duplicate imports). */
 function uniqueName(taken: Set<string>, filename: string): string {
@@ -50,18 +51,9 @@ export function exportFilename(date = new Date()): string {
   return `wtx-export-${stamp}.zip`
 }
 
-/** Triggers a browser download of the zipped export. */
-export function downloadDataExport(zip: Uint8Array, filename = exportFilename()): void {
-  const blob = new Blob([zip as BlobPart], { type: 'application/zip' })
-  const url = URL.createObjectURL(blob)
-  try {
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    link.click()
-  } finally {
-    URL.revokeObjectURL(url)
-  }
+/** Hands the zipped export to the user: a download on the web, the share sheet in the app. */
+export function downloadDataExport(zip: Uint8Array, filename = exportFilename()): Promise<void> {
+  return saveFile(zip, filename, 'application/zip')
 }
 
 /** A single file recovered from an imported export zip. */

@@ -32,7 +32,7 @@ describe('build-legal', () => {
   })
 
   it('builds both languages with no leftover placeholders', () => {
-    for (const doc of ['privacy', 'terms']) {
+    for (const doc of ['privacy', 'terms', 'deletion']) {
       const html = buildLegalPage(
         doc,
         { en, es },
@@ -44,5 +44,11 @@ describe('build-legal', () => {
       expect(html).not.toMatch(/\{\w+\}/)
       expect(html).not.toContain('<script')
     }
+  })
+
+  it('points the deletion page back at the privacy policy', () => {
+    const html = buildLegalPage('deletion', { en, es }, {})
+    expect(html).toContain('href="privacy.html#en"')
+    expect(html).toContain('href="privacy.html#es"')
   })
 })

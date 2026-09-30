@@ -20,6 +20,7 @@ import { useAdsStore } from '@/stores/ads'
 import { AdService } from '@/services/ads'
 import { NotificationService } from '@/services/notifications'
 import { sessionDateStrs } from '@/lib/sessionDates'
+import { SUPPORT_EMAIL } from '@/config/legal'
 import { parseSessionText } from '@/lib/parseSession'
 import {
   buildDataExportZip,
@@ -45,9 +46,15 @@ const activeSession = useActiveSessionStore()
 
 const exported = ref(false)
 
-function exportData() {
+async function exportData() {
   const zip = buildDataExportZip(routines.routines, sessions.sessions)
-  downloadDataExport(zip)
+  try {
+    await downloadDataExport(zip)
+  } catch (err) {
+    // Writing the file to the app's cache failed — nothing was handed off.
+    console.error('[export] failed', err)
+    return
+  }
   exported.value = true
   setTimeout(() => {
     exported.value = false
@@ -117,6 +124,14 @@ function resetAllData() {
 }
 
 const appVersion = __APP_VERSION__
+
+/**
+ * Apple expects apps with user content to offer a way to reach the developer.
+ * Hidden until VITE_SUPPORT_EMAIL is set, rather than showing a dead link.
+ */
+const supportHref = SUPPORT_EMAIL
+  ? `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`WTX v${appVersion}`)}`
+  : ''
 
 /**
  * Hides the "Remove ads" purchase card until a real In-App Purchase flow exists.
@@ -247,6 +262,10 @@ async function toggleReminders() {
           <RouterLink :to="{ name: 'legal', params: { doc: 'privacy' } }">{{ t('legal.privacy.title') }}</RouterLink>
           ·
           <RouterLink :to="{ name: 'legal', params: { doc: 'terms' } }">{{ t('legal.terms.title') }}</RouterLink>
+          <template v-if="supportHref">
+            ·
+            <a :href="supportHref">{{ t('settings.contactSupport') }}</a>
+          </template>
         </p>
         <template v-if="privacyOptionsRequired">
           <p class="group__hint group__hint--spaced">{{ t('settings.adPrivacyHint') }}</p>

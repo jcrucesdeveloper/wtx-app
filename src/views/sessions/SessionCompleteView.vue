@@ -13,6 +13,7 @@ import { formatClock, formatNumber } from '@/lib/format'
 import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { HapticsService } from '@/services/haptics'
 import { AdService } from '@/services/ads'
+import { canShare, shareLink } from '@/services/nativeShare'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -82,13 +83,13 @@ const shareText = computed(() => {
   return lines.join('\n')
 })
 
-const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+const canNativeShare = canShare()
 const shareCopied = ref(false)
 
 async function share() {
   if (canNativeShare) {
     try {
-      await navigator.share({ text: shareText.value })
+      await shareLink({ text: shareText.value })
     } catch {
       /* user dismissed the share sheet, or it's unavailable */
     }

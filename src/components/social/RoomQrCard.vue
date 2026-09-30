@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { renderSVG } from 'uqr'
+import { canShare, shareLink } from '@/services/nativeShare'
 
 const props = defineProps<{
   code: string
@@ -22,7 +23,7 @@ const svg = computed(() =>
 )
 
 const copied = ref(false)
-const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+const canNativeShare = canShare()
 
 async function copyCode() {
   try {
@@ -36,7 +37,7 @@ async function copyCode() {
 
 async function share() {
   try {
-    await navigator.share({
+    await shareLink({
       title: props.routineName,
       text: t('room.shareText', { name: props.routineName, code: props.code }),
       url: props.joinUrl,
