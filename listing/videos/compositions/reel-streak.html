@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX reel — the streak</title>
+    <!--
+      TikTok / Reels / Shorts, 1080×1920, 18 s. Consistency angle: the hook is
+      the app's own training calendar (September, the same days the recorded
+      history has) filling in on the beat, then the real calendar, a workout
+      logged in seconds, and the streak + milestone the app awards.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .cal {
+        position: absolute;
+        left: 90px;
+        top: 640px;
+        width: 810px;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 12px;
+        z-index: 10;
+      }
+      .cal .dow {
+        text-align: center;
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text-2);
+        padding-bottom: 6px;
+      }
+      .cal .day {
+        height: 80px;
+        border-radius: 14px;
+        background: #232323;
+        display: grid;
+        place-items: center;
+        font-size: 32px;
+        font-weight: 800;
+        color: #6b6b6b;
+        position: relative;
+      }
+      .cal .day .fill {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: var(--signal);
+        box-shadow: 0 0 30px rgba(224, 38, 58, 0.6);
+      }
+      .cal .day span {
+        position: relative;
+      }
+      .cal .day.on span {
+        color: #fff;
+      }
+      .cal .day.today {
+        outline: 4px solid #fff;
+        outline-offset: -4px;
+        color: #fff;
+      }
+      .cal .blank {
+        background: transparent;
+      }
+      .count {
+        position: absolute;
+        left: 90px;
+        top: 1165px;
+        font-size: 44px;
+        font-weight: 800;
+        color: var(--text-1);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        z-index: 10;
+      }
+      .count svg {
+        width: 50px;
+        height: 50px;
+        color: var(--signal);
+      }
+      .count b {
+        color: #fff;
+        font-weight: 900;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as K from '../lib/kit.js'
+      import { reelBase, reelPhone, caption, endCard, phoneOut } from '../lib/reel.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 18,
+        clips: ['history', 'workout'],
+        async build(ctx) {
+          const { tl, el, m } = ctx
+          const { world } = reelBase(ctx)
+
+          ctx.music([
+            { at: 0, bars: 2, part: 'build' },
+            { at: 4, bars: 5, part: 'drop' },
+            { at: 14, bars: 2, part: 'outro' },
+          ])
+          ctx.sfx(0, 'hit', { gain: 0.7 })
+          ctx.sfx(2.2, 'riser', { dur: 1.8 })
+          ctx.sfx(4, 'impact', { gain: 0.7 })
+
+          /* ---------- 0:00 hook — the calendar fills in ---------- */
+          caption(ctx, { at: 0, out: 3.6, kicker: 'September', lines: ['Don’t break', 'the <em>streak.</em>'] })
+          const cal = el('div', 'cal')
+          for (const d of 'MTWTFSS') el('div', 'dow', cal, d)
+          // September 2026 starts on a Tuesday; the recorded history trains Mon/Wed/Fri, today is the 28th.
+          const trained = new Set([2, 4, 7, 9, 11, 14, 16, 18, 21, 23, 25])
+          el('div', 'day blank', cal)
+          const cells = {}
+          for (let d = 1; d <= 30; d++) {
+            const c = el('div', 'day', cal, `<div class="fill"></div><span>${d}</span>`)
+            if (d === 28) c.classList.add('today')
+            cells[d] = c
+          }
+          tl.set(cal, { opacity: 0 }, 0)
+          tl.fromTo(cal, { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.5, immediateRender: false }, 0.15)
+          const order = [...trained, 28]
+          const fills = Object.values(cells).map((c) => c.querySelector('.fill'))
+          tl.set(fills, { scale: 0, opacity: 0 }, 0)
+          order.forEach((d, i) => {
+            const at = 0.5 + i * 0.25
+            const fill = cells[d].querySelector('.fill')
+            tl.fromTo(fill, { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false }, at)
+            tl.set(cells[d], { className: `day on${d === 28 ? ' today' : ''}` }, at)
+            ctx.sfx(at, d === 28 ? 'hit' : 'pop', { gain: d === 28 ? 0.8 : 0.7 })
+          })
+          const count = el('div', 'count', undefined, `${K.ICONS.flame}<span><b>9 weeks</b> in a row</span>`)
+          tl.set(count, { opacity: 0 }, 0)
+          K.popIn(ctx, count, 3.5 - 0.5, { from: { scale: 0.7, y: 30 }, sound: false })
+          K.shake(ctx, cal, 3.5, 10)
+          tl.to([cal, count], { opacity: 0, scale: 0.6, y: 200, filter: 'blur(8px)', duration: 0.45, ease: 'power3.in' }, 3.55)
+
+          /* ---------- 0:04 the real calendar ---------- */
+          const ph = reelPhone(ctx, world, 'history', { at: 3.85 })
+          const h0 = m('history', 'sessions-tab') - 0.2
+          const segH = { at: 3.85, from: h0, to: h0 + 3.4 }
+          const t1 = K.playWithTaps(ctx, ph.view, ph.viewport, segH, { vw: ph.vw })
+          // The take scrolls the list ~2.4 s after the calendar appears; leave before it does.
+          const calOut = Math.min(t1 - 0.35, ctx.at(segH, m('history', 'calendar') + 2.2))
+          caption(ctx, { at: 4.0, out: t1 - 0.3, kicker: 'Training history', lines: ['Every', 'workout', '<em>counted.</em>'], size: 100 })
+          const co = K.callout(ctx, world, ph.view, { x: 40, y: 140, w: 806, h: 486 }, { x: 70, y: 720, scale: 1.16 })
+          K.popIn(ctx, co, 4.6)
+          K.popOut(ctx, co, calOut)
+
+          /* ---------- 0:07 log it in seconds ---------- */
+          const wk = K.swapClip(ctx, ph, 'workout', t1)
+          ctx.sfx(t1 - 0.05, 'whoosh', { gain: 0.6 })
+          tl.fromTo(ph.root, { scale: 0.95 }, { scale: 1, duration: 0.5, ease: 'expo.out' }, t1)
+          const f0 = m('workout', 'set-5') - 0.3
+          const f1 = m('workout', 'confirm') + 0.2
+          const t2 = K.playWithTaps(ctx, wk, ph.viewport, { at: t1, from: f0, to: f1, speed: (f1 - f0) / 3 }, { vw: ph.vw, sound: false })
+          for (let k = 0; k < 12; k++) ctx.sfx(t1 + k * 0.25, 'tap', { gain: 0.5 })
+          caption(ctx, { at: t1 + 0.05, out: t2 - 0.3, kicker: 'One tap per set', lines: ['Logged in', '<em>seconds.</em>'] })
+
+          /* ---------- 0:10 the app keeps score ---------- */
+          const r0 = m('workout', 'recap') - 0.15
+          const r1 = m('workout', 'recap') + 2.3
+          K.playWithTaps(ctx, wk, ph.viewport, { at: t2, from: r0, to: r1, speed: (r1 - r0) / (13.3 - t2) }, { vw: ph.vw })
+          caption(ctx, { at: t2 + 0.05, out: 13.2, kicker: 'Streaks & milestones', lines: ['Keep it', '<em>alive.</em>'] })
+          const streak = K.callout(ctx, world, wk, { x: 38, y: 592, w: 810, h: 180 }, { x: 60, y: 760, scale: 1.13 })
+          K.popIn(ctx, streak, t2 + 0.3, { sound: 'hit' })
+          const miles = K.callout(ctx, world, wk, { x: 38, y: 790, w: 810, h: 88 }, { x: 60, y: 1000, scale: 1.13 })
+          K.popIn(ctx, miles, t2 + 0.95)
+          K.popOut(ctx, streak, 13.15)
+          K.popOut(ctx, miles, 13.15)
+          tl.to(ph.root, { filter: 'brightness(0.5) blur(3px)', duration: 0.4 }, t2 + 0.2)
+
+          /* ---------- 0:14 end card ---------- */
+          phoneOut(ctx, ph, 13.3)
+          endCard(ctx, 14, { tagline: 'Show up. Log it.<br><span class="accent">Watch it add up.</span>' })
+        },
+      })
+    </script>
+  </body>
+</html>
