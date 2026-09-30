@@ -4,6 +4,7 @@ import { requireSupabase } from '@/services/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useFeedStore } from '@/stores/feed'
 import { useProfileStore } from '@/stores/profile'
+import { isRateLimited } from '@/lib/supabase/limits'
 
 /** Mirrors the `content_reports.reason` check constraint. */
 export const REPORT_REASONS = ['spam', 'harassment', 'inappropriate', 'other'] as const
@@ -11,6 +12,20 @@ export type ReportReason = (typeof REPORT_REASONS)[number]
 
 /** Mirrors the `content_reports.details` check constraint. */
 export const REPORT_DETAILS_MAX = 500
+
+/** A block/report that didn't go through; `rate_limited` when the server throttled it. */
+export class ModerationError extends Error {
+  constructor(
+    public code: 'rate_limited' | 'unknown',
+    message?: string,
+  ) {
+    super(message ?? code)
+  }
+}
+
+function toModerationError(error: { message?: string }): ModerationError {
+  return new ModerationError(isRateLimited(error) ? 'rate_limited' : 'unknown', error.message)
+}
 
 export interface BlockedUser {
   id: string
@@ -79,7 +94,7 @@ export const useModerationStore = defineStore('moderation', () => {
   /** Blocks an account. They aren't notified; follows between you are removed. */
   async function block(user: BlockedUser) {
     const { error } = await requireSupabase().rpc('block_user', { p_user_id: user.id })
-    if (error) throw error
+    if (error) throw toModerationError(error)
     if (!isBlocked(user.id)) blocked.value = [user, ...blocked.value]
     feed.hideUser(user.id)
     profiles.forget(user.id, { blocked: true })
@@ -113,7 +128,7 @@ export const useModerationStore = defineStore('moderation', () => {
         reason: input.reason,
         details: (input.details ?? '').trim().slice(0, REPORT_DETAILS_MAX),
       })
-    if (error) throw error
+    if (error) throw toModerationError(error)
   }
 
   return { blocked, blockedIds, loading, loadBlocked, isBlocked, block, unblock, report }

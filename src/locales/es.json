@@ -435,10 +435,17 @@
       "followingEmpty": "Aún no sigues a nadie.",
       "followingEmptyCta": "Sigue a tus compañeros de entrenamiento",
       "unfollowAria": "Dejar de seguir a {name}",
+      "resetCode": "Restablecer mi código",
+      "resetTitle": "¿Restablecer tu código?",
+      "resetHint": "Recibirás un código, enlace y código QR nuevos. Los anteriores dejarán de funcionar, así que quien los tenga no podrá seguirte con ellos. Quienes ya te siguen se mantienen: quítalos de tus seguidores si no quieres que vuelvan.",
+      "resetConfirm": "Restablecer código",
+      "resetFailed": "No se pudo restablecer tu código. Inténtalo de nuevo.",
+      "resetRateLimited": "Has restablecido tu código demasiadas veces hoy. Inténtalo mañana.",
       "errors": {
         "code_not_found": "Ese código no coincide con nadie.",
         "cannot_follow_self": "Ese es tu propio código.",
         "not_authenticated": "Inicia sesión para seguir a otras personas.",
+        "rate_limited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
         "unknown": "Algo salió mal. Inténtalo de nuevo."
       }
     },
@@ -457,6 +464,7 @@
       "blockedEmptyTitle": "No has bloqueado a nadie",
       "blockedEmptyHint": "Las personas que bloquees aparecerán aquí. Puedes desbloquearlas cuando quieras.",
       "failed": "No se pudo completar. Inténtalo de nuevo.",
+      "rateLimited": "Lo has hecho demasiadas veces. Inténtalo más tarde.",
       "report": {
         "postTitle": "Reportar publicación",
         "accountTitle": "Reportar a {name}",
@@ -630,6 +638,7 @@
       "room_not_found": "No hay una sala abierta con ese código.",
       "room_full": "Esa sala está llena (máximo 8 personas).",
       "not_authenticated": "Inicia sesión primero.",
+      "rate_limited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
       "unknown": "Algo salió mal. Inténtalo de nuevo."
     }
   },

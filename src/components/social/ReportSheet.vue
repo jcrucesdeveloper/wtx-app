@@ -6,6 +6,7 @@ import BottomSheet from '@/components/ui/BottomSheet.vue'
 import {
   REPORT_DETAILS_MAX,
   REPORT_REASONS,
+  ModerationError,
   useModerationStore,
   type ReportReason,
 } from '@/stores/moderation'
@@ -29,7 +30,8 @@ const moderation = useModerationStore()
 const reason = ref<ReportReason | null>(null)
 const details = ref('')
 const phase = ref<'form' | 'sending' | 'done'>('form')
-const failed = ref(false)
+/** The i18n key of the last failure, or '' — throttled reports get their own message. */
+const failed = ref('')
 
 // Every open starts a fresh report.
 watch(
@@ -39,7 +41,7 @@ watch(
     reason.value = null
     details.value = ''
     phase.value = 'form'
-    failed.value = false
+    failed.value = ''
   },
 )
 
@@ -52,7 +54,7 @@ const title = computed(() =>
 async function submit() {
   if (!reason.value || phase.value !== 'form') return
   phase.value = 'sending'
-  failed.value = false
+  failed.value = ''
   try {
     await moderation.report({
       userId: props.userId,
@@ -61,8 +63,11 @@ async function submit() {
       details: details.value,
     })
     phase.value = 'done'
-  } catch {
-    failed.value = true
+  } catch (e) {
+    failed.value =
+      e instanceof ModerationError && e.code === 'rate_limited'
+        ? 'social.moderation.rateLimited'
+        : 'social.moderation.failed'
     phase.value = 'form'
   }
 }
@@ -123,7 +128,7 @@ async function submit() {
         />
       </label>
 
-      <p v-if="failed" class="error">{{ t('social.moderation.failed') }}</p>
+      <p v-if="failed" class="error">{{ t(failed) }}</p>
 
       <button type="submit" class="primary" :disabled="!reason || phase === 'sending'">
         {{

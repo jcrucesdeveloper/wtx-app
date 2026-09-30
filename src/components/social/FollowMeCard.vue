@@ -2,6 +2,9 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { renderSVG } from 'uqr'
+import BottomSheet from '@/components/ui/BottomSheet.vue'
+import { useAuthStore } from '@/stores/auth'
+import { isRateLimited } from '@/lib/supabase/limits'
 
 const props = defineProps<{
   code: string
@@ -30,6 +33,31 @@ async function copyLink() {
     setTimeout(() => (copied.value = false), 1500)
   } catch {
     /* clipboard blocked — the link is on screen anyway */
+  }
+}
+
+// ----- reset code: old links and QR codes stop working -----
+const auth = useAuthStore()
+const resetOpen = ref(false)
+const resetting = ref(false)
+const resetError = ref('')
+
+function openReset() {
+  resetError.value = ''
+  resetOpen.value = true
+}
+
+async function confirmReset() {
+  if (resetting.value) return
+  resetting.value = true
+  resetError.value = ''
+  try {
+    await auth.rotateInviteCode()
+    resetOpen.value = false
+  } catch (e) {
+    resetError.value = t(isRateLimited(e) ? 'social.follow.resetRateLimited' : 'social.follow.resetFailed')
+  } finally {
+    resetting.value = false
   }
 }
 
@@ -62,6 +90,20 @@ async function share() {
         {{ t('room.shareLink') }}
       </button>
     </div>
+    <button type="button" class="reset" @click="openReset">{{ t('social.follow.resetCode') }}</button>
+
+    <BottomSheet :open="resetOpen" :title="t('social.follow.resetTitle')" @close="resetOpen = false">
+      <div class="sheet">
+        <p class="sheet__hint">{{ t('social.follow.resetHint') }}</p>
+        <p v-if="resetError" class="sheet__error" role="status">{{ resetError }}</p>
+        <button type="button" class="sheet__danger" :disabled="resetting" @click="confirmReset">
+          {{ t('social.follow.resetConfirm') }}
+        </button>
+        <button type="button" class="sheet__secondary" @click="resetOpen = false">
+          {{ t('common.cancel') }}
+        </button>
+      </div>
+    </BottomSheet>
   </div>
 </template>
 
@@ -139,5 +181,62 @@ async function share() {
   color: var(--color-text);
   background: var(--color-background-mute);
   cursor: pointer;
+}
+
+.reset {
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  opacity: 0.6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 12px;
+}
+
+.sheet__hint {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.sheet__error {
+  font-size: 13px;
+  color: #e11d48;
+}
+
+.sheet__danger,
+.sheet__secondary {
+  min-height: 48px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--label-tracking);
+  cursor: pointer;
+}
+
+.sheet__danger {
+  border: none;
+  background: #e11d48;
+  color: #fff;
+}
+
+.sheet__danger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sheet__secondary {
+  border: 1px solid var(--color-border-hover);
+  background: transparent;
+  color: var(--color-heading);
 }
 </style>

@@ -37,23 +37,29 @@ export type RoomRow = {
   finished_at: string | null
 }
 
-export type ProfileRow = {
+/** What follow_by_code / follow_user return about the person followed (`public.profile_card`). */
+export type ProfileCard = {
   id: string
   display_name: string
-  invite_code: string
-  created_at: string
-  updated_at: string
+  bio: string
 }
+
+/**
+ * A composite-returning RPC that returns SQL `null` comes back from PostgREST
+ * as a row of nulls — join_room / follow_by_code do this for an unknown code.
+ */
+export type EmptyRow<T> = { [K in keyof T]: null }
 
 export type Database = {
   public: {
     Tables: {
       profiles: {
+        // invite_code exists but only its owner can read it, via my_invite_code()
+        // (column-level SELECT) — so it isn't part of the readable row.
         Row: {
           id: string
           display_name: string
           bio: string
-          invite_code: string
           created_at: string
           updated_at: string
         }
@@ -217,12 +223,12 @@ export type Database = {
           app_version: string | null
           created_at: string
         }
+        // Only these columns are granted; created_at is always the server's.
         Insert: {
           event: AppEventName
           user_id?: string | null
           platform?: string | null
           app_version?: string | null
-          created_at?: string
         }
         Update: never
         Relationships: []
@@ -322,15 +328,23 @@ export type Database = {
       }
       join_room: {
         Args: { p_code: string }
-        Returns: RoomRow
+        Returns: RoomRow | EmptyRow<RoomRow>
       }
       follow_by_code: {
         Args: { p_code: string }
-        Returns: ProfileRow
+        Returns: ProfileCard | EmptyRow<ProfileCard>
       }
       follow_user: {
         Args: { p_user_id: string }
-        Returns: ProfileRow
+        Returns: ProfileCard
+      }
+      my_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      rotate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_profile: {
         Args: { p_user_id: string }
@@ -358,7 +372,9 @@ export type Database = {
       }
     }
     Enums: { [_ in never]: never }
-    CompositeTypes: { [_ in never]: never }
+    CompositeTypes: {
+      profile_card: ProfileCard
+    }
   }
 }
 

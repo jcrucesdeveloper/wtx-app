@@ -435,10 +435,17 @@
       "followingEmpty": "You're not following anyone yet.",
       "followingEmptyCta": "Follow your training partners",
       "unfollowAria": "Unfollow {name}",
+      "resetCode": "Reset my code",
+      "resetTitle": "Reset your code?",
+      "resetHint": "You'll get a new code, link and QR code. The old ones stop working, so anyone who has them won't be able to follow you with them. People already following you stay — remove them from your followers if you don't want them back.",
+      "resetConfirm": "Reset code",
+      "resetFailed": "Couldn't reset your code. Try again.",
+      "resetRateLimited": "You've reset your code too many times today. Try again tomorrow.",
       "errors": {
         "code_not_found": "That code doesn't match anyone.",
         "cannot_follow_self": "That's your own code.",
         "not_authenticated": "Log in to follow people.",
+        "rate_limited": "Too many attempts. Wait a few minutes and try again.",
         "unknown": "Something went wrong. Try again."
       }
     },
@@ -457,6 +464,7 @@
       "blockedEmptyTitle": "No blocked accounts",
       "blockedEmptyHint": "People you block show up here. You can unblock them at any time.",
       "failed": "That didn't go through. Try again.",
+      "rateLimited": "You've done that too many times. Try again later.",
       "report": {
         "postTitle": "Report post",
         "accountTitle": "Report {name}",
@@ -630,6 +638,7 @@
       "room_not_found": "No open room with that code.",
       "room_full": "That room is full (8 people max).",
       "not_authenticated": "Log in first.",
+      "rate_limited": "Too many attempts. Wait a few minutes and try again.",
       "unknown": "Something went wrong. Try again."
     }
   },

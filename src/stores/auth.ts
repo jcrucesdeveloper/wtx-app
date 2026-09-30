@@ -14,6 +14,13 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 
 export type Profile = Tables<'profiles'>
 
+/**
+ * The profile columns the app may read. Listed rather than `*`: invite_code
+ * is only readable by its owner, through `my_invite_code()`, so selecting
+ * every column is refused.
+ */
+export const PROFILE_COLUMNS = 'id, display_name, bio, created_at, updated_at'
+
 /** Outcome of {@link useAuthStore}'s `signUp`. */
 export type SignUpResult = 'signed-in' | 'confirm-email'
 
@@ -48,6 +55,8 @@ export interface LogoutCheck {
 export const useAuthStore = defineStore('auth', () => {
   const session = ref<Session | null>(null)
   const profile = ref<Profile | null>(null)
+  /** This account's follow code — private to its owner, so loaded on its own. */
+  const inviteCode = ref<string | null>(null)
   const ready = ref(!isSupabaseConfigured)
   /** True while the session came from a password-recovery link and a new password is still due. */
   const recovering = ref(false)
@@ -72,8 +81,27 @@ export const useAuthStore = defineStore('auth', () => {
       profile.value = null
       return
     }
-    const { data } = await requireSupabase().from('profiles').select('*').eq('id', uid).maybeSingle()
-    if (user.value?.id === uid) profile.value = data
+    const sb = requireSupabase()
+    const [{ data }, code] = await Promise.all([
+      sb.from('profiles').select(PROFILE_COLUMNS).eq('id', uid).maybeSingle(),
+      sb.rpc('my_invite_code'),
+    ])
+    if (user.value?.id !== uid) return
+    profile.value = data
+    inviteCode.value = code.data ?? null
+  }
+
+  /**
+   * Replaces this account's follow code with a fresh one — old links and QR
+   * codes stop working. People already following stay followed. Throws on
+   * failure (`rate_limited` after too many resets in a day).
+   */
+  async function rotateInviteCode(): Promise<string> {
+    const uid = user.value?.id
+    const { data, error } = await requireSupabase().rpc('rotate_invite_code')
+    if (error || !data) throw error ?? new Error('rotate_invite_code returned nothing')
+    if (user.value?.id === uid) inviteCode.value = data
+    return data
   }
 
   let lastUserId: string | null = null
@@ -96,6 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
       void sync.start(uid)
     } else {
       profile.value = null
+      inviteCode.value = null
       sync.stop()
     }
   }
@@ -275,7 +304,7 @@ export const useAuthStore = defineStore('auth', () => {
         ...(fields.bio !== undefined ? { bio: fields.bio.trim() } : {}),
       })
       .eq('id', uid)
-      .select()
+      .select(PROFILE_COLUMNS)
       .single()
     if (error) throw error
     profile.value = data
@@ -300,6 +329,7 @@ export const useAuthStore = defineStore('auth', () => {
     session,
     user,
     profile,
+    inviteCode,
     ready,
     recovering,
     isLoggedIn,
@@ -314,6 +344,7 @@ export const useAuthStore = defineStore('auth', () => {
     updatePassword,
     updateProfile,
     updateDisplayName,
+    rotateInviteCode,
     deleteAccount,
   }
 })

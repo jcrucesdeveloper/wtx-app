@@ -1,6 +1,7 @@
 import type { Database, Json, Tables } from '@/lib/supabase/database.types'
 import { isUuid } from '@/lib/uuid'
 import { parseFeedSnapshot, type FeedSnapshot } from '@/lib/feedSnapshot'
+import { FEED_SNAPSHOT_MAX_BYTES, ROUTINE_FILENAME_MAX, jsonByteLength } from '@/lib/supabase/limits'
 
 type RoutineInsert = Database['public']['Tables']['routines']['Insert']
 type SessionInsert = Database['public']['Tables']['sessions']['Insert']
@@ -39,7 +40,7 @@ export function routineToRow(routine: LocalRoutine, userId: string, position: nu
   return {
     id: routine.id,
     user_id: userId,
-    filename: routine.filename,
+    filename: routine.filename.slice(0, ROUTINE_FILENAME_MAX),
     raw_text: routine.rawText,
     position,
     created_at: new Date(routine.addedAt).toISOString(),
@@ -70,7 +71,12 @@ export function sessionToRow(session: LocalSession, userId: string): SessionInse
     // FeedSnapshot is a plain-data shape (numbers/strings/booleans/arrays), so it
     // serializes as jsonb directly — the cast is just past TS's lack of a
     // structural `Json` index signature on a named interface.
-    feed_snapshot: session.feedSnapshot ? (session.feedSnapshot as unknown as Json) : null,
+    // An oversized recap is dropped rather than failing the whole session's sync
+    // (the server caps it — see FEED_SNAPSHOT_MAX_BYTES).
+    feed_snapshot:
+      session.feedSnapshot && jsonByteLength(session.feedSnapshot) <= FEED_SNAPSHOT_MAX_BYTES
+        ? (session.feedSnapshot as unknown as Json)
+        : null,
     created_at: new Date(session.addedAt).toISOString(),
     deleted_at: null,
   }

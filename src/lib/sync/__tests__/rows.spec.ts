@@ -71,4 +71,23 @@ describe('sync rows', () => {
     expect(back.shared).toBe(true)
     expect(back.feedSnapshot).toEqual(snapshot)
   })
+
+  it('truncates a routine filename to the server cap', () => {
+    const row = routineToRow({ id: ROUTINE_ID, filename: 'x'.repeat(300), rawText: '#', addedAt: 0 }, USER, 0)
+    expect(row.filename).toHaveLength(255)
+  })
+
+  it('drops a feed snapshot too large for the server rather than failing the sync', () => {
+    const huge = {
+      personalRecords: [],
+      comparison: undefined,
+      milestone: undefined,
+      weekStreak: 1,
+      elapsedSeconds: 1,
+      trainedWith: ['x'.repeat(40 * 1024)],
+    }
+    const row = sessionToRow({ id: ROUTINE_ID, rawText: '# S', addedAt: 0, shared: true, feedSnapshot: huge }, USER)
+    expect(row.feed_snapshot).toBeNull()
+    expect(row.shared).toBe(true)
+  })
 })
