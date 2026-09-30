@@ -7,6 +7,12 @@ declare module 'vue-router' {
   interface RouteMeta {
     /** Sends logged-out visitors to log in on the Social tab first, then back here. */
     requiresAuth?: boolean
+    /**
+     * Reachable before the first-run intro has been seen — auth email links
+     * must be handled on arrival (their tokens are one-time), not after a
+     * detour through onboarding.
+     */
+    skipOnboarding?: boolean
   }
 }
 
@@ -67,10 +73,33 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/social/blocked',
+      name: 'blocked',
+      component: () => import('../views/social/BlockedView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/social/posts/:id',
       name: 'feed-post',
       component: () => import('../views/social/FeedPostView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/social/u/:id',
+      name: 'profile',
+      component: () => import('../views/social/ProfileView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/social/u/:id/connections',
+      name: 'connections',
+      component: () => import('../views/social/ConnectionsView.vue'),
+      meta: { requiresAuth: true },
+      // Follow lists are private: only your own can be opened.
+      beforeEnter: (to) => {
+        if (to.params.id === useAuthStore().user?.id) return true
+        return { name: 'profile', params: { id: to.params.id } }
+      },
     },
     {
       path: '/rooms/:id',
@@ -83,6 +112,18 @@ const router = createRouter({
       name: 'room-recap',
       component: () => import('../views/social/RoomRecapView.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/auth/callback',
+      name: 'auth-callback',
+      component: () => import('../views/auth/AuthCallbackView.vue'),
+      meta: { skipOnboarding: true },
+    },
+    {
+      path: '/auth/reset',
+      name: 'auth-reset',
+      component: () => import('../views/auth/ResetPasswordView.vue'),
+      meta: { skipOnboarding: true },
     },
     {
       path: '/legal/:doc(terms|privacy)',
@@ -98,7 +139,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  if (to.name !== 'onboarding' && !hasSeenOnboarding()) {
+  if (to.name !== 'onboarding' && !to.meta.skipOnboarding && !hasSeenOnboarding()) {
     return { name: 'onboarding', query: { redirect: to.fullPath } }
   }
   if (!to.meta.requiresAuth) return true

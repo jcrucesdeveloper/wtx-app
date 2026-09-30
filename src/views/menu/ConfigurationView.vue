@@ -16,6 +16,8 @@ import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useLocaleStore } from '@/stores/locale'
 import { useNotificationsStore } from '@/stores/notifications'
+import { useAdsStore } from '@/stores/ads'
+import { AdService } from '@/services/ads'
 import { NotificationService } from '@/services/notifications'
 import { sessionDateStrs } from '@/lib/sessionDates'
 import { parseSessionText } from '@/lib/parseSession'
@@ -116,8 +118,31 @@ function resetAllData() {
 
 const appVersion = __APP_VERSION__
 
-/** No-op until ads/payment is wired up — the card is tappable but doesn't do anything yet. */
+/**
+ * Hides the "Remove ads" purchase card until a real In-App Purchase flow exists.
+ * App Review rejects a tappable price that does nothing (guideline 2.1), and a
+ * working one must go through StoreKit / Play Billing (guideline 3.1.1) — not a
+ * web checkout. Flip to `true` only once `onRemoveAdsClick` starts a real IAP.
+ */
+const REMOVE_ADS_PURCHASE_ENABLED = false
+
+/** No-op until an IAP flow is wired up; the card is hidden by the flag above. */
 function onRemoveAdsClick() {}
+
+// Google's UMP requires a way to change ad consent later for users it asked
+// (EEA/UK/...); only native builds show ads, and the store stays false on web.
+const { privacyOptionsRequired } = storeToRefs(useAdsStore())
+const openingPrivacyOptions = ref(false)
+
+async function openAdPrivacyOptions() {
+  if (openingPrivacyOptions.value) return
+  openingPrivacyOptions.value = true
+  try {
+    await AdService.showPrivacyOptions()
+  } finally {
+    openingPrivacyOptions.value = false
+  }
+}
 
 const notifications = useNotificationsStore()
 const { remindersEnabled } = storeToRefs(notifications)
@@ -143,7 +168,12 @@ async function toggleReminders() {
 <template>
   <AppPage :title="t('settings.title')">
     <div class="stack">
-      <button type="button" class="cta" @click="onRemoveAdsClick">
+      <button
+        v-if="REMOVE_ADS_PURCHASE_ENABLED"
+        type="button"
+        class="cta"
+        @click="onRemoveAdsClick"
+      >
         <span class="cta__icon">
           <Sparkles :size="18" :stroke-width="2.25" />
         </span>
@@ -213,6 +243,22 @@ async function toggleReminders() {
       <div class="group">
         <h2 class="group__title">{{ t('settings.about') }}</h2>
         <p class="group__hint group__hint--tight">{{ t('settings.version', { version: appVersion }) }}</p>
+        <p class="group__hint group__hint--tight legal-links">
+          <RouterLink :to="{ name: 'legal', params: { doc: 'privacy' } }">{{ t('legal.privacy.title') }}</RouterLink>
+          ·
+          <RouterLink :to="{ name: 'legal', params: { doc: 'terms' } }">{{ t('legal.terms.title') }}</RouterLink>
+        </p>
+        <template v-if="privacyOptionsRequired">
+          <p class="group__hint group__hint--spaced">{{ t('settings.adPrivacyHint') }}</p>
+          <button
+            type="button"
+            class="import-btn"
+            :disabled="openingPrivacyOptions"
+            @click="openAdPrivacyOptions"
+          >
+            {{ t('settings.adPrivacy') }}
+          </button>
+        </template>
       </div>
     </div>
   </AppPage>
@@ -375,5 +421,9 @@ async function toggleReminders() {
 .msg--error {
   color: #e11d48;
   opacity: 1;
+}
+
+.legal-links a {
+  color: var(--color-accent);
 }
 </style>

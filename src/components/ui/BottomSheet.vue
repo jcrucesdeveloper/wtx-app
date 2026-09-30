@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { onBeforeUnmount, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from '@lucide/vue'
+import { pushBackHandler } from '@/lib/backStack'
 
 const { t } = useI18n()
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     open: boolean
     title: string
@@ -17,6 +19,22 @@ withDefaults(
 const emit = defineEmits<{
   close: []
 }>()
+
+// While open, the Android back button closes this sheet (topmost first)
+// instead of navigating the route underneath it — see src/main.ts.
+let popBackHandler: (() => void) | null = null
+watch(
+  () => props.open,
+  (open) => {
+    popBackHandler?.()
+    popBackHandler = open ? pushBackHandler(() => emit('close')) : null
+  },
+  { immediate: true },
+)
+onBeforeUnmount(() => {
+  popBackHandler?.()
+  popBackHandler = null
+})
 </script>
 
 <template>

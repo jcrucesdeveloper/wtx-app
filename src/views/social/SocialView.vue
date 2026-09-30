@@ -6,6 +6,7 @@ import AppPage from '@/components/AppPage.vue'
 import AuthForm from '@/components/social/AuthForm.vue'
 import FeedList from '@/components/social/FeedList.vue'
 import FollowingStrip from '@/components/social/FollowingStrip.vue'
+import UserAvatar from '@/components/social/UserAvatar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRoomStore } from '@/stores/room'
 import { useSyncStore } from '@/stores/sync'
@@ -35,6 +36,18 @@ function openRoom(row: RoomRow) {
 
 <template>
   <AppPage :title="t('nav.social')">
+    <!-- Your profile, top right — where social apps put "you". -->
+    <template v-if="isSupabaseConfigured && auth.isLoggedIn && auth.user" #actions>
+      <button
+        type="button"
+        class="me"
+        :aria-label="t('social.profile.openMine')"
+        @click="router.push({ name: 'profile', params: { id: auth.user.id } })"
+      >
+        <UserAvatar :id="auth.user.id" :name="auth.profile?.display_name ?? '?'" :size="36" />
+      </button>
+    </template>
+
     <!-- No backend configured: the app is local-only. -->
     <div v-if="!isSupabaseConfigured" class="empty">
       <p class="empty__title">{{ t('social.notConfiguredTitle') }}</p>
@@ -49,7 +62,6 @@ function openRoom(row: RoomRow) {
     <!-- Logged in. -->
     <div v-else class="stack">
       <div class="hello">
-        <p class="hello__name">{{ t('social.hello', { name: auth.profile?.display_name ?? '' }) }}</p>
         <span class="hello__sync" :class="`hello__sync--${sync.status}`">
           <RefreshCw :size="12" :stroke-width="2.5" :class="{ spin: sync.status === 'syncing' }" />
           {{ t(`account.syncStatus.${sync.status}`) }}
@@ -126,20 +138,29 @@ function openRoom(row: RoomRow) {
   gap: 16px;
 }
 
+.me {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.me:active {
+  opacity: 0.8;
+}
+
 .hello {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
-}
-
-.hello__name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--color-heading);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-top: -8px;
 }
 
 .hello__sync {

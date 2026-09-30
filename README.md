@@ -157,6 +157,65 @@ group workouts. To enable it:
 Without those variables the Social tab says accounts aren't set up, and
 everything else keeps working locally.
 
+### Moderation
+
+The social feed is user-generated content, so the app ships the tools App
+Store guideline 1.2 and Google Play's UGC policy ask for
+(`supabase/migrations/20260930000000_moderation.sql`):
+
+- **Report** — the ⋯ menu on someone's profile (Report account) or on a
+  shared workout (Report post) files a row in `content_reports` with a reason
+  and optional details. The app can only insert; reading and resolving
+  happens in the dashboard.
+- **Block** — the same ⋯ menus. Blocking removes the follows between both
+  people, hides each other's profiles and workouts, and stops any follow
+  path (code, "Follow back", finishing a room together). The other person
+  isn't notified. Your blocked list is under your own profile → ⋯ → Blocked
+  accounts.
+- **Word filter** — `public.contains_blocked_terms()` (mirrored in
+  `src/lib/contentFilter.ts`, keep them in sync) rejects a short list of
+  slurs and explicit terms in display names and bios, and the app won't
+  share a workout to the feed whose name, notes or exercise names contain
+  one.
+
+**Review reports within 24 hours** (that's the promise the app makes to
+reporters). In the Supabase dashboard, open **Table Editor → content_reports**
+filtered to `status = open`, or run in the SQL editor:
+
+```sql
+select r.created_at, r.reason, r.details,
+       reporter.display_name as reporter, reported.display_name as reported,
+       r.reported_user_id, r.session_id, s.raw_text
+from content_reports r
+left join profiles reporter on reporter.id = r.reporter_id
+left join profiles reported on reported.id = r.reported_user_id
+left join sessions s on s.id = r.session_id
+where r.status = 'open'
+order by r.created_at;
+```
+
+Then act and close the report:
+
+```sql
+-- Take a workout off the feed (it stays in its owner's history).
+update sessions set shared = false, feed_snapshot = null where id = '<session_id>';
+
+-- Clear an offensive name or bio.
+update profiles set display_name = 'Athlete', bio = '' where id = '<user_id>';
+
+-- Ban: delete the account. Cascades to their profile, sessions, follows and
+-- kudos; reports about them are kept with reported_user_id set to null.
+-- (They could sign up again with a new email.)
+delete from auth.users where id = '<user_id>';
+
+-- Close the report: 'actioned' or 'dismissed'.
+update content_reports set status = 'actioned' where id = '<report_id>';
+```
+
+The dashboard doesn't alert you to new reports. For an email per report, add
+a Database Webhook on `content_reports` inserts that calls an Edge Function
+which sends the email — not built yet.
+
 ### Crash reporting and analytics
 
 Both are optional and off by default.
@@ -169,8 +228,9 @@ Both are optional and off by default.
   touching call sites. The default provider (`src/services/supabaseAnalytics.ts`)
   writes to an `app_events` table on the same Supabase project used for sync —
   no new vendor needed. It only starts once Supabase is configured (see
-  above), and only ever inserts an event name, platform, and app version;
-  nothing identifying and nothing readable back through the client API.
+  above), and only ever inserts an event name, platform, app version and —
+  when signed in — the account's user id (set to null if the account is
+  deleted); nothing is readable back through the client API.
 
 ### Reminders
 
@@ -230,19 +290,114 @@ One-time steps before a build is submitted to the App Store / Play Store —
 everything here needs a real AdMob account, so it can't be done from the repo
 alone:
 
-1. Create real ad units in the [AdMob console](https://apps.admob.com/) for
-   both platforms.
-2. Replace the native App IDs, which are still Google's public sample IDs:
-   - iOS: `GADApplicationIdentifier` in `ios/App/App/Info.plist`
-   - Android: `com.google.android.gms.ads.APPLICATION_ID` in
-     `android/app/src/main/AndroidManifest.xml`
-3. Set `VITE_ADMOB_INTERSTITIAL_ID_ANDROID` / `_IOS` (see `.env.example`) to
-   the real ad unit ids for the production build.
-4. Only once 1–3 are done: flip `initializeForTesting` to `false` in
-   `capacitor.config.ts`. Leave it `true` until then — with the sample App IDs
-   still in place, turning it off would misconfigure ads, not fix them, and
-   every local `cap:sync` test build would risk serving (and clicking) real
-   ads, which AdMob's policy prohibits.
+Every AdMob value defaults to Google's public test/sample IDs, so an
+unconfigured (dev) build can never serve real ads. For a store build:
+
+1. Create the apps and an interstitial ad unit per platform in the
+   [AdMob console](https://apps.admob.com/).
+2. Set the native **App IDs** (`ca-app-pub-XXXX~YYYY`) — build-time values,
+   not Vite env vars:
+   - Android: Gradle property `admobAppId`, e.g. in `~/.gradle/gradle.properties`
+     (`admobAppId=ca-app-pub-...~...`), or `-PadmobAppId=...` on the command
+     line, or the `ADMOB_APP_ID_ANDROID` env var. Injected into
+     `AndroidManifest.xml` via `manifestPlaceholders` in `android/app/build.gradle`.
+   - iOS: the `ADMOB_APP_ID` build setting of the App target (Xcode → App →
+     Build Settings → User-Defined → `ADMOB_APP_ID`, Release), or
+     `xcodebuild ... ADMOB_APP_ID=ca-app-pub-...~...`. `Info.plist` reads it as
+     `$(ADMOB_APP_ID)`.
+3. Set the **ad unit IDs** `VITE_ADMOB_INTERSTITIAL_ID_ANDROID` / `_IOS` and
+   `VITE_ADMOB_TESTING=false` for the production build (e.g. in a gitignored
+   `.env.production.local` or CI secrets — see `.env.example`). With
+   `VITE_ADMOB_TESTING` unset, every request uses Google's test ad unit even
+   when real IDs are set.
+4. Sync with test mode off: `pnpm build && ADMOB_TESTING=false npx cap sync`
+   (`capacitor.config.ts` reads the plain `ADMOB_TESTING` env var). Only do
+   this for the release build — clicking real ads on your own test builds
+   violates AdMob policy.
+5. Host `app-ads.txt` at the root of the developer website listed in App Store
+   Connect / Play Console (use the template in the repo, filled in with your
+   AdMob publisher ID), then verify it in the AdMob console.
+6. In AdMob → Privacy & messaging, publish a GDPR (and, optionally, US state
+   regulations and IDFA explainer) message — the app runs Google's UMP consent
+   flow before iOS App Tracking Transparency and before loading any ad. Users
+   UMP says need it (EEA/UK) get an "Ad privacy settings" button under
+   Settings → About that reopens Google's privacy options form.
+7. iOS privacy: `ios/App/App/PrivacyInfo.xcprivacy` declares the app's data
+   collection and tracking; keep it and the App Store Connect "App Privacy"
+   answers in sync with it (plus what Google's SDK reports in the Xcode
+   privacy report).
+8. The in-app "Remove ads" purchase is hidden (`REMOVE_ADS_PURCHASE_ENABLED`
+   in `ConfigurationView.vue`) until a real In-App Purchase flow exists.
+9. Refresh `SKAdNetworkItems` in `ios/App/App/Info.plist` from Google's
+   current list ([AdMob iOS quick start → Update your Info.plist](https://developers.google.com/admob/ios/quick-start),
+   also at [3p-skadnetworks](https://developers.google.com/admob/ios/3p-skadnetworks)).
+10. The iOS app ships **iPhone-only** (`TARGETED_DEVICE_FAMILY = 1` in
+    `ios/App/App.xcodeproj/project.pbxproj`), so App Store Connect doesn't ask
+    for iPad screenshots/review. iPad can be enabled later by setting it back to
+    `"1,2"` for both configurations — then test the layout on iPad and upload
+    iPad screenshots. (It still runs on iPad in iPhone compatibility mode.)
+
+### Legal pages
+
+The Terms and Privacy Policy live in `src/locales/{en,es}.json` (`legal.*`) —
+shown in the app (Configuration → About, and at sign-up) and generated into
+static, no-JS pages `public/privacy.html` and `public/terms.html` by
+`pnpm build:legal` (also run by `pnpm build`). Edit the locale files, never
+the generated HTML. Once deployed, use `https://<site>/privacy.html` (Spanish:
+`…/privacy.html#es`) as the store privacy policy URL and `…/terms.html` as the
+Terms / EULA link.
+
+- **Not legal advice** — have the texts reviewed by a lawyer (Chile's Ley
+  21.719 applies from 1 Dec 2026) before submitting.
+- Fill the placeholders: `VITE_LEGAL_NAME` (developer / data controller name)
+  and `VITE_SUPPORT_EMAIL` (public contact email) in the production env, then
+  rebuild. Update the `legal.updated` date in both locales when the texts change.
+- `public/app-ads.txt.example`: put your AdMob publisher ID in it and serve it
+  as `app-ads.txt` at the root of the developer website listed in both stores.
+- Store questionnaires (App Privacy, Data safety, age ratings) are drafted in
+  `listing/` — re-check every "Verify" item against the production config.
+
+### Links & auth
+
+Share links, QR codes, deep links and auth emails all hang off one public web
+address. Until these are done, links shared from the phone apps point at
+`localhost` and auth emails can't reach real users — a release blocker.
+
+1. **Public URL.** Set `VITE_PUBLIC_URL` (scheme + host, e.g. `https://wtx.app`)
+   for the production build — see `.env.example`. The web build falls back to
+   its own origin; the native apps can't (they run on `localhost`). The same
+   host must be serving the web build, so links still work for people without
+   the app.
+2. **Supabase → Authentication → URL Configuration.**
+   - Site URL: the public URL.
+   - Redirect URLs: add `https://<host>/auth/callback` (sign-up confirmation) and
+     `https://<host>/auth/reset` (password reset), plus
+     `http://localhost:5173/auth/*` for local development. Supabase ignores any
+     redirect not on this allowlist and falls back to the Site URL.
+3. **Custom SMTP** (Authentication → Emails → SMTP Settings). The built-in email
+   service only delivers to the project's team members and is limited to a few
+   emails an hour, so sign-up confirmations and password resets won't reach real
+   users without it. Any transactional provider works (Resend, Postmark, SES…).
+4. **Host the `.well-known` files** from `public/.well-known/` at the root of the
+   public host (the web build already includes them):
+   - `/.well-known/assetlinks.json` (Android App Links)
+   - `/.well-known/apple-app-site-association` (iOS universal links) — **no file
+     extension**, served as `Content-Type: application/json`, over HTTPS with
+     no redirects. `public/_headers` sets the content type on Cloudflare.
+5. **Android.** Replace the placeholder in `assetlinks.json` with the SHA-256 of
+   the **app signing key** from Play Console → Test and release → App integrity
+   → App signing (not your upload key; add the upload key's too if you want to
+   test local release builds). Build with the host:
+   `./gradlew bundleRelease -PpublicHost=wtx.app` (or `publicHost=` in
+   `~/.gradle/gradle.properties`, or the `WTX_PUBLIC_HOST` env var) — it fills
+   the App Links intent filter in `AndroidManifest.xml`. Check with
+   `adb shell pm get-app-links com.wtx.app`.
+6. **iOS.** Replace `TEAMID` in `apple-app-site-association` with the Apple
+   Developer Team ID. Enable the **Associated Domains** capability for the
+   `com.wtx.app` App ID (Xcode does this with automatic signing; free personal
+   teams don't support it). Set the App target's `PUBLIC_HOST` build setting
+   (Build Settings → User-Defined; default `wtx.invalid`) to the host —
+   `App/App.entitlements` reads it as `applinks:$(PUBLIC_HOST)`.
 
 ## Deployment
 

@@ -12,12 +12,14 @@ import { initCrashReporting } from './services/crashReporting'
 import { setAnalyticsProvider, track } from './services/analytics'
 import { supabaseAnalytics } from './services/supabaseAnalytics'
 import { NotificationService } from './services/notifications'
+import { initDeepLinks } from './services/deepLinks'
 import { useAuthStore } from './stores/auth'
 import { useRoomStore } from './stores/room'
 import { useSyncStore } from './stores/sync'
 import { useSessionsStore } from './stores/sessions'
 import { useNotificationsStore } from './stores/notifications'
 import { sessionDateStrs } from './lib/sessionDates'
+import { closeTopOverlay } from './lib/backStack'
 
 const app = createApp(App)
 
@@ -25,6 +27,9 @@ initCrashReporting(app)
 app.use(createPinia())
 app.use(router)
 app.use(i18n)
+
+// Before mount, so a link that launched the app is routed as early as possible.
+initDeepLinks(router)
 
 app.mount('#app')
 
@@ -49,8 +54,10 @@ CapacitorApp.addListener('appStateChange', ({ isActive }) => {
 
 AdService.initAds()
 
-// On Android, route back through in-app history before exiting (no-op outside native).
+// On Android, back first closes the topmost open sheet/dialog, then routes back
+// through in-app history before exiting (no-op outside native).
 CapacitorApp.addListener('backButton', () => {
+  if (closeTopOverlay()) return
   if (window.history.state?.back) {
     router.back()
   } else {

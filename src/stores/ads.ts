@@ -31,5 +31,12 @@ export const useAdsStore = defineStore('ads', () => {
     adsRemoved.value = value
   }
 
-  return { adsRemoved, setAdsRemoved }
+  /**
+   * Whether Google's UMP says this user must be offered a way to revisit their
+   * ad consent (EEA/UK/...). Set by `AdService` after the consent flow; always
+   * false on web. Not persisted: UMP re-evaluates it on every launch.
+   */
+  const privacyOptionsRequired = ref(false)
+
+  return { adsRemoved, setAdsRemoved, privacyOptionsRequired }
 })

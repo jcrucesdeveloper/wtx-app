@@ -1,3 +1,5 @@
+import { publicUrl } from './publicUrl'
+
 /** Characters a room code can use — no 0/O or 1/I/L, so it survives being read aloud. */
 export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 export const ROOM_CODE_LENGTH = 6
@@ -22,9 +24,8 @@ export function isValidRoomCode(code: string): boolean {
  * @param joinPath - The resolved join route path (from the router), including base.
  */
 export function buildJoinUrl(code: string, joinPath: string): string {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
   const sep = joinPath.includes('?') ? '&' : '?'
-  return `${origin}${joinPath}${sep}${ROOM_CODE_PARAM}=${code}`
+  return publicUrl(`${joinPath}${sep}${ROOM_CODE_PARAM}=${code}`)
 }
 
 /**
