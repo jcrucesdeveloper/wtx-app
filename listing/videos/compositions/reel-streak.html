@@ -14,7 +14,7 @@
       .cal {
         position: absolute;
         left: 90px;
-        top: 720px;
+        top: 640px;
         width: 810px;
         display: grid;
         grid-template-columns: repeat(7, 1fr);
@@ -29,7 +29,7 @@
         padding-bottom: 6px;
       }
       .cal .day {
-        height: 92px;
+        height: 80px;
         border-radius: 14px;
         background: #232323;
         display: grid;
@@ -63,7 +63,7 @@
       .count {
         position: absolute;
         left: 90px;
-        top: 1210px;
+        top: 1165px;
         font-size: 44px;
         font-weight: 800;
         color: var(--text-1);
@@ -144,11 +144,14 @@
           /* ---------- 0:04 the real calendar ---------- */
           const ph = reelPhone(ctx, world, 'history', { at: 3.85 })
           const h0 = m('history', 'sessions-tab') - 0.2
-          const t1 = K.playWithTaps(ctx, ph.view, ph.viewport, { at: 3.85, from: h0, to: h0 + 3.4 }, { vw: ph.vw })
-          caption(ctx, { at: 4.0, out: t1 - 0.3, kicker: 'Training history', lines: ['Every workout,', '<em>counted.</em>'] })
+          const segH = { at: 3.85, from: h0, to: h0 + 3.4 }
+          const t1 = K.playWithTaps(ctx, ph.view, ph.viewport, segH, { vw: ph.vw })
+          // The take scrolls the list ~2.4 s after the calendar appears; leave before it does.
+          const calOut = Math.min(t1 - 0.35, ctx.at(segH, m('history', 'calendar') + 2.2))
+          caption(ctx, { at: 4.0, out: t1 - 0.3, kicker: 'Training history', lines: ['Every', 'workout', '<em>counted.</em>'], size: 100 })
           const co = K.callout(ctx, world, ph.view, { x: 40, y: 140, w: 806, h: 486 }, { x: 70, y: 720, scale: 1.16 })
-          K.popIn(ctx, co, 4.9)
-          K.popOut(ctx, co, t1 - 0.35)
+          K.popIn(ctx, co, 4.6)
+          K.popOut(ctx, co, calOut)
 
           /* ---------- 0:07 log it in seconds ---------- */
           const wk = K.swapClip(ctx, ph, 'workout', t1)

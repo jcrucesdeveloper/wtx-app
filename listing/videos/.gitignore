@@ -1,3 +1,4 @@
 node_modules/
 build/
-out/
+# Regenerable sound-design-only variants — see README "Uploading"
+out/social/no-music/

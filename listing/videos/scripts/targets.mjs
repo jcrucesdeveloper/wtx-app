@@ -10,7 +10,7 @@ export const PRESETS = {
    * of half the frame rate, CABAC, BT.709, ≥8 Mbps for 1080p30, AAC-LC 48 kHz.
    */
   youtube: {
-    video: [...H264, '-level:v', '4.1', '-crf', '16', '-maxrate', '20M', '-bufsize', '40M', '-g', '15', '-keyint_min', '15', '-sc_threshold', '0', '-flags', '+cgop'],
+    video: [...H264, '-level:v', '4.1', '-b:v', '12M', '-maxrate', '20M', '-bufsize', '40M', '-g', '15', '-keyint_min', '15', '-sc_threshold', '0', '-flags', '+cgop'],
     audioBitrate: '384k',
     lufs: -14,
   },
@@ -21,7 +21,8 @@ export const PRESETS = {
    */
   appstore: {
     video: [...H264, '-level:v', '4.0', '-b:v', '11M', '-minrate', '11M', '-maxrate', '11M', '-bufsize', '11M', '-x264-params', 'nal-hrd=cbr:force-cfr=1', '-g', '30'],
-    audioBitrate: '256k',
+    // ffmpeg's AAC overshoots its nominal rate by ~6%; 240k measures as ~256k.
+    audioBitrate: '240k',
     lufs: -16,
   },
   /**
@@ -30,7 +31,7 @@ export const PRESETS = {
    * clean and high-bitrate; keep under all file-size caps (smallest: 287 MB).
    */
   social: {
-    video: [...H264, '-level:v', '4.1', '-crf', '17', '-maxrate', '16M', '-bufsize', '32M', '-g', '30'],
+    video: [...H264, '-level:v', '4.1', '-b:v', '10M', '-maxrate', '16M', '-bufsize', '32M', '-g', '30'],
     audioBitrate: '320k',
     lufs: -14,
   },

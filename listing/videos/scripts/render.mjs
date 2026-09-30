@@ -13,6 +13,7 @@
 //   node scripts/render.mjs <composition> --still 90 --out file.png
 //   node scripts/render.mjs <composition> --sheet       contact sheet of the master
 //   options: --workers N   --no-deliver   --frames A:B (partial master, for drafts)
+//            --deliver-only (re-encode existing masters after a preset change)
 
 import { createServer } from 'node:http'
 import { createReadStream, existsSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
@@ -110,6 +111,7 @@ function parseArgs(argv) {
     else if (a === '--out') opts.out = argv[++i]
     else if (a === '--sheet') opts.sheet = true
     else if (a === '--no-deliver') opts.deliver = false
+    else if (a === '--deliver-only') opts.deliverOnly = true
     else if (a === '--frames') opts.frames = argv[++i].split(':').map(Number)
     else opts.names.push(a)
   }
@@ -157,7 +159,7 @@ async function renderComposition(server, name, opts) {
   }
 
   const master = join(workDir, 'master.mkv')
-  if (!opts.sheet) {
+  if (!opts.sheet && !opts.deliverOnly) {
     const [start, end] = opts.frames ?? [0, comp.frames]
     const total = end - start
     const n = Math.min(opts.workers, Math.ceil(total / 30))
@@ -215,7 +217,7 @@ function loudnormFilter(wav, lufs) {
   const m = JSON.parse(r.stderr.slice(r.stderr.lastIndexOf('{'), r.stderr.lastIndexOf('}') + 1))
   return (
     `loudnorm=I=${lufs}:TP=-1.5:LRA=11:linear=true:measured_I=${m.input_i}:measured_TP=${m.input_tp}` +
-    `:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset},aresample=48000`
+    `:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset},alimiter=limit=0.79:level=false,aresample=48000`
   )
 }
 
