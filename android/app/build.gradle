@@ -8,7 +8,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // AdMob App ID injected into AndroidManifest.xml. Set the real one for a
         // Play release via the `admobAppId` Gradle property (~/.gradle/gradle.properties

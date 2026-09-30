@@ -52,7 +52,7 @@ Edit the exact lines (they're few); don't reformat the files. Verify with
   them. Never paste raw commit subjects.
 - For the first release, organise `Added` by product area (sub-bullets are fine).
 - Keep the link references at the bottom updated:
-  `[X.Y.Z]: https://github.com/jcrucesdeveloper/wtx-web/compare/vPREV...vX.Y.Z`
+  `[X.Y.Z]: https://github.com/jcrucesdeveloper/wtx-app/compare/vPREV...vX.Y.Z`
   (first release: `.../releases/tag/vX.Y.Z`), and `[Unreleased]` comparing
   `vX.Y.Z...HEAD`.
 
