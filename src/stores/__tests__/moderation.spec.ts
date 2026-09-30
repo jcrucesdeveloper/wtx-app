@@ -4,21 +4,25 @@ import { useFeedStore, type FeedPost } from '@/stores/feed'
 import { useModerationStore } from '@/stores/moderation'
 import { useProfileStore } from '@/stores/profile'
 
-const rpc = vi.fn()
-const insert = vi.fn()
-const deleteEq = vi.fn()
+type Result = { data?: unknown; error: { message: string } | null }
+
+const rpc = vi.fn<(fn: string, args?: unknown) => Promise<Result>>()
+const insert = vi.fn<(row: unknown) => Promise<Result>>()
+const deleteEq = vi.fn<(column: string, value: string) => void>()
+
+/** Awaitable like supabase-js's query builder, without hand-rolling a `then`. */
+type DeleteChain = Promise<Result> & { eq: (column: string, value: string) => DeleteChain }
 
 // A chainable `.from(table).delete().eq().eq()` / `.insert()` stand-in.
 const from = vi.fn(() => ({
   insert,
   delete: () => {
-    const chain = {
+    const chain: DeleteChain = Object.assign(Promise.resolve<Result>({ error: null }), {
       eq: (column: string, value: string) => {
         deleteEq(column, value)
         return chain
       },
-      then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
-    }
+    })
     return chain
   },
 }))

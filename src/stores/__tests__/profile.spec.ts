@@ -3,7 +3,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useFeedStore } from '@/stores/feed'
 import { useProfileStore } from '@/stores/profile'
 
-const rpc = vi.fn()
+const rpc =
+  vi.fn<(fn: string, args?: unknown) => Promise<{ data: unknown; error: { message: string } | null }>>()
 
 vi.mock('@/services/supabase', () => ({
   supabase: null,
