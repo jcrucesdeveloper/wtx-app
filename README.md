@@ -319,13 +319,23 @@ unconfigured (dev) build can never serve real ads. For a store build:
    AdMob publisher ID), then verify it in the AdMob console.
 6. In AdMob → Privacy & messaging, publish a GDPR (and, optionally, US state
    regulations and IDFA explainer) message — the app runs Google's UMP consent
-   flow before iOS App Tracking Transparency and before loading any ad.
+   flow before iOS App Tracking Transparency and before loading any ad. Users
+   UMP says need it (EEA/UK) get an "Ad privacy settings" button under
+   Settings → About that reopens Google's privacy options form.
 7. iOS privacy: `ios/App/App/PrivacyInfo.xcprivacy` declares the app's data
    collection and tracking; keep it and the App Store Connect "App Privacy"
    answers in sync with it (plus what Google's SDK reports in the Xcode
    privacy report).
 8. The in-app "Remove ads" purchase is hidden (`REMOVE_ADS_PURCHASE_ENABLED`
    in `ConfigurationView.vue`) until a real In-App Purchase flow exists.
+9. Refresh `SKAdNetworkItems` in `ios/App/App/Info.plist` from Google's
+   current list ([AdMob iOS quick start → Update your Info.plist](https://developers.google.com/admob/ios/quick-start),
+   also at [3p-skadnetworks](https://developers.google.com/admob/ios/3p-skadnetworks)).
+10. The iOS app ships **iPhone-only** (`TARGETED_DEVICE_FAMILY = 1` in
+    `ios/App/App.xcodeproj/project.pbxproj`), so App Store Connect doesn't ask
+    for iPad screenshots/review. iPad can be enabled later by setting it back to
+    `"1,2"` for both configurations — then test the layout on iPad and upload
+    iPad screenshots. (It still runs on iPad in iPhone compatibility mode.)
 
 ### Legal pages
 

@@ -43,7 +43,8 @@ const progressPercent = computed(() => {
   flex-direction: column;
   gap: 8px;
   margin: 12px -20px -24px;
-  padding: 10px 20px calc(10px + env(safe-area-inset-bottom));
+  /* No bottom safe-area inset: the tab bar below this bar already pads for it. */
+  padding: 10px 20px;
   background: var(--color-background-soft);
   border-top: 1px solid var(--color-border-hover);
 }

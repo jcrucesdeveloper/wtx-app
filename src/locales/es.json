@@ -924,7 +924,9 @@
     "deleteAllData": "Eliminar todos los datos",
     "deleteAllConfirm": "¿Eliminar cada rutina y sesión? Esto no se puede deshacer.",
     "about": "Acerca de",
-    "version": "WTX v{version}"
+    "version": "WTX v{version}",
+    "adPrivacy": "Privacidad de anuncios",
+    "adPrivacyHint": "Revisa o cambia cómo los anuncios usan tus datos."
   },
   "import": {
     "title": "Importar rutina",

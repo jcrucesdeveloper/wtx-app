@@ -16,6 +16,8 @@ import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useLocaleStore } from '@/stores/locale'
 import { useNotificationsStore } from '@/stores/notifications'
+import { useAdsStore } from '@/stores/ads'
+import { AdService } from '@/services/ads'
 import { NotificationService } from '@/services/notifications'
 import { sessionDateStrs } from '@/lib/sessionDates'
 import { parseSessionText } from '@/lib/parseSession'
@@ -127,6 +129,21 @@ const REMOVE_ADS_PURCHASE_ENABLED = false
 /** No-op until an IAP flow is wired up; the card is hidden by the flag above. */
 function onRemoveAdsClick() {}
 
+// Google's UMP requires a way to change ad consent later for users it asked
+// (EEA/UK/...); only native builds show ads, and the store stays false on web.
+const { privacyOptionsRequired } = storeToRefs(useAdsStore())
+const openingPrivacyOptions = ref(false)
+
+async function openAdPrivacyOptions() {
+  if (openingPrivacyOptions.value) return
+  openingPrivacyOptions.value = true
+  try {
+    await AdService.showPrivacyOptions()
+  } finally {
+    openingPrivacyOptions.value = false
+  }
+}
+
 const notifications = useNotificationsStore()
 const { remindersEnabled } = storeToRefs(notifications)
 const remindersDenied = ref(false)
@@ -231,6 +248,17 @@ async function toggleReminders() {
           ·
           <RouterLink :to="{ name: 'legal', params: { doc: 'terms' } }">{{ t('legal.terms.title') }}</RouterLink>
         </p>
+        <template v-if="privacyOptionsRequired">
+          <p class="group__hint group__hint--spaced">{{ t('settings.adPrivacyHint') }}</p>
+          <button
+            type="button"
+            class="import-btn"
+            :disabled="openingPrivacyOptions"
+            @click="openAdPrivacyOptions"
+          >
+            {{ t('settings.adPrivacy') }}
+          </button>
+        </template>
       </div>
     </div>
   </AppPage>

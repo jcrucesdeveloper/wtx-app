@@ -5,6 +5,16 @@ const config: CapacitorConfig = {
   appName: 'WTX',
   webDir: 'dist',
   plugins: {
+    SystemBars: {
+      // Android 15+ (targetSdk 35+) forces edge-to-edge. With `css` (Capacitor's
+      // default, set explicitly here) the web view honours `viewport-fit=cover`
+      // from index.html on Chromium 140+ and exposes the real
+      // `env(safe-area-inset-*)` values, which App.vue / AppTabBar / BottomSheet
+      // pad for; on older WebViews Capacitor pads the web view natively instead.
+      // The hint avoids a layout jump before the meta tag is read.
+      insetsHandling: 'css',
+      initialViewportFitValueHint: 'cover'
+    },
     AdMob: {
       // Test mode flag, copied into the native capacitor.config.json by
       // `cap sync`/`cap copy`. This file isn't processed by Vite (the Capacitor

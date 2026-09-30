@@ -924,7 +924,9 @@
     "remindersOn": "Reminders on",
     "remindersDenied": "Notifications are off for WTX in your device settings.",
     "about": "About",
-    "version": "WTX v{version}"
+    "version": "WTX v{version}",
+    "adPrivacy": "Ad privacy settings",
+    "adPrivacyHint": "Review or change how ads use your data."
   },
   "import": {
     "title": "Import routine",

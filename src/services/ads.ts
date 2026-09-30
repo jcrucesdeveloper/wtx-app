@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core'
-import { AdMob, AdmobConsentStatus } from '@capacitor-community/admob'
+import { AdMob, AdmobConsentStatus, type AdmobConsentInfo } from '@capacitor-community/admob'
 import { useAdsStore } from '@/stores/ads'
 
 /**
@@ -38,6 +38,19 @@ let interstitialReady = false
 let canRequestAds = false
 
 /**
+ * Records UMP's answer: whether ads may be requested, and whether the user must
+ * be offered the "privacy options" entry point (Settings -> About). The plugin
+ * doesn't re-export the `PrivacyOptionsRequirementStatus` enum, so compare its
+ * string value.
+ */
+function applyConsentInfo(consent: AdmobConsentInfo) {
+  // `canRequestAds` exists since plugin 7.0.3; treat a missing value as allowed.
+  canRequestAds = consent.canRequestAds !== false
+  useAdsStore().privacyOptionsRequired =
+    String(consent.privacyOptionsRequirementStatus) === 'REQUIRED'
+}
+
+/**
  * Thin wrapper around @capacitor-community/admob. Every call is a safe no-op
  * on web and once the user has removed ads — callers never need to check
  * platform or the ads store themselves.
@@ -66,6 +79,25 @@ export const AdService = {
       interstitialReady = true
     } catch (err) {
       console.error('[ads] prepareInterstitial failed', err)
+    }
+  },
+
+  /**
+   * Opens Google's UMP privacy options form so the user can change their ad
+   * consent (Google requires this entry point for users UMP asked, e.g. in the
+   * EEA/UK). The UI only offers it when `useAdsStore().privacyOptionsRequired`.
+   */
+  async showPrivacyOptions(): Promise<void> {
+    if (!isNativePlatform()) return
+    await AdService.initAds()
+    try {
+      await AdMob.showPrivacyOptionsForm()
+      // The answer may have changed (e.g. consent withdrawn): refresh it so
+      // the next ad request respects it.
+      applyConsentInfo(await AdMob.requestConsentInfo())
+      if (!canRequestAds) interstitialReady = false
+    } catch (err) {
+      console.error('[ads] privacy options form failed', err)
     }
   },
 
@@ -107,8 +139,7 @@ async function doInit(): Promise<void> {
     if (consent.isConsentFormAvailable && consent.status === AdmobConsentStatus.REQUIRED) {
       consent = await AdMob.showConsentForm()
     }
-    // `canRequestAds` exists since plugin 7.0.3; treat a missing value as allowed.
-    canRequestAds = consent.canRequestAds !== false
+    applyConsentInfo(consent)
   } catch (err) {
     // Without a consent answer we can't know whether ads are allowed for this
     // user (e.g. EEA), so skip ads for this launch rather than risk it.

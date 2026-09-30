@@ -19,6 +19,7 @@ import { useSyncStore } from './stores/sync'
 import { useSessionsStore } from './stores/sessions'
 import { useNotificationsStore } from './stores/notifications'
 import { sessionDateStrs } from './lib/sessionDates'
+import { closeTopOverlay } from './lib/backStack'
 
 const app = createApp(App)
 
@@ -53,8 +54,10 @@ CapacitorApp.addListener('appStateChange', ({ isActive }) => {
 
 AdService.initAds()
 
-// On Android, route back through in-app history before exiting (no-op outside native).
+// On Android, back first closes the topmost open sheet/dialog, then routes back
+// through in-app history before exiting (no-op outside native).
 CapacitorApp.addListener('backButton', () => {
+  if (closeTopOverlay()) return
   if (window.history.state?.back) {
     router.back()
   } else {

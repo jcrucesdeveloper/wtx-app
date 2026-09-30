@@ -24,7 +24,7 @@ const showChrome = computed(() => route.name !== 'onboarding')
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :class="{ 'app-shell--bare': !showChrome }">
     <main class="app-content">
       <RouterView />
     </main>
@@ -45,6 +45,18 @@ const showChrome = computed(() => route.name !== 'onboarding')
   display: flex;
   flex-direction: column;
   height: 100%;
+  /*
+   * The web view runs edge-to-edge (viewport-fit=cover on iOS, Android 15+
+   * edge-to-edge), so keep the scrolling content out from under the status
+   * bar / notch / Dynamic Island and the landscape side cutouts. The tab bar
+   * pads for the bottom (home indicator / gesture nav) itself.
+   */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+
+/* No tab bar (onboarding): the content itself reaches the bottom edge. */
+.app-shell--bare {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .app-content {
