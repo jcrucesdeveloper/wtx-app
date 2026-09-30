@@ -14,7 +14,7 @@ const deleteEq = vi.fn<(column: string, value: string) => void>()
 type DeleteChain = Promise<Result> & { eq: (column: string, value: string) => DeleteChain }
 
 // A chainable `.from(table).delete().eq().eq()` / `.insert()` stand-in.
-const from = vi.fn(() => ({
+const from = vi.fn<(table: string) => { insert: typeof insert; delete: () => DeleteChain }>(() => ({
   insert,
   delete: () => {
     const chain: DeleteChain = Object.assign(Promise.resolve<Result>({ error: null }), {
