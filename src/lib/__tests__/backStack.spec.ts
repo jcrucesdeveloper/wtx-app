@@ -28,7 +28,7 @@ describe('backStack', () => {
   })
 
   it('unregisters out of order', () => {
-    const a = vi.fn()
+    const a = vi.fn<() => void>()
     const popA = pushBackHandler(a)
     const popB = pushBackHandler(() => {})
     popA()
