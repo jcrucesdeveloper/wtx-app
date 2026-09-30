@@ -60,7 +60,11 @@ $$;
 revoke execute on function public.enforce_rate_limit(uuid, text, integer, interval) from public, anon, authenticated;
 revoke execute on function public.record_rate_limit_event(uuid, text) from public, anon, authenticated;
 
--- The longest window is a day; keep two.
+-- The longest window is a day; keep two. pg_cron is off by default on a new
+-- Supabase project, and cron.schedule() fails without it.
+create extension if not exists pg_cron with schema pg_catalog;
+grant usage on schema cron to postgres;
+
 select cron.schedule(
   'purge_rate_limit_events',
   '17 * * * *',
