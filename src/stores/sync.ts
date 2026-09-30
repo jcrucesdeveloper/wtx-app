@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { requireSupabase } from '@/services/supabase'
 import { useRoutinesStore, type StoredRoutine } from '@/stores/routines'
@@ -14,8 +14,16 @@ import { isUuid, newUuid } from '@/lib/uuid'
  * changes made offline (or right before the app is killed) aren't lost.
  */
 interface SyncState {
-  /** The account this state belongs to — a different one means a fresh first sync. */
+  /**
+   * The account this state belongs to — a different one means a fresh first
+   * sync. It also marks whose synced data is on the device, so signing in as
+   * someone else never merges that data into their account.
+   */
   userId: string | null
+  /** The first sync for `userId` finished — until then nothing on the device is known to be uploaded. */
+  firstSyncDone: boolean
+  /** Sessions other people shared (pulled before sync filtered by owner) have been cleared from the log. */
+  foreignSessionsChecked: boolean
   routinesCursor: string | null
   sessionsCursor: string | null
   /** The library is small, so any routine change re-uploads all of it (with positions). */
@@ -45,6 +53,8 @@ const SESSION_MUTATIONS = new Set(['add', 'remove', 'clear', 'saveToProfile'])
 function emptyState(userId: string | null = null): SyncState {
   return {
     userId,
+    firstSyncDone: false,
+    foreignSessionsChecked: false,
     routinesCursor: null,
     sessionsCursor: null,
     routinesDirty: false,
@@ -57,7 +67,10 @@ function emptyState(userId: string | null = null): SyncState {
 function readStored(): SyncState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? { ...emptyState(), ...JSON.parse(raw) } : emptyState()
+    if (!raw) return emptyState()
+    const parsed = JSON.parse(raw) as Partial<SyncState>
+    // State saved before `firstSyncDone` existed only had a user once a first sync had run.
+    return { ...emptyState(), firstSyncDone: !!parsed.userId, ...parsed }
   } catch {
     return emptyState()
   }
@@ -109,7 +122,7 @@ export const useSyncStore = defineStore('sync', () => {
   )
 
   let userId: string | null = null
-  let stopWatching: (() => void)[] = []
+  let watchingStores = false
   let running: Promise<void> | null = null
   let rerun = false
   let flushTimer: ReturnType<typeof setTimeout> | undefined
@@ -125,42 +138,46 @@ export const useSyncStore = defineStore('sync', () => {
     flushTimer = setTimeout(() => void syncNow(), delay)
   }
 
+  /**
+   * Records local changes into the pending lists. Once on, it stays on after
+   * `stop()` (e.g. a forced sign-out), so changes made while signed out still
+   * upload when the same account signs back in; `reset()` and a first sync
+   * start the lists over anyway.
+   */
   function watchStores() {
+    if (watchingStores) return
+    watchingStores = true
     const routines = useRoutinesStore()
     const sessions = useSessionsStore()
 
-    stopWatching.push(
-      routines.$onAction(({ name, after }) => {
-        if (!ROUTINE_MUTATIONS.has(name)) return
-        const before = routines.routines.map((r) => r.id)
-        after(() => {
-          const now = new Set(routines.routines.map((r) => r.id))
-          for (const id of before) if (!now.has(id)) addUnique(state.value.deletedRoutineIds, id)
-          state.value.routinesDirty = true
-          scheduleSync()
-        })
-      }),
-    )
+    routines.$onAction(({ name, after }) => {
+      if (!ROUTINE_MUTATIONS.has(name)) return
+      const before = routines.routines.map((r) => r.id)
+      after(() => {
+        const now = new Set(routines.routines.map((r) => r.id))
+        for (const id of before) if (!now.has(id)) addUnique(state.value.deletedRoutineIds, id)
+        state.value.routinesDirty = true
+        scheduleSync()
+      })
+    }, true)
 
-    stopWatching.push(
-      sessions.$onAction(({ name, after }) => {
-        if (!SESSION_MUTATIONS.has(name)) return
-        // Device-only sessions never reach the server, so they're left out of both diffs.
-        const syncedIds = () => new Set(sessions.sessions.filter((s) => !s.localOnly).map((s) => s.id))
-        const before = syncedIds()
-        after(() => {
-          const now = syncedIds()
-          const present = new Set(sessions.sessions.map((s) => s.id))
-          for (const id of now) if (!before.has(id)) addUnique(state.value.upsertSessionIds, id)
-          for (const id of before) {
-            if (present.has(id)) continue
-            addUnique(state.value.deletedSessionIds, id)
-            state.value.upsertSessionIds = without(state.value.upsertSessionIds, [id])
-          }
-          scheduleSync()
-        })
-      }),
-    )
+    sessions.$onAction(({ name, after }) => {
+      if (!SESSION_MUTATIONS.has(name)) return
+      // Device-only sessions never reach the server, so they're left out of both diffs.
+      const syncedIds = () => new Set(sessions.sessions.filter((s) => !s.localOnly).map((s) => s.id))
+      const before = syncedIds()
+      after(() => {
+        const now = syncedIds()
+        const present = new Set(sessions.sessions.map((s) => s.id))
+        for (const id of now) if (!before.has(id)) addUnique(state.value.upsertSessionIds, id)
+        for (const id of before) {
+          if (present.has(id)) continue
+          addUnique(state.value.deletedSessionIds, id)
+          state.value.upsertSessionIds = without(state.value.upsertSessionIds, [id])
+        }
+        scheduleSync()
+      })
+    }, true)
   }
 
   function onOnline() {
@@ -260,16 +277,29 @@ export const useSyncStore = defineStore('sync', () => {
     }
   }
 
-  async function fetchSince<T extends 'routines' | 'sessions'>(table: T, cursor: string | null) {
+  /**
+   * The signed-in user's own rows changed since `cursor`. The owner filter
+   * matters: RLS also lets you read the shared sessions of people you follow,
+   * and those must never land in your own log.
+   */
+  async function fetchSince<T extends 'routines' | 'sessions'>(table: T, uid: string, cursor: string | null) {
     const sb = requireSupabase()
     const rows: Tables<T>[] = []
     for (let from = 0; ; from += PAGE_SIZE) {
-      let query = sb.from(table).select('*').order('updated_at').order('id').range(from, from + PAGE_SIZE - 1)
+      // Typed as `sessions` only so `eq('user_id')` type-checks — both tables have every column used here.
+      let query = sb
+        .from(table as 'sessions')
+        .select('*')
+        .eq('user_id', uid)
+        .order('updated_at')
+        .order('id')
+        .range(from, from + PAGE_SIZE - 1)
       if (cursor) query = query.gt('updated_at', new Date(Date.parse(cursor) - CURSOR_OVERLAP_MS).toISOString())
       const { data, error } = await query
       if (error) throw error
-      rows.push(...(data as unknown as Tables<T>[]))
-      if (!data || data.length < PAGE_SIZE) return rows
+      const page = (data ?? []) as unknown as Tables<T>[]
+      rows.push(...page.filter((r) => r.user_id === uid))
+      if (page.length < PAGE_SIZE) return rows
     }
   }
 
@@ -278,13 +308,13 @@ export const useSyncStore = defineStore('sync', () => {
    *
    * @returns The ids of every session row the server has (in this pull).
    */
-  async function pull(opts: { dedupe?: boolean } = {}): Promise<Set<string>> {
+  async function pull(uid: string, opts: { dedupe?: boolean } = {}): Promise<Set<string>> {
     const routines = useRoutinesStore()
     const sessions = useSessionsStore()
     const activeSession = useActiveSessionStore()
 
-    const routineRows = await fetchSince('routines', state.value.routinesCursor)
-    const sessionRows = await fetchSince('sessions', state.value.sessionsCursor)
+    const routineRows = await fetchSince('routines', uid, state.value.routinesCursor)
+    const sessionRows = await fetchSince('sessions', uid, state.value.sessionsCursor)
 
     const mergedRoutines = mergeRoutines(routines.routines, routineRows.map(rowToRoutine), opts)
     const remap = mergedRoutines.remap
@@ -325,13 +355,43 @@ export const useSyncStore = defineStore('sync', () => {
    */
   async function firstSync(uid: string) {
     const sessions = useSessionsStore()
+    // Re-runs from scratch until it completes, so an interrupted first sync
+    // can't leave the device's sessions out of the upload queue for good.
     state.value = emptyState(uid)
-    const remoteSessionIds = await pull({ dedupe: true })
+    const remoteSessionIds = await pull(uid, { dedupe: true })
+    await dropForeignSessions(uid)
     state.value.routinesDirty = true
     state.value.upsertSessionIds = sessions.sessions
       .filter((s) => !s.localOnly && !remoteSessionIds.has(s.id))
       .map((s) => s.id)
     await flush()
+    state.value.firstSyncDone = true
+  }
+
+  /**
+   * Removes sessions of other people that older versions pulled into the log
+   * (sync read every row RLS allows, which includes followees' shared
+   * sessions). Only rows the server positively reports as someone else's are
+   * dropped — device-only and never-uploaded sessions aren't on the server
+   * under another owner, so they're never touched.
+   */
+  async function dropForeignSessions(uid: string) {
+    const sb = requireSupabase()
+    const sessions = useSessionsStore()
+    const candidates = sessions.sessions.filter((s) => !s.localOnly && isUuid(s.id)).map((s) => s.id)
+    const foreign: string[] = []
+    for (const batch of chunks(candidates)) {
+      const { data, error } = await sb.from('sessions').select('id, user_id').in('id', batch).neq('user_id', uid)
+      if (error) throw error
+      for (const row of data ?? []) if (row.user_id !== uid) foreign.push(row.id)
+    }
+    if (foreign.length) {
+      const drop = new Set(foreign)
+      sessions.applyRemote(sessions.sessions.filter((s) => !drop.has(s.id)))
+      state.value.upsertSessionIds = without(state.value.upsertSessionIds, foreign)
+      state.value.deletedSessionIds = without(state.value.deletedSessionIds, foreign)
+    }
+    state.value.foreignSessionsChecked = true
   }
 
   async function runOnce(force: boolean) {
@@ -343,12 +403,13 @@ export const useSyncStore = defineStore('sync', () => {
     }
     status.value = 'syncing'
     try {
-      if (state.value.userId !== uid) {
+      if (state.value.userId !== uid || !state.value.firstSyncDone) {
         await firstSync(uid)
       } else {
         // flush() makes no requests when nothing is pending, so only the pull needs throttling.
         await flush()
-        if (force || Date.now() - lastPulledAt >= PULL_MIN_INTERVAL_MS) await pull()
+        if (force || Date.now() - lastPulledAt >= PULL_MIN_INTERVAL_MS) await pull(uid)
+        if (!state.value.foreignSessionsChecked) await dropForeignSessions(uid)
       }
       lastPulledAt = Date.now()
       if (userId !== uid) return
@@ -408,11 +469,12 @@ export const useSyncStore = defineStore('sync', () => {
     return syncNow()
   }
 
-  /** Stops watching and syncing. Pending changes stay persisted for the same account. */
+  /**
+   * Stops syncing. Pending changes stay persisted (and keep being recorded)
+   * for when the same account signs back in.
+   */
   function stop() {
     userId = null
-    stopWatching.forEach((fn) => fn())
-    stopWatching = []
     clearTimeout(flushTimer)
     clearTimeout(retryTimer)
     window.removeEventListener('online', onOnline)
@@ -427,5 +489,56 @@ export const useSyncStore = defineStore('sync', () => {
     lastError.value = ''
   }
 
-  return { status, lastSyncedAt, lastError, start, stop, reset, syncNow }
+  /** The account whose synced data is on this device, if any — kept after a forced sign-out. */
+  const ownerId = computed(() => state.value.userId)
+
+  /** Local changes still waiting to reach the server. */
+  const hasPending = computed(
+    () =>
+      state.value.routinesDirty ||
+      state.value.deletedRoutineIds.length > 0 ||
+      state.value.upsertSessionIds.length > 0 ||
+      state.value.deletedSessionIds.length > 0,
+  )
+
+  /**
+   * True only when the last run succeeded for the signed-in account and
+   * nothing is left to push. `syncNow()` never throws (it goes offline/error
+   * instead), so callers that must not lose data check this afterwards.
+   */
+  function isFullySynced(): boolean {
+    return (
+      userId !== null &&
+      status.value === 'idle' &&
+      state.value.userId === userId &&
+      state.value.firstSyncDone &&
+      !hasPending.value
+    )
+  }
+
+  /**
+   * Sessions on the device that aren't known to be in `ownerId`'s account:
+   * everything not device-only if its first sync never finished, otherwise
+   * the ones still queued for upload.
+   */
+  function unsyncedSessionIds(): string[] {
+    const sessions = useSessionsStore().sessions.filter((s) => !s.localOnly)
+    if (!state.value.firstSyncDone) return sessions.map((s) => s.id)
+    const queued = new Set(state.value.upsertSessionIds)
+    return sessions.filter((s) => queued.has(s.id)).map((s) => s.id)
+  }
+
+  return {
+    status,
+    lastSyncedAt,
+    lastError,
+    ownerId,
+    hasPending,
+    isFullySynced,
+    start,
+    stop,
+    reset,
+    syncNow,
+    unsyncedSessionIds,
+  }
 })
