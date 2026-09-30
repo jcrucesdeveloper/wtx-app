@@ -22,6 +22,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- App Links: share links, QR codes and auth emails on the public
+                 host open the app. The publicHost placeholder comes from app/build.gradle;
+                 verification needs /.well-known/assetlinks.json on that host. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="${publicHost}" />
+                <data android:pathPrefix="/social/" />
+                <data android:pathPrefix="/rooms/" />
+                <data android:pathPrefix="/auth/" />
+                <data android:path="/import" />
+            </intent-filter>
+
         </activity>
 
         <provider

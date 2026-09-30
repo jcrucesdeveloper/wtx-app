@@ -504,6 +504,36 @@
     "working": "Un momento…",
     "syncing": "Sincronizando tus rutinas y sesiones…",
     "confirmEmail": "Revisa tu correo para confirmarlo y luego inicia sesión.",
+    "forgotLink": "¿Olvidaste tu contraseña?",
+    "forgot": {
+      "title": "Restablecer contraseña",
+      "hint": "Escribe el correo de tu cuenta y te enviaremos un enlace para elegir una contraseña nueva.",
+      "send": "Enviar enlace",
+      "sent": "Si existe una cuenta para {email}, te enviamos un enlace. Ábrelo en este teléfono para elegir una contraseña nueva.",
+      "backToLogIn": "Volver a iniciar sesión"
+    },
+    "reset": {
+      "title": "Nueva contraseña",
+      "checking": "Revisando tu enlace…",
+      "hint": "Elige una contraseña nueva para tu cuenta.",
+      "newPassword": "Contraseña nueva",
+      "confirmPassword": "Repite la contraseña nueva",
+      "save": "Guardar contraseña",
+      "mismatch": "Las contraseñas no coinciden.",
+      "samePassword": "Usa una contraseña distinta a la actual.",
+      "done": "Contraseña actualizada — ya iniciaste sesión.",
+      "continue": "Continuar",
+      "expired": "Este enlace expiró o ya se usó. Pide uno nuevo.",
+      "invalid": "Este enlace no es válido. Pide uno nuevo.",
+      "requestNew": "Pedir un enlace nuevo"
+    },
+    "callback": {
+      "title": "Cuenta",
+      "working": "Confirmando tu correo…",
+      "expired": "Este enlace de confirmación expiró o ya se usó. Intenta iniciar sesión — si dice que tu correo no está confirmado, regístrate de nuevo para recibir otro enlace.",
+      "invalid": "Este enlace no es válido. Intenta iniciar sesión.",
+      "goToSocial": "Ir a Social"
+    },
     "errors": {
       "generic": "Algo salió mal. Inténtalo de nuevo.",
       "invalidCredentials": "Correo o contraseña incorrectos.",
@@ -511,7 +541,9 @@
       "weakPassword": "Usa una contraseña de al menos 6 caracteres.",
       "nameRequired": "Escribe un nombre (hasta 24 caracteres).",
       "consentRequired": "Acepta los Términos y la Política de privacidad para continuar.",
-      "emailNotConfirmed": "Primero confirma tu correo — revisa tu bandeja de entrada."
+      "emailNotConfirmed": "Primero confirma tu correo — revisa tu bandeja de entrada.",
+      "emailRequired": "Escribe tu correo.",
+      "rateLimited": "Pediste demasiados correos. Espera unos minutos e inténtalo de nuevo."
     }
   },
   "room": {

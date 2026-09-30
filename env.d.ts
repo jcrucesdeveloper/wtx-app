@@ -14,6 +14,11 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string
   /** Supabase anon (publishable) key. */
   readonly VITE_SUPABASE_ANON_KEY?: string
+  /**
+   * Public web origin (e.g. `https://wtx.app`) for share links, QR codes and auth
+   * email redirects. Falls back to the current origin — required for native builds.
+   */
+  readonly VITE_PUBLIC_URL?: string
   /** Sentry DSN for crash reporting. Crash reporting is disabled when unset. */
   readonly VITE_SENTRY_DSN?: string
 

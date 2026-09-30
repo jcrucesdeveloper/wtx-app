@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { buildJoinUrl, isValidRoomCode, normalizeRoomCode, readScannedRoomCode } from '../roomCode'
 
 describe('room codes', () => {
@@ -16,6 +16,17 @@ describe('room codes', () => {
   it('round-trips a join link through the QR reader', () => {
     const url = buildJoinUrl('K7QM3X', '/social/join')
     expect(readScannedRoomCode(url)).toBe('K7QM3X')
+  })
+
+  it('links to the public URL when configured', () => {
+    vi.stubEnv('VITE_PUBLIC_URL', 'https://wtx.app')
+    expect(buildJoinUrl('K7QM3X', '/social/join')).toBe('https://wtx.app/social/join?code=K7QM3X')
+    vi.unstubAllEnvs()
+  })
+
+  it('still reads old in-app (localhost) links', () => {
+    expect(readScannedRoomCode('https://localhost/social/join?code=K7QM3X')).toBe('K7QM3X')
+    expect(readScannedRoomCode('capacitor://localhost/social/join?code=k7qm3x')).toBe('K7QM3X')
   })
 
   it('reads a bare code and ignores junk', () => {
