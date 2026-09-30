@@ -24,7 +24,7 @@ import puppeteer from 'puppeteer-core'
 import ffmpeg from 'ffmpeg-static'
 import { CHROME, VIDEOS_DIR, BUILD_DIR, OUT_DIR } from './paths.mjs'
 import { renderAudio } from './music.mjs'
-import { TARGETS, PRESETS } from './targets.mjs'
+import { targetsFor, PRESETS } from './targets.mjs'
 
 const MIME = {
   '.html': 'text/html',
@@ -223,7 +223,7 @@ function loudnormFilter(wav, lufs) {
 
 /** Encodes the master once per delivery target, loudness-normalized per platform. */
 export function deliver(name, workDir, comp) {
-  for (const target of TARGETS[name] ?? []) {
+  for (const target of targetsFor(name)) {
     const preset = PRESETS[target.preset]
     const out = join(OUT_DIR, target.out)
     mkdirSync(dirname(out), { recursive: true })

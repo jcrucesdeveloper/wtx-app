@@ -54,3 +54,19 @@ export const TARGETS = {
     { out: 'social/no-music/wtx-reel-streak-sfx-only.mp4', preset: 'social', music: false },
   ],
 }
+
+/**
+ * Delivery targets for a composition: the fixed launch set above, or — for
+ * any `daily-*` reel — a social cut plus an SFX-only cut (for laying a
+ * trending sound under it in-app) under out/daily/.
+ */
+export function targetsFor(name) {
+  if (TARGETS[name]) return TARGETS[name]
+  if (name.startsWith('daily-')) {
+    return [
+      { out: `daily/${name}.mp4`, preset: 'social' },
+      { out: `daily/no-music/${name}-sfx-only.mp4`, preset: 'social', music: false },
+    ]
+  }
+  return []
+}

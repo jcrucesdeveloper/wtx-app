@@ -106,6 +106,13 @@ export async function composition({ width, height, fps = 30, duration, bpm = 120
     music(sections) {
       audio.sections.push(...sections)
     },
+    /**
+     * A voice-over recording (any format ffmpeg reads, path relative to
+     * listing/videos/) starting at `at`; the music ducks under it.
+     */
+    voice(file, at = 0, { gain = 1 } = {}) {
+      audio.voice = { file, at, gain }
+    },
     params,
   }
 

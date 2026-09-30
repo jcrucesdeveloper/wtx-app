@@ -1,0 +1,146 @@
+---
+name: daily-reel
+description: Make today's short vertical promo video (TikTok / Instagram Reels / YouTube Shorts, 1080×1920) for the WTX app from real app footage, in a chosen tone (hype, clean, tutorial, story) with optional voice-over. Use whenever the user asks for a daily reel, a new TikTok/Reel/Short, "today's video", another promo video, or a video about a specific WTX feature.
+---
+
+# Daily reel
+
+Produces one 12–30 s vertical reel per run with the pipeline in
+`listing/videos/` (read its `README.md` once if you haven't). Specs, safe
+zones and platform rules are in `listing/research/06-video-specs.md`.
+
+## 1. Settle the brief (ask only what the user didn't say)
+
+Use `AskUserQuestion` once, with these three questions, skipping any the user
+already answered. Always offer defaults.
+
+1. **Angle.** Which feature or story. Read `listing/videos/daily-log.md`
+   first and propose 2–3 angles **not used recently**, from the
+   [angle bank](#angle-bank). If the log has hold/completion numbers, favour
+   re-cutting the best-performing angle with a new hook.
+2. **Tone.** `hype` (gym energy, drums from frame 1, slams), `clean`
+   (calm/aesthetic, pads, no drums, slow reveals), `tutorial` (how-to, steady
+   beat, "Step 1…" captions), or `story` (POV/narrative: quiet build, drop on
+   the reveal).
+3. **Voice.** One of:
+   - **none**: captions carry it (most short-form is watched muted).
+   - **your recording**: the user records on their phone; any format works.
+     Save it as `listing/videos/assets/voice/<date>-<slug>.<ext>`.
+   - **draft voice**: a robotic Windows voice via
+     `node scripts/voice.mjs draft "<script>" assets/voice/<name>.wav`. It's for
+     timing only; say so, and suggest re-recording or using the in-app
+     text-to-speech on the SFX-only cut.
+
+   If they want voice but have no script, write one: ~2.3 words per second,
+   hook sentence first, one sentence per beat, ≤ duration − 5 s.
+
+## 2. Write the composition
+
+1. Copy `listing/videos/compositions/_daily-template.html` to
+   `compositions/daily-YYYY-MM-DD-<slug>.html`. The `daily-` prefix is what
+   routes output to `out/daily/`.
+2. Edit only `SPEC`: `tone`, `duration` (even seconds; the last 4 s are
+   the end card), `hook`, `beats`, `end.tagline`, `voice`, `music`.
+3. **Hook (0 → `hook.dur`, 2.5–3.5 s).** It decides retention. Lead with the
+   payoff or a pattern-interrupt: a specific number (`number`), a POV line, a
+   question, or typed `.wtt` text (`code`). Never open on the logo.
+4. **Beats.** Each beat is one segment of a recorded scene. Reference moments
+   by **marker names** (the [scene library](#scene-library)), never raw
+   seconds, so a re-capture keeps working. Captions: kicker ≤ 4 words;
+   `lines` ≤ 2 lines of ≤ ~14 characters each at the default size; wrap the
+   accent word in `<em>`.
+5. **With voice:** run `node scripts/voice.mjs phrases <file>`, then size each
+   beat's `dur` so its caption starts with the matching phrase. Set
+   `voice.at` so the first phrase lands on the hook, and choose `duration`
+   ≥ voice length + 4.5 s.
+
+## 3. Check, render, verify
+
+```sh
+cd listing/videos
+node scripts/render.mjs <name> --still 20,80,140,200,260,320,380,440,500 --out <scratchpad>/check.png
+```
+
+Look at the sheet before a full render. Check that:
+- captions aren't cut mid-word;
+- close-ups show the intended UI (not scrolled content);
+- nothing falls outside the text safe zone (x 90–900, y 250–1250);
+- the hook is readable at 0:00–0:02.
+
+Then run:
+
+```sh
+node scripts/render.mjs <name>      # → out/daily/<name>.mp4 + no-music/<name>-sfx-only.mp4
+node scripts/verify.mjs <name>      # must print "All deliverables match"
+node scripts/render.mjs <name> --still 45 --out out/daily/<name>-cover.jpg   # cover frame
+```
+
+## 4. Finish
+
+- Add a row to `listing/videos/daily-log.md`: date, composition, hook, tone, voice, features shown.
+- Commit the composition, the log row and any voice file. **Don't commit
+  `out/daily/`** (it's gitignored and re-renderable).
+- Don't push or merge unless the user asks.
+- Tell the user:
+  - the file paths;
+  - a suggested caption and 3–5 hashtags;
+  - that the SFX-only cut is for adding a trending sound or the platform's own text-to-speech;
+  - that they should log the 3 s hold % and completion % a day later.
+
+## Scene library
+
+Recorded by `scripts/capture-app.mjs` from the production build with seeded
+history (`scripts/seed.mjs`). The clips live in `listing/videos/build/clips/`,
+which is gitignored. If they're missing, or the UI changed since the last
+capture, re-record:
+
+```sh
+(cd ../.. && pnpm build-only && npx vite preview --port 5191)   # in the background; NOT the dev server (it shows a DevTools pill)
+node scripts/capture-app.mjs [scene ...]
+```
+
+| Scene | Markers (in order) | Shows |
+|---|---|---|
+| `workout` | `start` · `session` · `weight` · `pr-set` · `set-2`…`set-16` · `bench-done` · `fast-start` · `fast-end` · `finish` · `confirm`/`outro` · `recap` | Push Day: "Let's go" intro, typing 72.5 kg, one-tap sets with ghost values, rest timer, finish review, "Workout logged", recap with PR (72.5, was 70), +20 kg volume, 9-week streak, 25 workouts. **Recap scrolls at `recap`+2.6 s.** |
+| `history` | `sessions-tab`/`calendar` · `prev-month` · `next-month` | Sessions tab: current-month calendar with trained days, session list with volume deltas. **List scrolls at `calendar`+2.4 s.** |
+| `routine` | `open-routine`/`detail` · `show-source`/`source` · `share`/`qr` | Routine detail with exercise images, raw `.wtt` source, Share sheet with a real QR. |
+| `plaintext` | `load` · `textarea`/`typing` · `line`×5 · `typed` · `add`/`added` | Load sheet: a routine pasted line by line, live parsed preview, lands on the new routine. |
+| `accent` | `settings-tab`/`settings` · `swatch-1`,`-3`,`-5`,`-6`,`-0` | Accent color cycling through emerald, violet, amber, cyan, back to red. **Before `settings`+1.1 s it shows a price. Never use that part for the App Store.** |
+
+Callout crops (`callouts: [...]` in a beat): `set-row-1` (workout, session),
+and on the recap `recap-stats`, `recap-pr`, `recap-volume`, `recap-streak`,
+`recap-milestone`; plus `calendar` (history). `lib/daily.js` clamps a beat
+with callouts before the take scrolls. Custom crop:
+`{ rect: { x, y, w, h } }` in 886×1920 clip pixels.
+
+**Adding a scene** for a feature that isn't recorded yet:
+1. Add an async function to `SCENES` in `scripts/capture-app.mjs`, using `tap(selector, { label })`, `scroll`, `sleep` and `mark`.
+2. Add assertions that throw if the UI didn't do what the video will claim.
+3. Record it, then check a contact sheet of `build/clips/<scene>/preview.mp4`.
+4. Add it to the table above.
+
+## Angle bank
+
+Only claim what's on screen and actually shipped.
+
+| Angle | Tone | Scenes |
+|---|---|---|
+| POV: you just hit a PR | hype / story | workout (`pr-set`, recap) |
+| Log a workout in 20 seconds | tutorial | workout |
+| Your workout is just text | clean / story | plaintext, routine (source) |
+| Share a routine with a scan, no account | tutorial | routine (qr) |
+| Don't break the streak | hype | history, workout recap |
+| Last time's numbers, pre-filled | tutorial | workout (`session`→`bench-done`) |
+| Rest timer that doesn't get in the way | clean | workout (`bench-done`→`fast-end`) |
+| Make it yours (accent colors) | clean | accent (from `settings`+1.1) |
+| 25 workouts later… (milestones) | story | history, workout recap |
+| Needs a new scene first | any | superset / warm-up (W) / drop (D) sets; reorder exercises; export all data; Spanish UI; light theme; workout reminders; group workouts and the social feed (need a signed-in test account; never record real users' data) |
+
+## Rules
+
+- **Real footage only.** Don't mock up or fake UI or numbers. If the app can't show it, don't say it.
+- **Music.** Only use `scripts/music.mjs`, which is original and license-free. Never add a copyrighted track to the file; that's what the SFX-only cut is for.
+- **No price, no "new", no dates** in anything that might be reused for the stores.
+- **Hook in the first 3 s. Captions work muted.** Keep critical text in the safe zone.
+- **Timing.** Keep `duration` even and at 120 BPM (one beat = 15 frames), so cuts land on beats.
+- **Verify before you hand it over.** `verify.mjs` must pass.
