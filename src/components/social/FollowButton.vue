@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { ChevronDown } from '@lucide/vue'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import { useProfileStore } from '@/stores/profile'
+import { FollowError } from '@/stores/feed'
 
 const props = withDefaults(
   defineProps<{
@@ -22,7 +23,8 @@ const profiles = useProfileStore()
 
 const busy = ref(false)
 const sheetOpen = ref(false)
-const failed = ref(false)
+/** The i18n key of the last failure, or '' — a throttled follow gets its own message. */
+const failed = ref('')
 
 /** Follow → Follow back (they follow you) → Following, the standard social-app states. */
 const label = computed(() => {
@@ -33,11 +35,14 @@ const label = computed(() => {
 async function run(action: () => Promise<void>) {
   if (busy.value) return
   busy.value = true
-  failed.value = false
+  failed.value = ''
   try {
     await action()
-  } catch {
-    failed.value = true
+  } catch (e) {
+    failed.value =
+      e instanceof FollowError && e.code === 'rate_limited'
+        ? 'social.follow.errors.rate_limited'
+        : 'social.profile.actionFailed'
   } finally {
     busy.value = false
   }
@@ -67,7 +72,7 @@ function unfollow() {
       {{ label }}
       <ChevronDown v-if="iFollow" :size="14" :stroke-width="2.5" />
     </button>
-    <span v-if="failed" class="error" role="status">{{ t('social.profile.actionFailed') }}</span>
+    <span v-if="failed" class="error" role="status">{{ t(failed) }}</span>
 
     <BottomSheet :open="sheetOpen" :title="name" @close="sheetOpen = false">
       <div class="sheet">

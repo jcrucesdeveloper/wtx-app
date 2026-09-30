@@ -24,6 +24,7 @@ import { newUuid } from '@/lib/uuid'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
 import type { SessionSetDraft } from '@/lib/serializeSession'
+import { EXERCISE_NAME_MAX, rpcErrorCode } from '@/lib/supabase/limits'
 
 export type SetLog = Tables<'room_set_logs'>
 
@@ -36,7 +37,10 @@ export interface RoomMember {
 
 /** A room error the UI can translate: `room.errors.<code>`. */
 export class RoomError extends Error {
-  constructor(public code: 'room_not_found' | 'room_full' | 'not_authenticated' | 'unknown', message?: string) {
+  constructor(
+    public code: 'room_not_found' | 'room_full' | 'not_authenticated' | 'rate_limited' | 'unknown',
+    message?: string,
+  ) {
     super(message ?? code)
   }
 }
@@ -55,12 +59,10 @@ const nameKey = (name: string) => name.trim().toLowerCase()
 /** Active-session actions that change a set the room should know about. */
 const SET_ACTIONS = new Set(['completeSet', 'uncompleteSet', 'updateSet', 'cycleSetType', 'removeSet', 'removeExercise'])
 
+const ROOM_ERROR_CODES = ['room_not_found', 'room_full', 'not_authenticated', 'rate_limited'] as const
+
 function toRoomError(error: { message?: string } | null | undefined): RoomError {
-  const message = error?.message ?? ''
-  for (const code of ['room_not_found', 'room_full', 'not_authenticated'] as const) {
-    if (message.includes(code)) return new RoomError(code, message)
-  }
-  return new RoomError('unknown', message)
+  return new RoomError(rpcErrorCode(error, ROOM_ERROR_CODES), error?.message)
 }
 
 function readMuted(): boolean {
@@ -358,7 +360,7 @@ export const useRoomStore = defineStore('room', () => {
       p_routine_name: parsed.template.name || routine.filename.replace(/\.wtt$/i, ''),
       p_unit: parsed.template.unit ?? null,
     })
-    if (error || !data) throw toRoomError(error)
+    if (error || !data?.id) throw toRoomError(error)
     await open(data.id)
     track('room_created')
     return data
@@ -367,7 +369,10 @@ export const useRoomStore = defineStore('room', () => {
   /** Joins a room by its 6-character code. */
   async function join(code: string): Promise<RoomRow> {
     const { data, error } = await requireSupabase().rpc('join_room', { p_code: code })
-    if (error || !data) throw toRoomError(error)
+    if (error) throw toRoomError(error)
+    // An unknown code comes back as an empty row, not an error, so the server
+    // can count the miss toward its brute-force limit.
+    if (!data?.id) throw new RoomError('room_not_found')
     await open(data.id)
     track('room_joined')
     return data
@@ -516,7 +521,7 @@ export const useRoomStore = defineStore('room', () => {
       id: set.id,
       room_id: roomId,
       user_id: uid,
-      exercise_name: exerciseName,
+      exercise_name: exerciseName.slice(0, EXERCISE_NAME_MAX),
       set_type: set.type,
       weight: set.weight ?? 0,
       reps: set.reps ?? 0,

@@ -66,7 +66,7 @@ const editOpen = ref(false)
 const { share, copied } = useShareLink()
 
 function shareProfile() {
-  const code = auth.profile?.invite_code
+  const code = auth.inviteCode
   if (!code) return
   void share({
     url: buildFollowUrl(code, router.resolve({ name: 'follow' }).href),

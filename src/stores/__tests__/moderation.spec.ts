@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useFeedStore, type FeedPost } from '@/stores/feed'
-import { useModerationStore } from '@/stores/moderation'
+import { ModerationError, useModerationStore } from '@/stores/moderation'
 import { useProfileStore } from '@/stores/profile'
 
 type Result = { data?: unknown; error: { message: string } | null }
@@ -150,5 +150,27 @@ describe('moderation store', () => {
     insert.mockResolvedValue({ error: { message: 'new row violates row-level security' } })
     const moderation = useModerationStore()
     await expect(moderation.report({ userId: THEM, reason: 'other' })).rejects.toBeTruthy()
+  })
+
+  it('reports a throttled block or report as rate_limited', async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: 'rate_limited' } })
+    insert.mockResolvedValue({ error: { message: 'rate_limited' } })
+    const moderation = useModerationStore()
+
+    const blockError = await moderation.block({ id: THEM, displayName: 'Ana' }).catch((e) => e)
+    expect(blockError).toBeInstanceOf(ModerationError)
+    expect(blockError.code).toBe('rate_limited')
+
+    const reportError = await moderation.report({ userId: THEM, reason: 'spam' }).catch((e) => e)
+    expect(reportError).toBeInstanceOf(ModerationError)
+    expect(reportError.code).toBe('rate_limited')
+  })
+
+  it('reports any other failure as unknown', async () => {
+    insert.mockResolvedValue({ error: { message: 'new row violates row-level security' } })
+    const moderation = useModerationStore()
+    const error = await moderation.report({ userId: THEM, reason: 'other' }).catch((e) => e)
+    expect(error).toBeInstanceOf(ModerationError)
+    expect(error.code).toBe('unknown')
   })
 })

@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
-import { useModerationStore } from '@/stores/moderation'
+import { ModerationError, useModerationStore } from '@/stores/moderation'
 
 const props = defineProps<{ open: boolean; userId: string; name: string }>()
 const emit = defineEmits<{ close: []; blocked: [] }>()
@@ -11,25 +11,29 @@ const { t } = useI18n()
 const moderation = useModerationStore()
 
 const working = ref(false)
-const failed = ref(false)
+/** The i18n key of the last failure, or '' — throttled blocks get their own message. */
+const failed = ref('')
 
 watch(
   () => props.open,
   (open) => {
-    if (open) failed.value = false
+    if (open) failed.value = ''
   },
 )
 
 async function confirm() {
   if (working.value) return
   working.value = true
-  failed.value = false
+  failed.value = ''
   try {
     await moderation.block({ id: props.userId, displayName: props.name })
     emit('blocked')
     emit('close')
-  } catch {
-    failed.value = true
+  } catch (e) {
+    failed.value =
+      e instanceof ModerationError && e.code === 'rate_limited'
+        ? 'social.moderation.rateLimited'
+        : 'social.moderation.failed'
   } finally {
     working.value = false
   }
@@ -44,7 +48,7 @@ async function confirm() {
   >
     <div class="sheet">
       <p class="sheet__hint">{{ t('social.moderation.blockHint') }}</p>
-      <p v-if="failed" class="sheet__error">{{ t('social.moderation.failed') }}</p>
+      <p v-if="failed" class="sheet__error">{{ t(failed) }}</p>
       <button type="button" class="sheet__danger" :disabled="working" @click="confirm">
         {{ t('social.moderation.block') }}
       </button>

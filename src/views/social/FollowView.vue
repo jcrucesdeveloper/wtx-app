@@ -20,7 +20,7 @@ const router = useRouter()
 const feed = useFeedStore()
 const auth = useAuthStore()
 
-const myCode = computed(() => auth.profile?.invite_code ?? '')
+const myCode = computed(() => auth.inviteCode ?? '')
 const followUrl = computed(() =>
   myCode.value ? buildFollowUrl(myCode.value, router.resolve({ name: 'follow' }).href) : '',
 )

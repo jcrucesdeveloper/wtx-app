@@ -6,7 +6,8 @@ import { useAuthStore } from '@/stores/auth'
 import { parseSessionText } from '@/lib/parseSession'
 import { parseFeedSnapshot, type FeedSnapshot } from '@/lib/feedSnapshot'
 import { normalizeFollowCode } from '@/lib/followCode'
-import type { ProfileRow } from '@/lib/supabase/database.types'
+import type { ProfileCard } from '@/lib/supabase/database.types'
+import { rpcErrorCode } from '@/lib/supabase/limits'
 import type { WorkoutSession } from '@/lib/wtx'
 
 export const FEED_PAGE_SIZE = 20
@@ -32,19 +33,17 @@ export interface FollowedUser {
 /** A follow-graph error the UI can translate: `social.follow.errors.<code>`. */
 export class FollowError extends Error {
   constructor(
-    public code: 'code_not_found' | 'cannot_follow_self' | 'not_authenticated' | 'unknown',
+    public code: 'code_not_found' | 'cannot_follow_self' | 'not_authenticated' | 'rate_limited' | 'unknown',
     message?: string,
   ) {
     super(message ?? code)
   }
 }
 
+const FOLLOW_ERROR_CODES = ['code_not_found', 'cannot_follow_self', 'not_authenticated', 'rate_limited'] as const
+
 function toFollowError(error: { message?: string } | null | undefined): FollowError {
-  const message = error?.message ?? ''
-  for (const code of ['code_not_found', 'cannot_follow_self', 'not_authenticated'] as const) {
-    if (message.includes(code)) return new FollowError(code, message)
-  }
-  return new FollowError('unknown', message)
+  return new FollowError(rpcErrorCode(error, FOLLOW_ERROR_CODES), error?.message)
 }
 
 interface FeedRow {
@@ -301,11 +300,14 @@ export const useFeedStore = defineStore('feed', () => {
   }
 
   /** Follows a profile by its permanent invite code — one tap, no preview step. */
-  async function followByCode(code: string): Promise<ProfileRow> {
+  async function followByCode(code: string): Promise<ProfileCard> {
     const { data, error } = await requireSupabase().rpc('follow_by_code', {
       p_code: normalizeFollowCode(code),
     })
-    if (error || !data) throw toFollowError(error)
+    if (error) throw toFollowError(error)
+    // An unknown code comes back as an empty row, not an error, so the server
+    // can count the miss toward its brute-force limit.
+    if (!data?.id) throw new FollowError('code_not_found')
     track('user_followed')
     void loadFollowing({ force: true })
     // A new followee's shared sessions should show up right away.
@@ -314,7 +316,7 @@ export const useFeedStore = defineStore('feed', () => {
   }
 
   /** Follows someone you can already see (a follower or a roommate) — "Follow back". */
-  async function followUser(userId: string): Promise<ProfileRow> {
+  async function followUser(userId: string): Promise<ProfileCard> {
     const { data, error } = await requireSupabase().rpc('follow_user', { p_user_id: userId })
     if (error || !data) throw toFollowError(error)
     track('user_followed')
