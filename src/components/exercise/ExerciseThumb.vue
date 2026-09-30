@@ -4,13 +4,6 @@ import { Dumbbell } from '@lucide/vue'
 import { exerciseImageUrl } from '@/config/exerciseImages'
 import { findCatalogEntryByName } from '@/lib/exercises/exerciseCatalog'
 
-/**
- * A small, ephemeral exercise thumbnail for browsing (search results). Loads
- * straight from the CDN via a plain lazy `<img>` — deliberately NOT run
- * through the persistent on-device cache (see imageCache.ts), so idle
- * browsing never writes to storage. Renders nothing for exercises with no
- * catalog match or no upstream image.
- */
 const props = defineProps<{ name: string }>()
 
 const src = computed(() => {

@@ -28,6 +28,8 @@ interface Toast {
   text: string
   /** Who a quick cheer-back goes to; unset for toasts you can't reply to. */
   cheerTo?: string
+  /** The cheer-back buttons to offer; defaults to {@link QUICK_CHEERS}. */
+  cheers?: ReactionEmoji[]
   fromIndex: number
   fromName: string
   /** A team moment: shows the team badge instead of a member's initials. */
@@ -100,7 +102,14 @@ function handle(event: RoomEvent) {
       if (event.to !== me) return
       burst(event.emoji)
       void HapticsService.light()
-      showToast({ ...base, icon: event.emoji, text: t('room.live.reaction', { name: fromName, emoji: event.emoji }), cheerTo: event.from })
+      // Cheer back with the same emoji they sent, rather than the generic pair.
+      showToast({
+        ...base,
+        icon: event.emoji,
+        text: t('room.live.reaction', { name: fromName, emoji: event.emoji }),
+        cheerTo: event.from,
+        cheers: [event.emoji],
+      })
       return
     case 'pr': {
       const params = { name: fromName, exercise: exerciseName(event.exercise), weight: event.weight, unit: unit.value, reps: event.reps }
@@ -181,7 +190,7 @@ onBeforeUnmount(() => timers.forEach(clearTimeout))
           <span v-if="toast.sent" class="toast__sent">{{ t('room.live.sent') }}</span>
           <template v-else>
             <button
-              v-for="emoji in QUICK_CHEERS"
+              v-for="emoji in toast.cheers ?? QUICK_CHEERS"
               :key="emoji"
               type="button"
               class="toast__cheer"
