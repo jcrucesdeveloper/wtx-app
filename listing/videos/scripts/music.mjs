@@ -11,6 +11,10 @@
 // plus one-shot cues ({ t, type }); see engine.js `ctx.music()` / `ctx.sfx()`.
 
 import { writeFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { join } from 'node:path'
+import ffmpegPath from 'ffmpeg-static'
+import { VIDEOS_DIR } from './paths.mjs'
 
 const SR = 48000
 
@@ -439,7 +443,46 @@ export function renderAudio(audio, duration, outPath, { music = true } = {}) {
   // Duckers first, so the sidechain envelope exists before what it ducks is mixed.
   for (const pass of [0, 1]) for (const [prio, run] of queue) if (prio === pass) run()
   mix.finish({ beat })
+  if (audio.voice) mixVoice(mix, audio.voice)
   writeWav(outPath, mix.L, mix.R)
+}
+
+/**
+ * Lays a voice-over on the finished bed. The recording is cleaned up
+ * (rumble cut, gentle compression, levelled) and the bed ducks ~9 dB
+ * whenever the voice is talking, with a smooth release between phrases.
+ */
+function mixVoice(mix, { file, at, gain }) {
+  const r = spawnSync(ffmpegPath, [
+    '-v', 'error', '-i', join(VIDEOS_DIR, file),
+    '-af', 'highpass=f=80,acompressor=threshold=-20dB:ratio=3:attack=5:release=150,loudnorm=I=-16:TP=-2',
+    '-f', 'f32le', '-ac', '2', '-ar', String(SR), '-',
+  ], { maxBuffer: 1 << 30 })
+  if (r.status !== 0) throw new Error(`voice-over: cannot read ${file}\n${r.stderr}`)
+  const pcm = new Float32Array(r.stdout.buffer, r.stdout.byteOffset, r.stdout.length / 4)
+  const start = Math.round(at * SR)
+  const attack = Math.exp(-1 / (0.01 * SR))
+  const release = Math.exp(-1 / (0.3 * SR))
+  let env = 0
+  let peak = 0
+  for (let k = 0; k < mix.n; k++) {
+    const j = k - start
+    const vl = j >= 0 && j * 2 + 1 < pcm.length ? pcm[j * 2] * gain : 0
+    const vr = j >= 0 && j * 2 + 1 < pcm.length ? pcm[j * 2 + 1] * gain : 0
+    const level = Math.max(Math.abs(vl), Math.abs(vr))
+    env = level > env ? attack * env + (1 - attack) * level : release * env + (1 - release) * level
+    const duck = 1 - 0.65 * Math.min(1, env / 0.04)
+    mix.L[k] = mix.L[k] * duck + vl
+    mix.R[k] = mix.R[k] * duck + vr
+    peak = Math.max(peak, Math.abs(mix.L[k]), Math.abs(mix.R[k]))
+  }
+  if (peak > 0.95) {
+    const g = 0.95 / peak
+    for (let k = 0; k < mix.n; k++) {
+      mix.L[k] *= g
+      mix.R[k] *= g
+    }
+  }
 }
 
 function writeWav(path, L, R) {

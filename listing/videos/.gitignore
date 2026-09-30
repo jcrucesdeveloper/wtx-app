@@ -2,3 +2,5 @@ node_modules/
 build/
 # Regenerable sound-design-only variants — see README "Uploading"
 out/social/no-music/
+# Daily reels are re-rendered from their composition; only the source is committed
+out/daily/

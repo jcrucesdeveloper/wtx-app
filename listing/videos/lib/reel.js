@@ -39,7 +39,7 @@ export function reelPhone(ctx, world, clip, { at, w = 600, top = 640 }) {
  * A caption block in the top safe area: kicker + 1–2 line headline, rising in
  * and out. `lines` are HTML strings (use <em> for the accent word).
  */
-export function caption(ctx, { at, out, kicker, lines, size = 112 }) {
+export function caption(ctx, { at, out, kicker, lines, size = 112, dur = 0.7, stagger = 0.022 }) {
   const box = ctx.el('div', 'reel-cap')
   Object.assign(box.style, {
     position: 'absolute',
@@ -63,7 +63,7 @@ export function caption(ctx, { at, out, kicker, lines, size = 112 }) {
   const parts = []
   lines.forEach((html, i) => {
     const line = ctx.el('div', '', h, html)
-    parts.push(...K.rise(ctx, line, at + 0.05 + i * 0.16, { stagger: 0.022 }))
+    parts.push(...K.rise(ctx, line, at + 0.05 + i * 0.16, { stagger, dur }))
   })
   if (out !== undefined) {
     K.riseOut(ctx, parts, out)

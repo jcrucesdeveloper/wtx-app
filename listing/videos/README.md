@@ -38,6 +38,17 @@ faststart). All pass.
 
 **YouTube** — same 16:9 file. Use `covers/youtube-thumbnail.jpg`. The reels double as Shorts.
 
+## Daily reels
+
+Short vertical reels come from a spec. Copy `compositions/_daily-template.html`
+to `compositions/daily-YYYY-MM-DD-<slug>.html`, then set the tone (hype, clean,
+tutorial or story), hook, beats and optional voice-over. Output goes to
+`out/daily/`, which is re-renderable and not committed. Posts are tracked in
+`daily-log.md`.
+
+The whole routine is written up as a Claude Code skill in
+`.claude/skills/daily-reel/SKILL.md`. Just ask for "today's reel".
+
 ## How it's made
 
 ```

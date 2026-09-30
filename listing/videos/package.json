@@ -7,7 +7,8 @@
     "capture": "node scripts/capture-app.mjs",
     "music": "node scripts/music.mjs",
     "render": "node scripts/render.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "voice": "node scripts/voice.mjs"
   },
   "dependencies": {
     "ffmpeg-static": "^5.2.0",

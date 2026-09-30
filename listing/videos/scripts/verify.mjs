@@ -1,7 +1,7 @@
 // Checks every delivered file against the platform spec it is meant for
 // (listing/research/06-video-specs.md). Exits non-zero on any failure.
 //
-// Usage: node scripts/verify.mjs
+// Usage: node scripts/verify.mjs [composition ...]
 
 import { spawnSync } from 'node:child_process'
 import { openSync, readSync, closeSync } from 'node:fs'
@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import ffprobe from 'ffprobe-static'
 import ffmpeg from 'ffmpeg-static'
 import { OUT_DIR } from './paths.mjs'
-import { TARGETS } from './targets.mjs'
+import { TARGETS, targetsFor } from './targets.mjs'
 
 const RULES = {
   youtube: { w: 1920, h: 1080, fpsMax: 60, minDur: 1, maxDur: 600, level: 42, minMbps: 8, audioKbps: [256, 400], lufs: -14 },
@@ -42,7 +42,9 @@ function fastStart(file) {
 
 let failures = 0
 const rows = []
-for (const targets of Object.values(TARGETS)) {
+// Default: the launch set. Pass composition names to check those instead (e.g. a daily reel).
+const names = process.argv.slice(2)
+for (const targets of names.length ? names.map(targetsFor) : Object.values(TARGETS)) {
   for (const target of targets) {
     const file = join(OUT_DIR, target.out)
     const rule = RULES[target.preset]
