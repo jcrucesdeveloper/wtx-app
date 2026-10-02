@@ -342,6 +342,27 @@ unconfigured (dev) build can never serve real ads. For a store build with ads:
     `"1,2"` for both configurations — then test the layout on iPad and upload
     iPad screenshots. (It still runs on iPad in iPhone compatibility mode.)
 
+### Android signing
+
+Play only accepts a signed bundle. The release build signs itself with your
+**upload key** when `android/keystore.properties` exists (gitignored, like
+`*.jks`); without it `bundleRelease` produces an unsigned bundle.
+
+1. Create the keystore once, outside the repo, and back it up together with
+   its passwords:
+   ```sh
+   keytool -genkeypair -v -keystore wtx-upload.jks -alias wtx-upload \
+     -keyalg RSA -keysize 2048 -validity 10000
+   ```
+   (`keytool` ships with Android Studio, in `jbr/bin`.)
+2. Copy `android/keystore.properties.example` to `android/keystore.properties`
+   and fill in the keystore path and passwords.
+3. `cd android && ./gradlew bundleRelease -PpublicHost=<host>` →
+   `app/build/outputs/bundle/release/app-release.aab`.
+
+On first upload, enrol in Play App Signing: Google keeps the real app signing
+key and the upload key can be reset through support if it's ever lost.
+
 ### Legal pages
 
 The Terms and Privacy Policy live in `src/locales/{en,es}.json` (`legal.*`) —

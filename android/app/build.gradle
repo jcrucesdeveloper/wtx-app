@@ -1,5 +1,15 @@
 apply plugin: 'com.android.application'
 
+// Release signing with the Play upload key. The keystore's location and
+// passwords live in android/keystore.properties (gitignored — copy
+// keystore.properties.example). Without that file the release build is left
+// unsigned, so debug builds and CI without the key keep working.
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
 android {
     namespace = "com.wtx.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -30,8 +40,21 @@ android {
             System.getenv('WTX_PUBLIC_HOST') ?:
             'wtx.invalid'
     }
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
