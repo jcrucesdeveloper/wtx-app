@@ -1,9 +1,7 @@
 apply plugin: 'com.android.application'
 
-// Release signing with the Play upload key. The keystore's location and
-// passwords live in android/keystore.properties (gitignored — copy
-// keystore.properties.example). Without that file the release build is left
-// unsigned, so debug builds and CI without the key keep working.
+// Release signing: reads android/keystore.properties (gitignored) when it
+// exists; without it the release build is left unsigned.
 def keystorePropertiesFile = rootProject.file('keystore.properties')
 def keystoreProperties = new Properties()
 if (keystorePropertiesFile.exists()) {
