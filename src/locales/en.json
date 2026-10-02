@@ -297,7 +297,11 @@
     "shareStats": "{sets} sets · {exercises} exercises",
     "sharePr": "New PR on {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks}-week streak going 🔥",
-    "shareCopied": "Copied!"
+    "shareCopied": "Copied!",
+    "cardFooter": "Logged with WTX",
+    "cardPr": "New PR",
+    "cardStreak": "{weeks}-week streak",
+    "cardStreakLabel": "Streak"
   },
   "sessionDetail": {
     "fallbackTitle": "Session",
@@ -680,7 +684,7 @@
   },
   "legal": {
     "back": "Back",
-    "updated": "Last updated: September 29, 2026",
+    "updated": "Last updated: October 2, 2026",
     "fallback": {
       "controller": "the independent developer of WTX (named on its App Store and Google Play pages)",
       "contactEmail": "the contact email shown on WTX's App Store and Google Play pages"
@@ -816,7 +820,7 @@
             "Training data: with an account, your routines and workouts are synced to our servers so they're backed up and available on your other devices. A workout includes its exercises, sets, weights, reps, times, date and duration, and any notes you write in it. WTX doesn't ask for body measurements or medical information; please don't write health details in your notes or bio.",
             "Social data: who you follow and who follows you, kudos you give and receive, the rooms you join and the sets you complete in them. For each workout you share, we also keep a summary: personal records, your weekly streak, milestones, a comparison with your previous workout and the display names of the people you trained with.",
             "Reports and blocks: if you report content or block someone, we keep who reported or blocked whom, what was reported and why, so we can review it and enforce our Terms.",
-            "Usage events: the app records a few events (such as app opened, account created, routine created, workout finished, room created or joined, workout shared, kudos given and person followed) with the platform, the app version and the time. If you're signed in, the event is linked to your account; if not, it isn't linked to any account. We use these only to understand which features are used and to improve WTX.",
+            "Usage events: the app records a few events (such as app opened, account created, routine created, workout finished, room created or joined, workout shared, kudos given, person followed, rating requested, workout image shared and \"get the app\" tapped) with the platform, the app version and the time. If you first opened WTX from a tagged link (for example, the link on one of our social media profiles, or a link someone shared with you), the event also carries a short label for that kind of link, such as \"tiktok\" or \"share-routine\"; it says where the visit came from, not who shared it. If you're signed in, the event is linked to your account; if not, it isn't linked to any account. We use these only to understand which features are used and to improve WTX.",
             "Crash reports: when the app crashes or hits an unexpected error, a report is sent to Sentry with technical details: the error and where it happened in the code, the app version, your device and system type, the screen you were on and the app's last actions before the error. We don't add your email or display name to these reports, and we don't record your screen.",
             "Advertising: Google AdMob shows ads in WTX, for example after you finish a workout. To do this, Google's software in the app may collect your device's advertising identifier, your IP address and the approximate location derived from it, device information and how you interact with ads. Where the law requires it (for example in the European Economic Area, the United Kingdom and Switzerland), Google's consent form asks whether ads may be personalized. On iPhone and iPad, Apple asks whether WTX may track you; if you say no, your advertising identifier isn't shared. Ads may still be shown without personalization. Google explains how it uses this data at policies.google.com/technologies/partner-sites."
           ]
@@ -986,5 +990,11 @@
     "alreadyInLibrary": "Already in your library — open it",
     "addToLibrary": "Add to library",
     "addAnotherCopy": "Add another copy"
+  },
+  "getApp": {
+    "title": "Get the WTX app",
+    "body": "Workout reminders, and shared links open right in it.",
+    "cta": "Get",
+    "dismissAria": "Dismiss"
   }
 }

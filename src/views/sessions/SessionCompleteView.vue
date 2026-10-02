@@ -13,13 +13,19 @@ import { formatClock, formatNumber } from '@/lib/format'
 import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { HapticsService } from '@/services/haptics'
 import { AdService } from '@/services/ads'
-import { canShare, shareLink } from '@/services/nativeShare'
+import { AppReviewService } from '@/services/appReview'
+import { canShare, shareImage, shareLink } from '@/services/nativeShare'
+import { track } from '@/services/analytics'
+import { publicOrigin, publicRouteUrl } from '@/lib/publicUrl'
+import { renderWorkoutCard, type WorkoutCardData } from '@/lib/workoutCard'
+import { useThemeStore } from '@/stores/theme'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const sessions = useSessionsStore()
 const sessionRecap = useSessionRecapStore()
+const theme = useThemeStore()
 
 const id = computed(() => String(route.params.id))
 const stored = computed(() => sessions.getById(id.value))
@@ -52,11 +58,15 @@ onMounted(() => {
 
 onBeforeUnmount(() => revealTimers.forEach(clearTimeout))
 
-function onDone() {
+async function onDone() {
+  const hadWin =
+    !!recap.value && (recap.value.personalRecords.length > 0 || !!recap.value.milestone)
+  const totalSessions = sessions.list.length
   sessionRecap.clear()
-  // Fire-and-forget, same as the flow this replaces — never block leaving the screen on it.
-  AdService.showInterstitial()
   router.replace('/sessions')
+  // A win is the moment to ask for a rating. An ad never stacks on that request —
+  // it waits for the next finish — and neither blocks leaving the screen.
+  if (!(await AppReviewService.maybeAsk({ hadWin, totalSessions }))) AdService.showInterstitial()
 }
 
 // Leads with the most exciting fact — a fresh PR beats a plain streak count.
@@ -65,14 +75,18 @@ const shareText = computed(() => {
   const session = result.value.session
   const lines = [
     t('sessionComplete.shareIntro', { name: session.name }),
-    t('sessionComplete.shareStats', { sets: session.totalWorkingSets, exercises: session.exerciseCount }),
+    t('sessionComplete.shareStats', {
+      sets: session.totalWorkingSets,
+      exercises: session.exerciseCount,
+    }),
   ]
   const topPr = recap.value?.personalRecords[0]
   if (topPr) {
     lines.push(
       t('sessionComplete.sharePr', {
         exercise: topPr.exerciseName,
-        weight: formatNumber(topPr.weight),
+        // Not formatNumber: it rounds, and a 72.5 record must not read as 73.
+        weight: topPr.weight,
         unit: session.unit,
         reps: topPr.reps,
       }),
@@ -80,13 +94,73 @@ const shareText = computed(() => {
   } else if (recap.value && recap.value.weekStreak >= 2) {
     lines.push(t('sessionComplete.shareStreak', { weeks: recap.value.weekStreak }))
   }
+  // Tagged so installs that come from a shared workout can be told apart.
+  lines.push(publicRouteUrl('/?src=share-card'))
   return lines.join('\n')
+})
+
+/** What goes on the shared image: the headline numbers plus the top record, or the streak. */
+const cardData = computed<WorkoutCardData | null>(() => {
+  if (!result.value?.ok) return null
+  const session = result.value.session
+  const stats = [
+    ...(recap.value
+      ? [{ value: formatClock(recap.value.elapsedSeconds), label: t('sessionComplete.time') }]
+      : []),
+    { value: String(session.exerciseCount), label: t('sessionComplete.exercises') },
+    { value: String(session.totalWorkingSets), label: t('sessionComplete.sets') },
+    ...(session.totalVolume > 0
+      ? [
+          {
+            value: formatNumber(session.totalVolume),
+            label: t('sessionComplete.volumeUnit', { unit: session.unit }),
+          },
+        ]
+      : []),
+  ]
+  const topPr = recap.value?.personalRecords[0]
+  let highlight: WorkoutCardData['highlight']
+  if (topPr) {
+    highlight = {
+      label: t('sessionComplete.cardPr'),
+      text: `${topPr.exerciseName} · ${topPr.weight} ${session.unit} × ${topPr.reps}`,
+    }
+  } else if (recap.value && recap.value.weekStreak >= 2) {
+    highlight = {
+      label: t('sessionComplete.cardStreakLabel'),
+      text: t('sessionComplete.cardStreak', { weeks: recap.value.weekStreak }),
+    }
+  }
+  return {
+    eyebrow: t('sessionComplete.workoutComplete'),
+    title: session.name,
+    stats,
+    highlight,
+    footer: t('sessionComplete.cardFooter'),
+    host: new URL(publicOrigin()).host,
+    accent: theme.accent,
+  }
 })
 
 const canNativeShare = canShare()
 const shareCopied = ref(false)
 
+/** Shares the workout as an image. Resolves `false` where images can't be shared. */
+async function shareCard(): Promise<boolean> {
+  if (!cardData.value) return false
+  try {
+    const png = await renderWorkoutCard(cardData.value)
+    const shared = await shareImage(png, 'wtx-workout.png', 'image/png', shareText.value)
+    if (shared) track('workout_card_shared')
+    return shared
+  } catch (err) {
+    console.error('[share] workout card failed', err)
+    return false
+  }
+}
+
 async function share() {
+  if (await shareCard()) return
   if (canNativeShare) {
     try {
       await shareLink({ text: shareText.value })
@@ -118,7 +192,9 @@ async function share() {
         <Share2 :size="16" :stroke-width="2.25" />
         <span v-if="shareCopied">{{ t('sessionComplete.shareCopied') }}</span>
       </button>
-      <button type="button" class="done-btn" @click="onDone">{{ t('sessionComplete.done') }}</button>
+      <button type="button" class="done-btn" @click="onDone">
+        {{ t('sessionComplete.done') }}
+      </button>
     </template>
 
     <p v-if="!stored || !result?.ok" class="msg">{{ t('sessionDetail.notFound') }}</p>
@@ -141,7 +217,9 @@ async function share() {
           </div>
           <div v-if="result.session.totalVolume > 0" class="headline__stat">
             <span class="headline__value">{{ formatNumber(result.session.totalVolume) }}</span>
-            <span class="headline__label">{{ t('sessionComplete.volumeUnit', { unit: result.session.unit }) }}</span>
+            <span class="headline__label">{{
+              t('sessionComplete.volumeUnit', { unit: result.session.unit })
+            }}</span>
           </div>
         </div>
       </div>
@@ -168,8 +246,13 @@ async function share() {
           <span class="compare__text">
             {{
               t(
-                recap.comparison.isVolumeUp ? 'sessionComplete.moreVolume' : 'sessionComplete.lessVolume',
-                { value: formatNumber(Math.abs(recap.comparison.volumeDelta)), unit: result.session.unit },
+                recap.comparison.isVolumeUp
+                  ? 'sessionComplete.moreVolume'
+                  : 'sessionComplete.lessVolume',
+                {
+                  value: formatNumber(Math.abs(recap.comparison.volumeDelta)),
+                  unit: result.session.unit,
+                },
               )
             }}
           </span>

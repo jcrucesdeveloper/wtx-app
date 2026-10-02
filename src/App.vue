@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppTabBar from './components/AppTabBar.vue'
+import GetAppBanner from './components/GetAppBanner.vue'
 import LoadRoutineSheet from './components/load/LoadRoutineSheet.vue'
 import WtxActionSheet from './components/wtx/WtxActionSheet.vue'
 import CreateRoutineSheet from './components/wtx/CreateRoutineSheet.vue'
@@ -25,6 +26,8 @@ const showChrome = computed(() => route.name !== 'onboarding')
 
 <template>
   <div class="app-shell" :class="{ 'app-shell--bare': !showChrome }">
+    <!-- Not over a workout in progress: that screen is for logging, nothing else. -->
+    <GetAppBanner v-if="showChrome && route.name !== 'active-session'" />
     <main class="app-content">
       <RouterView />
     </main>

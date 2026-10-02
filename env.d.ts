@@ -28,4 +28,11 @@ interface ImportMetaEnv {
   readonly VITE_SUPPORT_EMAIL?: string
   /** Legal name of the developer (data controller) shown in the Terms and Privacy Policy. */
   readonly VITE_LEGAL_NAME?: string
+
+  /** Numeric App Store ID. The web build's "get the app" banner is hidden on iPhone until it's set. */
+  readonly VITE_APP_STORE_ID?: string
+  /** App Store Connect provider ID (`pt`), so banner taps show up as a campaign in App Analytics. */
+  readonly VITE_APP_STORE_PROVIDER_ID?: string
+  /** Google Play package name. The banner is hidden on Android until it's set. */
+  readonly VITE_PLAY_STORE_ID?: string
 }
