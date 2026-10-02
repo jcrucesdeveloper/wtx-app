@@ -80,7 +80,8 @@ function sessionText(template, filename, date, progress) {
   return lines.join('\n') + '\n'
 }
 
-export function buildSeed(repoRoot, today = new Date()) {
+/** @param locale - The app language to record in: 'en' or 'es'. */
+export function buildSeed(repoRoot, today = new Date(), locale = 'en') {
   const templatesDir = join(repoRoot, 'examples', 'templates')
   const base = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
@@ -120,7 +121,7 @@ export function buildSeed(repoRoot, today = new Date()) {
 
   return {
     'wtx:onboarded': '1',
-    'wtx:locale': 'en',
+    'wtx:locale': locale,
     'wtx:theme-mode': 'dark',
     'wtx:accent': '#e0263a',
     'wtx:default-unit': 'kg',

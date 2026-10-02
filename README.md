@@ -36,15 +36,15 @@ routine in the URL.
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/01-routines.png" alt="Routines library" width="220"><br>
-      <sub>Routines library</sub>
+      <img src="listing/visuals/screens/en/01-log.png" alt="Logging a workout" width="220"><br>
+      <sub>Log a workout</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/02-local-first.png" alt="Local-first configuration" width="220"><br>
-      <sub>Configuration</sub>
+      <img src="listing/visuals/screens/en/02-records.png" alt="Finish screen with a personal record" width="220"><br>
+      <sub>Records and streaks</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/03-share-qr.png" alt="Share a routine via QR" width="220"><br>
+      <img src="listing/visuals/screens/en/06-share.png" alt="Share a routine via QR" width="220"><br>
       <sub>Share via QR</sub>
     </td>
   </tr>

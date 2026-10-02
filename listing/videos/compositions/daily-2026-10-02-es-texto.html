@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX reel — tu rutina es texto</title>
+    <!-- Spanish daily reel. Spec shape: _daily-template.html. Guide: .claude/skills/daily-reel/SKILL.md -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import { dailyReel } from '../lib/daily.js'
+
+      const SPEC = {
+        lang: 'es',
+        tone: 'clean',
+        duration: 18,
+        hook: {
+          dur: 4,
+          kicker: 'Una idea simple',
+          lines: ['¿Y si tu rutina', 'fuera <em>texto?</em>'],
+          size: 80,
+          code: '# Upper Power\nunit: kg\n\nBench Press | reps 5x5 | 75\nPullups | reps 4x8 | 0',
+          codeFile: 'upper-power.wtt',
+        },
+        beats: [
+          {
+            clip: 'plaintext', from: ['typing', -0.3], to: ['typed', 0.4], dur: 3.6,
+            kicker: 'Escríbela o pégala', lines: ['Texto', '<em>simple.</em>'],
+          },
+          {
+            clip: 'plaintext', from: ['add', -0.2], to: ['added', 2.0], dur: 2.2,
+            kicker: 'La app la entiende', lines: ['Lista para', '<em>entrenar.</em>'],
+          },
+          {
+            clip: 'routine', from: ['qr', -0.3], to: ['qr', 2.6], dur: 3.5,
+            kicker: 'Sin crear cuenta', lines: ['Compártela', 'con un <em>QR.</em>'],
+          },
+        ],
+        end: { tagline: 'Tus rutinas.<br><span class="accent">Simples y tuyas.</span>', pill: 'wtxworkout.com' },
+      }
+
+      const clips = [...new Set(SPEC.beats.map((b) => b.clip))]
+      composition({ width: 1080, height: 1920, fps: 30, duration: SPEC.duration, clips, lang: SPEC.lang, build: (ctx) => dailyReel(ctx, SPEC) })
+    </script>
+  </body>
+</html>

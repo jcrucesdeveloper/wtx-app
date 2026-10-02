@@ -3,13 +3,13 @@
 HTML/CSS source for every image asset needed to submit WTX to Google Play
 and the App Store, plus already-exported PNGs at exact store dimensions.
 Dark, Signal-Red-accented design using WTX's real palette
-(`src/config/theme.ts`), wrapping **literal screenshots of the running app**
-(`screens/*.png`) — not illustrated recreations. Per current App Store/Play
-ASO guidance, real product UI converts better than stock-photo-style
-marketing art, and screenshots should make the actual UI large and
-dominant rather than small inside decorative padding.
+(`src/config/theme.ts`), wrapping **literal captures of the running app**
+(`screens/<lang>/*.png`) — not illustrated recreations. Per current App
+Store/Play ASO guidance, real product UI converts better than stock-photo-style
+marketing art, and screenshots should make the actual UI large and dominant
+rather than small inside decorative padding.
 
-Open `index.html` in a browser for a live gallery of everything below.
+Open `index.html` in a browser for a gallery of everything below.
 
 ## What's here
 
@@ -20,65 +20,63 @@ visuals/
   icon-foreground.html    transparent, safe-zone-sized mark for the Android adaptive icon
   feature-graphic.html     1024×500 Google Play feature graphic
   splash.html             native app splash screen, rendered per target size
-  screens/                real PNG captures of the running app (see below)
-  src/                     3 screenshot templates ({{WIDTH}}/{{HEIGHT}} placeholders)
-  generate.mjs             stamps src/ templates into both store sizes
-  play-store/              3 generated screenshots, 1080×1920 (Google Play)
-  app-store/               3 generated screenshots, 1290×2796 (App Store, 6.9")
+  shots.mjs                the screenshot set: order, screen, headline per language
+  targets.mjs              the two store sizes
+  src/_shot.html           the one screenshot template
+  generate.mjs             copies each shot's screen from the recorded app, stamps the template
+  export.mjs               renders every generated page to an exact-size PNG
+  screens/<lang>/          the real app captures each shot wraps (generated)
+  play-store/<lang>/       generated pages, 1080×1920 (Google Play)
+  app-store/<lang>/        generated pages, 1290×2796 (App Store, 6.9")
   png/                     exported PNGs, ready to upload — see below
-  index.html               live preview gallery of every asset
+  index.html               preview gallery of every asset
 ```
 
-## The 3 screenshots, and which feature each one sells
+## The screenshots, and which feature each one sells
 
-| # | File | Headline | Real screen captured |
+Six shots, in English and Spanish, each with the app itself in that language
+(`shots.mjs`). Order follows `../research/01-aso-strategy.md`: logging and
+the finish screen first.
+
+| # | Shot | English headline | Screen |
 |---|---|---|---|
-| 1 | `01-routines-library` | "Every routine, one tap away." | Routines list — the default seeded library (push/pull/leg day), real computed exercise/time/volume stats |
-| 2 | `02-local-first` | "Nothing leaves your phone." | Configuration → Data — export/import/delete, no account UI anywhere in the app |
-| 3 | `03-share-via-qr` | "Share it with a scan." | The real Share sheet, with an actual scannable QR (not a decorative pattern) |
+| 1 | `01-log` | Log every set in *one tap*. | A workout in progress, four sets logged with last time's values |
+| 2 | `02-records` | See what you *beat*. | The finish screen: a personal record, volume vs. last time, streak, milestone |
+| 3 | `03-streak` | Don't break the *streak*. | Sessions: a month of training on the calendar, the session list |
+| 4 | `04-routines` | Your routines, *ready to go*. | A routine's detail with exercise images |
+| 5 | `05-text` | Your workout is *just text*. | The same routine's `.wtt` source |
+| 6 | `06-share` | Share it with a *scan*. | The share sheet with a real, scannable QR on the production domain |
 
-The "routines with friends" idea was dropped: Social is a "Coming soon" stub
-with nothing real to screenshot yet. Add it back here once it ships.
+Group workouts aren't in the set yet: recording them needs two signed-in test
+accounts against a real backend (see `../assets/checklist.md`).
 
-### Recapturing a screen after an app change
+## Regenerating
 
-The `screens/*.png` files are plain screenshots, not something this repo can
-regenerate on its own — recapture manually when the underlying screen
-changes:
-
-1. Run the app (`pnpm dev`), open the target screen in a phone-width window
-   (`#app` caps at 480px — anything ≤480px wide renders edge-to-edge like a
-   device).
-2. Screenshot it (a fresh/incognito profile gets the seeded default data
-   instead of your local dev state) and crop to just the app column.
-3. Save over the matching file in `screens/`, then re-run `node
-   generate.mjs` and re-export the PNGs (see below).
-
-## Why one template works for both store sizes
-
-Google Play screenshots are 1080×1920 (9:16); App Store 6.9" screenshots are
-1290×2796 — a meaningfully different aspect ratio, not just a scale. Instead
-of hand-tuning two layouts per screen, every size in `styles.css` is
-expressed in **container query units** (`cqw`/`cqh`) against a `.canvas`
-element with `container-type: size`. That means the *same* HTML in `src/`
-adapts its own type scale and spacing proportionally no matter what pixel
-box it's dropped into — `generate.mjs` only ever changes two numbers
-(width/height) per target. If you edit a screenshot's content, edit the file
-in `src/`, then re-run:
+The screens come from the video pipeline's recordings of the production
+build with seeded history, so they never drift from the app:
 
 ```sh
-node generate.mjs
+# 1. record the app in both languages (listing/videos, with a production build served — see its README)
+cd ../videos && node scripts/capture-app.mjs && WTX_LOCALE=es node scripts/capture-app.mjs
+# 2. copy the screens, stamp the pages, export the PNGs
+cd ../visuals && node generate.mjs && node export.mjs
 ```
 
-This regenerates every file in `play-store/` and `app-store/` from `src/`.
-Don't hand-edit files inside those two folders — they're build output and
-will be overwritten.
+Build the app with `VITE_PUBLIC_URL` set to the production domain before
+recording, so the QR in `06-share` encodes a real link. To change a headline,
+edit `shots.mjs` and run `node generate.mjs --no-screens && node export.mjs`.
+Don't hand-edit `play-store/`, `app-store/` or `screens/`: they're
+generated.
 
-## Exporting to PNG
+Every size in `styles.css` is in **container query units** (`cqw`/`cqh`)
+against a `.canvas` with `container-type: size`, so the one template adapts
+to both aspect ratios; only the width, height and phone-frame width
+(`targets.mjs`) change per store.
 
-`png/` already has every asset exported once (via headless Chrome, see
-below) — those are the files to actually upload. To regenerate them after
-an edit:
+## Exporting the icon and feature graphic
+
+`export.mjs` covers the screenshots. The other assets are exported the same
+way, with headless Chrome:
 
 ```sh
 CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"   # adjust for your machine
@@ -90,16 +88,6 @@ CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"   # adjust for yo
 # Feature graphic (Play only)
 "$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
   --screenshot="png/feature-graphic.png" --window-size=1024,500 "file:///$PWD/feature-graphic.html"
-
-# One screenshot, Play size
-"$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
-  --screenshot="png/play-store/01-routines-library.png" --window-size=1080,1920 \
-  "file:///$PWD/play-store/01-routines-library.html"
-
-# Same screenshot, App Store size
-"$CHROME" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 \
-  --screenshot="png/app-store/01-routines-library.png" --window-size=1290,2796 \
-  "file:///$PWD/app-store/01-routines-library.html"
 ```
 
 `--force-device-scale-factor=1` and `--hide-scrollbars` are what make the
@@ -166,13 +154,13 @@ mark geometry, cropped tighter — viewBox `7 7 86 86` instead of `0 0 100 100`
 |---|---|---|
 | Google Play | `png/icon-512.png` | App icon (512×512) |
 | Google Play | `png/feature-graphic.png` | Feature graphic (1024×500) |
-| Google Play | `png/play-store/*.png` | Phone screenshots (pick at least 2 — all 3 are provided) |
+| Google Play | `png/play-store/<lang>/*.png` | Phone screenshots, one set per listing language (6 of the allowed 2–8) |
 | App Store | `png/icon.png` | App icon (1024×1024, Xcode/App Store Connect handles the mask) |
-| App Store | `png/app-store/*.png` | 6.9" iPhone screenshot set |
+| App Store | `png/app-store/<lang>/*.png` | 6.9" iPhone screenshot set, one per localization |
 
 App Store also wants a 6.5" set and, if iPad is supported, a 13" iPad set —
 neither is generated here since they're additional aspect ratios beyond the
-two this pass covers. If needed, add target entries to `generate.mjs` (same
+two this pass covers. If needed, add target entries to `targets.mjs` (same
 pattern as the existing two) and re-run; the `cqw`/`cqh` system in
 `styles.css` should adapt cleanly to those sizes too without further
 content changes.
@@ -183,12 +171,8 @@ content changes.
   (`-apple-system`/`Segoe UI`/Roboto/etc.) and `Consolas`/`SF Mono`/`Menlo`
   for the code block — no Google Fonts, no CDN. Renders identically offline
   and won't break if a font host is unreachable at export time.
-- **The QR code in `03-share-via-qr` is real** — `screens/03-share-qr.png` is
-  a literal capture of the app's own Share sheet (`uqr`-rendered, scans to
-  a real `?r=`-encoded import link), not a decorative pattern. Don't
-  recapture it against a `localhost` dev URL for an actual store submission —
-  recapture against the production domain first.
+- **The QR code in `06-share` is real** — a capture of the app's own Share
+  sheet, encoding an import link on the domain the app was built with.
 - **Every screenshot wraps a literal capture of the running app**, not an
-  illustrated recreation — see "Recapturing a screen after an app change"
-  above. `styles.css`'s design system (colors, type, the `.device` frame) is
+  illustrated recreation — see "Regenerating" above. `styles.css`'s design system (colors, type, the `.device` frame) is
   only the headline/subhead chrome around each real screenshot.

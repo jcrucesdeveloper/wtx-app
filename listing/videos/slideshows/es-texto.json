@@ -1,0 +1,10 @@
+{
+  "lang": "es",
+  "slides": [
+    { "type": "hook", "kicker": "Sin apps raras", "lines": ["Mi rutina cabe", "en un <em>mensaje.</em>"], "size": 88 },
+    { "type": "app", "clip": "routine", "at": "source+1.5", "kicker": "Es solo texto", "lines": ["Así se ve", "mi <em>Push Day.</em>"], "size": 96 },
+    { "type": "app", "clip": "routine", "at": "qr+2", "kicker": "Sin crear cuenta", "lines": ["Mi amigo la", "escanea y <em>listo.</em>"], "size": 88 },
+    { "type": "app", "clip": "workout", "at": "session+0.6", "kicker": "Y la entrena", "lines": ["Con un toque", "por <em>serie.</em>"], "size": 96 },
+    { "type": "end", "pill": "wtxworkout.com" }
+  ]
+}

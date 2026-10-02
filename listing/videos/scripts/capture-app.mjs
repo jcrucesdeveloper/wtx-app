@@ -16,16 +16,22 @@
 // DevTools pill), e.g. from the repo root:  pnpm build-only && npx vite preview --port 5191
 //
 // Usage: node scripts/capture-app.mjs [scene ...]    (default: all scenes)
+//
+// WTX_LOCALE=es records the app in Spanish, into build/clips-es/ — the
+// English takes in build/clips/ are left alone.
 
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import puppeteer from 'puppeteer-core'
 import ffmpeg from 'ffmpeg-static'
 import { buildSeed } from './seed.mjs'
-import { CHROME, VIDEOS_DIR, REPO_ROOT } from './paths.mjs'
+import { CHROME, REPO_ROOT, clipsDir } from './paths.mjs'
 
 const APP_URL = process.env.WTX_APP_URL ?? 'http://localhost:5191'
+const LOCALE = process.env.WTX_LOCALE ?? 'en'
+// The app's own strings, for the few controls only reachable by their label.
+const STRINGS = JSON.parse(readFileSync(join(REPO_ROOT, 'src', 'locales', `${LOCALE}.json`), 'utf8'))
 const FPS = 30
 // The app lays out in a 443×960 CSS-px phone viewport, painted at 2× = 886×1920
 // — Apple's App Preview size for every current iPhone. The DevTools screencast
@@ -39,7 +45,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 /** Loads the seeded app, then records whatever `script` does with it. */
 async function record(browser, name, script) {
-  const outDir = join(VIDEOS_DIR, 'build', 'clips', name)
+  const outDir = join(clipsDir(LOCALE), name)
   rmSync(outDir, { recursive: true, force: true })
   mkdirSync(join(outDir, 'raw'), { recursive: true })
 
@@ -47,7 +53,7 @@ async function record(browser, name, script) {
   await page.setViewport(VIEWPORT)
   // Headless Chrome reports reduced motion, which makes the app skip its own transitions.
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'no-preference' }])
-  const seed = buildSeed(REPO_ROOT)
+  const seed = buildSeed(REPO_ROOT, new Date(), LOCALE)
   await page.evaluateOnNewDocument((zoom) => {
     document.addEventListener('DOMContentLoaded', () => {
       const style = document.createElement('style')
@@ -242,7 +248,7 @@ const SCENES = {
     await sleep(2600)
     await scroll(-400, 600)
     await sleep(300)
-    await tap('.icon-btn[aria-label="Share routine"]', { label: 'share' })
+    await tap(`.icon-btn[aria-label="${STRINGS.routineDetail.shareAria}"]`, { label: 'share' })
     mark('qr')
     await sleep(3200)
     void page

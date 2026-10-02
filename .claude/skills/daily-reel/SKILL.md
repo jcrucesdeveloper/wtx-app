@@ -1,18 +1,34 @@
 ---
 name: daily-reel
-description: Make today's short vertical promo video (TikTok / Instagram Reels / YouTube Shorts, 1080×1920) for the WTX app from real app footage, in a chosen tone (hype, clean, tutorial, story) with optional voice-over. Use whenever the user asks for a daily reel, a new TikTok/Reel/Short, "today's video", another promo video, or a video about a specific WTX feature.
+description: Make today's short vertical promo post for the WTX app from real app footage — a 1080×1920 reel (TikTok / Instagram Reels / YouTube Shorts) or a photo slideshow (TikTok photo mode / Instagram carousel), in Spanish or English, in a chosen tone (hype, clean, tutorial, story) with optional voice-over. Use whenever the user asks for a daily reel, a new TikTok/Reel/Short, a slideshow or carousel, "today's video", "this week's posts", another promo video, or a video about a specific WTX feature.
 ---
 
 # Daily reel
 
-Produces one 12–30 s vertical reel per run with the pipeline in
-`listing/videos/` (read its `README.md` once if you haven't). Specs, safe
-zones and platform rules are in `listing/research/06-video-specs.md`.
+Produces one 12–30 s vertical reel, or one 4–7 slide slideshow, per run with
+the pipeline in `listing/videos/` (read its `README.md` once if you
+haven't). Specs, safe zones and platform rules are in
+`listing/research/06-video-specs.md`.
+
+**Spanish is the launch market**: default to `lang: 'es'` unless the user asks
+for English. The app is recorded in both languages (`build/clips/` and
+`build/clips-es/`), so a Spanish post shows the Spanish UI. Until the store
+listings are live, end cards and slideshows use `pill: 'wtxworkout.com'`
+instead of "Gratis en iOS y Android".
+
+**A weekly batch** ("this week's posts"): make 7 posts in one run, alternating
+reels and slideshows, all from angles not used in the last two weeks, and
+re-cutting the top two by completion from `daily-log.md` with new hooks.
+Skip the questions below unless the user asked for something specific.
 
 ## 1. Settle the brief (ask only what the user didn't say)
 
-Use `AskUserQuestion` once, with these three questions, skipping any the user
+Use `AskUserQuestion` once, with these questions, skipping any the user
 already answered. Always offer defaults.
+
+0. **Format.** `reel` (default) or `slides`. Slideshows are the cheapest to
+   make and the format the closest comparable app (a solo founder's gym
+   planner on TikTok) grew with; see "Slideshows" below.
 
 1. **Angle.** Which feature or story. Read `listing/videos/daily-log.md`
    first and propose 2–3 angles **not used recently**, from the
@@ -39,8 +55,11 @@ already answered. Always offer defaults.
 1. Copy `listing/videos/compositions/_daily-template.html` to
    `compositions/daily-YYYY-MM-DD-<slug>.html`. The `daily-` prefix is what
    routes output to `out/daily/`.
-2. Edit only `SPEC`: `tone`, `duration` (even seconds; the last 4 s are
-   the end card), `hook`, `beats`, `end.tagline`, `voice`, `music`.
+2. Edit only `SPEC`: `lang`, `tone`, `duration` (even seconds; the last 4 s
+   are the end card), `hook`, `beats`, `end.tagline`, `end.pill`, `voice`,
+   `music`. Write every caption in `lang`. Spanish runs ~20% longer: keep
+   lines ≤ ~11 characters at 112 px, ≤ ~13 at 96, ≤ ~15 at 84, or split into
+   three lines; a line that doesn't fit breaks mid-word.
 3. **Hook (0 → `hook.dur`, 2.5–3.5 s).** It decides retention. Lead with the
    payoff or a pattern-interrupt: a specific number (`number`), a POV line, a
    question, or typed `.wtt` text (`code`). Never open on the logo.
@@ -75,11 +94,31 @@ node scripts/verify.mjs <name>      # must print "All deliverables match"
 node scripts/render.mjs <name> --still 45 --out out/daily/<name>-cover.jpg   # cover frame
 ```
 
+## Slideshows
+
+A photo carousel (`slideshows/<name>.json` → `out/slideshows/<name>/01.png…`).
+The pattern that works: **slide 1 is a situation, not the app** (a hook line,
+over a gym photo when there is one), the tension builds for a slide or two,
+and the app arrives as the answer; end card last. 4–7 slides.
+
+```sh
+cd listing/videos
+node scripts/slideshow.mjs <name>
+```
+
+Slide types are documented at the top of `scripts/slideshow.mjs`: `hook`
+(optional `image`, a photo in `assets/photos/` — no faces needed: a barbell,
+plates, a gym floor), `text`, `app` (`clip` + `at: 'marker+offset'`, a real
+frame of the recording) and `end`. Look at every slide before handing it
+over: same line-length limits as the reels. End on a question when it fits
+("¿Y tú, cuántas llevas?"); comments push reach.
+
 ## 4. Finish
 
-- Add a row to `listing/videos/daily-log.md`: date, composition, hook, tone, voice, features shown.
-- Commit the composition, the log row and any voice file. **Don't commit
-  `out/daily/`** (it's gitignored and re-renderable).
+- Add a row to `listing/videos/daily-log.md`: date, composition, format, lang, hook, tone, voice, features shown.
+- Commit the composition or slideshow spec, the log row and any voice file.
+  **Don't commit `out/daily/` or `out/slideshows/`** (gitignored and
+  re-renderable).
 - Don't push or merge unless the user asks.
 - Tell the user:
   - the file paths;
@@ -90,14 +129,19 @@ node scripts/render.mjs <name> --still 45 --out out/daily/<name>-cover.jpg   # c
 ## Scene library
 
 Recorded by `scripts/capture-app.mjs` from the production build with seeded
-history (`scripts/seed.mjs`). The clips live in `listing/videos/build/clips/`,
-which is gitignored. If they're missing, or the UI changed since the last
-capture, re-record:
+history (`scripts/seed.mjs`). The clips live in `listing/videos/build/clips/`
+(English) and `build/clips-es/` (Spanish), both gitignored. If they're
+missing, or the UI changed since the last capture, re-record both:
 
 ```sh
-(cd ../.. && pnpm build-only && npx vite preview --port 5191)   # in the background; NOT the dev server (it shows a DevTools pill)
+(cd ../.. && VITE_PUBLIC_URL=https://wtxworkout.com pnpm build-only && npx vite preview --port 5191)   # in the background; NOT the dev server (it shows a DevTools pill)
 node scripts/capture-app.mjs [scene ...]
+WTX_LOCALE=es node scripts/capture-app.mjs [scene ...]
 ```
+
+`node scripts/clips.mjs <lang> <clip> <marker>[+offset] <out.png>` saves a
+single frame. **The `history` calendar shows the current month**, which is
+nearly empty early in a month: use `prev-month` for a full calendar.
 
 | Scene | Markers (in order) | Shows |
 |---|---|---|

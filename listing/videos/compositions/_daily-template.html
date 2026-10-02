@@ -19,6 +19,9 @@
       import { dailyReel } from '../lib/daily.js'
 
       const SPEC = {
+        // 'en' | 'es': which recorded takes to use (build/clips or build/clips-es)
+        // and the language of the built-in text. Write the captions in it too.
+        lang: 'en',
         // hype | clean | tutorial | story  (see TONES in lib/daily.js)
         tone: 'tutorial',
         // Even number of seconds, 12–30. The last 4 s are the end card.
@@ -58,11 +61,13 @@
         ],
 
         // End card tagline (HTML). Omit for the default "Log every set. Beat every PR."
+        // pill: the CTA under it. Omit for "Free on iOS & Android"; before the
+        // stores are live use the web address, e.g. pill: 'wtxworkout.com'.
         end: { tagline: 'Twenty seconds.<br><span class="accent">Every workout.</span>' },
       }
 
       const clips = [...new Set(SPEC.beats.map((b) => b.clip))]
-      composition({ width: 1080, height: 1920, fps: 30, duration: SPEC.duration, clips, build: (ctx) => dailyReel(ctx, SPEC) })
+      composition({ width: 1080, height: 1920, fps: 30, duration: SPEC.duration, clips, lang: SPEC.lang, build: (ctx) => dailyReel(ctx, SPEC) })
     </script>
   </body>
 </html>

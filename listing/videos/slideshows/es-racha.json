@@ -1,0 +1,10 @@
+{
+  "lang": "es",
+  "slides": [
+    { "type": "hook", "kicker": "Semana tras semana", "lines": ["9 semanas", "sin <em>fallar.</em>"] },
+    { "type": "app", "clip": "history", "at": "prev-month+1.0", "kicker": "Mi último mes", "lines": ["Cada cuadro", "es un <em>día.</em>"] },
+    { "type": "app", "clip": "workout", "at": "recap+1.6", "kicker": "Automático", "lines": ["La racha", "se cuenta <em>sola.</em>"], "size": 96 },
+    { "type": "text", "lines": ["¿Y tú,", "cuántas", "<em>llevas?</em>"] },
+    { "type": "end", "pill": "wtxworkout.com" }
+  ]
+}

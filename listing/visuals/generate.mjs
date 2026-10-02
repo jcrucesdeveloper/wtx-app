@@ -1,34 +1,50 @@
-// Stamps each src/*.html screenshot template into both store sizes.
-// The templates use {{WIDTH}}/{{HEIGHT}} placeholders and cqw/cqh-based
-// CSS (styles.css) so the exact same markup adapts cleanly to either
-// aspect ratio — nothing else needs to change between targets.
+// Builds the store screenshot set in every language (shots.mjs):
+//   1. copies each shot's frame from the recorded takes into screens/<lang>/
+//      (record them first: listing/videos → node scripts/capture-app.mjs,
+//      and WTX_LOCALE=es for Spanish)
+//   2. stamps src/_shot.html into both store sizes: <store>/<lang>/<id>.html
 //
-// Usage: node generate.mjs
+// Every size in styles.css is in container query units (cqw/cqh), so the
+// same markup adapts to either aspect ratio — only width/height change.
+//
+// Usage: node generate.mjs [--no-screens]   then: node export.mjs
 
-import { readdirSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { SHOTS, LANGS } from './shots.mjs'
+import { TARGETS } from './targets.mjs'
+import { framePath, parseRef } from '../videos/scripts/clips.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const srcDir = join(here, 'src')
 
-const targets = [
-  { dir: 'play-store', width: 1080, height: 1920, label: 'Google Play (9:16 phone)' },
-  { dir: 'app-store', width: 1290, height: 2796, label: 'App Store (6.9" iPhone)' },
-]
-
-const files = readdirSync(srcDir).filter((f) => f.endsWith('.html'))
-
-for (const target of targets) {
-  const outDir = join(here, target.dir)
-  mkdirSync(outDir, { recursive: true })
-
-  for (const file of files) {
-    const template = readFileSync(join(srcDir, file), 'utf8')
-    const stamped = template
-      .replaceAll('{{WIDTH}}', String(target.width))
-      .replaceAll('{{HEIGHT}}', String(target.height))
-    writeFileSync(join(outDir, file), stamped)
+if (!process.argv.includes('--no-screens')) {
+  for (const lang of LANGS) {
+    mkdirSync(join(here, 'screens', lang), { recursive: true })
+    for (const shot of SHOTS) {
+      copyFileSync(framePath(lang, shot.clip, parseRef(shot.at)), join(here, 'screens', lang, `${shot.id}.png`))
+    }
   }
-  console.log(`${target.dir}/ — ${files.length} files @ ${target.width}x${target.height} (${target.label})`)
+}
+
+const template = readFileSync(join(here, 'src', '_shot.html'), 'utf8')
+for (const target of TARGETS) {
+  for (const lang of LANGS) {
+    const outDir = join(here, target.dir, lang)
+    mkdirSync(outDir, { recursive: true })
+    for (const shot of SHOTS) {
+      const html = template
+        .replaceAll('{{WIDTH}}', String(target.width))
+        .replaceAll('{{HEIGHT}}', String(target.height))
+        .replaceAll('{{DEVICE_W}}', String(target.device))
+        .replaceAll('{{LANG}}', lang)
+        .replaceAll('{{ID}}', shot.id)
+        .replaceAll('{{FOCUS}}', shot.focus)
+        .replaceAll('{{EYEBROW}}', shot.eyebrow[lang])
+        .replaceAll('{{HEADLINE}}', shot.headline[lang])
+        .replaceAll('{{SUBHEAD}}', shot.subhead[lang])
+      writeFileSync(join(outDir, `${shot.id}.html`), html)
+    }
+  }
+  console.log(`${target.dir}/ — ${SHOTS.length} shots × ${LANGS.join(', ')} @ ${target.width}x${target.height} (${target.label})`)
 }
