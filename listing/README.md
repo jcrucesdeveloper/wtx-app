@@ -6,32 +6,31 @@ around actual ASO (App Store Optimization) practice, not guesses. Researched
 
 ## What WTX actually is (source of truth for all copy)
 
-Read from `README.md`, `capacitor.config.ts`, and `src/` on `main` at the time
-of writing. Only these are real, shipped features — copy anywhere in this
-folder must not claim more:
+The shipped feature list is `CHANGELOG.md` → 1.0.0. Copy anywhere in this
+folder must not claim more than that. In short:
 
-- Plain-text workout format (`.wtt`): a routine is a small human-readable text
-  file — name, `key: value` metadata, one exercise per line.
-- **Templates library** — every routine you've loaded, parsed into a summary
-  (exercise count, sets, muscle groups).
-- **Load a routine** three ways: paste `.wtt` text, pick a `.wtt` file, or
-  scan a QR code (camera or image).
-- **Create a routine** with a form that serializes to valid `.wtt` text.
-- **Share via QR** — the whole routine is base64url-encoded into an import
-  link; no server round-trip, no account needed on either end.
-- **Configurable accent color.**
-- No backend, no account, no sign-up. Data lives in `localStorage` on-device.
-- App ID `com.wtx.app`, display name `WTX`. Built with Capacitor for
-  Android/iOS from the same web codebase.
-- Monetization: AdMob ads are wired in (`src/services/ads.ts`,
-  `src/stores/ads.ts`). **A "remove ads" purchase flow does not exist yet** —
-  only a local flag a future IAP can call. Do not advertise "remove ads"
-  as a purchasable feature until that ships.
-- **Sessions and Friends tabs are UI placeholders, not functional.** Do not
-  mention them in store copy — Apple (4.3, 2.3) and Google both reject
-  listings that describe non-functional features.
-- No privacy policy page exists yet in the codebase. One is **required**
-  before either store submission (see `research/05-privacy-compliance-notes.md`).
+- **Tracking:** one-tap set logging with last time's values, rest timer,
+  warm-up and drop sets, editing a workout while it runs, a review step
+  before finishing.
+- **Progress:** personal records, comparison with the last session, week
+  streak, milestones, training calendar and history.
+- **Routines:** an editor, 876 exercises with images and Spanish names,
+  three starter routines, and the plain-text `.wtt` format — load from text,
+  file, link or QR, and share the same ways.
+- **Accounts are optional.** The app works fully on the device. An account
+  adds sync, group workouts and the social feed.
+- **Group workouts and social:** live rooms joined by code, link or QR,
+  cheers, a shared recap, a followers-only feed with kudos, profiles,
+  report and block.
+- **App:** English and Spanish, dark/light themes, accent colours, kg or lb,
+  opt-in reminders, full data export and import.
+- **Ads:** 1.0.0 ships with ads off (`VITE_ADS_ENABLED`). There is no
+  "remove ads" purchase. Don't mention ads either way in the copy.
+- App ID `com.wtx.app`, display name `WTX`, public site
+  `https://wtxworkout.com`.
+
+All copy exists in **English and Spanish**. Spanish is the launch market for
+marketing, so keep the two in step.
 
 ## Folder map
 
@@ -48,17 +47,17 @@ listing/
 ## How to use this
 
 1. Skim `research/01-aso-strategy.md` for the positioning decision this
-   package makes (why "plain-text, no-account workout tracker" and not
-   "yet another workout tracker").
+   package makes (a fast workout tracker you can use without an account and
+   train on with friends, with plain-text routines as the unusual extra).
 2. Pick a title from `play-store/01-title-short-description.md` and
-   `app-store/01-name-subtitle-keywords.md` — both give a primary + 2
-   alternatives with exact character counts.
-3. Paste the rest in as-is; adjust tone to taste.
+   `app-store/01-name-subtitle-keywords.md` — both give a primary and an
+   alternative per language, with exact character counts.
+3. Paste the rest in as-is, English and Spanish; adjust tone to taste.
 4. Before submitting, run through `research/05-privacy-compliance-notes.md`
    and the two `*-worksheet.md` files — Data Safety (Play) and App Privacy
    (Apple) are compliance-sensitive and Apple can reject on mismatch.
-5. Commission/design the actual image assets per `assets/checklist.md`, then
-   drop them in `assets/` before upload.
+5. Upload the images from `visuals/png/` (shot list in
+   `assets/checklist.md`) and the videos from `videos/out/`.
 
 ## Honesty check on the keyword research
 

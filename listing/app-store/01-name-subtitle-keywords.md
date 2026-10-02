@@ -5,49 +5,73 @@ Limits: Name 30 · Subtitle 30 · Keywords field 100 bytes.
 **entire** iOS search-indexed surface — the description isn't indexed at
 all, so get these right.
 
-## App Name — pick one
+Each localization has its own Name, Subtitle and Keywords. Add **Spanish
+(Mexico)** and **Spanish (Spain)** with the Spanish set below; Spanish
+(Mexico) is what the Latin American storefronts show.
 
-**Primary recommendation (28/30 chars):**
-```
-WTX: Workout Routine Planner
-```
+## English
 
-**Alternative, brand-first (25/30 chars):**
+**App Name (30/30 chars):**
 ```
-WTX - Plain-Text Workouts
-```
-
-## Subtitle — pick one (must pair with whichever Name you pick, no word repeats)
-
-If Name = "WTX: Workout Routine Planner":
-```
-No-Account Workout Planner        (26/30 chars)
-```
-If Name = "WTX - Plain-Text Workouts":
-```
-Routines as Text. No Account.     (29/30 chars)
+WTX: Workout Tracker & Planner
 ```
 
-Either pairing keeps the differentiator (no-account / plain-text) visible in
-the indexed 60 characters of Name+Subtitle even when the Name itself leans
-generic.
-
-## Keywords field — 100 bytes, comma-separated, no spaces, no repeats of Name/Subtitle words
-
-Since "workout", "routine", "planner", "account", "text" are already covered
-by Name+Subtitle above, don't repeat them here — that wastes budget.
-
-**Primary recommendation (94/100 bytes):**
+Alternative, shorter (24/30 chars):
 ```
-gym,log,tracker,exercise,training,offline,template,share,qr,fitness,strength,builder,sets,reps
+WTX: Gym Workout Tracker
 ```
 
-**Alternative leaning into the plain-text niche (95/100 bytes):**
+**Subtitle (28/30 chars):**
 ```
-gym,log,tracker,exercise,training,offline,template,share,qr,fitness,strength,sets,reps,markdown
+Gym log. Train with friends.
 ```
 
-Both counts verified programmatically (`node -e` byte-length check) — recount
-if you edit either string, since Apple counts in bytes and a stray
-multi-byte character (curly quote, em dash, etc.) will silently eat more of
-the budget than it looks like.
+Alternative (25/30 chars):
+```
+Log sets, PRs and streaks
+```
+
+**Keywords (97/100 bytes):**
+```
+routine,exercise,strength,lifting,weightlifting,sets,reps,pr,streak,rest,timer,offline,fitness,qr
+```
+
+## Spanish
+
+**App Name (30/30 chars):**
+```
+WTX: Rutinas y Registro de Gym
+```
+
+Alternative (24/30 chars):
+```
+WTX: Rutinas de Gimnasio
+```
+
+**Subtitle (28/30 chars):**
+```
+Entrena pesas con tus amigos
+```
+
+Alternative (23/30 chars):
+```
+Series, récords y racha
+```
+
+**Keywords (97/100 bytes):**
+```
+gimnasio,entrenamiento,ejercicios,fuerza,series,repeticiones,record,racha,musculacion,diario,plan
+```
+
+The Spanish keywords are written without accents on purpose: Apple counts
+the field in bytes and an accented letter costs two.
+
+## Rules these follow
+
+- No word from the Name or Subtitle is repeated in the Keywords field; Apple
+  indexes them separately, so a repeat wastes budget.
+- Comma-separated, no spaces.
+- All counts were checked with a script. Recount after any edit.
+- The keyword picks are not backed by search-volume data (see the honesty
+  check in `README.md`). Validate them with the Apple Search Ads popularity
+  score once the app is live.

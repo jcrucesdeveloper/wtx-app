@@ -40,12 +40,31 @@ WTX has to a blue-ocean keyword cluster: near-zero competition from the
 big incumbents (FitNotes, Hevy, Strong all explicitly market on "no ads" /
 "simplicity", not on "plain text" or "own your data as a file").
 
-## Where WTX cannot win head-on
+## Where WTX stands against the incumbents (revised for v1.0.0)
 
-FitNotes and Hevy already own "no ads, offline, simple gym log" — and they
-have actual logging/history/graphs, which WTX doesn't yet. Don't compete on
-"best workout tracker" generic queries; compete on "your routines are text
-files you own," which none of them offer.
+FitNotes, Hevy and Strong own the generic "workout tracker" queries. WTX now
+has logging, history, records and a rest timer, so it can truthfully use
+those terms, but it will not outrank them soon. It has no progress graphs
+and no watch app. The realistic targets are the longer queries ("gym log",
+"workout with friends", "rutinas de gym") plus the plain-text niche above.
+
+## Spanish keywords
+
+Same method as the English table: brainstorm plus the wording Spanish
+fitness listings use, no volume data. Written without accents in the App
+Store keywords field, where an accented letter costs two bytes.
+
+| Keyword / phrase | Group | Where to use it |
+|---|---|---|
+| rutinas de gym / rutinas de gimnasio | Generic | Title |
+| registro de entrenamiento | Generic | Title, description |
+| entrenamiento con pesas | Generic | Subtitle, description |
+| ejercicios, series, repeticiones | Generic | Keywords field, description |
+| fuerza, musculacion | Generic | Keywords field, description |
+| diario de gimnasio | Generic | Keywords field, description |
+| record personal, racha | Feature | Keywords field, short description |
+| entrenar con amigos | Differentiator | Subtitle, short description |
+| sin cuenta / sin registrarte | Differentiator | Promotional text, description |
 
 ## Validating this after store console access exists
 

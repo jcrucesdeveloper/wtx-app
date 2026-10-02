@@ -10,27 +10,26 @@ Capture from the real running app (`pnpm cap:open` / `pnpm cap:open:ios` in
 the main worktree), not a mockup — both stores can flag screenshots that
 don't match the submitted binary.
 
-1. **Hero / Templates library** — the routine list with a short overlay
-   headline: *"Your routines, as text files you own."*
-2. **Create a routine** — the routine-builder form mid-fill, overlay:
-   *"Build a routine in seconds."*
-3. **Share via QR** — the generated QR code for a routine, overlay:
-   *"Share it with a scan. No account needed."*
-4. **Load a routine** — the three load options (paste / file / QR), overlay:
-   *"Paste it, pick it, or scan it."*
-5. **The .wtt format** — a close-up of raw `.wtt` text next to its parsed
-   summary, overlay: *"It's just text."* (This is the differentiator shot —
-   don't skip it even though it's the most unusual one in the set.)
-6. **Privacy callout** — a clean app screen with overlay text only:
-   *"No account. No cloud. Nothing leaves your phone."*
-7. **Accent color picker** — overlay: *"Make it yours."*
-8. *(Optional, if room for an 8th)* Routine detail view showing exercise
-   count / sets / muscle groups summary.
+Each shot exists in English and Spanish, with the app itself switched to
+that language.
+
+| # | Screen | English headline | Spanish headline |
+|---|---|---|---|
+| 1 | Active workout, a set being logged | Log every set in *one tap*. | Registra cada serie con *un toque*. |
+| 2 | Finish screen with a personal record | See what you *beat*. | Mira qué *superaste*. |
+| 3 | Sessions tab: calendar and streak | Don't break the *streak*. | No rompas la *racha*. |
+| 4 | Routine detail with exercise images | Your routines, *ready to go*. | Tus rutinas, *listas para entrenar*. |
+| 5 | Routine source (`.wtt` text) | Your workout is *just text*. | Tu rutina es *solo texto*. |
+| 6 | Share sheet with the QR | Share it with a *scan*. | Compártela con un *QR*. |
+| 7 | Group workout room *(not captured yet)* | Train *live* with friends. | Entrena *en vivo* con amigos. |
 
 Order matters: per `research/01-aso-strategy.md`, the **first two** images
-carry the most conversion weight on both stores — lead with #1 and #3
-(the library + the QR-share differentiator) rather than burying the unique
-hook at slide 5.
+carry the most conversion weight on both stores, so logging and the finish
+screen lead.
+
+Shot 7 needs two signed-in test accounts against a real backend, so it is
+not in the generated set. When it is captured it goes in position 2 or 3;
+never record real users' data for it.
 
 ## Icon
 

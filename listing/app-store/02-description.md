@@ -4,94 +4,121 @@ Limit: 4,000 characters. Not indexed for search (see
 `research/03-character-limits-reference.md`) — this is pure conversion copy,
 written for a reader who already found the page via Name/Subtitle/Keywords.
 
----
+Paste the English block into the English localizations and the Spanish block
+into Spanish (Mexico) and Spanish (Spain).
+
+## English
 
 ```
-Your workout routine, as a text file you actually own.
+Log your workout in seconds, not minutes.
 
-WTX keeps training routines as small, human-readable text files instead of
-locking them in an account you never asked to create. No sign-up, no cloud
-sync, no server — everything lives on your phone, and everything is just
-text.
+WTX is a gym workout tracker built for speed. Tap once to log a set with last time's numbers already filled in, rest, repeat. When you finish, you see exactly what you beat.
 
-WHY WTX
+TRACK
+- One-tap set logging, with your previous weight and reps pre-filled
+- Built-in rest timer
+- Warm-up and drop sets; add, edit, reorder or remove exercises mid-workout
+- A review step before you finish, so nothing is saved by mistake
+- Kilograms or pounds
 
-No account, ever. Open the app and start building a routine in seconds.
+SEE YOUR PROGRESS
+- Personal records detected while you lift
+- Comparison with your last session of the same routine
+- Week streak and milestones
+- Training calendar and full workout history
 
-Nothing leaves your phone. Your routines and settings stay in local storage
-on-device — there's no backend to sync to or depend on.
+PLAN
+- Build routines with sets, reps, weight, time and rest
+- 870+ exercises with images and muscle-group filters
+- Three starter routines, so you can train on day one
+- Drag to reorder routines and exercises
 
-Own your data. A routine is a plain-text file (the open .wtt format) you can
-read, edit, back up, or move elsewhere without asking anyone's permission.
+TRAIN WITH FRIENDS
+- Start a group workout and invite friends with a code, link or QR
+- See each other's sets and records live, and send cheers
+- A shared recap when everyone finishes
+- A feed of workouts from the people you follow
+- Only your followers see what you share
 
-Share instantly. Turn any routine into a QR code and hand your phone to a
-training partner — they scan it, and the whole routine imports on their
-device. No account needed on either end.
-
-WHAT YOU CAN DO
-
-Templates library
-Every routine you add is parsed into a clean summary — exercise count, total
-sets, and muscle groups covered — so your whole workout plan library is
-scannable at a glance.
-
-Load a routine, three ways
-- Paste .wtt text directly
-- Pick a .wtt file from your device
-- Scan a QR code with your camera, or from a saved image
-
-Create a routine
-Build a routine with a simple form — exercises, sets, reps, rest timers,
-weight, and target muscle group — and WTX serializes it straight to valid,
-portable .wtt text.
-
-Share via QR
-Generate an import link and QR code for any routine. Scanning it opens WTX
-with the routine ready to add — perfect for sharing a workout plan with a
-training partner, a coach handing off a program, or moving a routine between
-your own devices.
-
-Make it yours
-Pick from a handful of accent colors so the app matches your taste,
-remembered across visits.
-
-THE .WTT FORMAT
-
-A routine is just this:
+YOUR WORKOUTS ARE JUST TEXT
+Every routine is a small, readable text file:
 
 # Push Day
-unit: kg
-tags: strength, upper
+Bench Press    | reps 4x8  | 60 | rest 1m30s
+Overhead Press | reps 3x10 | 30 | rest 1m
 
-Bench Press    | reps 4x8   | 60 | rest 1m30s | muscle Chest
-Overhead Press | reps 3x10  | 30 | rest 1m
-Plank          | time 1m30s
+Paste one in, write your own, or share it with a link or QR code. Export all your data to a file whenever you want.
 
-Readable, editable, and versionable like any other text file. If you already
-keep your life in plain text — notes, tasks, configs — your workout routines
-can live there too.
+NO ACCOUNT NEEDED
+WTX works fully on your phone without signing up. Create an account only if you want to sync across devices or train with friends, and delete it at any time.
 
-WHO IT'S FOR
-
-- Anyone who's tired of creating an account just to plan a workout
-- Lifters who want their routine data portable, not locked in someone else's
-  database
-- People sharing programs with a training partner, coach, or gym buddy who
-  doesn't want to sign up for anything either
-- Minimalists and plain-text enthusiasts who'd rather a routine be a file
-  than a walled garden
-
-WTX is free to use and supported by ads.
+ALSO
+- English and Spanish
+- Dark and light themes, with your choice of accent colour
+- Optional workout reminders
 ```
 
----
+## Spanish
 
-**Character count: 2,572 / 4,000** (verified programmatically; re-check after
-edits). Apple-specific notes this draft already respects:
+```
+Registra tu entrenamiento en segundos, no en minutos.
 
-- No "download now," "rate us," or incentivized-review language (App Review
-  Guideline 2.3.7 / 3.1.1 territory).
-- No mention of Android/Google Play.
-- No claim of features that don't exist (Sessions, Friends, ad removal
-  purchase) — see top-level `README.md`.
-- No unlicensed health/outcome claims.
+WTX es un registro de entrenamiento de gimnasio pensado para ir rápido. Un toque para anotar una serie con los números de la última vez ya puestos, descansas y sigues. Al terminar, ves exactamente qué superaste.
+
+REGISTRA
+- Series con un toque, con el peso y las repeticiones de la última vez
+- Temporizador de descanso integrado
+- Series de calentamiento y descendentes; agrega, edita, reordena o quita ejercicios en pleno entrenamiento
+- Un paso de revisión antes de terminar, para no guardar nada por error
+- Kilos o libras
+
+MIRA TU PROGRESO
+- Récords personales detectados mientras entrenas
+- Comparación con tu última sesión de la misma rutina
+- Racha semanal e hitos
+- Calendario de entrenamiento e historial completo
+
+PLANIFICA
+- Crea rutinas con series, repeticiones, peso, tiempo y descanso
+- Más de 870 ejercicios con imágenes, nombres en español y filtros por grupo muscular
+- Tres rutinas de ejemplo, para entrenar desde el primer día
+- Arrastra para reordenar rutinas y ejercicios
+
+ENTRENA CON AMIGOS
+- Crea un entrenamiento en grupo e invita con un código, enlace o QR
+- Vean las series y los récords de cada uno en vivo, y mándense porras
+- Un resumen compartido cuando todos terminan
+- Un feed con los entrenamientos de las personas que sigues
+- Solo tus seguidores ven lo que compartes
+
+TUS ENTRENAMIENTOS SON SOLO TEXTO
+Cada rutina es un archivo de texto pequeño y legible:
+
+# Push Day
+Bench Press    | reps 4x8  | 60 | rest 1m30s
+Overhead Press | reps 3x10 | 30 | rest 1m
+
+Pega una, escribe la tuya o compártela con un enlace o un código QR. Exporta todos tus datos a un archivo cuando quieras.
+
+SIN CUENTA OBLIGATORIA
+WTX funciona completo en tu teléfono sin registrarte. Crea una cuenta solo si quieres sincronizar entre dispositivos o entrenar con amigos, y elimínala cuando quieras.
+
+ADEMÁS
+- Español e inglés
+- Tema oscuro y claro, con el color de acento que elijas
+- Recordatorios de entrenamiento opcionales
+```
+
+## Notes
+
+- Character counts: English 1,739 / 4,000, Spanish 1,988 / 4,000. Recount
+  after any edit.
+- Every line maps to a shipped feature in `CHANGELOG.md` 1.0.0. Re-check
+  against the changelog before each release.
+- No "download now", "rate us" or incentivized-review language (App Review
+  Guideline 2.3.7), and no mention of other platforms.
+- No health or outcome claims.
+- Ads are not mentioned: 1.0.0 ships with them off. If they are turned on,
+  the store's own "Contains ads" disclosure covers it.
+- "Porras" matches the word the app itself uses for cheers
+  (`src/locales/es.json`).
