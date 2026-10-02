@@ -21,8 +21,16 @@ const TEST_AD_UNIT_IDS = {
  */
 const AD_TEST_MODE = import.meta.env.DEV || import.meta.env.VITE_ADMOB_TESTING !== 'false'
 
-function isNativePlatform(): boolean {
-  return Capacitor.getPlatform() !== 'web'
+/**
+ * Feature flag for ads as a whole — OFF unless the build sets
+ * VITE_ADS_ENABLED=true. While off the Mobile Ads SDK is never initialised, so
+ * there's no consent form, no iOS tracking prompt and no ad request.
+ */
+export const ADS_ENABLED = import.meta.env.VITE_ADS_ENABLED === 'true'
+
+/** Ads only exist in the native apps, and only when the feature flag is on. */
+function adsAvailable(): boolean {
+  return ADS_ENABLED && Capacitor.getPlatform() !== 'web'
 }
 
 function interstitialAdUnitId(): string {
@@ -52,13 +60,14 @@ function applyConsentInfo(consent: AdmobConsentInfo) {
 
 /**
  * Thin wrapper around @capacitor-community/admob. Every call is a safe no-op
- * on web and once the user has removed ads — callers never need to check
- * platform or the ads store themselves.
+ * on web, while ads are switched off (`ADS_ENABLED`) and once the user has
+ * removed ads — callers never need to check the flag, platform or the ads
+ * store themselves.
  */
 export const AdService = {
   /** Runs the Mobile Ads SDK init, consent (UMP), and iOS ATT flows. Call once at startup. */
   initAds(): Promise<void> {
-    if (!isNativePlatform()) return Promise.resolve()
+    if (!adsAvailable()) return Promise.resolve()
     if (!initPromise) initPromise = doInit()
     return initPromise
   },
@@ -66,7 +75,7 @@ export const AdService = {
   /** Pre-loads an interstitial so it's ready by the time a session finishes. */
   async loadInterstitial(): Promise<void> {
     const ads = useAdsStore()
-    if (!isNativePlatform() || ads.adsRemoved || interstitialReady) return
+    if (!adsAvailable() || ads.adsRemoved || interstitialReady) return
     // Never request an ad before consent (UMP) and ATT have been resolved —
     // a session can start while those prompts are still on screen.
     await AdService.initAds()
@@ -88,7 +97,7 @@ export const AdService = {
    * EEA/UK). The UI only offers it when `useAdsStore().privacyOptionsRequired`.
    */
   async showPrivacyOptions(): Promise<void> {
-    if (!isNativePlatform()) return
+    if (!adsAvailable()) return
     await AdService.initAds()
     try {
       await AdMob.showPrivacyOptionsForm()
@@ -103,7 +112,7 @@ export const AdService = {
 
   async showInterstitial(): Promise<void> {
     const ads = useAdsStore()
-    if (!isNativePlatform() || ads.adsRemoved || !interstitialReady) return
+    if (!adsAvailable() || ads.adsRemoved || !interstitialReady) return
     interstitialReady = false
     try {
       await AdMob.showInterstitial()

@@ -53,8 +53,6 @@ The first public release of WTX for iOS, Android and the web.
   - First-run onboarding, safe-area aware layout for notched phones, and an Android back button that
     closes open sheets first.
   - Privacy Policy, Terms and account-deletion pages, in the app and on the web; a Contact support link.
-  - Ads between workouts, with consent and App Tracking Transparency prompts and an "Ad privacy settings"
-    option where required.
 
 ### Security
 

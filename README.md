@@ -290,8 +290,13 @@ One-time steps before a build is submitted to the App Store / Play Store —
 everything here needs a real AdMob account, so it can't be done from the repo
 alone:
 
+Ads sit behind a feature flag, `VITE_ADS_ENABLED`, and are **off unless it is
+`true`**: the Mobile Ads SDK is never initialised, so there's no consent form,
+no iOS tracking prompt and no ad request. A build without ads can skip the
+AdMob steps below.
+
 Every AdMob value defaults to Google's public test/sample IDs, so an
-unconfigured (dev) build can never serve real ads. For a store build:
+unconfigured (dev) build can never serve real ads. For a store build with ads:
 
 1. Create the apps and an interstitial ad unit per platform in the
    [AdMob console](https://apps.admob.com/).
