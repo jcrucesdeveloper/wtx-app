@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { Trophy } from '@lucide/vue'
 import type { PersonalRecord } from '@/lib/sessionRecords'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 defineProps<{
   record: PersonalRecord
@@ -9,6 +10,7 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+const { exerciseName } = useExerciseName()
 </script>
 
 <template>
@@ -17,7 +19,7 @@ const { t } = useI18n()
     <div class="pr__body">
       <span class="pr__title">{{ t('session.personalRecordBanner.title') }}</span>
       <span class="pr__detail">
-        {{ record.exerciseName }} — {{ record.weight }} {{ unit }}
+        {{ exerciseName(record.exerciseName) }} — {{ record.weight }} {{ unit }}
         <span class="pr__previous">{{
           t('session.personalRecordBanner.was', { value: record.previousWeight, unit })
         }}</span>

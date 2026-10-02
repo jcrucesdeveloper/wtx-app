@@ -19,6 +19,7 @@ import { track } from '@/services/analytics'
 import { publicOrigin, publicRouteUrl } from '@/lib/publicUrl'
 import { renderWorkoutCard, type WorkoutCardData } from '@/lib/workoutCard'
 import { useThemeStore } from '@/stores/theme'
+import { useExerciseName } from '@/composables/useExerciseName'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -26,6 +27,7 @@ const router = useRouter()
 const sessions = useSessionsStore()
 const sessionRecap = useSessionRecapStore()
 const theme = useThemeStore()
+const { exerciseName } = useExerciseName()
 
 const id = computed(() => String(route.params.id))
 const stored = computed(() => sessions.getById(id.value))
@@ -84,7 +86,7 @@ const shareText = computed(() => {
   if (topPr) {
     lines.push(
       t('sessionComplete.sharePr', {
-        exercise: topPr.exerciseName,
+        exercise: exerciseName(topPr.exerciseName),
         // Not formatNumber: it rounds, and a 72.5 record must not read as 73.
         weight: topPr.weight,
         unit: session.unit,
@@ -123,7 +125,7 @@ const cardData = computed<WorkoutCardData | null>(() => {
   if (topPr) {
     highlight = {
       label: t('sessionComplete.cardPr'),
-      text: `${topPr.exerciseName} · ${topPr.weight} ${session.unit} × ${topPr.reps}`,
+      text: `${exerciseName(topPr.exerciseName)} · ${topPr.weight} ${session.unit} × ${topPr.reps}`,
     }
   } else if (recap.value && recap.value.weekStreak >= 2) {
     highlight = {
