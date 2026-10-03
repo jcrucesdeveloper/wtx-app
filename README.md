@@ -396,10 +396,10 @@ address. Until these are done, links shared from the phone apps point at
    `./gradlew bundleRelease -PpublicHost=wtx.app` (or `publicHost=` in
    `~/.gradle/gradle.properties`, or the `WTX_PUBLIC_HOST` env var) — it fills
    the App Links intent filter in `AndroidManifest.xml`. Check with
-   `adb shell pm get-app-links com.wtx.app`.
+   `adb shell pm get-app-links com.wtxworkout.app`.
 6. **iOS.** Replace `TEAMID` in `apple-app-site-association` with the Apple
    Developer Team ID. Enable the **Associated Domains** capability for the
-   `com.wtx.app` App ID (Xcode does this with automatic signing; free personal
+   `com.wtxworkout.app` App ID (Xcode does this with automatic signing; free personal
    teams don't support it). Set the App target's `PUBLIC_HOST` build setting
    (Build Settings → User-Defined; default `wtx.invalid`) to the host —
    `App/App.entitlements` reads it as `applinks:$(PUBLIC_HOST)`.

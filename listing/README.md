@@ -21,7 +21,7 @@ folder must not claim more:
   link; no server round-trip, no account needed on either end.
 - **Configurable accent color.**
 - No backend, no account, no sign-up. Data lives in `localStorage` on-device.
-- App ID `com.wtx.app`, display name `WTX`. Built with Capacitor for
+- App ID `com.wtxworkout.app`, display name `WTX`. Built with Capacitor for
   Android/iOS from the same web codebase.
 - Monetization: AdMob ads are wired in (`src/services/ads.ts`,
   `src/stores/ads.ts`). **A "remove ads" purchase flow does not exist yet** —

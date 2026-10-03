@@ -1,4 +1,4 @@
-package com.wtx.app;
+package com.wtxworkout.app;
 
 import com.getcapacitor.BridgeActivity;
 

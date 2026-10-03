@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.wtx.app',
+  appId: 'com.wtxworkout.app',
   appName: 'WTX',
   webDir: 'dist',
   plugins: {

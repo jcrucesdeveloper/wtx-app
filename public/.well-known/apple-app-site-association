@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["TEAMID.com.wtx.app"],
+        "appIDs": ["TEAMID.com.wtxworkout.app"],
         "components": [
           { "/": "/social/*", "comment": "Follow and join links, profiles, posts" },
           { "/": "/rooms/*", "comment": "Group workout lobbies" },
