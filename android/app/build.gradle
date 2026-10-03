@@ -1,4 +1,19 @@
+import groovy.json.JsonSlurper
+
 apply plugin: 'com.android.application'
+
+// Version: package.json is the single source of truth. versionName is its
+// "version" (X.Y.Z) and versionCode is derived from it, so it always grows
+// with the version: X * 1,000,000 + Y * 10,000 + Z * 100 + build. `build`
+// (0-99, default 0) is the `buildNumber` Gradle property, only for uploading
+// the same version again (-PbuildNumber=1). Y and Z must stay below 100.
+def appVersionName = new JsonSlurper().parse(rootProject.file('../package.json')).version
+def appVersionParts = appVersionName.tokenize('.')*.toInteger()
+def appBuildNumber = (project.findProperty('buildNumber') ?: '0').toInteger()
+if (appVersionParts.size() != 3 || appVersionParts[1] > 99 || appVersionParts[2] > 99 || appBuildNumber > 99) {
+    throw new GradleException("Can't derive versionCode from version ${appVersionName} and buildNumber ${appBuildNumber}: expected X.Y.Z with Y, Z and buildNumber at most 99.")
+}
+def appVersionCode = appVersionParts[0] * 1_000_000 + appVersionParts[1] * 10_000 + appVersionParts[2] * 100 + appBuildNumber
 
 // Release signing: reads android/keystore.properties (gitignored) when it
 // exists; without it the release build is left unsigned.
@@ -15,8 +30,8 @@ android {
         applicationId "com.wtxworkout.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // AdMob App ID injected into AndroidManifest.xml. Set the real one for a
         // Play release via the `admobAppId` Gradle property (~/.gradle/gradle.properties
@@ -30,13 +45,12 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
-        // Host of VITE_PUBLIC_URL (e.g. wtx.app), for the App Links intent filter in
-        // AndroidManifest.xml. Set via the `publicHost` Gradle property
-        // (-PpublicHost=... or ~/.gradle/gradle.properties) or the WTX_PUBLIC_HOST env var.
-        // The default is a reserved, never-resolving host, so links simply don't verify.
+        // Host of VITE_PUBLIC_URL, for the App Links intent filter in
+        // AndroidManifest.xml. Override with the `publicHost` Gradle property
+        // (-PpublicHost=...) or the WTX_PUBLIC_HOST env var, e.g. for a staging host.
         manifestPlaceholders["publicHost"] = project.findProperty('publicHost') ?:
             System.getenv('WTX_PUBLIC_HOST') ?:
-            'wtx.invalid'
+            'wtxworkout.com'
     }
     signingConfigs {
         release {

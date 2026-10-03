@@ -24,18 +24,22 @@ and confirm it with the user.
 - Checks pass on `main`: `npm run type-check`, `npx vitest run`, `npx eslint src`,
   `npx oxlint src`. A failing check blocks the release.
 
-## 2. Bump the version (all four places must agree)
+## 2. Bump the version
 
 | File | Field | Rule |
 |---|---|---|
-| `package.json` | `"version"` | `X.Y.Z` (Sentry's release and the in-app version read it via `__APP_VERSION__`) |
-| `android/app/build.gradle` | `versionName` | `"X.Y.Z"` |
-| `android/app/build.gradle` | `versionCode` | +1 on every release that will be uploaded to Play (it must strictly increase); leave it only for the very first upload |
+| `package.json` | `"version"` | `X.Y.Z` (Sentry's release and the in-app version read it via `__APP_VERSION__`). Y and Z must stay ≤ 99. |
 | `ios/App/App.xcodeproj/project.pbxproj` | `MARKETING_VERSION` (Debug + Release) | `X.Y.Z` |
-| `ios/App/App.xcodeproj/project.pbxproj` | `CURRENT_PROJECT_VERSION` (Debug + Release) | +1 per uploaded build, same rule as `versionCode` |
+| `ios/App/App.xcodeproj/project.pbxproj` | `CURRENT_PROJECT_VERSION` (Debug + Release) | +1 per uploaded build (it must strictly increase) |
+
+Android needs no edit: `android/app/build.gradle` reads `package.json` and
+derives `versionName` (`X.Y.Z`) and `versionCode`
+(`X*1000000 + Y*10000 + Z*100 + buildNumber`). `buildNumber` is a Gradle
+property that defaults to 0; it's only for uploading the same version to Play
+again.
 
 Edit the exact lines (they're few); don't reformat the files. Verify with
-`grep -n "version" package.json android/app/build.gradle` and
+`grep -n '"version"' package.json` and
 `grep -n "MARKETING_VERSION\|CURRENT_PROJECT_VERSION" ios/App/App.xcodeproj/project.pbxproj`.
 
 ## 3. Write the CHANGELOG entry
@@ -59,7 +63,7 @@ Edit the exact lines (they're few); don't reformat the files. Verify with
 ## 4. Commit, tag, push
 
 ```sh
-git add package.json android/app/build.gradle ios/App/App.xcodeproj/project.pbxproj CHANGELOG.md
+git add package.json ios/App/App.xcodeproj/project.pbxproj CHANGELOG.md
 git commit -m "Release vX.Y.Z"            # + the session's Co-Authored-By trailer
 git tag -a vX.Y.Z -m "WTX vX.Y.Z" -m "<the changelog section, plain text>"
 ```
