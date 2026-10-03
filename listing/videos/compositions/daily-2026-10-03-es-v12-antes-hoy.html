@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — v12 antes vs. hoy</title>
+    <!--
+      Variation 12, the specific outcome as a before/after: a split screen.
+      "Antes" is visible from frame 1; "Hoy" stays covered until the reveal,
+      then the finish screen confirms it.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .tag {
+        position: absolute;
+        left: 60px;
+        padding: 6px 22px 8px;
+        border-radius: 14px 14px 0 0;
+        font-weight: 900;
+        font-size: 40px;
+        letter-spacing: 0.08em;
+        z-index: 30;
+      }
+      .tag--before {
+        background: #2a3038;
+        color: #aebac6;
+      }
+      .tag--after {
+        background: var(--signal);
+        color: #fff;
+      }
+      .cover {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #0c1116;
+        font-weight: 900;
+        font-size: 200px;
+        color: var(--signal);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as C from '../lib/cuts.js'
+      import * as K from '../lib/kit.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 12,
+        lang: 'es',
+        clips: ['workout'],
+        build(ctx) {
+          const { m, tl } = ctx
+          C.backdrop(ctx)
+          C.brandTag(ctx, { y: 1400 })
+          ctx.music([
+            { at: 0, bars: 2, part: 'build' },
+            { at: 4, bars: 4, part: 'drop' },
+          ])
+          ctx.sfx(0, 'impact', { gain: 0.7 })
+
+          const session = m('workout', 'session')
+          const weight = m('workout', 'weight')
+          const tick = m('workout', 'pr-set')
+          const box = { x: 60, w: 960, h: 340 }
+
+          /* ---------- the two halves ---------- */
+          const before = C.pane(ctx, 'workout', { ...box, y: 560, radius: 0 })
+          C.still(ctx, before, session + 0.3)
+          gsap.set(before.cam, C.frameIn(before, 'set-head', { cy: 0.44 }))
+          const after = C.pane(ctx, 'workout', { ...box, y: 1010, radius: 0 })
+          C.still(ctx, after, weight - 0.1)
+          gsap.set(after.cam, C.frameIn(after, 'set-head', { cy: 0.44 }))
+          const cover = ctx.el('div', 'cover', after.root, '?')
+
+          const tagA = ctx.el('div', 'tag tag--before', ctx.stage, 'ANTES')
+          tagA.style.top = '500px'
+          const tagB = ctx.el('div', 'tag tag--after', ctx.stage, 'HOY')
+          tagB.style.top = '950px'
+
+          const hook = C.label(ctx, 'Antes vs. hoy:<br>mi press de banca', { y: 290, size: 60 })
+
+          // The wait: the covered half ticks like a clock.
+          for (const t of [1, 2, 3, 3.5]) {
+            tl.fromTo(cover, { scale: 1.12 }, { scale: 1, duration: 0.3, ease: 'expo.out', immediateRender: false }, t)
+            ctx.sfx(t, 'tick', { gain: 0.9 })
+          }
+
+          /* ---------- 0:04 the reveal, in real time ---------- */
+          tl.set(cover, { opacity: 0 }, 4)
+          K.flash(ctx, 4, 0.3)
+          const seg = { at: 4, from: weight - 0.1, to: tick + 0.9, speed: 0.8 }
+          C.play(ctx, after, seg)
+          const tTick = ctx.at(seg, tick)
+          ctx.sfx(tTick, 'confirm', { gain: 0.8 })
+          C.hide(ctx, hook, tTick + 0.25)
+          C.bigNumber(ctx, '+2.5', { at: tTick + 0.25, out: 8, y: 262, size: 200, unit: 'kg' })
+          K.shake(ctx, after.root, tTick + 0.25, 10)
+
+          /* ---------- 0:08 the app confirms it ---------- */
+          const recap = C.shot(ctx, 'workout')
+          C.still(ctx, recap, m('workout', 'recap') + 1.4, 8)
+          tl.set(recap.root, { opacity: 1, zIndex: 20 }, 8)
+          tl.set(recap.cam, C.frame('recap-top', { cy: 1180, fill: 0.92 }), 8)
+          C.hide(ctx, tagA, 8)
+          C.hide(ctx, tagB, 8)
+          ctx.sfx(8, 'hit', { gain: 0.9 })
+          K.flash(ctx, 8, 0.45)
+          C.punch(ctx, recap, 8, 1.1)
+          C.cam(ctx, recap, 8.9, C.frame('recap-pr', { cy: 1000, fill: 0.96 }))
+          C.label(ctx, 'La app lo detecta sola.', { y: 330, size: 60, tone: 'red', at: 8, out: 10, sound: false })
+          C.label(ctx, '¿Cuál es tu antes<br>y tu hoy?', { y: 310, size: 66, at: 10 })
+        },
+      })
+    </script>
+  </body>
+</html>

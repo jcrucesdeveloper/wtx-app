@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — v18 esta es tu señal</title>
+    <!--
+      Variation 18, the permission grant ("this is your sign to…"): the quiet
+      one. No cuts, no boxes, no drums: slow fades over a month of trained
+      days, then the streak. The last second is the first frame again, so it
+      loops.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .quiet {
+        position: absolute;
+        left: 90px;
+        width: 810px;
+        text-align: center;
+        font-weight: 300;
+        font-size: 84px;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        color: #fff;
+        text-shadow: 0 2px 30px rgba(0, 0, 0, 0.9);
+        z-index: 30;
+      }
+      .quiet b {
+        font-weight: 800;
+      }
+      .quiet em {
+        font-style: normal;
+        font-weight: 800;
+        color: var(--signal-hi);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as C from '../lib/cuts.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 10,
+        lang: 'es',
+        clips: ['history', 'workout'],
+        build(ctx) {
+          const { m, tl } = ctx
+          const month = C.shot(ctx, 'history')
+          const streak = C.shot(ctx, 'workout')
+          C.still(ctx, month, m('history', 'prev-month') + 0.9)
+          C.still(ctx, streak, m('workout', 'recap') + 1.4)
+          tl.set(month.root, { opacity: 1 }, 0)
+          ctx.music([{ at: 0, bars: 5, part: 'break' }])
+          // Sound design of its own, so the cut without music isn't silent.
+          ctx.sfx(0, 'riser', { dur: 1.1, gain: 0.3 })
+          for (const t of [1.1, 3.6, 7.1]) ctx.sfx(t, 'pop', { gain: 0.5 })
+          ctx.sfx(5.4, 'riser', { dur: 1, gain: 0.3 })
+          ctx.sfx(6.3, 'plate', { gain: 0.6 })
+          ctx.sfx(8.6, 'whoosh', { gain: 0.4 })
+
+          // The month drifts closer the whole time.
+          const a = C.frame('calendar', { cy: 1200, fill: 0.9 })
+          const b = C.frame('calendar', { cy: 1120, fill: 1.12, maxScale: 3 })
+          tl.fromTo(month.cam, a, { ...b, duration: 9, ease: 'none', immediateRender: false }, 0)
+          tl.set(month.cam, a, 9)
+          const s0 = C.frame('recap-top', { cy: 1290, fill: 0.9 })
+          tl.fromTo(streak.cam, s0, { scale: s0.scale * 1.08, x: s0.x - 43, y: s0.y - 90, duration: 3.4, ease: 'none', immediateRender: false }, 6)
+
+          const dim = ctx.el('div', 'scrim')
+          tl.set(dim, { opacity: 0.62 }, 0)
+          tl.to(dim, { opacity: 0.12, duration: 0.8, ease: 'sine.inOut' }, 3.2)
+          tl.to(dim, { opacity: 0.62, duration: 0.6, ease: 'sine.inOut' }, 8.6)
+
+          const line = (html, y, at, out, fade = 0.6) => {
+            const el = ctx.el('div', 'quiet', ctx.stage, html)
+            el.style.top = y + 'px'
+            if (at > 0) {
+              tl.set(el, { opacity: 0 }, 0)
+              tl.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: fade, ease: 'sine.out', immediateRender: false }, at)
+            }
+            if (out !== undefined) tl.to(el, { opacity: 0, duration: 0.5, ease: 'sine.in' }, out)
+            return el
+          }
+
+          /* ---------- 0:00 the sign ---------- */
+          line('Esta es <b>tu señal</b>', 420, 0, 3)
+          line('para ir al gym <b>hoy</b>.', 530, 1.1, 3)
+
+          /* ---------- 0:03 what a month looks like ---------- */
+          line('Cada día en rojo<br>es un <em>entreno</em>.', 330, 3.6, 5.6)
+
+          /* ---------- 0:06 the streak ---------- */
+          tl.to(streak.root, { opacity: 1, duration: 0.7, ease: 'sine.inOut' }, 6)
+          line('<b>9 semanas</b> seguidas.', 420, 6.3, 8.4)
+          line('No la rompas <em>ahora</em>.', 530, 7.1, 8.4)
+
+          /* ---------- 0:09 back to the first frame ---------- */
+          tl.to(streak.root, { opacity: 0, duration: 0.6, ease: 'sine.inOut' }, 8.6)
+          line('Esta es <b>tu señal</b>', 420, 9, undefined, 0.5)
+          C.brandTag(ctx, { y: 262 })
+        },
+      })
+    </script>
+  </body>
+</html>

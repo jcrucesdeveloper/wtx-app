@@ -102,13 +102,18 @@ node scripts/render.mjs <name> --still 45 --out out/daily/<name>-cover.jpg   # c
 Ten working examples: `compositions/daily-2026-10-03-es-v01…v10-*.html`,
 each a different retention mechanism (stopwatch, negative hook, 6-second
 loop, countdown list, close-up taps, a guess, a chat, big numbers, an
-unpopular opinion, a routine to copy). Start a new one from the closest
-example; the blocks are in `lib/cuts.js`:
+unpopular opinion, a routine to copy). Ten more, `…v11…v20-*.html`, each a
+famous hook formula with its own layout (POV single take, before/after split
+screen, diagnosis checklist, tier list, pick-one grid, demonstration tease,
+"types of people" cards, a quiet "this is your sign" loop, a macro zoom-out,
+a QR you are told not to scan). Start a new one from the closest example,
+and don't reuse one layout twice in a batch; the blocks are in `lib/cuts.js`:
 
 | Block | Use |
 |---|---|
 | `shot` / `cut` / `cam` / `play` | Full-frame footage; hard cuts between shots; a camera that punches in on a region (`frame('recap-pr')`, `RECTS` lists the regions) |
 | `topBand` + `under()` | A solid band for the text, with the app framed below it |
+| `pane` + `frameIn` / `still` | Footage in a window (split screens, grids, cards), framed on a region; held on one moment of the take |
 | `label` | Text boxes in the platform's style. `at: 0` is on screen in frame 1 |
 | `words`, `bigNumber`, `steps`, `countdown` | Word-by-word type, a slammed figure, a stepping counter, 3-2-1 |
 | `stopwatch`, `progressBar` | Open loops. The stopwatch is only honest over footage at 1× |

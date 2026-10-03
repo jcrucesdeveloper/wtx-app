@@ -80,6 +80,49 @@ All Spanish, 1080×1920, compositions in `listing/videos/compositions/`
 | 9 | `v09-opinion` | Unpopular opinion, word-by-word type, fast cuts | "Opinión impopular: tu app de gym no necesita IA." | 14 s | built |
 | 10 | `v10-copia` | Value first: a routine worth saving, then where to paste it | "Rutina de torso en 3 ejercicios. Cópiala." | 16 s | built |
 
+## Batch two: the famous hook formulas
+
+Researched 2026-10-03. Batch one tested retention *mechanisms*. This one
+takes the hook wordings that every list of "viral hooks" repeats, and gives
+each its own structure, so no two share a layout.
+
+### What the hook lists agree on
+
+| # | Source | Finding | Quality |
+|---|---|---|---|
+| 15 | [UGC Copilot: 12 TikTok hook formulas](https://ugccopilot.ai/hooks/tiktok/) | Twelve formulas with a claimed hook-rate range each: unpopular opinion 42–52%, hot take 40–50%, diagnosis 38–48%, specific outcome 38–47%, permission grant 36–45%, numbered list 34–43%, pattern interrupt 33–42%, POV 32–41%, "why is nobody talking about" 31–40%, demonstration tease 30–39%, confession 29–38%. | Vendor, method not published |
+| 16 | [quso.ai: 121,820 hooks ranked](https://quso.ai/research/best-hooks-for-short-form) | Median views by hook type differ by only about 31% from best to worst. Proof, product-reveal and personal-reveal lead; "trust me" authority and direct commands are last. Having a clear hook matters more than which type. | Large dataset, one vendor |
+| 17 | [ClipSpeed: 13 hook ideas](https://www.clipspeed.ai/blog/video-hook-ideas) | The same families again, plus the direct callout ("if you are X, watch this"), the fast fix and the visual pattern-break (an unexpected image with no setup). | Vendor |
+| 18 | [Nemo](https://www.nemovideo.com/blog/viral-video-hook-templates), [NestScale](https://nestscale.com/blog/viral-hooks-for-tiktok-and-reels.html) template lists | The wordings in everyday use: "POV: you…", "Nobody talks about…", "N things I wish I knew", "You're doing X wrong", "Tell me you're X without telling me". | Vendor lists |
+| 19 | [tlinky: the 3-second hook](https://tlinky.com/3-second-hook/) | Hook by 1.0 s on Reels, 1.5 s on TikTok, 2.0 s on Shorts. A hook works through curiosity, self-relevance ("this is about me") or social urgency. | Vendor |
+
+Read together: the ranges in (15) overlap so much that they do not rank the
+formulas, and (16) says the type is a small lever. So this batch does not
+bet on one formula. It gives each a fair, distinct execution and lets the
+account's own numbers pick.
+
+### The ten
+
+`daily-2026-10-03-es-v11…v20`. New blocks in `lib/cuts.js`: `pane` (footage
+in a window), `frameIn`, `still`, `appear`.
+
+| # | Name | Hook formula (source) | Hook on frame 1 | Structure | Length |
+|---|---|---|---|---|---|
+| 11 | `v11-pov` | POV frame (15, 18) | "POV: no te acuerdas cuánto levantaste la semana pasada" | One unbroken take, slow push-in, subtitles | 10 s |
+| 12 | `v12-antes-hoy` | Specific outcome, as before/after (15, 17) | "Antes vs. hoy: mi press de banca" | Split screen; the "today" half is covered until the reveal | 12 s |
+| 13 | `v13-diagnostico` | Diagnosis (15, 17) | "Por esto sientes que no progresas en el gym:" | A checklist that stays on screen; a window answers each ✗ | 14 s |
+| 14 | `v14-tier-list` | Ranking / numbered payoff (15, 17) | "Tier list: formas de anotar tu entreno" | A tier board; options drop into rows; S opens into the app | 16 s |
+| 15 | `v15-elige-color` | Question you answer with a number (17) | "Elige el color de tu app de gym" | 2×2 grid of the same screen in four colours | 10 s |
+| 16 | `v16-mira-esto` | Demonstration tease (15) | "Mira lo que pasa cuando pego esto en mi app de gym" | Six lines of text, then the paste in real time | 12 s |
+| 17 | `v17-tipos` | "Types of people" relatable list (18) | "Tipos de personas anotando en el gym" | Card carousel; the fifth card holds the real app | 16 s |
+| 18 | `v18-senal` | Permission grant (15) | "Esta es tu señal para ir al gym hoy." | Quiet: slow fades, no cuts, no drums; loops | 10 s |
+| 19 | `v19-nadie-habla` | Curiosity gap + visual pattern-break (15, 17) | "Nadie habla de esto en las apps de gym:" | Extreme close-up, then one zoom-out in three steps | 12 s |
+| 20 | `v20-qr` | Reverse psychology on a pattern interrupt (17) | "No escanees este QR." | One still object: the app's real share QR, scannable | 8 s |
+
+Left out on purpose: the confession and the authority hook (weakest in 15
+and 16, and they need a face), and "this feels illegal to have for free" (a
+price claim, which the store rules for reused footage forbid).
+
 ## How to read the results
 
 Per post, a day after publishing: **hook rate** (3-second views ÷ views

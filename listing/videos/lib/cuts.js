@@ -39,6 +39,12 @@ export const RECTS = {
   // plaintext
   textarea: { x: 39, y: 738, w: 808, h: 246 },
   parsed: { x: 39, y: 1120, w: 808, h: 640 },
+  // workout — the rest timer that appears when a set is ticked
+  'rest-bar': { x: 0, y: 1690, w: 886, h: 112 },
+  // workout — an exercise's title with its first set row
+  'set-head': { x: 30, y: 400, w: 826, h: 245 },
+  // accent — the settings cards that take the accent colour
+  'accent-cards': { x: 40, y: 62, w: 806, h: 1160 },
 }
 
 /* ---------- full-bleed footage with a camera ---------- */
@@ -131,6 +137,51 @@ export function fadeFromBlack(ctx, dur = 1.2) {
   const el = ctx.el('div', 'blackout')
   ctx.tl.fromTo(el, { opacity: 1 }, { opacity: 0, duration: dur, ease: 'power1.inOut' }, 0)
   return el
+}
+
+/* ---------- panes: footage in a window (split screens, grids, cards) ---------- */
+
+/**
+ * A clipped window showing one clip with its own camera, for layouts where
+ * the footage is not the whole frame. Works with `play()`; frame it with
+ * `frameIn()`.
+ */
+export function pane(ctx, clip, { x, y, w, h, radius = 28, parent = ctx.stage, z } = {}) {
+  const root = ctx.el('div', 'pane', parent)
+  Object.assign(root.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', borderRadius: radius + 'px' })
+  if (z !== undefined) root.style.zIndex = z
+  const cam = ctx.el('div', 'shot__cam', root)
+  const view = ctx.view(clip, cam)
+  gsap.set(cam, { transformOrigin: '0 0' })
+  return { root, cam, view, clip, w, h }
+}
+
+/** Camera framing that fits a region of the screen across a pane's width. */
+export function frameIn(p, rect, { fill = 1, cy = 0.5 } = {}) {
+  const r = typeof rect === 'string' ? RECTS[rect] : rect
+  if (!r) throw new Error(`unknown rect "${rect}"`)
+  const scale = (p.w * fill) / r.w
+  return { scale, x: p.w / 2 - (r.x + r.w / 2) * scale, y: p.h * cy - (r.y + r.h / 2) * scale }
+}
+
+/** Holds a shot or pane on one moment of its take. */
+export function still(ctx, target, clipT, at = 0) {
+  if (at === 0) target.view.state.t = clipT
+  ctx.tl.set(target.view.state, { t: clipT }, at)
+}
+
+/** Any element popping in at `at` (with `at: 0` it is simply there on frame 1). */
+export function appear(ctx, el, at, { from = { scale: 0.7 }, dur = 0.18, ease = 'back.out(2.6)', sound } = {}) {
+  if (at > 0) {
+    ctx.tl.set(el, { opacity: 0 }, 0)
+    ctx.tl.fromTo(el, { opacity: 0, ...from }, { opacity: 1, scale: 1, x: 0, y: 0, rotate: 0, duration: dur, ease, immediateRender: false }, at)
+    if (sound) ctx.sfx(at, sound, { gain: 0.6 })
+  }
+  return el
+}
+
+export function hide(ctx, el, at) {
+  ctx.tl.set(el, { opacity: 0 }, at)
 }
 
 /* ---------- text ---------- */

@@ -752,3 +752,13 @@ body {
 .chat__bubble {
   overflow-wrap: anywhere;
 }
+
+/* Footage in a window: split screens, grids, cards (cuts.js `pane`). */
+.pane {
+  position: absolute;
+  overflow: hidden;
+  background: var(--app-bg);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.1),
+    0 30px 80px rgba(0, 0, 0, 0.6);
+}
