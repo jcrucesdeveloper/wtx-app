@@ -106,7 +106,10 @@ unpopular opinion, a routine to copy). Ten more, `…v11…v20-*.html`, each a
 famous hook formula with its own layout (POV single take, before/after split
 screen, diagnosis checklist, tier list, pick-one grid, demonstration tease,
 "types of people" cards, a quiet "this is your sign" loop, a macro zoom-out,
-a QR you are told not to scan). Start a new one from the closest example,
+a QR you are told not to scan). And ten bilingual ones, `v21…v30`: native
+formats (tell-me-without-telling-me, red/green flags, the "Me / Also me"
+meme, a search bar, a pause game, a find-it game, a spotlight, vlog
+chapters, a receipt, rate-my). Start a new one from the closest example,
 and don't reuse one layout twice in a batch; the blocks are in `lib/cuts.js`:
 
 | Block | Use |
@@ -119,6 +122,16 @@ and don't reuse one layout twice in a batch; the blocks are in `lib/cuts.js`:
 | `stopwatch`, `progressBar` | Open loops. The stopwatch is only honest over footage at 1× |
 | `chat`, `notes`, `strike` | A generic conversation or note as the "before" (never a real app's look) |
 | `brandTag` | The small persistent tag that replaces the end card |
+
+**Both languages from one file.** Write the composition as a module in
+`compositions/src/<slug>.js` that exports `run(lang)`, with a `T = { es, en }`
+table for every string (see `src/v21-dime.js`; one-off styles go through
+`C.style()`). Each language then needs only a page
+`compositions/daily-<date>-<lang>-<slug>.html` that imports the module and
+calls `run('<lang>')`: copy one of the `v21…v30` pages. Look moments up by
+marker, never by seconds: the two takes are not timed identically. There is
+no English take of `import`. Check a contact sheet in **each** language:
+English lines run shorter, Spanish ones overflow first.
 
 Rules (from the research; check each on the contact sheet):
 

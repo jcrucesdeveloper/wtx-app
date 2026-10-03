@@ -43,3 +43,23 @@ Format: `reel` (spec or bespoke composition) or `slides` (`slideshows/<name>.jso
 | 2026-10-03 | daily-2026-10-03-es-v18-senal | reel | es | "Esta es tu señal para ir al gym hoy." | clean loop | — | calendar, streak | | | | 10 s; no drums; log avg watch time ÷ 10 s |
 | 2026-10-03 | daily-2026-10-03-es-v19-nadie-habla | reel | es | "Nadie habla de esto en las apps de gym:" (macro of the rest timer) | zoom-out | — | rest timer, ±15 s, skip | | | | 12 s; the timer does not count down in the recording |
 | 2026-10-03 | daily-2026-10-03-es-v20-qr | reel | es | "No escanees este QR." | still object | — | share sheet QR | | | | 8 s; QR is real: test a scan before posting |
+| 2026-10-03 | daily-2026-10-03-es-v21-dime | reel | es | "Dime que vas al gym sin decirme que vas al gym." | typed line + cut | — | calendar, session list | | | | 8 s |
+| 2026-10-03 | daily-2026-10-03-es-v22-flags | reel | es | "Red flags y green flags en una app de gym" | swipe cards | — | pre-filled set, export button, PR banner | | | | 14 s |
+| 2026-10-03 | daily-2026-10-03-es-v23-tambien-yo | reel | es | "Yo: hoy entreno suave." → "También yo:" | meme | — | pre-filled sets, typing a weight, PR banner | | | | 10 s |
+| 2026-10-03 | daily-2026-10-03-es-v24-busqueda | reel | es | "cómo anotar mis series sin perder tiempo" (typed) | search bar | — | one-tap sets, finish stats | | | | 12 s |
+| 2026-10-03 | daily-2026-10-03-es-v25-pausa | reel | es | "Pausa el vídeo: hoy te toca…" | pause game | — | routine list cards | | | | 8 s; never settles, loops |
+| 2026-10-03 | daily-2026-10-03-es-v26-encuentra | reel | es | "Encuentra el récord. Tienes 3 segundos." | find-it game | — | finish screen set list, PR banner | | | | 10 s; 3 s countdown |
+| 2026-10-03 | daily-2026-10-03-es-v27-escondida | reel | es | "La función escondida de mi app de gym" | spotlight | — | routine detail, show source | | | | 12 s |
+| 2026-10-03 | daily-2026-10-03-es-v28-ven-conmigo | reel | es | "Ven conmigo: día de push en 15 segundos" | vlog chapters | — | whole workout, finish, recap | | | | 16 s |
+| 2026-10-03 | daily-2026-10-03-es-v29-ticket | reel | es | "Anoté cada entreno durante 9 semanas. La cuenta:" | receipt | — | milestone, calendar, streak, volume, PR | | | | 14 s; typed numbers must match the recording |
+| 2026-10-03 | daily-2026-10-03-es-v30-puntua | reel | es | "Puntúa mi rutina de push del 1 al 10" | list walk + scale | — | routine detail | | | | 12 s; answer is a number |
+| 2026-10-03 | daily-2026-10-03-en-v21-dime | reel | en | "Tell me you lift without telling me you lift." | typed line + cut | — | calendar, session list | | | | 8 s |
+| 2026-10-03 | daily-2026-10-03-en-v22-flags | reel | en | "Red flags & green flags in a gym app" | swipe cards | — | pre-filled set, export button, PR banner | | | | 14 s |
+| 2026-10-03 | daily-2026-10-03-en-v23-tambien-yo | reel | en | "Me: I'll take it easy today." → "Also me:" | meme | — | pre-filled sets, typing a weight, PR banner | | | | 10 s |
+| 2026-10-03 | daily-2026-10-03-en-v24-busqueda | reel | en | "how to log my sets without wasting time" (typed) | search bar | — | one-tap sets, finish stats | | | | 12 s |
+| 2026-10-03 | daily-2026-10-03-en-v25-pausa | reel | en | "Pause the video: today you train…" | pause game | — | routine list cards | | | | 8 s; never settles, loops |
+| 2026-10-03 | daily-2026-10-03-en-v26-encuentra | reel | en | "Find the PR. You have 3 seconds." | find-it game | — | finish screen set list, PR banner | | | | 10 s; 3 s countdown |
+| 2026-10-03 | daily-2026-10-03-en-v27-escondida | reel | en | "The hidden feature in my gym app" | spotlight | — | routine detail, show source | | | | 12 s |
+| 2026-10-03 | daily-2026-10-03-en-v28-ven-conmigo | reel | en | "Come with me: push day in 15 seconds" | vlog chapters | — | whole workout, finish, recap | | | | 16 s |
+| 2026-10-03 | daily-2026-10-03-en-v29-ticket | reel | en | "I logged every workout for 9 weeks. The bill:" | receipt | — | milestone, calendar, streak, volume, PR | | | | 14 s; typed numbers must match the recording |
+| 2026-10-03 | daily-2026-10-03-en-v30-puntua | reel | en | "Rate my push routine from 1 to 10" | list walk + scale | — | routine detail | | | | 12 s; answer is a number |

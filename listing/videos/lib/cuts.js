@@ -180,6 +180,13 @@ export function appear(ctx, el, at, { from = { scale: 0.7 }, dur = 0.18, ease = 
   return el
 }
 
+/** One-off styles for a composition that lives in a module (compositions/src). */
+export function style(css) {
+  const el = document.createElement('style')
+  el.textContent = css
+  document.head.appendChild(el)
+}
+
 export function hide(ctx, el, at) {
   ctx.tl.set(el, { opacity: 0 }, at)
 }

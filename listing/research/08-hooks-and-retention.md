@@ -123,6 +123,47 @@ Left out on purpose: the confession and the authority hook (weakest in 15
 and 16, and they need a face), and "this feels illegal to have for free" (a
 price claim, which the store rules for reused footage forbid).
 
+## Batch three: native formats, in Spanish and English
+
+Researched 2026-10-03. Batches one and two used hook *sentences*. This one
+uses formats a viewer recognises before reading a word: a meme, a game, a
+search box, a receipt. Each is one module in
+`listing/videos/compositions/src/` with its Spanish and English text side by
+side, rendered once per language from the takes recorded in that language.
+
+### What was found, and what was not
+
+| # | Source | Finding | Quality |
+|---|---|---|---|
+| 20 | [NestScale: 15 hooks](https://nestscale.com/blog/viral-hooks-for-tiktok-and-reels.html) | "I tried X for 30 days, and this happened", "Nobody is talking about this feature", "How to get X without Y": the experiment, the hidden feature and the friction-removal hook. | Vendor list |
+| 21 | [Nemo: hook templates](https://www.nemovideo.com/blog/viral-video-hook-templates) | "Tell me you're X without telling me you're X" as a standing template. | Vendor list |
+| 22 | [Time on the "flags" trend](https://time.com/6286130/tiktok-beige-flags) | Red, green and beige flags: a text-on-screen list format with over half a billion views on one tag, in very short videos. | News report |
+| 23 | [Vamp: daily vlogs](https://vamp.com/blog/daily-tiktok-vlogs-are-having-a-viral-moment-heres-how-to-create-them) | The "come with me" micro-vlog: fast cuts through a routine, ending on a question. | Agency blog |
+| 10 | Looping and replays (above) | Replays and pauses count as watch time; a video that never resolves gets replayed. The basis for the pause game. | Vendor blogs |
+
+**Not found:** any measurement of the search-bar opening, the receipt, the
+find-it game, the pause game, the "Me / Also me" meme or "rate my…". They
+are here because they are everywhere on both platforms, which is evidence
+that people make them, not that they work. Treat those six as the
+least-evidenced videos of the thirty.
+
+### The ten
+
+`daily-2026-10-03-{es,en}-v21…v30`.
+
+| # | Module `src/…` | Format | Hook on frame 1 (es / en) | Structure | Length |
+|---|---|---|---|---|---|
+| 21 | `v21-dime` | Tell me without telling me (21) | "Dime que vas al gym sin decirme que vas al gym." / "Tell me you lift without telling me you lift." | Typed line, then a hard cut to the month | 8 s |
+| 22 | `v22-flags` | Red and green flags (22) | "Red flags y green flags en una app de gym" | Deck of cards, stamped and swiped | 14 s |
+| 23 | `v23-tambien-yo` | "Me / Also me" meme | "Yo: hoy entreno suave." / "Me: I'll take it easy today." | White meme bar over two panels | 10 s |
+| 24 | `v24-busqueda` | Search bar; "how to X without Y" (20) | "cómo anotar mis series sin perder tiempo" being typed | Search box and suggestions, then the answer | 12 s |
+| 25 | `v25-pausa` | Pause game (10) | "Pausa el vídeo: hoy te toca…" / "Pause the video: today you train…" | Three routine cards flicking, never settling | 8 s |
+| 26 | `v26-encuentra` | Find-it game | "Encuentra el récord. Tienes 3 segundos." / "Find the PR. You have 3 seconds." | Still screen, countdown, ringed answer | 10 s |
+| 27 | `v27-escondida` | Hidden feature (20) | "La función escondida de mi app de gym" | A spotlight searching a dark screen | 12 s |
+| 28 | `v28-ven-conmigo` | Come with me (23) | "Ven conmigo: día de push en 15 segundos" | Chapter rail and a window | 16 s |
+| 29 | `v29-ticket` | Experiment (20), as a receipt | "Anoté cada entreno durante 9 semanas. La cuenta:" / "I logged every workout for 9 weeks. The bill:" | Receipt printing, with a proof window | 14 s |
+| 30 | `v30-puntua` | Rate my… | "Puntúa mi rutina de push del 1 al 10" / "Rate my push routine from 1 to 10" | Camera steps down the list, then a 1–10 scale | 12 s |
+
 ## How to read the results
 
 Per post, a day after publishing: **hook rate** (3-second views ÷ views
