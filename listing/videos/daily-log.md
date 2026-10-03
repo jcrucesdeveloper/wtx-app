@@ -22,3 +22,4 @@ Format: `reel` (spec or bespoke composition) or `slides` (`slideshows/<name>.jso
 | 2026-10-02 | es-record | slides | es | "Llevabas semanas en 70 kg." → 72.5 | story | — | PR recap, pre-filled sets | | | | no photo on slide 1 yet |
 | 2026-10-02 | es-racha | slides | es | "9 semanas sin fallar." | story | — | calendar, streak | | | | ends on a question to drive comments |
 | 2026-10-02 | es-texto | slides | es | "Mi rutina cabe en un mensaje." | story | — | .wtt source, QR share, logging | | | | |
+| 2026-10-02 | daily-2026-10-02-es-25-entrenos | reel | es | "POV: 8 semanas anotando cada serie" (0→25 counter) | story | — | calendar, session list with volume deltas, fast logging, milestone, PR | | | | 22 s, first story-tone reel |
