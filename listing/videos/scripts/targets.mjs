@@ -32,7 +32,8 @@ export const PRESETS = {
    */
   social: {
     video: [...H264, '-level:v', '4.1', '-b:v', '10M', '-maxrate', '16M', '-bufsize', '32M', '-g', '30'],
-    audioBitrate: '320k',
+    // ffmpeg's AAC overshoots its nominal rate by a few percent; 300k stays under 330k.
+    audioBitrate: '300k',
     lufs: -14,
   },
 }

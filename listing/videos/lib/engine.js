@@ -143,7 +143,10 @@ export async function composition({ width, height, fps = 30, duration, bpm = 120
 
   window.__comp = { width, height, fps, duration, frames: Math.round(duration * fps), audio }
   window.__seek = async (frame) => {
-    tl.seek(frame / fps, false)
+    // A hair past the frame's time: a paused timeline seeked to exactly 0 has
+    // not moved, so nothing scheduled at 0 (every "hidden until…" set) would
+    // apply and frame 0 would show everything at once.
+    tl.seek(frame / fps + 1e-4, false)
     await syncViews()
   }
   await window.__seek(Number(params.get('frame') ?? 0))

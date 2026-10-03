@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — v04 top 3</title>
+    <!--
+      Variation 4: a countdown list. "The 1 is the best" is the open loop, the
+      progress bar shows how close it is, and each item cuts to a new screen.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as C from '../lib/cuts.js'
+      import * as K from '../lib/kit.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 18,
+        lang: 'es',
+        clips: ['workout', 'history'],
+        build(ctx) {
+          const { m } = ctx
+          const w = C.shot(ctx, 'workout')
+          const r = C.shot(ctx, 'workout')
+          const h = C.shot(ctx, 'history')
+          const shots = [w, r, h]
+          C.topBand(ctx, 720)
+          C.brandTag(ctx)
+          C.progressBar(ctx, { y: 226 })
+          ctx.music([{ at: 0, bars: 9, part: 'drop' }])
+          ctx.sfx(0, 'impact', { gain: 0.8 })
+
+          const T = [2.6, 7.2, 11.8, 16.4] // item 3, item 2, item 1, the question
+          const session = m('workout', 'session')
+          const bench = m('workout', 'bench-done')
+
+          /* ---------- 0:00 hook, over a workout already in progress ---------- */
+          C.cut(ctx, shots, w, 0, C.under(740))
+          C.play(ctx, w, { at: 0, from: bench, to: m('workout', 'fast-end'), speed: (m('workout', 'fast-end') - bench) / T[0] }, { sound: false })
+          C.label(ctx, '3 cosas que tu app de gym<br>debería hacer sola', { y: 330, size: 58, out: T[0] })
+          C.label(ctx, '(la 1 es la mejor)', { y: 520, size: 44, tone: 'dark', at: 0.9, out: T[0] })
+
+          const item = (n, text, at, out) => {
+            C.bigNumber(ctx, String(n), { at, out, y: 330, size: 250 })
+            C.label(ctx, text, { x: 290, y: 372, size: 54, tone: 'red', at, out, sound: false })
+          }
+
+          /* ---------- 3: last time's numbers ---------- */
+          item(3, 'Poner el peso<br>de la última vez', T[0], T[1])
+          C.cut(ctx, shots, w, T[0], C.frame('session-card', { cy: 1300 }))
+          C.play(ctx, w, { at: T[0], from: session + 0.2, to: bench, speed: (bench - session - 0.2) / (T[1] - T[0]) })
+          C.cam(ctx, w, T[0] + 1.3, C.frame({ x: 39, y: 520, w: 520, h: 360 }, { cy: 1300 }))
+          C.cam(ctx, w, T[0] + 3.2, C.frame('session-card', { cy: 1300 }))
+
+          /* ---------- 2: the streak ---------- */
+          item(2, 'Contar tu racha<br>semana a semana', T[1], T[2])
+          C.cut(ctx, shots, h, T[1], C.frame('calendar', { cy: 1250 }), { sound: 'hit' })
+          C.play(ctx, h, { at: T[1], from: m('history', 'prev-month') + 0.5, to: m('history', 'next-month') - 0.1, speed: 0.4 }, { sound: false })
+          C.cut(ctx, shots, r, T[1] + 2.4, C.frame('recap-streak', { cy: 1150, fill: 1 }), { sound: 'pop' })
+          C.play(ctx, r, { at: T[1] + 2.4, from: m('workout', 'recap') + 1, to: m('workout', 'recap') + 2.2, speed: 0.5 }, { sound: false })
+
+          /* ---------- 1: the record ---------- */
+          item(1, 'Avisarte cuando<br>rompes un récord', T[2], T[3])
+          C.cut(ctx, shots, w, T[2], C.frame({ x: 39, y: 500, w: 560, h: 380 }, { cy: 1280 }), { sound: 'hit' })
+          const pr = m('workout', 'pr-set')
+          C.play(ctx, w, { at: T[2], from: m('workout', 'weight') - 0.3, to: pr + 0.9, speed: (pr + 0.9 - m('workout', 'weight') + 0.3) / 2.3 })
+          C.cut(ctx, shots, r, T[2] + 2.3, C.frame('recap-pr', { cy: 1120, fill: 1 }), { sound: 'hit' })
+          K.flash(ctx, T[2] + 2.3, 0.4)
+          C.punch(ctx, r, T[2] + 2.3, 1.08)
+
+          /* ---------- the question ---------- */
+          C.label(ctx, '¿Cuál le falta<br>a la tuya?', { y: 330, size: 66, at: T[3] })
+          C.cam(ctx, r, T[3], C.frame('recap-top', { cy: 1330 }), { dur: 0.5 })
+        },
+      })
+    </script>
+  </body>
+</html>

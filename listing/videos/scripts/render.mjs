@@ -213,12 +213,30 @@ async function renderComposition(server, name, opts) {
  * gain (single-pass loudnorm is dynamic and audibly pumps music).
  */
 function loudnormFilter(wav, lufs) {
-  const r = spawnSync(ffmpeg, ['-hide_banner', '-i', wav, '-af', `loudnorm=I=${lufs}:TP=-1.5:LRA=11:print_format=json`, '-f', 'null', '-'], { encoding: 'utf8' })
-  const m = JSON.parse(r.stderr.slice(r.stderr.lastIndexOf('{'), r.stderr.lastIndexOf('}') + 1))
-  return (
+  /** Loudness stats of `wav` after `chain` (or of the file itself). */
+  const measure = (chain) => {
+    const af = `${chain ? chain + ',' : ''}loudnorm=I=${lufs}:TP=-1.5:LRA=11:print_format=json`
+    const r = spawnSync(ffmpeg, ['-hide_banner', '-i', wav, '-af', af, '-f', 'null', '-'], { encoding: 'utf8' })
+    return JSON.parse(r.stderr.slice(r.stderr.lastIndexOf('{'), r.stderr.lastIndexOf('}') + 1))
+  }
+  const m = measure('')
+  // A silent track (an SFX-only cut of a video with no sound effects) measures
+  // -inf and has nothing to normalize.
+  if (!Number.isFinite(Number(m.input_i))) return 'aresample=48000'
+  // The limiter sits at -3 dB: sparse, loud hits get a large gain here and the
+  // AAC encode overshoots the sample peak by up to ~1.5 dB.
+  const LIMIT = 'alimiter=limit=0.7:level=false'
+  let chain =
     `loudnorm=I=${lufs}:TP=-1.5:LRA=11:linear=true:measured_I=${m.input_i}:measured_TP=${m.input_tp}` +
-    `:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset},alimiter=limit=0.79:level=false,aresample=48000`
-  )
+    `:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset},${LIMIT}`
+  // On a track of a few sparse hits the limiter eats the gain (or loudnorm
+  // overshoots a very short one): measure the result and correct it.
+  for (let pass = 0; pass < 3; pass++) {
+    const delta = lufs - Number(measure(chain).input_i)
+    if (!Number.isFinite(delta) || Math.abs(delta) <= 0.3) break
+    chain += `,volume=${delta.toFixed(2)}dB,${LIMIT}`
+  }
+  return `${chain},aresample=48000`
 }
 
 /** Encodes the master once per delivery target, loudness-normalized per platform. */

@@ -23,3 +23,13 @@ Format: `reel` (spec or bespoke composition) or `slides` (`slideshows/<name>.jso
 | 2026-10-02 | es-racha | slides | es | "9 semanas sin fallar." | story | — | calendar, streak | | | | ends on a question to drive comments |
 | 2026-10-02 | es-texto | slides | es | "Mi rutina cabe en un mensaje." | story | — | .wtt source, QR share, logging | | | | |
 | 2026-10-02 | daily-2026-10-02-es-25-entrenos | reel | es | "POV: 8 semanas anotando cada serie" (0→25 counter) | story | — | calendar, session list with volume deltas, fast logging, milestone, PR | | | | 22 s, first story-tone reel |
+| 2026-10-03 | daily-2026-10-03-es-v01-speedrun | reel | es | "Speedrun: registrar un entreno completo" + live stopwatch | fast-cut | — | whole workout at 1×, recap | | | | 22 s; open loop: stopwatch (stops at 16.5 s) |
+| 2026-10-03 | daily-2026-10-03-es-v02-notas | reel | es | "Deja de anotar tus pesos en Notas." | fast-cut | — | pre-filled sets, PR, streak, calendar | | | | 14 s; negative hook |
+| 2026-10-03 | daily-2026-10-03-es-v03-loop | reel | es | "Cosas que mi app de gym hace sola:" (6-item list) | loop | — | finish screen | | | | 6 s; log avg watch time ÷ 6 s |
+| 2026-10-03 | daily-2026-10-03-es-v04-top3 | reel | es | "3 cosas que tu app de gym debería hacer sola (la 1 es la mejor)" | fast-cut | — | pre-filled sets, streak, PR | | | | 18 s; countdown list + progress bar |
+| 2026-10-03 | daily-2026-10-03-es-v05-satisfying | reel | es | "El sonido de terminar tu rutina" | asmr | — | 16 sets ticked in close-up | | | | 12 s; no music; loops |
+| 2026-10-03 | daily-2026-10-03-es-v06-adivina | reel | es | "¿Récord o no? Adivina antes que la app." | fast-cut | — | typing a weight, PR banner | | | | 12 s; 3-2-1 countdown; ends on a question |
+| 2026-10-03 | daily-2026-10-03-es-v07-chat | reel | es | "bro pásame tu rutina de push" (chat) | story | — | opening a shared link, adding the routine | | | | 16 s; built to be sent to a friend |
+| 2026-10-03 | daily-2026-10-03-es-v08-wrapped | reel | es | "Mi mes en el gym, en números" | fast-cut | — | calendar, volume, streak, PR | | | | 16 s; typed numbers must match the recording |
+| 2026-10-03 | daily-2026-10-03-es-v09-opinion | reel | es | "Opinión impopular: tu app de gym no necesita IA." | fast-cut | — | pre-filled sets, one-tap logging, PR | | | | 14 s; word-by-word type |
+| 2026-10-03 | daily-2026-10-03-es-v10-copia | reel | es | "Rutina de torso en 3 ejercicios. Cópiala." | tutorial | — | routine as text, paste, parsed preview | | | | 16 s; value first (save bait) |

@@ -26,9 +26,12 @@ Skip the questions below unless the user asked for something specific.
 Use `AskUserQuestion` once, with these questions, skipping any the user
 already answered. Always offer defaults.
 
-0. **Format.** `reel` (default) or `slides`. Slideshows are the cheapest to
-   make and the format the closest comparable app (a solo founder's gym
-   planner on TikTok) grew with; see "Slideshows" below.
+0. **Format.** `fast-cut` (default), `reel` (the spec-driven phone-and-caption
+   template) or `slides`. Fast-cut is the default because the template reels
+   read as boring: see "Fast-cut variations" below and the rules in
+   `listing/research/08-hooks-and-retention.md`. Slideshows are the cheapest
+   to make and the format the closest comparable app grew with; see
+   "Slideshows" below.
 
 1. **Angle.** Which feature or story. Read `listing/videos/daily-log.md`
    first and propose 2–3 angles **not used recently**, from the
@@ -94,6 +97,34 @@ node scripts/verify.mjs <name>      # must print "All deliverables match"
 node scripts/render.mjs <name> --still 45 --out out/daily/<name>-cover.jpg   # cover frame
 ```
 
+## Fast-cut variations
+
+Ten working examples: `compositions/daily-2026-10-03-es-v01…v10-*.html`,
+each a different retention mechanism (stopwatch, negative hook, 6-second
+loop, countdown list, close-up taps, a guess, a chat, big numbers, an
+unpopular opinion, a routine to copy). Start a new one from the closest
+example; the blocks are in `lib/cuts.js`:
+
+| Block | Use |
+|---|---|
+| `shot` / `cut` / `cam` / `play` | Full-frame footage; hard cuts between shots; a camera that punches in on a region (`frame('recap-pr')`, `RECTS` lists the regions) |
+| `topBand` + `under()` | A solid band for the text, with the app framed below it |
+| `label` | Text boxes in the platform's style. `at: 0` is on screen in frame 1 |
+| `words`, `bigNumber`, `steps`, `countdown` | Word-by-word type, a slammed figure, a stepping counter, 3-2-1 |
+| `stopwatch`, `progressBar` | Open loops. The stopwatch is only honest over footage at 1× |
+| `chat`, `notes`, `strike` | A generic conversation or note as the "before" (never a real app's look) |
+| `brandTag` | The small persistent tag that replaces the end card |
+
+Rules (from the research; check each on the contact sheet):
+
+- **Frame 0 is the hook**, fully readable. Include still `0` in the sheet.
+- **Something changes every 2–4 s**: a cut, a punch-in, a label, a sound.
+- **One open loop**, closed in the last seconds.
+- **No end card.** End on the payoff, a genuine question, or the first frame.
+- **A typed number must equal the number on the screen behind it.**
+- Keep `duration` even; music is in 2-second bars.
+- Use `fill: 1` or less when framing a full-width region, or its text is cropped.
+
 ## Slideshows
 
 A photo carousel (`slideshows/<name>.json` → `out/slideshows/<name>/01.png…`).
@@ -150,6 +181,7 @@ nearly empty early in a month: use `prev-month` for a full calendar.
 | `routine` | `open-routine`/`detail` · `show-source`/`source` · `share`/`qr` | Routine detail with exercise images, raw `.wtt` source, Share sheet with a real QR. |
 | `plaintext` | `load` · `textarea`/`typing` · `line`×5 · `typed` · `add`/`added` | Load sheet: a routine pasted line by line, live parsed preview, lands on the new routine. |
 | `accent` | `settings-tab`/`settings` · `swatch-1`,`-3`,`-5`,`-6`,`-0` | Accent color cycling through emerald, violet, amber, cyan, back to red. **Before `settings`+1.1 s it shows a price. Never use that part for the App Store.** |
+| `import` | `opened` · `add`/`added` | The receiving side of a shared routine: the import screen for "Push Pesado" (not in the library), "Añadir a la biblioteca", then the routine's detail. |
 
 Callout crops (`callouts: [...]` in a beat): `set-row-1` (workout, session),
 and on the recap `recap-stats`, `recap-pr`, `recap-volume`, `recap-streak`,
