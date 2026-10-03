@@ -72,8 +72,19 @@ export function caption(ctx, { at, out, kicker, lines, size = 112, dur = 0.7, st
   return { box, parts, headline: h }
 }
 
-/** Closing card: the mark, the wordmark, the promise, the CTA. */
-export function endCard(ctx, at, { tagline = 'Log every set.<br><span class="accent">Beat every PR.</span>' } = {}) {
+/** The end card's built-in copy per language; a composition can override either line. */
+export const END_COPY = {
+  en: { tagline: 'Log every set.<br><span class="accent">Beat every PR.</span>', pill: 'Free on iOS &amp; Android' },
+  es: { tagline: 'Registra cada serie.<br><span class="accent">Supera cada récord.</span>', pill: 'Gratis en iOS y Android' },
+}
+
+/**
+ * Closing card: the mark, the wordmark, the promise, the CTA.
+ *
+ * @param pill - The CTA line. Before the stores are live, pass the web
+ *   address instead of the default "Free on iOS & Android".
+ */
+export function endCard(ctx, at, { lang = 'en', tagline = END_COPY[lang].tagline, pill: pillText = END_COPY[lang].pill } = {}) {
   const end = ctx.el('div', 'end-v')
   Object.assign(end.style, {
     position: 'absolute',
@@ -99,7 +110,7 @@ export function endCard(ctx, at, { tagline = 'Log every set.<br><span class="acc
   Object.assign(tag.style, { fontSize: '76px', textAlign: 'center', lineHeight: '1' })
   ctx.tl.set(tag, { opacity: 0 }, 0)
   ctx.tl.fromTo(tag, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, immediateRender: false }, at + 0.8)
-  const pill = ctx.el('div', 'pill', end, `${K.ICONS.check}<span>Free on iOS &amp; Android</span>`)
+  const pill = ctx.el('div', 'pill', end, `${K.ICONS.check}<span>${pillText}</span>`)
   pill.style.fontSize = '38px'
   pill.querySelector('svg').style.color = 'var(--signal)'
   ctx.tl.set(pill, { opacity: 0 }, 0)

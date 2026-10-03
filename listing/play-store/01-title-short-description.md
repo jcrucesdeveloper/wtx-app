@@ -3,39 +3,48 @@
 Limits: Title 30 chars · Short description 80 chars.
 (`research/03-character-limits-reference.md`)
 
-## Title — pick one
+Add **Spanish (Latin America) – es-419** and **Spanish (Spain) – es-ES** as
+translations in Play Console and paste the Spanish set into both.
 
-**Primary recommendation (28/30 chars):**
-```
-WTX: Workout Routine Planner
-```
-Leads with a high-volume generic term ("workout routine planner") for
-discoverability, per the hybrid strategy in `research/01-aso-strategy.md`.
+## English
 
-**Alternatives:**
+**Title (30/30 chars):**
 ```
-WTX - Workout Log & Planner        (27/30 chars)
-WTX: Plain-Text Workout Log        (27/30 chars)
-```
-The third option leans fully into the differentiator instead of generic
-volume — better brand fit, likely lower discovery volume. Use it if you'd
-rather the store listing itself do the "this isn't a normal fitness app"
-filtering.
-
-## Short description — pick one
-
-**Primary recommendation (75/80 chars):**
-```
-Plain-text workout routines. No account, no cloud - share instantly via QR.
+WTX: Workout Tracker & Planner
 ```
 
-**Alternatives:**
+Alternative (24/30 chars):
 ```
-Workout routines as text files. No account, no cloud. Share via QR code.   (72/80)
-Build workout routines as plain text. No sign-up. Share instantly via QR.  (73/80)
+WTX: Gym Workout Tracker
 ```
 
-All three put the differentiator (plain text / no account) front and center,
-since the Title already covers the generic keyword. Don't repeat the short
-description verbatim inside the full description — Google's own guidance
-flags that as wasted space.
+**Short description (72/80 chars):**
+```
+Log sets in one tap, track PRs and streaks, and train live with friends.
+```
+
+## Spanish
+
+**Title (30/30 chars):**
+```
+WTX: Rutinas y Registro de Gym
+```
+
+Alternative (27/30 chars):
+```
+WTX: Rutinas de Gym y Pesas
+```
+
+**Short description (77/80 chars):**
+```
+Registra series con un toque, sigue tus récords y entrena en vivo con amigos.
+```
+
+## Why these
+
+- The title carries the high-volume generic terms ("workout tracker",
+  "planner", "rutinas", "gym"), per `research/01-aso-strategy.md`.
+- The short description states what the app does in the order a new user
+  meets it: log, see progress, train with friends.
+- Don't repeat the short description verbatim inside the full description —
+  Google's own guidance flags that as wasted space.

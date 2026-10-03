@@ -11,6 +11,9 @@ importers:
       '@capacitor-community/admob':
         specifier: ^8.1.0
         version: 8.1.0
+      '@capacitor-community/in-app-review':
+        specifier: ^8.0.0
+        version: 8.0.0(@capacitor/core@8.5.2)
       '@capacitor/app':
         specifier: ^8.1.1
         version: 8.1.1(@capacitor/core@8.5.2)
@@ -312,6 +315,11 @@ packages:
   '@capacitor-community/admob@8.1.0':
     resolution: {integrity: sha512-DMIxg80CwQsJd0EcvsCNtpWizFcesZUFCFNVxRctv4HLSH8RPGfaS3pxRuq+tXw6jy0za5o3g5l/+z201nHNsw==}
     engines: {node: '>=22.0.0'}
+
+  '@capacitor-community/in-app-review@8.0.0':
+    resolution: {integrity: sha512-AYpEkIjdv27WGS3hnlc7xAQ1BhaBvD2svgQBfHF4P2Olw1N6a7MSCOQC6O4SuxmdBdJ2fM6uFeo1jyNjKLtIPw==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@capacitor/android@8.5.2':
     resolution: {integrity: sha512-rtiaz78egCcS+vs29wkWCL3C+RhazKMSygXcjutwWP8NmO6r5UBxOvGf3Wjz5+ahobyQ723tn9gCePwRwcNDZQ==}
@@ -2828,6 +2836,10 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.5.2
       '@rdlabo/capacitor-docgen': 0.4.1
+
+  '@capacitor-community/in-app-review@8.0.0(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
 
   '@capacitor/android@8.5.2(@capacitor/core@8.5.2)':
     dependencies:

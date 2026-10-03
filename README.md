@@ -36,15 +36,15 @@ routine in the URL.
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/01-routines.png" alt="Routines library" width="220"><br>
-      <sub>Routines library</sub>
+      <img src="listing/visuals/screens/en/01-log.png" alt="Logging a workout" width="220"><br>
+      <sub>Log a workout</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/02-local-first.png" alt="Local-first configuration" width="220"><br>
-      <sub>Configuration</sub>
+      <img src="listing/visuals/screens/en/02-records.png" alt="Finish screen with a personal record" width="220"><br>
+      <sub>Records and streaks</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/03-share-qr.png" alt="Share a routine via QR" width="220"><br>
+      <img src="listing/visuals/screens/en/06-share.png" alt="Share a routine via QR" width="220"><br>
       <sub>Share via QR</sub>
     </td>
   </tr>
@@ -228,9 +228,31 @@ Both are optional and off by default.
   touching call sites. The default provider (`src/services/supabaseAnalytics.ts`)
   writes to an `app_events` table on the same Supabase project used for sync —
   no new vendor needed. It only starts once Supabase is configured (see
-  above), and only ever inserts an event name, platform, app version and —
-  when signed in — the account's user id (set to null if the account is
-  deleted); nothing is readable back through the client API.
+  above), and only ever inserts an event name, platform, app version, an
+  acquisition source (below) and — when signed in — the account's user id
+  (set to null if the account is deleted); nothing is readable back through
+  the client API.
+
+### Where installs come from
+
+- **Source tags.** A link can carry `?src=<label>` (or `utm_source`), e.g.
+  `https://<site>/?src=tiktok` in a social profile. The first label an
+  install sees is kept (`src/services/acquisition.ts`) and sent with every
+  analytics event. Shared links need no tag: opening a routine, room, follow
+  or post link is recorded as `share-routine`, `share-room`, `share-follow`
+  or `share-post`. Labels are limited to `[a-z0-9_-]`, 32 characters.
+- **"Get the app" banner** (`src/components/GetAppBanner.vue`). The web build
+  shows it on phones once that platform's store ID is set
+  (`VITE_APP_STORE_ID`, `VITE_PLAY_STORE_ID` — see `.env.example`), and the
+  store link it opens carries the source, so the store consoles can
+  attribute the install. Never shown inside the native apps.
+- **Rating prompt** (`src/services/appReview.ts`). Leaving the finish screen
+  after a personal record or a milestone asks for a store rating through the
+  system sheet, from the third workout on and at most once every 90 days.
+  Native only; needs `pnpm cap:sync` for `@capacitor-community/in-app-review`.
+- **Workout card** (`src/lib/workoutCard.ts`). The share button on the finish
+  screen shares a 1080×1920 image of the workout with the app's name and
+  address on it, and falls back to text where images can't be shared.
 
 ### Reminders
 

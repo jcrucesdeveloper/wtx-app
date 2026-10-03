@@ -5,16 +5,26 @@ Limit: 4,000 characters (same as description, but keep it short in practice
 
 ## Launch release template
 
+English:
 ```
-WTX 1.0 — plan workout routines as plain text, no account needed.
+WTX 1.0 is here.
 
-- Templates library with exercise/set/muscle-group summaries
-- Load a routine by pasting text, picking a file, or scanning a QR code
-- Build a routine with a form that saves as portable .wtt text
-- Share any routine instantly via QR code
-- Pick your accent color
+- Log sets in one tap, with last time's numbers pre-filled
+- Personal records, week streak and a training calendar
+- Group workouts: train live with friends and send cheers
+- Routines as plain text: share them with a link or QR
+- Works without an account
+```
 
-Everything stays on your device. No sign-up, ever.
+Spanish:
+```
+Llegó WTX 1.0.
+
+- Registra series con un toque, con los números de la última vez
+- Récords personales, racha semanal y calendario de entrenamiento
+- Entrenamientos en grupo: entrena en vivo con amigos y manda porras
+- Rutinas como texto: compártelas con un enlace o QR
+- Funciona sin cuenta
 ```
 
 ## Template for future releases

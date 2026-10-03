@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX reel — récord personal</title>
+    <!-- Spanish daily reel. Spec shape: _daily-template.html. Guide: .claude/skills/daily-reel/SKILL.md -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import { dailyReel } from '../lib/daily.js'
+
+      const SPEC = {
+        lang: 'es',
+        tone: 'hype',
+        duration: 18,
+        hook: {
+          dur: 3,
+          kicker: 'POV',
+          lines: ['Rompiste', 'tu <em>récord.</em>'],
+          number: { from: 60, to: 72.5, decimals: 1, suffix: 'KG' },
+          stamp: 'Nuevo récord',
+        },
+        beats: [
+          {
+            clip: 'workout', from: ['weight', -0.55], to: ['set-2', 0.1], dur: 2.6,
+            kicker: 'Anota la serie', lines: ['Escríbelo.', '<em>Tócalo.</em>'],
+            confirms: [['pr-set'], ['set-2']],
+          },
+          {
+            clip: 'workout', from: ['set-2', 0.1], to: ['fast-end', 0.1], dur: 2.2,
+            kicker: 'Ya viene rellenado', lines: ['Cada serie,', '<em>un toque.</em>'], tapSound: false,
+          },
+          { clip: 'workout', from: ['finish', -0.25], to: ['recap', -0.5], dur: 1.8, kicker: 'Listo', lines: ['Termina y', '<em>guarda.</em>'] },
+          {
+            clip: 'workout', from: ['recap', -0.15], to: ['recap', 2.3], dur: 3.7,
+            kicker: 'Automático', lines: ['Récords.', 'Rachas.', '<em>Hitos.</em>'], size: 92,
+            callouts: ['recap-pr', 'recap-streak', 'recap-milestone'],
+          },
+        ],
+        end: { pill: 'wtxworkout.com' },
+      }
+
+      const clips = [...new Set(SPEC.beats.map((b) => b.clip))]
+      composition({ width: 1080, height: 1920, fps: 30, duration: SPEC.duration, clips, lang: SPEC.lang, build: (ctx) => dailyReel(ctx, SPEC) })
+    </script>
+  </body>
+</html>

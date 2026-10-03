@@ -16,9 +16,14 @@ export function canShare(): boolean {
 }
 
 /** Opens the share sheet for a link and/or text. Resolves quietly when the user dismisses it. */
-export async function shareLink(payload: { url?: string; text?: string; title?: string }): Promise<void> {
+export async function shareLink(payload: {
+  url?: string
+  text?: string
+  title?: string
+}): Promise<void> {
   try {
-    if (isNative()) await Share.share({ title: payload.title, text: payload.text, url: payload.url })
+    if (isNative())
+      await Share.share({ title: payload.title, text: payload.text, url: payload.url })
     else await navigator.share(payload)
   } catch {
     /* dismissed */
@@ -36,11 +41,53 @@ export function toBase64(bytes: Uint8Array): string {
 }
 
 /**
+ * Shares an image through the system sheet, with an optional caption — the
+ * route into Instagram / WhatsApp stories and the like.
+ *
+ * @returns `false` when this browser can't share files, so the caller can
+ *   fall back to sharing text. Dismissing the sheet still counts as handled.
+ */
+export async function shareImage(
+  bytes: Uint8Array,
+  filename: string,
+  mimeType: string,
+  text?: string,
+): Promise<boolean> {
+  if (isNative()) {
+    const { uri } = await Filesystem.writeFile({
+      path: filename,
+      data: toBase64(bytes),
+      directory: Directory.Cache,
+    })
+    try {
+      await Share.share({ text, files: [uri] })
+    } catch {
+      /* dismissed */
+    }
+    return true
+  }
+
+  const file = new File([bytes as BlobPart], filename, { type: mimeType })
+  if (typeof navigator.canShare !== 'function' || !navigator.canShare({ files: [file] }))
+    return false
+  try {
+    await navigator.share({ files: [file], text })
+  } catch {
+    /* dismissed */
+  }
+  return true
+}
+
+/**
  * Hands a generated file to the user: a browser download on the web, and on
  * native a copy in the app's cache shared through the system sheet (Save to
  * Files, Drive, email…), since the web view can't download it.
  */
-export async function saveFile(bytes: Uint8Array, filename: string, mimeType: string): Promise<void> {
+export async function saveFile(
+  bytes: Uint8Array,
+  filename: string,
+  mimeType: string,
+): Promise<void> {
   if (!isNative()) {
     const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: mimeType }))
     try {

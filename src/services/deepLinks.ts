@@ -2,6 +2,7 @@ import { App as CapacitorApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
 import type { Router } from 'vue-router'
 import { deepLinkToRoute } from '@/lib/publicUrl'
+import { captureSource } from '@/services/acquisition'
 
 /** The same URL arriving twice this quickly (launch URL + event) is one tap, not two. */
 const DUPLICATE_WINDOW_MS = 2000
@@ -27,7 +28,10 @@ export function initDeepLinks(router: Router) {
     lastUrl = url
     lastAt = now
     const target = deepLinkToRoute(url)
-    if (target) void router.push(target)
+    if (!target) return
+    const { pathname, search } = new URL(target, 'https://app.invalid')
+    captureSource(pathname, search)
+    void router.push(target)
   }
 
   void CapacitorApp.addListener('appUrlOpen', ({ url }) => open(url))

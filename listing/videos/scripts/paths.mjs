@@ -7,6 +7,10 @@ export const REPO_ROOT = resolve(VIDEOS_DIR, '..', '..')
 export const BUILD_DIR = join(VIDEOS_DIR, 'build')
 export const OUT_DIR = join(VIDEOS_DIR, 'out')
 
+/** Folder name of a language's recorded takes: `clips` for English, `clips-es` for Spanish. */
+export const clipsFolder = (lang = 'en') => (lang === 'en' ? 'clips' : `clips-${lang}`)
+export const clipsDir = (lang = 'en') => join(BUILD_DIR, clipsFolder(lang))
+
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
   'C:/Program Files/Google/Chrome/Application/chrome.exe',

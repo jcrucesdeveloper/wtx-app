@@ -1,0 +1,10 @@
+{
+  "lang": "es",
+  "slides": [
+    { "type": "hook", "kicker": "POV", "lines": ["Llevabas", "semanas en", "<em>70 kg.</em>"], "size": 112 },
+    { "type": "text", "lines": ["Hoy subiste", "a <em>72.5.</em>"] },
+    { "type": "app", "clip": "workout", "at": "recap+1.6", "kicker": "Y la app lo vio", "lines": ["Nuevo récord,", "<em>detectado.</em>"], "size": 88 },
+    { "type": "app", "clip": "workout", "at": "session+0.6", "kicker": "El truco", "lines": ["Lo de la última", "vez ya está <em>ahí.</em>"], "size": 78 },
+    { "type": "end", "pill": "wtxworkout.com" }
+  ]
+}

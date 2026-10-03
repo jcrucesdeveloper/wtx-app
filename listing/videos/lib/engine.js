@@ -14,10 +14,12 @@
 /* global gsap */
 
 const clipMeta = new Map()
+/** Language of the recorded takes: English lives in build/clips, others in build/clips-<lang>. */
+let clipLang = 'en'
 
 async function loadClip(name) {
   if (clipMeta.has(name)) return clipMeta.get(name)
-  const base = `../build/clips/${name}`
+  const base = `../build/${clipLang === 'en' ? 'clips' : `clips-${clipLang}`}/${name}`
   const [frames, markers] = await Promise.all([
     fetch(`${base}/frames.json`).then((r) => r.json()),
     fetch(`${base}/markers.json`).then((r) => r.json()),
@@ -32,8 +34,10 @@ function rawUrl(meta, t) {
   return `${meta.base}/raw/${String(meta.frames[i]).padStart(6, '0')}.png`
 }
 
-export async function composition({ width, height, fps = 30, duration, bpm = 120, clips = [], build }) {
+export async function composition({ width, height, fps = 30, duration, bpm = 120, clips = [], lang = 'en', build }) {
   const params = new URLSearchParams(location.search)
+  clipLang = lang
+  document.documentElement.lang = lang
   document.documentElement.style.setProperty('--W', width + 'px')
   document.documentElement.style.setProperty('--H', height + 'px')
   const stage = document.getElementById('stage')

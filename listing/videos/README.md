@@ -46,8 +46,20 @@ tutorial or story), hook, beats and optional voice-over. Output goes to
 `out/daily/`, which is re-renderable and not committed. Posts are tracked in
 `daily-log.md`.
 
+**Spanish.** Set `lang: 'es'` in the spec: the reel then uses the takes
+recorded with the app in Spanish (`WTX_LOCALE=es node scripts/capture-app.mjs`
+→ `build/clips-es/`) and Spanish built-in text ("Paso 1", the end card).
+`daily-2026-10-02-es-*` are the Spanish launch set. Before the stores are
+live, set `end.pill` to the web address.
+
+**Slideshows.** `node scripts/slideshow.mjs <name>` renders
+`slideshows/<name>.json` to 1080×1920 PNG slides in `out/slideshows/<name>/`,
+for TikTok photo mode and Instagram carousels. App slides are frames of the
+recorded takes (`scripts/clips.mjs`). Spec format at the top of the script.
+
 The whole routine is written up as a Claude Code skill in
-`.claude/skills/daily-reel/SKILL.md`. Just ask for "today's reel".
+`.claude/skills/daily-reel/SKILL.md`. Just ask for "today's reel", or "this
+week's posts" for a batch of seven.
 
 ## How it's made
 

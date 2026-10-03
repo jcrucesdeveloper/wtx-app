@@ -22,6 +22,9 @@ export type AppEventName =
   | 'session_shared'
   | 'kudos_given'
   | 'user_followed'
+  | 'review_requested'
+  | 'install_banner_tapped'
+  | 'workout_card_shared'
 
 // A type alias, not an interface: supabase-js needs rows assignable to Record<string, unknown>.
 export type RoomRow = {
@@ -221,6 +224,7 @@ export type Database = {
           user_id: string | null
           platform: string | null
           app_version: string | null
+          source: string | null
           created_at: string
         }
         // Only these columns are granted; created_at is always the server's.
@@ -229,6 +233,7 @@ export type Database = {
           user_id?: string | null
           platform?: string | null
           app_version?: string | null
+          source?: string | null
         }
         Update: never
         Relationships: []

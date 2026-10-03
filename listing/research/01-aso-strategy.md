@@ -25,44 +25,53 @@ bottom of `02-keyword-research.md`.
 
 ## Positioning decision for WTX
 
-WTX is a small, unusual entrant in a crowded category (workout tracker apps).
-Two honest options:
+Revised 2026-10-02 for v1.0.0. The first version of this document was
+written when WTX was a routine organizer with no logging and no social
+features, and told the copy to avoid "tracker" and "friends". Both are now
+shipped, so that advice was underselling the app.
 
-1. **Compete head-on on "workout tracker/log/planner"** — high search volume,
-   but WTX has none of the features (exercise library, progress graphs, rest
-   timers, Apple Watch support) that make FitNotes, Hevy, and Strong win that
-   query. Ranking there without those features risks bad reviews and quick
-   uninstalls, which — per the retention-weighted algorithm above — actively
-   hurts long-term ranking.
-2. **Lead with the actual differentiator: plain-text, local-only, shareable
-   routines** — lower search volume today, but it's a real, validated niche
-   (see the Fitdown/Fitmark/markdown-fitness search results in
-   `02-keyword-research.md`) where WTX's real feature set — parse a `.wtt`
-   file, share a routine as a URL/QR with no account on either side — is a
-   genuine, differentiated answer.
+WTX is a small entrant in a crowded category. What it has that the copy can
+truthfully lead with:
 
-**Recommendation: hybrid.** Put one or two high-volume generic terms
-("workout planner", "workout routine") in the Title/short description so WTX
-is discoverable by normal search behavior, but spend the Subtitle, Keywords
-field, and the first third of the long description on the plain-text /
-no-account angle, since that's what will make someone who lands on the page
-actually install and keep the app. Don't try to win "workout tracker" outright
-— WTX isn't a tracker (no logging of completed sets yet; Sessions is a
-placeholder). Calling it a "tracker" also risks a mismatch-with-functionality
-rejection or bad reviews.
+1. **Fast logging.** One tap per set with last time's values pre-filled,
+   then a finish screen that shows records, the comparison with last time
+   and the streak. This is the table-stakes job; the listing has to show it
+   first or the page reads as "not a real tracker".
+2. **Training live with friends.** Group workout rooms joined by code, link
+   or QR. Hevy and Strong have feeds; a shared live session is the least
+   common feature WTX has.
+3. **No account needed.** The app is complete on the device; an account only
+   adds sync and the social features.
+4. **Routines as plain text.** A real niche (see `02-keyword-research.md`)
+   and a good story for developer audiences, but too unusual to lead a
+   mainstream listing.
+
+**Decision:** title and first screenshots sell 1 (generic, high-volume
+terms: "workout tracker", "planner", "gym log"). Subtitle and second
+screenshot sell 2. The description covers 3 and 4. Plain text leads only
+where the audience is developers (Reddit, Show HN).
+
+## Spanish
+
+Spanish is the launch market for marketing, so both stores get a full
+Spanish localization: Spanish (Mexico) and Spanish (Spain) on the App Store,
+es-419 and es-ES on Google Play. Localized listings convert meaningfully
+better in non-English markets (15–40% in the vendor studies collected for
+the growth plan; none is Spanish-specific). The Spanish copy uses the same
+words the app's own Spanish UI uses (`src/locales/es.json`): rutina, serie,
+récord personal, racha, porras.
 
 ## Words to avoid in this app's copy
 
-- "Tracker" / "track your workouts" — the app doesn't log completed
-  sessions yet (Sessions tab is a placeholder). Use "planner", "builder",
-  "routine library" instead.
-- "Social" / "friends" / "share with your gym buddy's progress" — Friends tab
-  is a placeholder. "Share via QR" is fine (that's real and shipped).
-- "No ads" — false; the app shows AdMob ads. Say "minimal ads" or omit ad
-  messaging from marketing copy entirely and let the store's own "Contains
-  ads" badge do that disclosure.
-- "Remove ads" as a sellable feature — the purchase flow isn't built yet.
-- Any medical/health outcome claim ("lose weight", "get stronger
-  guaranteed") — not licensed claims, both stores scrutinize Health & Fitness
-  category copy for this, and it's not what the app does anyway (it's a
-  routine format/organizer, not a coaching app).
+- "No ads" / "ad-free" — 1.0.0 ships with ads off, but that is a switch, not
+  a promise. Leave ads out of the copy either way.
+- "Remove ads" as a sellable feature — the purchase flow isn't built.
+- "No account" stated as an absolute — group workouts, sync and the feed
+  need one. Say "no account needed" or "works without an account".
+- "Nothing leaves your phone" — true only while signed out.
+- "Progress graphs", "Apple Watch", "AI", "coach", "programs" — not in the
+  app.
+- Any medical or outcome claim ("lose weight", "get stronger guaranteed") —
+  both stores scrutinize Health & Fitness copy for this.
+- "Free" in a title, icon or screenshot (Play policy). It is fine in the
+  Play description.

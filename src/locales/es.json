@@ -297,7 +297,11 @@
     "shareStats": "{sets} series · {exercises} ejercicios",
     "sharePr": "Nuevo récord en {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks} semanas de racha 🔥",
-    "shareCopied": "¡Copiado!"
+    "shareCopied": "¡Copiado!",
+    "cardFooter": "Registrado con WTX",
+    "cardPr": "Nuevo récord",
+    "cardStreak": "{weeks} semanas de racha",
+    "cardStreakLabel": "Racha"
   },
   "sessionDetail": {
     "fallbackTitle": "Sesión",
@@ -680,7 +684,7 @@
   },
   "legal": {
     "back": "Volver",
-    "updated": "Última actualización: 29 de septiembre de 2026",
+    "updated": "Última actualización: 2 de octubre de 2026",
     "fallback": {
       "controller": "el desarrollador independiente de WTX (indicado en sus páginas de App Store y Google Play)",
       "contactEmail": "el correo de contacto que aparece en las páginas de WTX en App Store y Google Play"
@@ -816,7 +820,7 @@
             "Datos de entrenamiento: con una cuenta, tus rutinas y entrenamientos se sincronizan con nuestros servidores para respaldarlos y tenerlos en tus otros dispositivos. Un entrenamiento incluye sus ejercicios, series, pesos, repeticiones, tiempos, fecha y duración, y las notas que escribas en él. WTX no pide medidas corporales ni información médica; por favor no escribas datos de salud en tus notas ni en tu biografía.",
             "Datos sociales: a quién sigues y quién te sigue, los kudos que das y recibes, las salas a las que te unes y las series que completas en ellas. Por cada entrenamiento que compartes guardamos además un resumen: récords personales, tu racha semanal, hitos, una comparación con tu entrenamiento anterior y los nombres visibles de las personas con las que entrenaste.",
             "Denuncias y bloqueos: si denuncias un contenido o bloqueas a alguien, guardamos quién denunció o bloqueó a quién, qué se denunció y por qué, para poder revisarlo y hacer cumplir nuestros Términos.",
-            "Eventos de uso: la app registra algunos eventos (como abrir la app, crear una cuenta, crear una rutina, terminar un entrenamiento, crear o unirse a una sala, compartir un entrenamiento, dar kudos y seguir a alguien) junto con la plataforma, la versión de la app y la hora. Si iniciaste sesión, el evento queda vinculado a tu cuenta; si no, no se vincula a ninguna cuenta. Los usamos solo para entender qué funciones se usan y mejorar WTX.",
+            "Eventos de uso: la app registra algunos eventos (como abrir la app, crear una cuenta, crear una rutina, terminar un entrenamiento, crear o unirse a una sala, compartir un entrenamiento, dar kudos, seguir a alguien, pedir una valoración, compartir la imagen de un entrenamiento y tocar \"obtener la app\") junto con la plataforma, la versión de la app y la hora. Si abriste WTX por primera vez desde un enlace etiquetado (por ejemplo, el enlace de uno de nuestros perfiles en redes sociales, o un enlace que alguien compartió contigo), el evento incluye además una etiqueta corta para ese tipo de enlace, como \"tiktok\" o \"share-routine\"; indica de dónde vino la visita, no quién lo compartió. Si iniciaste sesión, el evento queda vinculado a tu cuenta; si no, no se vincula a ninguna cuenta. Los usamos solo para entender qué funciones se usan y mejorar WTX.",
             "Informes de errores: cuando la app se cierra inesperadamente o tiene un error, se envía un informe a Sentry con datos técnicos: el error y dónde ocurrió en el código, la versión de la app, el tipo de dispositivo y sistema, la pantalla en la que estabas y las últimas acciones de la app antes del error. No agregamos tu correo ni tu nombre visible a estos informes, y no grabamos tu pantalla.",
             "Publicidad: Google AdMob muestra anuncios en WTX, por ejemplo al terminar un entrenamiento. Para ello, el software de Google dentro de la app puede recopilar el identificador de publicidad de tu dispositivo, tu dirección IP y la ubicación aproximada que se deduce de ella, información del dispositivo y cómo interactúas con los anuncios. Donde la ley lo exige (por ejemplo, en el Espacio Económico Europeo, el Reino Unido y Suiza), el formulario de consentimiento de Google te pregunta si los anuncios pueden personalizarse. En iPhone y iPad, Apple te pregunta si WTX puede rastrearte; si respondes que no, tu identificador de publicidad no se comparte. Aun así pueden mostrarse anuncios no personalizados. Google explica cómo usa estos datos en policies.google.com/technologies/partner-sites."
           ]
@@ -986,5 +990,11 @@
     "alreadyInLibrary": "Ya está en tu biblioteca — ábrela",
     "addToLibrary": "Añadir a la biblioteca",
     "addAnotherCopy": "Añadir otra copia"
+  },
+  "getApp": {
+    "title": "Descarga la app de WTX",
+    "body": "Con recordatorios y enlaces que se abren en la app.",
+    "cta": "Obtener",
+    "dismissAria": "Cerrar"
   }
 }

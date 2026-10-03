@@ -37,6 +37,9 @@ export const RECTS = {
  */
 const SCROLL_GUARDS = { workout: ['recap', 2.3], history: ['calendar', 2.2] }
 
+/** The "Step 1 · …" kicker prefix of the tutorial tone. */
+const STEP = { en: 'Step', es: 'Paso' }
+
 const PHONE_OUT = 4.7 // seconds before the end the phone leaves
 const END_CARD = 4 // seconds of end card
 
@@ -112,6 +115,8 @@ export function dailyReel(ctx, spec) {
   const tone = TONES[spec.tone ?? 'hype']
   if (!tone) throw new Error(`unknown tone "${spec.tone}" — use ${Object.keys(TONES).join(', ')}`)
   if (spec.duration % 2) throw new Error('duration must be an even number of seconds (whole 2 s bars at 120 BPM)')
+  const lang = spec.lang ?? 'en'
+  if (!STEP[lang]) throw new Error(`unknown lang "${lang}" — use ${Object.keys(STEP).join(', ')}`)
   const { tl } = ctx
   const { world } = reelBase(ctx)
   musicFor(ctx, tone, spec)
@@ -152,7 +157,7 @@ export function dailyReel(ctx, spec) {
       ctx.sfx(t + (resolve(ctx, beat.clip, [label, offset]) - from) / ((to - from) / dur), 'confirm', { gain: tone.sfx })
     }
 
-    const kicker = tone.numbered ? `Step ${i + 1}${beat.kicker ? ' · ' + beat.kicker : ''}` : beat.kicker
+    const kicker = tone.numbered ? `${STEP[lang]} ${i + 1}${beat.kicker ? ' · ' + beat.kicker : ''}` : beat.kicker
     const last = i === spec.beats.length - 1
     caption(ctx, { at: t + 0.05, out: t + dur - 0.3, kicker, lines: beat.lines, size: beat.size ?? tone.size, dur: tone.dur, stagger: tone.stagger })
 
@@ -177,5 +182,9 @@ export function dailyReel(ctx, spec) {
   })
 
   phoneOut(ctx, ph, spec.duration - PHONE_OUT)
-  endCard(ctx, spec.duration - END_CARD, spec.end?.tagline ? { tagline: spec.end.tagline } : {})
+  endCard(ctx, spec.duration - END_CARD, {
+    lang,
+    ...(spec.end?.tagline ? { tagline: spec.end.tagline } : {}),
+    ...(spec.end?.pill ? { pill: spec.end.pill } : {}),
+  })
 }

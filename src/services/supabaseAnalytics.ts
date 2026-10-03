@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { isSupabaseConfigured, requireSupabase } from '@/services/supabase'
 import type { AnalyticsProvider } from '@/services/analytics'
+import { acquisitionSource } from '@/services/acquisition'
 import { useAuthStore } from '@/stores/auth'
 import type { AppEventName } from '@/lib/supabase/database.types'
 
@@ -15,7 +16,13 @@ export const supabaseAnalytics: AnalyticsProvider = {
     const userId = useAuthStore().user?.id ?? null
     void requireSupabase()
       .from('app_events')
-      .insert({ event, user_id: userId, platform: Capacitor.getPlatform(), app_version: __APP_VERSION__ })
+      .insert({
+        event,
+        user_id: userId,
+        platform: Capacitor.getPlatform(),
+        app_version: __APP_VERSION__,
+        source: acquisitionSource(),
+      })
       .then(({ error }) => {
         if (error) console.error('[analytics] track failed', error)
       })

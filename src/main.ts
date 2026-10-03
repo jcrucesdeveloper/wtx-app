@@ -20,6 +20,13 @@ import { useSessionsStore } from './stores/sessions'
 import { useNotificationsStore } from './stores/notifications'
 import { sessionDateStrs } from './lib/sessionDates'
 import { closeTopOverlay } from './lib/backStack'
+import { captureSource } from './services/acquisition'
+
+// Before the router can redirect: the landing URL is where the visitor came from.
+captureSource(
+  window.location.pathname.slice(import.meta.env.BASE_URL.replace(/\/+$/, '').length) || '/',
+  window.location.search,
+)
 
 const app = createApp(App)
 
