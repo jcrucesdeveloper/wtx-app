@@ -1,62 +1,64 @@
 # Google Play — Data Safety Section Worksheet
 
-Fill this in Play Console → App content → Data safety. Full reasoning and
-code references are in `research/05-privacy-compliance-notes.md`; this is the
-condensed, fill-in-order version. Items marked **Verify** depend on
-production config.
+Answers for **1.0.0 as it ships**: ads off (`VITE_ADS_ENABLED=false`), no
+crash reporting (no `VITE_SENTRY_DSN`), and no advertising ID permission (the
+release manifest removes it). Full reasoning is in
+`research/05-privacy-compliance-notes.md`; this is the fill-in-order
+version for Play Console → App content → Data safety.
 
-"Shared" in Google's sense = transferred to a third party. Data sent to a
-**service provider** processing it on our behalf (Supabase, Sentry) is *not*
-"shared"; AdMob data *is* shared (Google uses it for its own purposes too).
+Redo this worksheet in the release that turns on ads (adds Device or other
+IDs, Diagnostics and possibly Approximate location, all **shared** with
+Google) or sets a Sentry DSN (adds Crash logs and Diagnostics).
 
-## 1. Does your app collect or share any of the required user data types?
+"Shared" in Google's sense means transferred to a third party. Supabase
+processes data on our behalf as a service provider, so nothing below is
+"shared".
 
-**Yes.**
+## Step 1: Data collection and security
 
-## 2. Is all of the user data collected by your app encrypted in transit?
+| Question | Answer |
+|---|---|
+| Does your app collect or share any of the required user data types? | **Yes** |
+| Is all of the user data collected by your app encrypted in transit? | **Yes** (HTTPS to Supabase) |
+| Which of the following methods of account creation does your app support? | **Username and password** (email and password, Supabase Auth). Accounts are optional. |
+| Delete account URL | `https://wtxworkout.com/delete-account.html` |
+| Do you provide a way for users to request that some or all of their data is deleted, without requiring them to delete their account? | **Yes**. Workouts and routines can be deleted one by one in the app. |
 
-**Yes** (HTTPS to Supabase, Sentry and Google).
+## Step 2: Data types
 
-## 3. Do you provide a way for users to request that their data is deleted?
+Tick only these. For each one: **Collected: yes. Shared: no. Processed
+ephemerally: no.**
 
-**Yes** — in-app: Configuration → Account → Delete account; outside the app:
-email the contact address (see the Privacy Policy). Play also asks for a
-**Delete account URL**: use `https://<site>/privacy.html` (section "Your
-choices: export and deletion") or a dedicated page — **Verify** it's
-accepted.
+| Category → Type | Required or optional | Purposes | What it is |
+|---|---|---|---|
+| Personal info → **Email address** | Optional | App functionality, Account management | Sign-in email (only with an account) |
+| Personal info → **Name** | Optional | App functionality, Account management | Display name on the profile |
+| Personal info → **User IDs** | Optional | App functionality, Account management, Analytics | Account ID; attached to usage events when signed in |
+| Personal info → **Other info** | Optional | App functionality | Profile bio |
+| Health and fitness → **Fitness info** | Optional | App functionality | Routines and workouts synced to the account (exercises, sets, weights, reps, notes) |
+| App activity → **App interactions** | **Required** | Analytics | Usage events: event name, platform, app version, and where the install came from (a link's source label). Sent with or without an account. |
+| App activity → **Other user-generated content** | Optional | App functionality | Workouts shared to followers, group workout activity, reports filed |
 
-## 4. Data types
+## Not collected (leave unticked)
 
-| Category → type | Collected | Shared | Optional? | Purposes | Source |
-|---|---|---|---|---|---|
-| Personal info → Email address | Yes | No | Optional (only with an account) | Account management, App functionality | Supabase Auth |
-| Personal info → Name | Yes (display name) | No | Optional | App functionality, Account management | `profiles` |
-| Personal info → User IDs | Yes | No | Optional | Account management, Analytics | Supabase user id |
-| Personal info → Other info | Yes (bio) | No | Optional | App functionality | `profiles.bio` |
-| Health and fitness → Fitness info | Yes — workouts (exercises, sets, weights, reps, notes) synced with an account | No | Optional | App functionality | `sessions`, `routines` |
-| Messages → Other in-app messages | No (no chat/DMs/comments) | — | — | — | — |
-| App activity → App interactions | Yes | No | Required (sent without an account too) | Analytics | `app_events` |
-| App activity → Other user-generated content | Yes (shared workouts, reports once moderation lands) | No | Optional | App functionality | `sessions.shared`, `content_reports` |
-| App info and performance → Crash logs | Yes (when Sentry DSN set) | No | Required | Analytics (app stability) | Sentry |
-| App info and performance → Diagnostics | Yes | No (Sentry) / Yes (AdMob) | Required | Analytics, Advertising | Sentry, AdMob |
-| Device or other IDs | Yes (advertising ID, app set ID) | **Yes** (Google) | Required | Advertising or marketing, Fraud prevention/security, Analytics | AdMob |
-| Location → Approximate location | **Verify** (AdMob derives it from IP) | **Verify** | Required | Advertising | AdMob |
-| Financial info → Purchase history | **No** — purchase flow hidden until it ships | — | — | — | — |
+- **Location** (approximate or precise)
+- **Financial info**: no purchases in 1.0.0
+- **Messages**: no chat, DMs or comments; group workout cheers are fixed
+  emoji reactions
+- **Photos and videos, Audio, Files and docs**: the camera and picked images
+  are only used to read QR codes on the phone, and exports stay on the phone
+  unless the user shares them
+- **Calendar, Contacts, Web browsing, Health info**
+- **App info and performance** (crash logs, diagnostics): no Sentry DSN in
+  1.0.0
+- **Device or other IDs**: no advertising ID, and usage events carry no
+  device identifier
 
-Photos/videos, contacts, calendar, files, audio, precise location, web
-browsing: **No** (the camera is used only to decode QR codes on-device).
+## Other App content answers this affects
 
-## 5. Also in Play Console → App content
-
-- [ ] **Ads:** "Yes, my app contains ads."
-- [ ] **Privacy policy:** `https://<site>/privacy.html`.
-- [ ] **Account deletion:** as in section 3.
-- [ ] **Target audience:** 16+ (matches the Terms; avoids the Families
-      policy). Don't select under-13 age groups.
-- [ ] **Data safety** answers above, re-checked against the AdMob console
-      (personalized vs non-personalized, location) — **Verify**.
-- [ ] `app-ads.txt` served at the developer website root
-      (`public/app-ads.txt.example`).
-- [ ] Re-run this worksheet if an IAP/remove-ads flow ships (adds "Purchase
-      history") or moderation stores new data types.
-- [ ] Cross-check with `app-store/06-app-privacy-worksheet.md`.
+- **Ads:** "No, my app does not contain ads."
+- **Advertising ID:** "No". The release manifest removes `AD_ID` (see
+  `android/app/src/main/AndroidManifest.xml`); restore it when ads ship.
+- **Privacy policy:** `https://wtxworkout.com/privacy.html`
+- Cross-check with `app-store/06-app-privacy-worksheet.md` before the iOS
+  submission.
