@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — v16 mira lo que pasa</title>
+    <!--
+      Variation 16, the demonstration tease ("watch what happens when I…"):
+      the first frame is nothing but six lines of plain text. Then the same
+      text goes into the app in real time and becomes a routine.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .paper {
+        position: absolute;
+        left: 90px;
+        width: 810px;
+        padding: 40px 44px 46px;
+        box-sizing: border-box;
+        border-radius: 26px;
+        background: #f6f8fa;
+        color: #0b0d0f;
+        font-family: var(--mono);
+        font-size: 33px;
+        line-height: 1.55;
+        white-space: pre;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        z-index: 25;
+      }
+      .paper b {
+        color: var(--signal);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as C from '../lib/cuts.js'
+      import * as K from '../lib/kit.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 12,
+        lang: 'es',
+        clips: ['plaintext'],
+        build(ctx) {
+          const { m, tl } = ctx
+          C.backdrop(ctx)
+          const p = C.shot(ctx, 'plaintext')
+          const band = C.topBand(ctx, 600)
+          tl.set(band, { opacity: 0 }, 0)
+          const tag = C.brandTag(ctx)
+          tl.set(tag, { opacity: 0 }, 6.6)
+          const tagLow = C.brandTag(ctx, { y: 1250 })
+          tl.set(tagLow, { opacity: 0 }, 0)
+          tl.set(tagLow, { opacity: 1 }, 6.6)
+          ctx.music([
+            { at: 0, bars: 1, part: 'break' },
+            { at: 2, bars: 5, part: 'drive' },
+          ])
+          ctx.sfx(0, 'impact', { gain: 0.6 })
+
+          /* ---------- 0:00 just text ---------- */
+          C.label(ctx, 'Mira lo que pasa cuando<br>pego esto en mi app de gym', { y: 310, size: 54, out: 2.8 })
+          // Exactly the text the recording pastes (scripts/capture-app.mjs).
+          const paper = ctx.el(
+            'div',
+            'paper',
+            ctx.stage,
+            '<b># Upper Power</b>\nunit: kg\n\nBench Press | reps 5x5 | 75\nPullups | reps 4x8 | 0\nSide Lateral Raise | reps 3x15 | 10',
+          )
+          paper.style.top = '560px'
+          tl.fromTo(paper, { rotate: -2.5, scale: 1 }, { rotate: 1, scale: 1.04, duration: 2.8, ease: 'none' }, 0)
+          // It is thrown into the app.
+          tl.to(paper, { scale: 0.2, y: 300, opacity: 0, duration: 0.3, ease: 'expo.in' }, 2.5)
+          ctx.sfx(2.5, 'whoosh', { gain: 0.8 })
+
+          /* ---------- 0:02 pasted, in real time ---------- */
+          const typing = m('plaintext', 'typing')
+          const typed = m('plaintext', 'typed')
+          const add = m('plaintext', 'add')
+          tl.set(band, { opacity: 1 }, 2.8)
+          const view = { scale: 1080 / 886, x: 0, y: 610 - 690 * (1080 / 886) }
+          C.cut(ctx, [p], p, 2.8, view, { sound: 'hit' })
+          const paste = { at: 2.8, from: typing - 0.1, to: typed + 0.45, speed: 1 }
+          C.play(ctx, p, paste, { sound: false })
+          for (let i = 0; i < 5; i++) ctx.sfx(ctx.at(paste, m('plaintext', 'line', i)), 'tick', { gain: 0.9 })
+          C.label(ctx, 'Pego el texto…', { y: 330, size: 60, at: 2.8, out: 4.8, sound: false })
+          C.label(ctx, '…y la app lo entiende sola', { y: 330, size: 56, tone: 'red', at: 4.8, out: 6.6 })
+          C.cam(ctx, p, 4.8, { scale: 1.3, x: 540 - 443 * 1.3, y: 620 - 1100 * 1.3 }, { dur: 0.5 })
+
+          /* ---------- 0:06 one tap: it is a routine ---------- */
+          tl.set(band, { opacity: 0 }, 6.6)
+          C.cut(ctx, [p], p, 6.6, C.full(0), { sound: false })
+          const save = { at: 6.6, from: add - 0.5, to: add + 2.2, speed: 0.9 }
+          C.play(ctx, p, save)
+          const tAdd = ctx.at(save, add)
+          K.flash(ctx, tAdd + 0.1, 0.3)
+          C.label(ctx, 'Un toque.', { y: 330, size: 72, align: 'center', at: 6.6, out: tAdd + 0.1, sound: false })
+          C.label(ctx, 'Rutina lista<br>para entrenar.', { y: 990, size: 72, tone: 'red', align: 'center', at: tAdd + 0.2, out: 9.8 })
+          C.punch(ctx, p, tAdd + 0.1, 1.05)
+
+          /* ---------- 0:09 the question ---------- */
+          C.label(ctx, '¿Tu rutina cabe<br>en 6 líneas?', { y: 990, size: 76, align: 'center', at: 9.8 })
+          tl.to(p.cam, { scale: '+=0.05', duration: 2.2, ease: 'none' }, 9.8)
+        },
+      })
+    </script>
+  </body>
+</html>

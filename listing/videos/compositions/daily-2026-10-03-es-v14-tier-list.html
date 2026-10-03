@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — v14 tier list</title>
+    <!--
+      Variation 14, the ranking: a tier list of ways to keep track of a
+      workout. Each option shows up big, then drops into its row. The last one
+      lands in S and opens into the real app. Tier lists are opinions on
+      purpose: people comment to disagree.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .tier {
+        position: absolute;
+        left: 60px;
+        width: 960px;
+        height: 132px;
+        display: flex;
+        background: #161b21;
+        box-shadow: 0 0 0 3px #05080a;
+      }
+      .tier b {
+        flex: none;
+        width: 132px;
+        display: grid;
+        place-items: center;
+        font-size: 76px;
+        font-weight: 900;
+        color: #0b0d0f;
+      }
+      .chip {
+        position: absolute;
+        left: 212px;
+        height: 100px;
+        padding: 0 30px;
+        display: flex;
+        align-items: center;
+        border-radius: 16px;
+        background: #f6f8fa;
+        color: #0b0d0f;
+        font-weight: 800;
+        font-size: 44px;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        transform-origin: 0 50%;
+        z-index: 25;
+      }
+      .chip--app {
+        background: var(--signal);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as C from '../lib/cuts.js'
+      import * as K from '../lib/kit.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 16,
+        lang: 'es',
+        clips: ['workout'],
+        build(ctx) {
+          const { m, tl } = ctx
+          C.backdrop(ctx)
+          C.brandTag(ctx)
+          ctx.music([{ at: 0, bars: 8, part: 'drive' }])
+          ctx.sfx(0, 'impact', { gain: 0.7 })
+
+          C.label(ctx, 'Tier list: formas de<br>anotar tu entreno', { y: 310, size: 60, out: 11 })
+
+          /* ---------- the board ---------- */
+          const TOP = 520
+          const ROW = 135
+          const tiers = [
+            ['S', '#ff7f7f'],
+            ['A', '#ffbf7f'],
+            ['B', '#ffdf7f'],
+            ['C', '#bfff7f'],
+            ['D', '#7fbfff'],
+          ]
+          const rows = tiers.map(([name, color], i) => {
+            const el = ctx.el('div', 'tier')
+            el.style.top = TOP + i * ROW + 'px'
+            ctx.el('b', '', el, name).style.background = color
+            return el
+          })
+
+          /* ---------- each option: shown big, then dropped in its row ---------- */
+          const STAGE_Y = 1250
+          const place = (text, row, at, { app = false, hold = 1.0, big = 1.7 } = {}) => {
+            const el = ctx.el('div', `chip${app ? ' chip--app' : ''}`, ctx.stage, text)
+            const y = TOP + row * ROW + 16
+            el.style.top = y + 'px'
+            tl.set(el, { opacity: 0 }, 0)
+            tl.fromTo(
+              el,
+              { opacity: 0, x: -122, y: STAGE_Y - y, scale: big * 0.85 },
+              { opacity: 1, scale: big, duration: 0.2, ease: 'back.out(2)', immediateRender: false },
+              at,
+            )
+            ctx.sfx(at, 'pop', { gain: 0.7 })
+            tl.to(el, { x: 0, y: 0, scale: 1, duration: 0.3, ease: 'expo.in' }, at + hold)
+            ctx.sfx(at + hold + 0.3, 'hit', { gain: 0.8 })
+            K.shake(ctx, rows[row], at + hold + 0.3, 8)
+            return el
+          }
+          place('De memoria', 4, 0.6)
+          place('Notas del móvil', 3, 2.6)
+          place('Libreta', 2, 4.6)
+          place('Excel', 1, 6.6)
+          place('Una app que se rellena sola', 0, 8.6, { app: true, hold: 1.3, big: 1.2 })
+          K.flash(ctx, 10.2, 0.35)
+
+          /* ---------- 0:11 why it is S: the real thing ---------- */
+          const w = C.shot(ctx, 'workout')
+          tl.set(w.root, { zIndex: 26 }, 0)
+          const band = C.topBand(ctx, 600)
+          band.style.zIndex = 27
+          tl.set(band, { opacity: 0 }, 0)
+          tl.set(band, { opacity: 1 }, 11)
+          C.cut(ctx, [w], w, 11, C.under(610), { sound: 'hit' })
+          const fast = { at: 11, from: m('workout', 'session') + 0.1, to: m('workout', 'bench-done') + 0.3, speed: (m('workout', 'bench-done') - m('workout', 'session') + 0.2) / 3.2 }
+          C.play(ctx, w, fast)
+          C.label(ctx, 'Por qué va en la S:', { y: 310, size: 60, at: 11, out: 14.2, sound: false, z: 40 })
+          C.label(ctx, 'ya trae tu último peso', { y: 420, size: 54, tone: 'red', at: 11.5, out: 14.2, z: 40 })
+          C.cam(ctx, w, 12.2, C.frame('session-card', { cy: 1290 }))
+          C.label(ctx, '¿Cambiarías<br>algún puesto?', { y: 310, size: 72, at: 14.2, z: 40 })
+        },
+      })
+    </script>
+  </body>
+</html>

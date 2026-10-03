@@ -11,10 +11,14 @@ import ffmpeg from 'ffmpeg-static'
 import { OUT_DIR } from './paths.mjs'
 import { TARGETS, targetsFor } from './targets.mjs'
 
+// The social bitrate floor is 2 Mbps, not the 6 it started at: the fast-cut
+// variations are mostly a still app screen under flat text, and x264 at its
+// 10 Mbps target simply has nothing to spend the bits on (unchanged blocks
+// cost nothing at any quality). The floor still catches a broken encode.
 const RULES = {
   youtube: { w: 1920, h: 1080, fpsMax: 60, minDur: 1, maxDur: 600, level: 42, minMbps: 8, audioKbps: [256, 400], lufs: -14 },
   appstore: { w: 886, h: 1920, fpsMax: 30, minDur: 15, maxDur: 30, level: 40, minMbps: 10, maxMbps: 12.2, audioKbps: [240, 264], lufs: -16, maxMB: 500 },
-  social: { w: 1080, h: 1920, fpsMax: 60, minDur: 3, maxDur: 180, level: 42, minMbps: 6, audioKbps: [128, 330], lufs: -14, maxMB: 287 },
+  social: { w: 1080, h: 1920, fpsMax: 60, minDur: 3, maxDur: 180, level: 42, minMbps: 2, audioKbps: [128, 330], lufs: -14, maxMB: 287 },
 }
 
 function probe(file) {

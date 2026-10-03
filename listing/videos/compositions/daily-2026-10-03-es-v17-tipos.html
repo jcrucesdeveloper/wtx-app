@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — v17 tipos de personas</title>
+    <!--
+      Variation 17, "types of people": a carousel of character cards sliding
+      past, one per way of keeping track at the gym. The last card is not a
+      drawing: it holds the real app. Relatable humour, made to be sent to
+      "the notebook one".
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .card {
+        position: absolute;
+        left: 90px;
+        top: 540px;
+        width: 900px;
+        height: 760px;
+        box-sizing: border-box;
+        padding: 50px 56px;
+        border-radius: 44px;
+        background: #f6f8fa;
+        color: #0b0d0f;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.65);
+        z-index: 25;
+      }
+      .card__n {
+        font-family: var(--mono);
+        font-weight: 700;
+        font-size: 46px;
+        color: var(--signal);
+      }
+      .card__icon {
+        margin-top: 10px;
+        font-size: 210px;
+        line-height: 1.15;
+      }
+      .card__name {
+        margin-top: 10px;
+        font-weight: 900;
+        font-size: 74px;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .card__line {
+        margin-top: 22px;
+        font-weight: 600;
+        font-size: 44px;
+        color: #4a5560;
+      }
+      .card--app {
+        background: var(--signal);
+        color: #fff;
+        padding: 40px 46px;
+      }
+      .card--app .card__n {
+        color: #fff;
+      }
+      .card--app .card__name {
+        font-size: 62px;
+      }
+      .dots {
+        position: absolute;
+        left: 90px;
+        width: 900px;
+        top: 1340px;
+        display: flex;
+        justify-content: center;
+        gap: 18px;
+        z-index: 25;
+      }
+      .dots i {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.28);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as C from '../lib/cuts.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 16,
+        lang: 'es',
+        clips: ['workout'],
+        build(ctx) {
+          const { m, tl } = ctx
+          C.backdrop(ctx)
+          C.brandTag(ctx)
+          ctx.music([{ at: 0, bars: 8, part: 'drive' }])
+          ctx.sfx(0, 'impact', { gain: 0.7 })
+
+          C.label(ctx, 'Tipos de personas<br>anotando en el gym', { y: 310, size: 62, out: 13.6 })
+
+          const people = [
+            ['📓', 'El de la libreta', 'Sudada. Sin boli. Hoja 47.'],
+            ['🧠', 'El de «me acuerdo»', 'No se acuerda.'],
+            ['📝', 'El de las notas', '«banca 70x8?? o 72.5»'],
+            ['📊', 'El del Excel', 'Más fórmulas que series.'],
+          ]
+          const times = [0, 2.6, 5.2, 7.8, 10.4]
+          const dots = ctx.el('div', 'dots')
+          const dotEls = times.map(() => ctx.el('i', '', dots))
+
+          const slide = (el, i) => {
+            const at = times[i]
+            const out = times[i + 1]
+            if (at > 0) {
+              tl.set(el, { opacity: 0 }, 0)
+              tl.fromTo(el, { opacity: 1, x: 1100, rotate: 6 }, { opacity: 1, x: 0, rotate: i % 2 ? 1.2 : -1.2, duration: 0.32, ease: 'expo.out', immediateRender: false }, at)
+              ctx.sfx(at - 0.04, 'whoosh', { gain: 0.6 })
+              ctx.sfx(at + 0.2, 'pop', { gain: 0.6 })
+            } else {
+              gsap.set(el, { rotate: -1.2 })
+            }
+            if (out !== undefined) tl.to(el, { x: -1100, rotate: -6, duration: 0.26, ease: 'expo.in' }, out - 0.24)
+            tl.set(dotEls[i], { background: '#fff', scale: 1.3 }, at)
+            if (out !== undefined) tl.set(dotEls[i], { background: 'rgba(255,255,255,0.28)', scale: 1 }, out)
+          }
+
+          people.forEach(([icon, name, line], i) => {
+            const el = ctx.el(
+              'div',
+              'card',
+              ctx.stage,
+              `<div class="card__n">${i + 1}/5</div><div class="card__icon">${icon}</div><div class="card__name">${name}</div><div class="card__line">${line}</div>`,
+            )
+            slide(el, i)
+          })
+
+          /* ---------- the fifth card holds the real app ---------- */
+          const app = ctx.el('div', 'card card--app', ctx.stage, '<div class="card__n">5/5</div><div class="card__name">El que toca ✓ y ya</div>')
+          const win = C.pane(ctx, 'workout', { x: 46, y: 230, w: 808, h: 484, radius: 22, parent: app })
+          gsap.set(win.cam, C.frameIn(win, 'session-card', { cy: 0.68 }))
+          const seg = { at: times[4] + 0.3, from: m('workout', 'weight') - 0.2, to: m('workout', 'bench-done') + 0.3, speed: (m('workout', 'bench-done') - m('workout', 'weight') + 0.5) / 2.9 }
+          C.still(ctx, win, seg.from)
+          C.play(ctx, win, seg)
+          slide(app, 4)
+
+          /* ---------- 0:13 the question ---------- */
+          tl.to(app, { y: 60, duration: 0.3, ease: 'expo.out' }, 13.6)
+          C.label(ctx, '¿Cuál eres tú?', { y: 300, size: 96, at: 13.6 })
+          C.label(ctx, 'Y mándaselo al de la libreta.', { y: 450, size: 46, tone: 'dark', at: 14.5 })
+        },
+      })
+    </script>
+  </body>
+</html>

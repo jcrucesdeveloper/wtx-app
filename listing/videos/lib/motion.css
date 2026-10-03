@@ -480,3 +480,285 @@ body {
   mix-blend-mode: color;
   opacity: 0;
 }
+
+/* ---------- fast-cut variations (lib/cuts.js) ---------- */
+
+.shot {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+.shot__cam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 886px;
+  height: 1920px;
+  will-change: transform;
+}
+
+.shot__cam .clip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 886px;
+  height: 1920px;
+}
+
+.scrim,
+.blackout {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.blackout {
+  z-index: 70;
+}
+
+/* The platform's own text style: each line on its own rounded block. */
+.label {
+  position: absolute;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+}
+
+.label span {
+  padding: 0.14em 0.38em 0.18em;
+  border-radius: 0.26em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.label--white span {
+  background: #fff;
+  color: #0b0d0f;
+}
+
+.label--red span {
+  background: var(--signal);
+  color: #fff;
+}
+
+.label--dark span {
+  background: rgba(8, 10, 12, 0.88);
+  color: #fff;
+}
+
+.label em {
+  font-style: normal;
+  color: var(--signal);
+}
+
+.label--red em,
+.label--dark em {
+  color: #ffd166;
+}
+
+.words {
+  position: absolute;
+  z-index: 30;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.8);
+}
+
+.words span {
+  display: inline-block;
+  white-space: pre;
+}
+
+.big-number {
+  position: absolute;
+  z-index: 30;
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.9;
+  text-shadow: 0 10px 50px rgba(0, 0, 0, 0.85);
+  transform-origin: 0% 50%;
+}
+
+.big-number--center {
+  text-align: center;
+  transform-origin: 50% 50%;
+}
+
+.big-number small {
+  font-size: 0.3em;
+  letter-spacing: 0;
+  margin-left: 0.12em;
+  color: var(--text-1);
+}
+
+.brand-tag {
+  position: absolute;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px 10px 12px;
+  border-radius: 999px;
+  background: rgba(8, 10, 12, 0.86);
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.brand-tag svg {
+  width: 40px;
+  height: 40px;
+}
+
+.brand-tag b {
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.03em;
+}
+
+.progress {
+  position: absolute;
+  z-index: 40;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.progress i {
+  position: absolute;
+  inset: 0;
+  background: var(--signal);
+  transform-origin: 0 50%;
+}
+
+.stopwatch {
+  position: absolute;
+  z-index: 35;
+  padding: 0.06em 0.26em 0.1em;
+  border-radius: 0.2em;
+  background: rgba(8, 10, 12, 0.9);
+  border: 3px solid rgba(255, 255, 255, 0.16);
+  font-family: var(--mono);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff;
+  transform-origin: 0% 50%;
+}
+
+.stopwatch small {
+  font-size: 0.45em;
+  margin-left: 0.1em;
+  color: var(--text-1);
+}
+
+.chat {
+  position: absolute;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 0.36em;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.chat__bubble {
+  max-width: 82%;
+  padding: 0.42em 0.7em 0.48em;
+  border-radius: 0.75em;
+}
+
+.chat__bubble--them {
+  align-self: flex-start;
+  background: #262b31;
+  color: #fff;
+  border-bottom-left-radius: 0.2em;
+  transform-origin: 0% 100%;
+}
+
+.chat__bubble--me {
+  align-self: flex-end;
+  background: var(--signal);
+  color: #fff;
+  border-bottom-right-radius: 0.2em;
+  transform-origin: 100% 100%;
+}
+
+.notes {
+  position: absolute;
+  z-index: 25;
+  padding: 0.8em 0.9em 1em;
+  border-radius: 0.6em;
+  background: #f4efe2;
+  color: #1c1a16;
+  font-weight: 500;
+  line-height: 1.5;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+.notes b {
+  display: block;
+  font-size: 1.25em;
+  font-weight: 800;
+  margin-bottom: 0.3em;
+}
+
+.notes p {
+  border-bottom: 2px solid rgba(28, 26, 22, 0.12);
+}
+
+.notes s {
+  opacity: 0.45;
+}
+
+.strike {
+  position: absolute;
+  left: -3%;
+  right: -3%;
+  top: 50%;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 999px;
+  background: var(--signal);
+  transform-origin: 0 50%;
+  transform: rotate(-4deg);
+  box-shadow: 0 0 30px rgba(224, 38, 58, 0.6);
+}
+
+.top-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 15;
+  background: var(--app-bg);
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.55);
+}
+
+.code-line {
+  margin: 0 -0.5em;
+  padding: 0 0.5em;
+  border-radius: 0.25em;
+}
+
+.chat__bubble {
+  overflow-wrap: anywhere;
+}
+
+/* Footage in a window: split screens, grids, cards (cuts.js `pane`). */
+.pane {
+  position: absolute;
+  overflow: hidden;
+  background: var(--app-bg);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.1),
+    0 30px 80px rgba(0, 0, 0, 0.6);
+}

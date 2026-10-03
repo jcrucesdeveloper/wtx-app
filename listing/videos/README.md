@@ -57,6 +57,14 @@ live, set `end.pill` to the web address.
 for TikTok photo mode and Instagram carousels. App slides are frames of the
 recorded takes (`scripts/clips.mjs`). Spec format at the top of the script.
 
+**Fast-cut variations.** `daily-2026-10-03-es-v01…v10-*` are ten reels built
+on what holds attention (`../research/08-hooks-and-retention.md`): the hook
+on frame 1, a change every few seconds, one open loop, no end card. They
+fill the frame with the recording and move a camera over it, using the
+blocks in `lib/cuts.js` (shots and cuts, punch-in framing, text labels,
+stopwatch, progress bar, countdown, chat). New reels should start from one
+of these.
+
 The whole routine is written up as a Claude Code skill in
 `.claude/skills/daily-reel/SKILL.md`. Just ask for "today's reel", or "this
 week's posts" for a batch of seven.

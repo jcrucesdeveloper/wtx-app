@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>WTX — v11 POV</title>
+    <!--
+      Variation 11, the POV frame: one unbroken take with a slow push-in and a
+      slight handheld sway, captioned like subtitles. No cuts at all: the
+      contrast with the fast-cut set is the point.
+    -->
+    <link rel="stylesheet" href="../lib/motion.css" />
+    <style>
+      .sub {
+        position: absolute;
+        left: 90px;
+        width: 810px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 64px;
+        line-height: 1.5;
+        letter-spacing: -0.02em;
+        color: #fff;
+        z-index: 30;
+      }
+      .sub span {
+        padding: 0.1em 0.34em 0.14em;
+        border-radius: 0.2em;
+        background: rgba(8, 10, 12, 0.86);
+        box-decoration-break: clone;
+        -webkit-box-decoration-break: clone;
+      }
+      .sub em {
+        font-style: normal;
+        color: #ffd166;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script src="../node_modules/gsap/dist/gsap.min.js"></script>
+    <script type="module">
+      import { composition } from '../lib/engine.js'
+      import * as C from '../lib/cuts.js'
+
+      composition({
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 10,
+        lang: 'es',
+        clips: ['workout'],
+        build(ctx) {
+          const { m, tl } = ctx
+          const w = C.shot(ctx, 'workout')
+          C.cut(ctx, [w], w, 0, C.full(0))
+          C.brandTag(ctx, { y: 1250 })
+          ctx.music([{ at: 0, bars: 5, part: 'intro' }])
+          // Sound design of its own, so the cut without music isn't a few lone taps.
+          ctx.sfx(0, 'impact', { gain: 0.6 })
+          ctx.sfx(0.2, 'riser', { dur: 2.4, gain: 0.3 })
+          ctx.sfx(7.36, 'whoosh', { gain: 0.5 })
+
+          /* ---------- one take, re-timed but never cut ---------- */
+          const session = m('workout', 'session')
+          const weight = m('workout', 'weight')
+          const set2 = m('workout', 'set-2')
+          // In: the routine list, the tap on "Iniciar", the session opening.
+          C.play(ctx, w, { at: 0, from: 0.45, to: session + 0.05, speed: (session - 0.4) / 2.6 })
+          // Held: last week's numbers, already filled in.
+          C.play(ctx, w, { at: 2.6, from: session + 0.05, to: weight - 0.1, speed: (weight - session - 0.15) / 2.4 })
+          // Real time: typing today's weight and ticking the set.
+          const live = { at: 5, from: weight - 0.1, to: weight + 1.9, speed: 1 }
+          C.play(ctx, w, live)
+          C.play(ctx, w, { at: 7, from: weight + 1.9, to: set2 - 0.1, speed: (set2 - weight - 2) / 3 }, { sound: false })
+
+          // The push-in: the whole screen → the first exercise.
+          const end = C.frame('session-card', { cy: 760, fill: 1.05 })
+          tl.fromTo(w.cam, { ...C.full(0) }, { ...end, duration: 10, ease: 'sine.inOut', immediateRender: false }, 0)
+          // A hand holding the phone is never perfectly still.
+          tl.fromTo(w.root, { rotate: -0.5, x: -6 }, { rotate: 0.5, x: 6, duration: 2.5, ease: 'sine.inOut', repeat: 3, yoyo: true }, 0)
+          tl.set(w.root, { scale: 1.03 }, 0)
+
+          /* ---------- subtitles ---------- */
+          const sub = (html, at, out, y = 1040) => {
+            const el = ctx.el('div', 'sub', ctx.stage, `<span>${html}</span>`)
+            el.style.top = y + 'px'
+            if (at > 0) tl.set(el, { opacity: 0 }, 0)
+            tl.set(el, { opacity: 1 }, at)
+            if (out !== undefined) tl.set(el, { opacity: 0 }, out)
+            if (at > 0) ctx.sfx(at, 'pop', { gain: 0.6 })
+          }
+          C.label(ctx, 'POV: no te acuerdas<br>cuánto levantaste<br>la semana pasada', { y: 300, size: 64, align: 'center', out: 2.6 })
+          sub('Tu app sí.', 2.6, 3.8)
+          sub('<em>70 kg × 8</em>,<br>ya puesto.', 3.8, 5)
+          sub('Hoy toca subir.', 5, ctx.at(live, m('workout', 'pr-set')))
+          sub('<em>72.5 kg</em> ✓', ctx.at(live, m('workout', 'pr-set')), 7.4)
+          ctx.sfx(ctx.at(live, m('workout', 'pr-set')), 'confirm', { gain: 0.7 })
+          sub('¿Y tú, te acuerdas<br>de tu última serie?', 7.4)
+        },
+      })
+    </script>
+  </body>
+</html>

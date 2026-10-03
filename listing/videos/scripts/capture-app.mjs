@@ -300,6 +300,37 @@ const SCENES = {
     }
     await sleep(600)
   },
+
+  /** The receiving side of a shared routine: open the link, add it to the library. */
+  async import({ page, tap, sleep, mark }) {
+    await sleep(700)
+    const routine = [
+      '# Push Pesado',
+      'unit: kg',
+      '',
+      'Bench Press | reps 5x5 | 80 | rest 2m',
+      'Shoulder Press (Barbell) | reps 4x8 | 45 | rest 1m30s',
+      'Incline Dumbbell Press | reps 3x10 | 26 | rest 1m',
+      'Triceps Pushdown | reps 3x12 | 30 | rest 1m',
+      '',
+    ].join('\n')
+    // The same link the Share sheet builds (src/lib/share.ts): the routine,
+    // base64url-encoded, in ?r=. Opened in place, like a link tapped on a phone.
+    const param = Buffer.from(routine, 'utf8').toString('base64url')
+    await page.evaluate((r) => {
+      history.pushState(history.state, '', `/import?r=${r}`)
+      window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }))
+    }, param)
+    mark('opened')
+    await sleep(2400)
+    const shown = await page.$eval('.name', (el) => el.textContent).catch(() => '')
+    if (!shown.includes('Push Pesado')) throw new Error(`import: the shared routine did not open (saw "${shown}")`)
+    await tap('.primary', { label: 'add' })
+    mark('added')
+    await sleep(2600)
+    const stored = await page.evaluate(() => localStorage.getItem('wtx:routines') ?? '')
+    if (!stored.includes('Push Pesado')) throw new Error('import: routine was not added')
+  },
 }
 
 const wanted = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(SCENES)
