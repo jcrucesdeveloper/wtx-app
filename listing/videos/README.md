@@ -102,6 +102,14 @@ plate-with-eyes easter egg); the comedy sounds (`blab`, `boom`, `scratch`,
 `crickets`, `choir`, `dundun`, `squeak`, `bonk`, `tada` …) are in
 `scripts/music.mjs`. Captions to post with them: [`batch-c-posting.md`](batch-c-posting.md).
 
+**Comedy reels, hook-first (`d01…d12`).** Twelve more skits, new jokes, built
+on [`../research/12-comedy-hooks-and-retention.md`](../research/12-comedy-hooks-and-retention.md):
+frame 0 is already wrong (a face mid-sneeze filling the screen, a man flying
+off a treadmill), big characters on a saturated colour, a loud sound at t = 0,
+the first laugh inside 1.5 s, a second caption as a re-hook at ~45 %, and a
+cut on the peak. Same kit as batch C plus `T.closeup`, `T.punchIn`,
+`T.speedLines`, `T.ghosts`, `T.wallHole`. Captions: [`batch-d-posting.md`](batch-d-posting.md).
+
 ## How it's made
 
 ```

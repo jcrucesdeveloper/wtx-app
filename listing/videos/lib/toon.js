@@ -443,3 +443,71 @@ export function tumbler(ctx, parent, o) {
   ch.x = o.x
   return { piv, ch, half }
 }
+
+/* ---------- batch D: openings that are already wrong (research 12) ---------- */
+
+/**
+ * Start the reel zoomed in on a point (a face filling the frame), so the
+ * first frame is a close-up; call `unzoom` to snap out and reveal the scene.
+ */
+export function closeup(scene, { x = 540, y = 800, scale = 2.4 } = {}) {
+  gsap.set(scene, { scale, x: (540 - x) * scale, y: (1000 - y) * scale })
+}
+
+/** A punch of the whole scene on frame 0: motion in the first frames. */
+export function punchIn(ctx, scene, { from = 1.12, dur = 0.25 } = {}) {
+  ctx.tl.fromTo(scene, { scale: from }, { scale: 1, duration: dur, ease: 'expo.out' }, 0)
+}
+
+/** Streaks of speed crossing the frame from `at` to `until`. */
+export function speedLines(ctx, parent, at, until, { y0 = 500, y1 = 1350, n = 14, color = '#ffffff', dir = -1, seed = 3 } = {}) {
+  const r = rng(seed * 11 + 1)
+  const out = []
+  for (let i = 0; i < n; i++) {
+    const w = 160 + r() * 320
+    const l = node(ctx, '', parent, { position: 'absolute', left: (dir < 0 ? 1100 : -w - 20) + 'px', top: y0 + r() * (y1 - y0) + 'px', width: w + 'px', height: 8 + r() * 8 + 'px', background: color, borderRadius: '8px', opacity: 0, zIndex: 2 })
+    const d = 0.18 + r() * 0.16
+    for (let t = at + r() * 0.3; t < until; t += d + 0.06) {
+      ctx.tl.set(l, { opacity: 0.9, x: 0 }, t)
+      ctx.tl.to(l, { x: dir * (1300 + w), duration: d, ease: 'none' }, t)
+      ctx.tl.set(l, { opacity: 0 }, Math.min(until, t + d))
+    }
+    ctx.tl.set(l, { opacity: 0 }, until)
+    out.push(l)
+  }
+  return out
+}
+
+/** Red and blue ghost copies either side of an element (a body vibrating too fast). */
+export function ghosts(ctx, el, at, until, d = 28) {
+  ctx.tl.set(el, { filter: `drop-shadow(${d}px 0 0 rgba(224,38,58,0.55)) drop-shadow(${-d}px 0 0 rgba(47,109,246,0.55))` }, at)
+  if (until !== undefined) ctx.tl.set(el, { filter: 'none' }, until)
+}
+
+/** A few wavy stink lines rising from a point. */
+export function stink(ctx, parent, { x, y, n = 3, color = '#5fae3a' } = {}) {
+  const out = []
+  for (let i = 0; i < n; i++) {
+    const s = node(ctx, '', parent, { position: 'absolute', left: x + (i - (n - 1) / 2) * 46 - 20 + 'px', top: y - 130 + 'px', width: '40px', height: '130px' }, `<svg viewBox="0 0 40 130" width="40" height="130" fill="none" stroke="${color}" stroke-width="9" stroke-linecap="round"><path d="M20 126 Q 0 100 20 80 T 20 40 T 20 6"/></svg>`)
+    for (let k = 0; k < 40; k++) ctx.tl.to(s, { y: k % 2 ? 0 : -18, x: k % 2 ? -5 : 5, duration: 0.3, ease: 'sine.inOut' }, k * 0.3 + i * 0.1)
+    out.push(s)
+  }
+  return out
+}
+
+/** A person-shaped hole punched in a wall, with cracks. (x, y) = its centre. */
+export function wallHole(ctx, parent, { x, y, scale = 1, at }) {
+  const g = node(ctx, '', parent, { position: 'absolute', left: x + 'px', top: y + 'px', width: '0', height: '0', zIndex: 3 })
+  gsap.set(g, { scale })
+  node(ctx, '', g, { position: 'absolute', left: '-60px', top: '-190px', width: '120px', height: '120px', borderRadius: '50%', background: INK })
+  node(ctx, '', g, { position: 'absolute', left: '-56px', top: '-90px', width: '112px', height: '170px', borderRadius: '26px', background: INK })
+  node(ctx, '', g, { position: 'absolute', left: '-150px', top: '-70px', width: '300px', height: '34px', borderRadius: '17px', background: INK, transform: 'rotate(-12deg)' })
+  node(ctx, '', g, { position: 'absolute', left: '-44px', top: '60px', width: '34px', height: '150px', borderRadius: '17px', background: INK, transform: 'rotate(10deg)' })
+  node(ctx, '', g, { position: 'absolute', left: '10px', top: '60px', width: '34px', height: '150px', borderRadius: '17px', background: INK, transform: 'rotate(-14deg)' })
+  node(ctx, '', g, { position: 'absolute', left: '-260px', top: '-300px', width: '520px', height: '600px' }, `<svg viewBox="0 0 520 600" width="520" height="600" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"><path d="M260 90 L230 20 L250 0 M340 150 L420 110 L450 60 M370 300 L470 320 L500 380 M320 470 L370 540 L360 590 M200 480 L150 560 M150 320 L60 340 L30 300 M180 170 L100 120 L90 60"/></svg>`)
+  if (at !== undefined) {
+    ctx.tl.set(g, { opacity: 0 }, 0)
+    ctx.tl.set(g, { opacity: 1 }, at)
+  }
+  return g
+}

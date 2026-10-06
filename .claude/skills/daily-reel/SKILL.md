@@ -157,6 +157,7 @@ When the user wants something funny, viral, or "not like an ad", make a
 - **Speech is gibberish** (`T.say`) with a short bubble, so ES and EN share the picture. Put every string in a `TXT = { es, en }` table.
 - **Sound**: a sound and motion at t = 0; `boom` for a realisation, `scratch` for a turn, `crickets` for the silence after, `choir` for false hope. Leave silence before a punchline.
 - **Hide the plate** (`T.egg`) somewhere in every scene and have it react.
+- **Open hook-first** (research 12, examples `d01…d12`): frame 0 must already be wrong and work as a still on mute (`T.closeup` on a face then `T.unzoom`, or `T.punchIn` on an absurd tableau); big characters on a saturated colour (`T.stage(ctx, { bg })`), a loud sound at t = 0, the first laugh inside 1.5 s, a second `T.caption(..., { at })` as a re-hook at ~45 %, and end on the peak with nothing after it. Check frame 0 alone before anything else.
 - Start a new one with `scripts/new-page.sh cNN-slug`, check a contact sheet in both languages, render, and log it. Ask the user to log **sends** as well as hold and completion.
 
 ## Slideshows

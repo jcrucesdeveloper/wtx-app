@@ -856,6 +856,94 @@ Object.assign(fx, {
       return Math.sin(ph) * Math.sin(Math.PI * p)
     }, { gain: 0.45 * gain })
   },
+  /* ---------- batch D ---------- */
+  /** A-CHOO: a short inhale squeak, then a wide noise burst with a falling voice. */
+  sneeze(mix, t, { gain = 1, pitch = 70 } = {}) {
+    const bp = new Biquad('bp', 2400, 0.7)
+    const b1 = new Biquad('bp', 900, 4)
+    let ph = 0
+    mix.voice(t, 0.5, (i, s) => {
+      const f = midiHz(pitch + 7) * Math.pow(0.45, Math.min(1, s / 0.3))
+      ph = (ph + f / SR) % 1
+      const voice = b1.run((ph < 0.3 ? 1 : -1) + (2 * ph - 1) * 0.5) * 1.2
+      return (bp.run(noise()) * 1.8 * Math.exp(-s / 0.09) + voice * Math.exp(-s / 0.16)) * Math.min(1, s / 0.004)
+    }, { gain: 0.7 * gain, rev: 0.25 })
+    mix.addDuck(t, 0.6, 0.2)
+  },
+  /** Alarm clock: harsh double beeps. */
+  alarm(mix, t, { gain = 1, dur = 0.8 } = {}) {
+    let ph = 0
+    mix.voice(t, dur, (i, s) => {
+      const beat = s % 0.25
+      const on = beat < 0.06 || (beat > 0.1 && beat < 0.16) ? 1 : 0
+      ph = (ph + 2050 / SR) % 1
+      return ((ph < 0.5 ? 1 : -1) * 0.6 + Math.sin(2 * Math.PI * 3100 * s) * 0.4) * on
+    }, { gain: 0.3 * gain, rev: 0.1 })
+  },
+  /** Pfffff: a balloon letting go. */
+  deflate(mix, t, { gain = 1, dur = 0.7 } = {}) {
+    const bp = new Biquad('bp', 1800, 2.5)
+    let ph = 0
+    mix.voice(t, dur, (i, s) => {
+      const p = s / dur
+      if (i % 16 === 0) bp.set(2400 - 1700 * p)
+      ph += (2 * Math.PI * (420 - 300 * p) * (1 + 0.2 * Math.sin(2 * Math.PI * 45 * s))) / SR
+      const flutter = 0.6 + 0.4 * Math.sin(2 * Math.PI * (38 - 20 * p) * s)
+      return (bp.run(noise()) * 1.6 + Math.sin(ph) * 0.25) * flutter * Math.min(1, s / 0.01) * (1 - p * p)
+    }, { gain: 0.5 * gain })
+  },
+  /** A balloon filling: a rising rubbery squeal. */
+  inflate(mix, t, { gain = 1, dur = 0.35 } = {}) {
+    let ph = 0
+    mix.voice(t, dur, (i, s) => {
+      const p = s / dur
+      ph += (2 * Math.PI * (300 + 900 * p * p) * (1 + 0.05 * Math.sin(2 * Math.PI * 60 * s))) / SR
+      return (Math.sin(ph) + Math.sin(ph * 2) * 0.4) * Math.sin(Math.PI * Math.min(1, p * 1.05)) ** 0.6
+    }, { gain: 0.3 * gain, rev: 0.1 })
+  },
+  /** An angry electric buzz (vibrating, over-caffeinated). */
+  buzz(mix, t, { gain = 1, dur = 0.6, pitch = 43 } = {}) {
+    const lp = new Biquad('lp', 1800, 1.2)
+    let ph = 0
+    mix.voice(t, dur, (i, s) => {
+      ph = (ph + midiHz(pitch) / SR) % 1
+      const am = 0.55 + 0.45 * Math.sin(2 * Math.PI * 27 * s)
+      return lp.run(ph < 0.5 ? 1 : -1) * am * Math.min(1, s / 0.01) * Math.min(1, (dur - s) / 0.03)
+    }, { gain: 0.3 * gain })
+  },
+  /** Glass cracking. */
+  crack(mix, t, { gain = 1 } = {}) {
+    const hp = new Biquad('hp', 3500)
+    const r = mulberry32(Math.round(t * 1000) + 7)
+    const ticks = Array.from({ length: 9 }, () => r() * 0.35)
+    mix.voice(t, 0.5, (i, s) => {
+      let v = 0
+      for (const k of ticks) if (s >= k) v += Math.exp(-(s - k) / 0.004)
+      return hp.run(noise()) * v * 0.9 + Math.sin(2 * Math.PI * 5200 * s) * Math.exp(-s / 0.05) * 0.3
+    }, { gain: 0.45 * gain, rev: 0.3 })
+  },
+  /** A big animal roar: a growling saw with a slow wobble. */
+  roar(mix, t, { gain = 1, dur = 0.9, pitch = 36 } = {}) {
+    const b1 = new Biquad('bp', 500, 2)
+    const b2 = new Biquad('bp', 1300, 3)
+    let ph = 0
+    mix.voice(t, dur, (i, s) => {
+      const p = s / dur
+      const f = midiHz(pitch + 6 * Math.sin(Math.PI * p)) * (1 + 0.08 * Math.sin(2 * Math.PI * 23 * s))
+      ph = (ph + f / SR) % 1
+      const src = 2 * ph - 1 + noise() * 0.35
+      return Math.tanh((b1.run(src) * 2 + b2.run(src)) * 1.6) * Math.sin(Math.PI * Math.min(1, p * 1.02)) ** 0.5
+    }, { gain: 0.6 * gain, rev: 0.35 })
+  },
+  /** Something leaving at speed: a rising, tearing whoosh. */
+  rocket(mix, t, { gain = 1, dur = 0.5 } = {}) {
+    const bp = new Biquad('bp', 600, 1.2)
+    mix.voice(t, dur, (i, s) => {
+      const p = s / dur
+      if (i % 16 === 0) bp.set(400 + 6500 * p * p)
+      return bp.run(noise()) * (0.3 + p) * Math.min(1, s / 0.01) * Math.min(1, (dur - s) / 0.04) * 1.6
+    }, { gain: 0.55 * gain, rev: 0.2 })
+  },
   /** Tape rewind: a fast downward whirr with a wobble and a stutter. */
   rewind(mix, t, { gain = 1, dur = 0.4 } = {}) {
     const bp = new Biquad('bp', 4000, 2.2)
@@ -899,7 +987,7 @@ const ARP = [0, 1, 2, 1, 2, 0, 1, 2]
  * Voices that duck the mix (kicks, hits) must run before everything they
  * duck, so events are queued as [pass, run] and executed in two passes.
  */
-const DUCKERS = new Set(['kick', 'hit', 'impact', 'plate', 'kick808', 'chipKick', 'thud', 'heart', 'stinger', 'slam', 'boom', 'dundun'])
+const DUCKERS = new Set(['kick', 'hit', 'impact', 'plate', 'kick808', 'chipKick', 'thud', 'heart', 'stinger', 'slam', 'boom', 'dundun', 'sneeze'])
 const queueing = (lib, queue) =>
   new Proxy(lib, {
     get: (target, name) => (...args) => queue.push([DUCKERS.has(name) ? 0 : 1, () => target[name](...args)]),
