@@ -143,6 +143,22 @@ Rules (from the research; check each on the contact sheet):
 - Keep `duration` even; music is in 2-second bars.
 - Use `fill: 1` or less when framing a full-width region, or its text is cropped.
 
+## Comedy reels (no app, no branding)
+
+When the user wants something funny, viral, or "not like an ad", make a
+**comedy reel**: one gym joke, 6–10 s, crude hand-drawn characters. Read
+`listing/research/11-the-art-of-going-viral.md` first; the twelve examples are
+`compositions/src/c01…c12-*.js` and the kit is `lib/toon.js`.
+
+- **One joke**: premise → heighten three times → a twist, a look to camera, or a loop. Pick a premise people already complain about (the bank is in research 11) and be specific.
+- **Nothing that smells like an ad**: no brand tag, no logo sting, no CTA, no app feature. `T.sign(ctx)` (a tiny signature) is the only mark. Captions go in the post (`batch-c-posting.md`).
+- **The caption on screen is a meme caption** (`T.caption`), ≤ 8 words, on frame 0, the way a person would post it.
+- **The face does the acting**: `T.face(ctx, ch, name, at)` and hold on it for the beat. Use `T.pose` with short durations (snap, then hold); do not ease everything smoothly.
+- **Speech is gibberish** (`T.say`) with a short bubble, so ES and EN share the picture. Put every string in a `TXT = { es, en }` table.
+- **Sound**: a sound and motion at t = 0; `boom` for a realisation, `scratch` for a turn, `crickets` for the silence after, `choir` for false hope. Leave silence before a punchline.
+- **Hide the plate** (`T.egg`) somewhere in every scene and have it react.
+- Start a new one with `scripts/new-page.sh cNN-slug`, check a contact sheet in both languages, render, and log it. Ask the user to log **sends** as well as hold and completion.
+
 ## Slideshows
 
 A photo carousel (`slideshows/<name>.json` → `out/slideshows/<name>/01.png…`).

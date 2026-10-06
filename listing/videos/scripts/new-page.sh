@@ -12,6 +12,7 @@ cat > daily-$date-$lang-$slug.html <<HTML
     <!-- The composition is src/$slug.js; this page only picks the language. -->
     <link rel="stylesheet" href="../lib/motion.css" />
     <link rel="stylesheet" href="../lib/art.css" />
+    <link rel="stylesheet" href="../lib/toon.css" />
   </head>
   <body>
     <div id="stage"></div>

@@ -93,6 +93,15 @@ then a tape "rewind" into the story. Why and what: [`../research/10-attention-an
 nothing inside it was edited; the cold opens are in `compositions/src/cold-opens.js`.
 Post an `a` and its `b` on different days and compare the 3 s hold.
 
+**Comedy reels (`c01…c12`).** Twelve crude hand-drawn gym skits, one joke each,
+with **no brand tag, no logo sting and no call to action**: the account is the
+brand, the video is the joke. Why: [`../research/11-the-art-of-going-viral.md`](../research/11-the-art-of-going-viral.md).
+The kit is `lib/toon.js` + `lib/toon.css` (front-facing doodle people with
+swappable faces, snap poses, gibberish speech bubbles, meme captions, the
+plate-with-eyes easter egg); the comedy sounds (`blab`, `boom`, `scratch`,
+`crickets`, `choir`, `dundun`, `squeak`, `bonk`, `tada` …) are in
+`scripts/music.mjs`. Captions to post with them: [`batch-c-posting.md`](batch-c-posting.md).
+
 ## How it's made
 
 ```

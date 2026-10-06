@@ -713,6 +713,149 @@ Object.assign(fx, {
     mix.voice(t, 0.04, (i, s) => bp.run(noise()) * Math.exp(-s / 0.005) * 1.4, { gain: 0.3 * gain, pan: (rand() - 0.5) * 0.4 })
   },
   heartbeat: (mix, t, { gain = 1 } = {}) => inst.heart(mix, t, gain),
+  /* ---------- comedy kit (batch C, research 11) ---------- */
+  /**
+   * Gibberish speech ("animalese"): a run of short voiced syllables through
+   * two random vowel formants. `pitch` is the speaker's base MIDI note,
+   * `dur` the length of the line. Language-free, so ES and EN share a take.
+   */
+  blab(mix, t, { gain = 1, dur = 0.6, pitch = 62, seed = 1, rise = 0 } = {}) {
+    const r = mulberry32(Math.round(seed * 9973 + pitch * 31))
+    const VOW = [[730, 1090], [270, 2290], [300, 870], [530, 1840], [570, 840]]
+    const syl = 0.085
+    const n = Math.max(1, Math.round(dur / syl))
+    for (let k = 0; k < n; k++) {
+      const [f1, f2] = VOW[Math.floor(r() * VOW.length)]
+      const m = pitch + (r() - 0.5) * 5 + (rise * k) / n
+      const f = midiHz(m)
+      const b1 = new Biquad('bp', f1, 5)
+      const b2 = new Biquad('bp', f2, 7)
+      let ph = 0
+      mix.voice(t + k * syl, syl * 0.82, (i, s) => {
+        ph = (ph + (f * (1 + 0.03 * Math.sin(2 * Math.PI * 30 * s))) / SR) % 1
+        const src = (ph < 0.3 ? 1 : -1) + (2 * ph - 1) * 0.5
+        const env = Math.min(1, s / 0.006) * Math.min(1, (syl * 0.82 - s) / 0.012)
+        return (b1.run(src) * 1.4 + b2.run(src) * 0.8) * env
+      }, { gain: 0.55 * gain, rev: 0.06 })
+    }
+  },
+  /** A long, wobbling gibberish scream. */
+  scream(mix, t, { gain = 1, dur = 0.8, pitch = 74 } = {}) {
+    const b1 = new Biquad('bp', 850, 4)
+    const b2 = new Biquad('bp', 1400, 5)
+    let ph = 0
+    mix.voice(t, dur, (i, s) => {
+      const f = midiHz(pitch + 5 * Math.min(1, s / 0.15)) * (1 + 0.035 * Math.sin(2 * Math.PI * 9 * s))
+      ph = (ph + f / SR) % 1
+      const src = (ph < 0.3 ? 1 : -1) + (2 * ph - 1) * 0.6
+      return (b1.run(src) * 1.4 + b2.run(src)) * Math.min(1, s / 0.02) * Math.min(1, (dur - s) / 0.08)
+    }, { gain: 0.5 * gain, rev: 0.2 })
+  },
+  /** The meme boom: a deep, roomy thump for a realisation or a hard cut. */
+  boom(mix, t, { gain = 1 } = {}) {
+    let ph = 0
+    mix.voice(t, 1.6, (i, s) => {
+      ph += (2 * Math.PI * (36 + 70 * Math.exp(-s / 0.05))) / SR
+      return Math.tanh(Math.sin(ph) * 2.6) * Math.exp(-s / 0.55) + noise() * Math.exp(-s / 0.004) * 0.4
+    }, { gain: 0.85 * gain, rev: 0.6 })
+    mix.addDuck(t, 0.9, 0.5)
+  },
+  /** Record scratch: the joke just turned. */
+  scratch(mix, t, { gain = 1 } = {}) {
+    const bp = new Biquad('bp', 1500, 1.6)
+    let ph = 0
+    mix.voice(t, 0.42, (i, s) => {
+      const p = s / 0.42
+      const sweep = p < 0.35 ? p / 0.35 : p < 0.6 ? 1 - (p - 0.35) / 0.25 : (p - 0.6) / 0.4
+      if (i % 16 === 0) bp.set(500 + 3800 * sweep)
+      ph += (2 * Math.PI * (120 + 900 * sweep)) / SR
+      return (bp.run(noise()) * 1.6 + Math.sin(ph) * 0.35) * Math.min(1, s / 0.004) * Math.min(1, (0.42 - s) / 0.03)
+    }, { gain: 0.6 * gain })
+  },
+  /** Crickets: the silence after a bad idea. */
+  crickets(mix, t, { gain = 1, dur = 1.4 } = {}) {
+    mix.voice(t, dur, (i, s) => {
+      const chirp = s % 0.42
+      const on = chirp < 0.16 ? Math.sin(2 * Math.PI * 34 * chirp) > 0.2 ? 1 : 0 : 0
+      return Math.sin(2 * Math.PI * 4300 * s) * on * 0.6 * Math.min(1, s / 0.05) * Math.min(1, (dur - s) / 0.1)
+    }, { gain: 0.16 * gain, pan: 0.3, rev: 0.25 })
+  },
+  /** A heavenly "aah" chord: something is too good to be true. */
+  choir(mix, t, { gain = 1, dur = 1.8, root = 60 } = {}) {
+    for (const [m, pan] of [[0, -0.5], [4, 0], [7, 0.5], [12, 0.2]]) {
+      const f = midiHz(root + m)
+      const b1 = new Biquad('bp', 800, 3)
+      const b2 = new Biquad('bp', 1150, 4)
+      let ph = rand()
+      mix.voice(t, dur, (i, s) => {
+        ph = (ph + (f * (1 + 0.006 * Math.sin(2 * Math.PI * 5.2 * s + m))) / SR) % 1
+        const src = 2 * ph - 1
+        return (b1.run(src) + b2.run(src) * 0.7) * Math.min(1, s / 0.25) * Math.min(1, (dur - s) / 0.3)
+      }, { gain: 0.2 * gain, pan, rev: 0.7 })
+    }
+  },
+  /** Dun-dun-DUN: three low brassy notes. */
+  dundun(mix, t, { gain = 1 } = {}) {
+    ;[[0, 43, 0.22], [0.26, 43, 0.22], [0.52, 39, 0.9]].forEach(([o, m, d], n) => {
+      for (const oct of [0, 12]) {
+        const lp = new Biquad('lp', 1100, 0.9)
+        let ph = 0
+        const f = midiHz(m + oct)
+        mix.voice(t + o, d + 0.1, (i, s) => {
+          ph = (ph + f / SR) % 1
+          const env = Math.min(1, s / 0.015) * (s > d ? Math.exp(-(s - d) / 0.06) : 1)
+          return lp.run(2 * ph - 1) * env
+        }, { gain: (n === 2 ? 0.36 : 0.28) * gain, rev: 0.35 })
+      }
+    })
+    fx.thud(mix, t + 0.52, { gain: 0.8 * gain })
+  },
+  /** A rubber squeak (sore legs, a tiny step). */
+  squeak(mix, t, { gain = 1, pitch = 84, down = false } = {}) {
+    let ph = 0
+    mix.voice(t, 0.13, (i, s) => {
+      const p = s / 0.13
+      const f = midiHz(pitch) * (down ? 1.5 - 0.6 * p : 0.8 + 0.7 * p)
+      ph += (2 * Math.PI * f) / SR
+      return (Math.sin(ph) + Math.sin(ph * 2) * 0.4) * Math.sin(Math.PI * p)
+    }, { gain: 0.3 * gain, rev: 0.08 })
+  },
+  /** Bonk: a hollow knock on the head. */
+  bonk(mix, t, { gain = 1, pitch = 60 } = {}) {
+    let ph = 0
+    mix.voice(t, 0.22, (i, s) => {
+      ph += (2 * Math.PI * midiHz(pitch) * (1 + 0.5 * Math.exp(-s / 0.012))) / SR
+      return Math.sin(ph) * Math.exp(-s / 0.05) + noise() * Math.exp(-s / 0.002) * 0.5
+    }, { gain: 0.55 * gain, rev: 0.15 })
+  },
+  /** Ta-da: a tiny triumphant fanfare. */
+  tada(mix, t, { gain = 1 } = {}) {
+    ;[[0, [60, 64, 67], 0.14], [0.16, [65, 69, 72], 0.14], [0.32, [67, 72, 76, 79], 0.7]].forEach(([o, ch, d]) => {
+      for (const m of ch) {
+        const lp = new Biquad('lp', 2600, 0.8)
+        let ph = 0
+        const f = midiHz(m)
+        mix.voice(t + o, d + 0.1, (i, s) => {
+          ph = (ph + f / SR) % 1
+          const env = Math.min(1, s / 0.01) * (s > d ? Math.exp(-(s - d) / 0.08) : 1)
+          return lp.run(2 * ph - 1) * env
+        }, { gain: 0.13 * gain, rev: 0.3 })
+      }
+    })
+  },
+  /** A sad four-note power-down (original): something gave up. */
+  powerdown(mix, t, { gain = 1 } = {}) {
+    ;[76, 72, 67, 60].forEach((m, n) => inst.bell(mix, t + n * 0.16, m, { g: 1.1 * gain, dur: n === 3 ? 1.1 : 0.4, dly: 0.1 }))
+  },
+  /** Gulp. */
+  gulp(mix, t, { gain = 1 } = {}) {
+    let ph = 0
+    mix.voice(t, 0.16, (i, s) => {
+      const p = s / 0.16
+      ph += (2 * Math.PI * (p < 0.5 ? 380 - 400 * p : 180 + 500 * (p - 0.5))) / SR
+      return Math.sin(ph) * Math.sin(Math.PI * p)
+    }, { gain: 0.45 * gain })
+  },
   /** Tape rewind: a fast downward whirr with a wobble and a stutter. */
   rewind(mix, t, { gain = 1, dur = 0.4 } = {}) {
     const bp = new Biquad('bp', 4000, 2.2)
@@ -756,7 +899,7 @@ const ARP = [0, 1, 2, 1, 2, 0, 1, 2]
  * Voices that duck the mix (kicks, hits) must run before everything they
  * duck, so events are queued as [pass, run] and executed in two passes.
  */
-const DUCKERS = new Set(['kick', 'hit', 'impact', 'plate', 'kick808', 'chipKick', 'thud', 'heart', 'stinger', 'slam'])
+const DUCKERS = new Set(['kick', 'hit', 'impact', 'plate', 'kick808', 'chipKick', 'thud', 'heart', 'stinger', 'slam', 'boom', 'dundun'])
 const queueing = (lib, queue) =>
   new Proxy(lib, {
     get: (target, name) => (...args) => queue.push([DUCKERS.has(name) ? 0 : 1, () => target[name](...args)]),
