@@ -713,6 +713,23 @@ Object.assign(fx, {
     mix.voice(t, 0.04, (i, s) => bp.run(noise()) * Math.exp(-s / 0.005) * 1.4, { gain: 0.3 * gain, pan: (rand() - 0.5) * 0.4 })
   },
   heartbeat: (mix, t, { gain = 1 } = {}) => inst.heart(mix, t, gain),
+  /** Tape rewind: a fast downward whirr with a wobble and a stutter. */
+  rewind(mix, t, { gain = 1, dur = 0.4 } = {}) {
+    const bp = new Biquad('bp', 4000, 2.2)
+    let ph = 0
+    mix.voice(t, dur, (i, s) => {
+      const p = s / dur
+      if (i % 32 === 0) bp.set(5500 * Math.pow(1 - p, 1.4) + 500)
+      ph += (2 * Math.PI * (1400 * (1 - p) + 180 + 60 * Math.sin(2 * Math.PI * 38 * s))) / SR
+      const gate = Math.floor(s * 90) % 5 === 0 ? 0.35 : 1
+      return (bp.run(noise()) * 1.2 + Math.sin(ph) * 0.35) * gate * Math.min(1, s / 0.01) * (1 - Math.pow(p, 6))
+    }, { gain: 0.5 * gain, rev: 0.1 })
+  },
+  /** A loud cold-open hit: sub boom, snap and a short noise burst. */
+  slam(mix, t, { gain = 1 } = {}) {
+    fx.hit(mix, t, { gain: 1.0 * gain })
+    fx.zip(mix, t, { gain: 0.6 * gain, dur: 0.12 })
+  },
   /** The WTX sonic logo: three rising marimba-bell notes, then a plate clank. < 1.2 s. */
   stinger(mix, t, { gain = 1 } = {}) {
     ;[[0, 76], [0.11, 81], [0.22, 88]].forEach(([o, m]) => {
@@ -739,7 +756,7 @@ const ARP = [0, 1, 2, 1, 2, 0, 1, 2]
  * Voices that duck the mix (kicks, hits) must run before everything they
  * duck, so events are queued as [pass, run] and executed in two passes.
  */
-const DUCKERS = new Set(['kick', 'hit', 'impact', 'plate', 'kick808', 'chipKick', 'thud', 'heart', 'stinger'])
+const DUCKERS = new Set(['kick', 'hit', 'impact', 'plate', 'kick808', 'chipKick', 'thud', 'heart', 'stinger', 'slam'])
 const queueing = (lib, queue) =>
   new Proxy(lib, {
     get: (target, name) => (...args) => queue.push([DUCKERS.has(name) ? 0 : 1, () => target[name](...args)]),

@@ -383,3 +383,71 @@ export function handPos(ctx, rig) {
   const s = ctx.stage.getBoundingClientRect()
   return { x: r.left + r.width / 2 - s.left, y: r.top + r.height / 2 - s.top }
 }
+
+/* ---------- cold open (research 10: payoff first, sound at t = 0) ---------- */
+
+const POS = { set: 2, to: 2, from: 2, fromTo: 3, call: 2 }
+
+/**
+ * A view of `ctx` whose timeline, sound cues and music all start `C` seconds
+ * later, so an existing composition can run behind a cold open without
+ * editing a single time in it. Everything it hides "at 0" is hidden when the
+ * cold-open cover comes off at C, so build the cover (see `cover`) on the real ctx.
+ */
+export function shift(ctx, C) {
+  const tl = new Proxy(ctx.tl, {
+    get(target, name) {
+      const v = target[name]
+      if (typeof v !== 'function') return v
+      return (...args) => {
+        const i = POS[name]
+        if (i !== undefined && typeof args[i] === 'number') args[i] += C
+        else if (i !== undefined && args[i] === undefined && name !== 'call') args[i] = C
+        const out = v.apply(target, args)
+        return out === target ? tl : out
+      }
+    },
+  })
+  const s = Object.create(ctx)
+  s.tl = tl
+  s.sfx = (t, type, opts) => ctx.sfx(t + C, type, opts)
+  s.music = (sections) => ctx.music(sections.map((x) => ({ ...x, at: x.at + C })))
+  s.duration = ctx.duration - C
+  return s
+}
+
+/** The opaque layer the cold open lives on; it comes off at `C`. */
+export function cover(ctx, C, bg) {
+  const l = node(ctx, 'layer', ctx.stage, { background: bg, zIndex: 100, overflow: 'hidden' })
+  ctx.tl.set(l, { opacity: 0 }, C)
+  return l
+}
+
+/** The big cold-open hook text (3–7 words), slammed in on frame 0. */
+export function hookText(ctx, parent, html, { y = 330, size = 130, color = '#fff', font = 't-anton', stroke } = {}) {
+  const e = node(ctx, font, parent, { left: '40px', width: '1000px', top: y + 'px', textAlign: 'center', fontSize: size + 'px', color, whiteSpace: 'normal', textTransform: 'none', lineHeight: 1.0, zIndex: 20, textShadow: stroke ? `0 0 0 ${stroke}, 8px 8px 0 ${stroke}` : 'none' }, html)
+  ctx.tl.fromTo(e, { scale: 1.5 }, { scale: 1, duration: 0.2, ease: 'expo.out', immediateRender: false }, 0)
+  return e
+}
+
+/**
+ * The jump back to the story: tape-scrub bars, an RGB split on `targets`, a
+ * "◀◀" mark, and the rewind sound. Runs in the last `dur` seconds before C.
+ */
+export function rewind(ctx, C, { dur = 0.35, targets = [], label = '◀◀' } = {}) {
+  const at = C - dur
+  ctx.sfx(at, 'rewind', { gain: 0.9, dur })
+  const r = rng(77)
+  const mark = node(ctx, 't-pixel', ctx.stage, { left: '0', width: '1080px', top: '860px', textAlign: 'center', fontSize: '120px', color: '#fff', zIndex: 120, textShadow: '6px 0 #ff2a44, -6px 0 #00e5ff', opacity: 0 }, label)
+  ctx.tl.set(mark, { opacity: 1 }, at)
+  ctx.tl.set(mark, { opacity: 0 }, C)
+  const frames = Math.round(dur * 30)
+  for (let f = 0; f < frames; f++) {
+    const tt = at + f / 30
+    for (const el of targets) ctx.tl.set(el, { x: (r() - 0.5) * 60, skewX: (r() - 0.5) * 18, filter: `hue-rotate(${Math.round((r() - 0.5) * 120)}deg) saturate(1.8)` }, tt)
+    const b = node(ctx, '', ctx.stage, { position: 'absolute', left: '0', width: '1080px', top: r() * 1800 + 'px', height: 10 + r() * 50 + 'px', background: r() > 0.5 ? '#ffffff' : '#00e5ff', mixBlendMode: 'screen', zIndex: 119, opacity: 0 })
+    ctx.tl.set(b, { opacity: 0.55 }, tt)
+    ctx.tl.set(b, { opacity: 0 }, tt + 1 / 30)
+  }
+  for (const el of targets) ctx.tl.set(el, { x: 0, skewX: 0, filter: 'none' }, C)
+}

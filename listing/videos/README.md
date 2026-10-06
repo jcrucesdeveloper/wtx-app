@@ -86,6 +86,13 @@ discs, confetti, hand-drawn line boil, marker text, bubbles, the WTX sonic-logo
 `clank`, `cowbell`, `stinger`, `note` …). All original and synthesized, so
 there is nothing to license; each reel also exports an SFX-only cut.
 
+**Hook-first cut (`b01…b12`).** Same twelve reels behind a 1.3–1.8 s cold
+open that shows the payoff, a 3–7 word text hook and a sound hit on frame 0,
+then a tape "rewind" into the story. Why and what: [`../research/10-attention-and-hooks.md`](../research/10-attention-and-hooks.md).
+`A.shift(ctx, C)` runs an existing composition later on the timeline, so
+nothing inside it was edited; the cold opens are in `compositions/src/cold-opens.js`.
+Post an `a` and its `b` on different days and compare the 3 s hold.
+
 ## How it's made
 
 ```
