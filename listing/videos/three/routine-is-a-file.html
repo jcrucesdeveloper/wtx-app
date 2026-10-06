@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — a routine is a file (Three.js loop)</title>
+    <!--
+      A 10 s vertical loop (1080×1920, 30 fps) drawn with Three.js.
+      Open it in Chrome, press Record, and it saves one loop as a .webm.
+
+        ?lang=es     Spanish text
+        ?loops=2     record two loops in one file
+
+      Everything on screen is a function of the frame number, so the last
+      frame runs into the first and the recording is the same every time.
+      The reasoning behind the concept: ../../research/09-threejs-shorts.md
+    -->
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0c1116;
+        color: #f6f8fa;
+        font:
+          14px/1.4 -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      main {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+      }
+      .stage {
+        position: relative;
+        height: calc(100vh - 110px);
+        min-height: 320px;
+        aspect-ratio: 9 / 16;
+        margin: 0 auto;
+      }
+      #out {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border-radius: 10px;
+      }
+      /* What the TikTok / Reels interface covers. A guide only: not recorded. */
+      #safe {
+        position: absolute;
+        inset: 0;
+        display: none;
+        pointer-events: none;
+        border-style: solid;
+        border-color: rgba(0, 0, 0, 0.45);
+        border-width: 7% 11% 19% 0;
+        border-radius: 10px;
+      }
+      #safe.on {
+        display: block;
+      }
+      .bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+      }
+      button {
+        font: inherit;
+        font-weight: 600;
+        color: inherit;
+        background: #1a222b;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        padding: 7px 12px;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      #rec {
+        background: #e0263a;
+        border-color: #e0263a;
+      }
+      input[type='range'] {
+        width: 180px;
+      }
+      #status {
+        min-width: 150px;
+        color: #aebac6;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main>
+      <div class="stage">
+        <canvas id="out" width="1080" height="1920"></canvas>
+        <div id="safe"></div>
+      </div>
+      <div class="bar">
+        <button id="rec">● Record</button>
+        <button id="play">Pause</button>
+        <input id="scrub" type="range" min="0" max="299" value="0" />
+        <button id="lang"></button>
+        <button id="guides">Safe zones</button>
+        <span id="status"></span>
+      </div>
+    </main>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const W = 1080
+      const H = 1920
+      const FPS = 30
+      const DURATION = 10
+      const FRAMES = FPS * DURATION
+      const TAU = Math.PI * 2
+
+      const params = new URLSearchParams(location.search)
+      const lang = params.get('lang') === 'es' ? 'es' : 'en'
+      const loops = Math.max(1, Math.min(6, Number(params.get('loops')) || 1))
+
+      const YELLOW = '#ffe100'
+      const BLUE = '#2747ff'
+      const RED = '#f0283c'
+      const INK = '#0b0b10'
+      const WHITE = '#ffffff'
+      const DISPLAY = '"Segoe UI Black", "Arial Black", "Helvetica Neue", Arial, sans-serif'
+      const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+      const MONO = '"Cascadia Code", "SF Mono", Consolas, Menlo, monospace'
+
+      const dark = (t) => ({ t, bg: INK, fg: WHITE })
+      const COPY = {
+        en: {
+          hook: [dark('“BRO SEND ME'), dark('YOUR ROUTINE”')],
+          pain: [dark('ME: SENDS'), { t: '7 SCREENSHOTS', bg: RED, fg: WHITE }],
+          send: [dark('JUST SEND'), { t: 'THE FILE.', bg: WHITE, fg: BLUE }],
+          payoff: [dark('WHOLE ROUTINE.'), { t: 'ONE FILE.', bg: YELLOW, fg: INK }],
+          cta: [dark('NOW SEND IT TO'), { t: 'YOUR GYM BRO', bg: YELLOW, fg: INK }],
+          ask: 'bro send me your routine 🙏',
+          reply: "can't read this 💀",
+          bro: 'gym bro',
+          me: 'me',
+          saved: 'saved',
+          routine: [
+            ['Bench Press', '4×8', '60 kg'],
+            ['Shoulder Press', '3×10', '30 kg'],
+            ['Incline DB Press', '3×10', '22 kg'],
+            ['Triceps Pushdown', '3×12', '20 kg'],
+            ['Lateral Raise', '3×15', '8 kg'],
+          ],
+        },
+        es: {
+          hook: [dark('“BRO PÁSAME'), dark('TU RUTINA”')],
+          pain: [dark('YO: MANDO'), { t: '7 CAPTURAS', bg: RED, fg: WHITE }],
+          send: [dark('MEJOR MANDA'), { t: 'EL ARCHIVO.', bg: WHITE, fg: BLUE }],
+          payoff: [dark('TODA LA RUTINA.'), { t: 'UN ARCHIVO.', bg: YELLOW, fg: INK }],
+          cta: [dark('AHORA PÁSASELA'), { t: 'A TU GYM BRO', bg: YELLOW, fg: INK }],
+          ask: 'bro pásame tu rutina 🙏',
+          reply: 'no se lee nada 💀',
+          bro: 'gym bro',
+          me: 'yo',
+          saved: 'guardada',
+          routine: [
+            ['Press de banca', '4×8', '60 kg'],
+            ['Press militar', '3×10', '30 kg'],
+            ['Press inclinado', '3×10', '22 kg'],
+            ['Jalón de tríceps', '3×12', '20 kg'],
+            ['Elevación lateral', '3×15', '8 kg'],
+          ],
+        },
+      }
+      const L = COPY[lang]
+      const FILE_NAME = 'push-day.wtt'
+      /* The real file: examples/templates/push-day.wtt */
+      const FILE_LINES = [
+        '# Push Day',
+        'unit: kg',
+        '',
+        'Bench Press | reps 4x8 | 60 | rest 1m30s',
+        'Shoulder Press (Barbell) | reps 3x10 | 30',
+        'Incline Dumbbell Press | reps 3x10 | 22',
+        'Triceps Pushdown | reps 3x12 | 20 | rest 1m',
+        'Side Lateral Raise | reps 3x15 | 8 | rest 1m',
+      ]
+
+      /* ---- The beats, in seconds ------------------------------------- */
+      const T_PAIN = 1.5
+      const T_CROSS = 2.7
+      const T_SEND = 3.5
+      const T_THROW = 4.55
+      const T_LAND = 5.3
+      const T_PAYOFF = 5.5
+      const T_CTA = 8.0
+      const T_RESET = 9.4
+      const CARDS = 7
+      const cardTime = (i) => T_PAIN + 0.05 + i * 0.12
+      const PLATE_T = [5.95, 6.3, 6.65, 7.0, 7.35]
+      const PLATE_COLORS = [YELLOW, WHITE, BLUE, '#15151c', '#b6ff2e']
+
+      /* Where the two phones sit on the 1080×1920 frame. */
+      const MINE_PX = [271, 986]
+      const BRO_PX = [809, 986]
+
+      const TEXTS = [
+        { at: -1, until: T_PAIN, lines: L.hook },
+        { at: T_PAIN, until: T_SEND, lines: L.pain },
+        { at: T_SEND, until: T_LAND, lines: L.send },
+        { at: T_PAYOFF, until: T_CTA, lines: L.payoff },
+        { at: T_CTA, until: T_RESET, lines: L.cta },
+        { at: 9.45, until: 99, lines: L.hook },
+      ]
+      /* Each wipe is a circle of colour growing from a point. */
+      const WIPES = [
+        { at: T_SEND, color: BLUE, from: MINE_PX },
+        { at: T_LAND, color: RED, from: BRO_PX },
+        { at: T_RESET, color: YELLOW, from: [540, 960] },
+      ]
+
+      /* ---- Easing ---------------------------------------------------- */
+      const clamp01 = (x) => Math.min(1, Math.max(0, x))
+      const seg = (t, a, b) => clamp01((t - a) / (b - a))
+      const lerp = (a, b, k) => a + (b - a) * k
+      const outCubic = (x) => 1 - (1 - x) ** 3
+      const inCubic = (x) => x ** 3
+      const inOut = (x) => (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2)
+      const outBack = (x) => 1 + 2.70158 * (x - 1) ** 3 + 1.70158 * (x - 1) ** 2
+      /** A knock that rings and dies away, starting at `t0`. */
+      const pulse = (t, t0, amp, freq = 28, decay = 9) =>
+        t < t0 ? 0 : amp * Math.exp(-decay * (t - t0)) * Math.sin(freq * (t - t0))
+      /** The same "random" number every time for the same index. */
+      const rand = (i, k = 0) => {
+        const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453
+        return x - Math.floor(x)
+      }
+
+      /* ---- Textures drawn on a 2D canvas ----------------------------- */
+      const makeCanvas = (w, h) => Object.assign(document.createElement('canvas'), { width: w, height: h })
+      const textureOf = (canvas) => {
+        const tex = new THREE.CanvasTexture(canvas)
+        tex.colorSpace = THREE.SRGBColorSpace
+        tex.anisotropy = 8
+        return tex
+      }
+
+      function wrap(ctx, text, max) {
+        const lines = []
+        let line = ''
+        for (const word of text.split(' ')) {
+          const next = line ? `${line} ${word}` : word
+          if (line && ctx.measureText(next).width > max) {
+            lines.push(line)
+            line = word
+          } else line = next
+        }
+        lines.push(line)
+        return lines
+      }
+
+      function scribbles(ctx, x, y, w, h, seed) {
+        ctx.fillStyle = '#f3efe2'
+        ctx.fillRect(x, y, w, h)
+        ctx.fillStyle = '#3a3a44'
+        const rows = Math.floor(h / 14) - 1
+        for (let r = 0; r < rows; r++) {
+          const len = w * (0.3 + 0.55 * rand(seed, r))
+          ctx.fillRect(x + w * 0.1, y + 12 + r * 14, len, 5)
+        }
+      }
+
+      /** A chat screen. `mine` is my phone; the other one is my gym bro's. */
+      function drawChat(canvas, mine, stage) {
+        const ctx = canvas.getContext('2d')
+        const w = canvas.width
+        const h = canvas.height
+        ctx.clearRect(0, 0, w, h)
+        ctx.save()
+        ctx.beginPath()
+        ctx.roundRect(0, 0, w, h, 60)
+        ctx.clip()
+
+        if (stage === 3) {
+          ctx.fillStyle = '#19d36b'
+          ctx.fillRect(0, 0, w, h)
+          ctx.strokeStyle = WHITE
+          ctx.lineWidth = 44
+          ctx.lineCap = ctx.lineJoin = 'round'
+          ctx.beginPath()
+          ctx.moveTo(150, 520)
+          ctx.lineTo(232, 610)
+          ctx.lineTo(372, 440)
+          ctx.stroke()
+          ctx.fillStyle = WHITE
+          ctx.textAlign = 'center'
+          ctx.font = `700 46px ${MONO}`
+          ctx.fillText(FILE_NAME, w / 2, 760)
+          ctx.font = `700 40px ${SANS}`
+          ctx.fillText(L.saved, w / 2, 822)
+          ctx.restore()
+          return
+        }
+
+        ctx.fillStyle = WHITE
+        ctx.fillRect(0, 0, w, h)
+        ctx.fillStyle = '#eef0f5'
+        ctx.fillRect(0, 0, w, 156)
+        ctx.fillStyle = mine ? RED : BLUE
+        ctx.beginPath()
+        ctx.arc(74, 96, 34, 0, TAU)
+        ctx.fill()
+        ctx.fillStyle = INK
+        ctx.textBaseline = 'middle'
+        ctx.font = `700 42px ${SANS}`
+        ctx.fillText(mine ? L.bro : L.me, 126, 98)
+
+        const items = [{ fromMe: false, text: L.ask }]
+        if (stage >= 1) items.push({ fromMe: true, shots: true })
+        if (stage >= 2) items.push({ fromMe: false, text: L.reply })
+
+        let y = 196
+        for (const it of items) {
+          const right = it.fromMe === mine
+          if (it.shots) {
+            const cw = 132
+            const ch = 164
+            const x0 = right ? w - 28 - cw * 2 - 10 : 28
+            for (let i = 0; i < 4; i++) {
+              const x = x0 + (i % 2) * (cw + 10)
+              const yy = y + Math.floor(i / 2) * (ch + 10)
+              scribbles(ctx, x, yy, cw, ch, i + 3)
+              if (i === 3) {
+                ctx.fillStyle = 'rgba(11,11,16,0.62)'
+                ctx.fillRect(x, yy, cw, ch)
+                ctx.fillStyle = WHITE
+                ctx.textAlign = 'center'
+                ctx.font = `800 54px ${SANS}`
+                ctx.fillText('+3', x + cw / 2, yy + ch / 2)
+                ctx.textAlign = 'left'
+              }
+            }
+            y += ch * 2 + 10 + 26
+            continue
+          }
+          ctx.font = `600 50px ${SANS}`
+          const lines = wrap(ctx, it.text, 360)
+          const bw = Math.max(...lines.map((l) => ctx.measureText(l).width)) + 52
+          const bh = lines.length * 62 + 36
+          const x = right ? w - 28 - bw : 28
+          ctx.fillStyle = right ? BLUE : '#e6e8ef'
+          ctx.beginPath()
+          ctx.roundRect(x, y, bw, bh, 36)
+          ctx.fill()
+          ctx.fillStyle = right ? WHITE : INK
+          lines.forEach((l, i) => ctx.fillText(l, x + 26, y + 51 + i * 62))
+          y += bh + 26
+        }
+        ctx.restore()
+      }
+
+      function drawFileFront(canvas) {
+        const ctx = canvas.getContext('2d')
+        const w = canvas.width
+        const h = canvas.height
+        ctx.beginPath()
+        ctx.roundRect(0, 0, w, h, 40)
+        ctx.clip()
+        ctx.fillStyle = WHITE
+        ctx.fillRect(0, 0, w, h)
+        ctx.fillStyle = RED
+        ctx.fillRect(0, 0, w, 124)
+        ctx.fillStyle = WHITE
+        ctx.textBaseline = 'middle'
+        ctx.font = `800 46px ${MONO}`
+        ctx.fillText(FILE_NAME, 30, 66)
+        ctx.fillStyle = INK
+        ctx.font = `600 22px ${MONO}`
+        FILE_LINES.forEach((line, i) => {
+          ctx.fillStyle = i === 0 ? RED : INK
+          ctx.fillText(line, 26, 176 + i * 42)
+        })
+      }
+
+      function drawFileBack(canvas) {
+        const ctx = canvas.getContext('2d')
+        const w = canvas.width
+        const h = canvas.height
+        ctx.beginPath()
+        ctx.roundRect(0, 0, w, h, 40)
+        ctx.clip()
+        ctx.fillStyle = RED
+        ctx.fillRect(0, 0, w, h)
+        ctx.fillStyle = WHITE
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.font = `900 150px ${DISPLAY}`
+        ctx.fillText('WTX', w / 2, h / 2 - 30)
+        ctx.font = `800 56px ${MONO}`
+        ctx.fillText('.wtt', w / 2, h / 2 + 90)
+      }
+
+      function drawScreenshot(canvas, seed) {
+        const ctx = canvas.getContext('2d')
+        const w = canvas.width
+        const h = canvas.height
+        ctx.fillStyle = WHITE
+        ctx.fillRect(0, 0, w, h)
+        ctx.filter = 'blur(1.6px)'
+        scribbles(ctx, 12, 12, w - 24, h - 24, seed)
+        ctx.filter = 'none'
+      }
+
+      /* ---- The 3D scene ---------------------------------------------- */
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })
+      renderer.setPixelRatio(1)
+      renderer.setSize(W, H, false)
+
+      const scene = new THREE.Scene()
+      scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture
+      const key = new THREE.DirectionalLight(0xffffff, 2.2)
+      key.position.set(3, 6, 8)
+      scene.add(key)
+
+      /* fov 30 at 14 units: the frame is 7.5 units tall and 4.22 wide at z = 0. */
+      const camera = new THREE.PerspectiveCamera(30, W / H, 0.1, 100)
+
+      /** A flat slab with rounded corners, centred on the origin. */
+      function slabGeometry(w, h, r, depth) {
+        const x = -w / 2
+        const y = -h / 2
+        const s = new THREE.Shape()
+        s.moveTo(x + r, y)
+        s.lineTo(x + w - r, y)
+        s.quadraticCurveTo(x + w, y, x + w, y + r)
+        s.lineTo(x + w, y + h - r)
+        s.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+        s.lineTo(x + r, y + h)
+        s.quadraticCurveTo(x, y + h, x, y + h - r)
+        s.lineTo(x, y + r)
+        s.quadraticCurveTo(x, y, x + r, y)
+        const g = new THREE.ExtrudeGeometry(s, {
+          depth,
+          bevelEnabled: true,
+          bevelThickness: 0.02,
+          bevelSize: 0.02,
+          bevelSegments: 3,
+          curveSegments: 12,
+        })
+        g.center()
+        return g
+      }
+      const faceZ = (depth) => depth / 2 + 0.023
+
+      const phoneBody = slabGeometry(1.4, 2.9, 0.2, 0.1)
+      const phoneMat = new THREE.MeshStandardMaterial({ color: 0x14141c, roughness: 0.3, metalness: 0.7 })
+      function makePhone(mine) {
+        const group = new THREE.Group()
+        group.add(new THREE.Mesh(phoneBody, phoneMat))
+        const canvas = makeCanvas(512, 1112)
+        const tex = textureOf(canvas)
+        const screen = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.28, 2.78),
+          new THREE.MeshBasicMaterial({ map: tex, transparent: true }),
+        )
+        screen.position.z = faceZ(0.1)
+        group.add(screen)
+        scene.add(group)
+        return { group, canvas, tex, mine, stage: -1 }
+      }
+      const myPhone = makePhone(true)
+      const broPhone = makePhone(false)
+
+      function setStage(phone, stage) {
+        if (phone.stage === stage) return
+        phone.stage = stage
+        drawChat(phone.canvas, phone.mine, stage)
+        phone.tex.needsUpdate = true
+      }
+
+      /* The screenshots I should not have sent. */
+      const cardGeo = new THREE.PlaneGeometry(0.62, 1.1)
+      const cards = Array.from({ length: CARDS }, (_, i) => {
+        const canvas = makeCanvas(248, 440)
+        drawScreenshot(canvas, i + 11)
+        const mesh = new THREE.Mesh(
+          cardGeo,
+          new THREE.MeshBasicMaterial({ map: textureOf(canvas), side: THREE.DoubleSide }),
+        )
+        scene.add(mesh)
+        return mesh
+      })
+
+      /* The file. */
+      const fileBody = slabGeometry(1.0, 1.28, 0.1, 0.1)
+      const file = new THREE.Group()
+      file.add(new THREE.Mesh(fileBody, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 })))
+      {
+        const front = makeCanvas(400, 512)
+        drawFileFront(front)
+        const back = makeCanvas(400, 512)
+        drawFileBack(back)
+        const face = new THREE.PlaneGeometry(1.0, 1.28)
+        const a = new THREE.Mesh(face, new THREE.MeshBasicMaterial({ map: textureOf(front), transparent: true }))
+        a.position.z = faceZ(0.1)
+        const b = new THREE.Mesh(face, new THREE.MeshBasicMaterial({ map: textureOf(back), transparent: true }))
+        b.position.z = -faceZ(0.1)
+        b.rotation.y = Math.PI
+        file.add(a, b)
+      }
+      scene.add(file)
+      const ghosts = Array.from({ length: 6 }, (_, i) => {
+        const mesh = new THREE.Mesh(
+          fileBody,
+          new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 - i * 0.028, depthWrite: false }),
+        )
+        scene.add(mesh)
+        return mesh
+      })
+
+      /* The barbell the file turns into: one pair of plates per exercise. */
+      const barbell = new THREE.Group()
+      scene.add(barbell)
+      const steel = new THREE.MeshStandardMaterial({ color: 0xe4e8ef, roughness: 0.22, metalness: 1 })
+      const alongX = (mesh) => {
+        mesh.rotation.z = Math.PI / 2
+        return mesh
+      }
+      barbell.add(alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 3.8, 24), steel)))
+      for (const side of [-1, 1]) {
+        const sleeve = alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 1.02, 24), steel))
+        sleeve.position.x = side * 1.39
+        const collar = alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.07, 32), steel))
+        collar.position.x = side * 0.86
+        barbell.add(sleeve, collar)
+      }
+      const plates = PLATE_COLORS.map((color, i) => {
+        const r = 0.62 - i * 0.07
+        const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.38, metalness: 0.1 })
+        const inner = new THREE.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0 })
+        inner.color.multiplyScalar(0.72)
+        return [-1, 1].map((side) => {
+          const plate = new THREE.Group()
+          plate.add(alongX(new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.13, 56), mat)))
+          plate.add(alongX(new THREE.Mesh(new THREE.CylinderGeometry(r * 0.7, r * 0.7, 0.14, 56), inner)))
+          plate.add(alongX(new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.16, 32), steel)))
+          barbell.add(plate)
+          return { plate, side, slot: 0.98 + i * 0.155 }
+        })
+      })
+
+      /* Confetti off the phone when the file lands. */
+      const bitGeo = new THREE.BoxGeometry(1, 1, 0.35)
+      const bitMats = [YELLOW, WHITE, BLUE, '#b6ff2e', INK].map((c) => new THREE.MeshBasicMaterial({ color: c }))
+      const bits = Array.from({ length: 34 }, (_, i) => {
+        const mesh = new THREE.Mesh(bitGeo, bitMats[i % bitMats.length])
+        scene.add(mesh)
+        return mesh
+      })
+
+      /* ---- Posing the scene for a moment in time --------------------- */
+      const MINE = new THREE.Vector3(-1.05, -0.1, 0.2)
+      const BRO = new THREE.Vector3(1.05, -0.1, 0.2)
+      const HERO = new THREE.Vector3(0, 0.15, 2.4)
+      const tmp = new THREE.Vector3()
+
+      function posePhone(phone, side, t) {
+        const away = inCubic(seg(t, T_PAYOFF, 5.85)) - outCubic(seg(t, 9.4, 9.85))
+        const bob = Math.sin((t / 2.5) * TAU + (side > 0 ? 1.3 : 0))
+        let kick = 0
+        if (side < 0) {
+          for (let i = 0; i < CARDS; i++) kick += pulse(t, cardTime(i), 0.04)
+          kick += pulse(t, T_SEND, 0.12) + pulse(t, T_THROW, 0.08)
+        } else kick = pulse(t, 2.9, 0.07) + pulse(t, T_LAND, 0.24)
+        phone.group.position.set(side * 1.05, -0.1 + 0.05 * bob - 7 * away, 0)
+        phone.group.rotation.set(0.04 * bob, -side * 0.28, -side * 0.05 + 0.02 * bob)
+        phone.group.scale.setScalar(1 + kick)
+      }
+
+      /** Out of my phone, a turn in front of the camera, then thrown across. */
+      function poseFile(obj, t) {
+        const out = outBack(seg(t, T_SEND, 3.95))
+        const fly = seg(t, T_THROW, T_LAND) ** 1.6
+        tmp.lerpVectors(MINE, HERO, out)
+        if (fly > 0) {
+          tmp.lerpVectors(HERO, BRO, fly)
+          tmp.y += 0.9 * Math.sin(Math.PI * fly)
+          tmp.z += 0.5 * Math.sin(Math.PI * fly)
+        }
+        tmp.x -= 0.3 * Math.sin(Math.PI * seg(t, 4.3, 4.62))
+        obj.position.copy(tmp)
+        obj.scale.setScalar(Math.max(0.001, lerp(0.15, 1.5, out) * lerp(1, 0.22, fly)))
+        obj.rotation.set(
+          0.12 * Math.sin(t * 5),
+          TAU * inOut(seg(t, T_SEND, 4.45)) + 0.1 * Math.sin(t * 4),
+          -TAU * fly,
+        )
+      }
+
+      function pose(t) {
+        camera.position.set(0.22 * Math.sin((t / DURATION) * TAU), 0.1 * Math.sin((t / 5) * TAU), 14)
+        camera.lookAt(0, 0, 0)
+
+        const chatting = t < T_RESET
+        setStage(myPhone, chatting && t >= 2.9 ? 2 : chatting && t >= T_PAIN + 0.1 ? 1 : 0)
+        setStage(broPhone, !chatting ? 0 : t >= T_LAND ? 3 : t >= 2.9 ? 2 : t >= 2.2 ? 1 : 0)
+        posePhone(myPhone, -1, t)
+        posePhone(broPhone, 1, t)
+
+        cards.forEach((card, i) => {
+          const a = t - cardTime(i)
+          card.visible = a > 0 && t < T_SEND + 0.1
+          if (!card.visible) return
+          card.position.set(
+            MINE.x + (0.5 + 1.5 * rand(i, 1)) * a,
+            0.2 + (2.6 + 2.2 * rand(i, 2)) * a - 4.6 * a * a,
+            0.3 + (1.2 + 2 * rand(i, 3)) * a,
+          )
+          card.rotation.set(a * (2 + 3 * rand(i, 4)), a * (rand(i, 5) - 0.5) * 6, a * (rand(i, 6) - 0.5) * 7)
+          card.scale.setScalar(outBack(seg(a, 0, 0.16)) * (1 - seg(t, T_SEND - 0.1, T_SEND + 0.1)))
+        })
+
+        file.visible = t >= T_SEND && t < T_LAND
+        if (file.visible) poseFile(file, t)
+        ghosts.forEach((ghost, i) => {
+          const at = t - (i + 1) * 0.035
+          ghost.visible = file.visible && at > T_THROW
+          if (ghost.visible) poseFile(ghost, at)
+        })
+
+        const grown = outBack(seg(t, T_PAYOFF - 0.05, 5.8)) * (1 - inCubic(seg(t, 9.25, 9.5)))
+        barbell.visible = grown > 0.001
+        if (barbell.visible) {
+          let knock = 0
+          for (const at of PLATE_T) knock += pulse(t, at, 0.07, 24, 8)
+          const rep = Math.sin(Math.PI * seg(t, T_CTA - 0.1, 8.75)) ** 2
+          barbell.position.set(0, 1.0 - knock + 0.3 * rep, 0)
+          barbell.rotation.set(0, 0.5 * Math.sin(TAU * seg(t, T_PAYOFF, 9.3)), 0.05 * Math.sin(TAU * seg(t, 5.9, 7.6) * 2))
+          barbell.scale.setScalar(grown)
+          plates.forEach((pair, i) => {
+            const slide = seg(t, PLATE_T[i] - 0.26, PLATE_T[i])
+            for (const { plate, side, slot } of pair) {
+              plate.visible = slide > 0
+              plate.position.x = side * (lerp(4.4, slot, outCubic(slide)) + pulse(t, PLATE_T[i], 0.06, 30, 12))
+            }
+          })
+        }
+
+        bits.forEach((bit, i) => {
+          const a = t - T_LAND
+          bit.visible = a > 0 && a < 1.3
+          if (!bit.visible) return
+          bit.position.set(
+            BRO.x + (rand(i, 7) - 0.62) * 6 * a,
+            BRO.y + (2 + 5 * rand(i, 8)) * a - 5.5 * a * a,
+            0.4 + 3 * rand(i, 9) * a,
+          )
+          bit.rotation.set(a * 9 * rand(i, 10), a * 9 * rand(i, 11), a * 6)
+          bit.scale.setScalar(0.13 * (1 - a / 1.3))
+        })
+      }
+
+      /* ---- The 2D layers: background below the scene, text above ----- */
+      const out = document.getElementById('out')
+      const ctx = out.getContext('2d')
+
+      function drawBackground(t) {
+        ctx.fillStyle = YELLOW
+        ctx.fillRect(0, 0, W, H)
+        for (const wipe of WIPES) {
+          const k = seg(t, wipe.at, wipe.at + 0.34)
+          if (k <= 0) continue
+          ctx.fillStyle = wipe.color
+          ctx.beginPath()
+          ctx.arc(wipe.from[0], wipe.from[1], outCubic(k) * 2300, 0, TAU)
+          ctx.fill()
+        }
+        const glow = ctx.createRadialGradient(540, 760, 80, 540, 760, 1250)
+        glow.addColorStop(0, 'rgba(255,255,255,0.3)')
+        glow.addColorStop(1, 'rgba(255,255,255,0)')
+        ctx.fillStyle = glow
+        ctx.fillRect(0, 0, W, H)
+        /* Dots drifting one grid step per loop, so the loop has no seam. */
+        const step = 90
+        const drift = (t / DURATION) * step
+        ctx.fillStyle = 'rgba(11,11,16,0.1)'
+        for (let y = -step; y < H + step; y += step)
+          for (let x = -step; x < W + step; x += step) {
+            ctx.beginPath()
+            ctx.arc(x + drift, y + drift, 7, 0, TAU)
+            ctx.fill()
+          }
+      }
+
+      function drawCross(t) {
+        if (t < T_CROSS || t >= T_SEND) return
+        const s = lerp(1.7, 1, outCubic(seg(t, T_CROSS, T_CROSS + 0.12)))
+        ctx.save()
+        ctx.translate(540, 960)
+        ctx.scale(s, s)
+        ctx.rotate(-0.08)
+        ctx.lineCap = 'round'
+        for (const [color, width] of [
+          [WHITE, 128],
+          [RED, 84],
+        ]) {
+          ctx.strokeStyle = color
+          ctx.lineWidth = width
+          ctx.beginPath()
+          ctx.moveTo(-210, -210)
+          ctx.lineTo(210, 210)
+          ctx.moveTo(210, -210)
+          ctx.lineTo(-210, 210)
+          ctx.stroke()
+        }
+        ctx.restore()
+      }
+
+      function drawImpact(t) {
+        const a = t - T_LAND
+        if (a < 0 || a > 0.5) return
+        ctx.fillStyle = `rgba(255,255,255,${0.85 * (1 - seg(a, 0, 0.2))})`
+        ctx.fillRect(0, 0, W, H)
+        for (const delay of [0, 0.1]) {
+          const k = seg(a, delay, delay + 0.36)
+          if (k <= 0 || k >= 1) continue
+          ctx.strokeStyle = `rgba(255,255,255,${1 - k})`
+          ctx.lineWidth = 26 * (1 - k) + 4
+          ctx.beginPath()
+          ctx.arc(BRO_PX[0], BRO_PX[1], 120 + 560 * outCubic(k), 0, TAU)
+          ctx.stroke()
+        }
+      }
+
+      /** The routine as rows, one landing with each pair of plates. */
+      function drawRoutine(t) {
+        const gone = seg(t, 9.25, 9.45)
+        if (t < T_PAYOFF || gone >= 1) return
+        ctx.save()
+        ctx.globalAlpha = 1 - gone
+        ctx.translate(0, 60 * gone)
+        ctx.textBaseline = 'middle'
+
+        const tab = outBack(seg(t, T_PAYOFF + 0.15, T_PAYOFF + 0.4))
+        if (tab > 0) {
+          ctx.save()
+          ctx.translate(110, 936)
+          ctx.scale(tab, tab)
+          ctx.font = `700 34px ${MONO}`
+          const w = ctx.measureText(FILE_NAME).width + 44
+          ctx.fillStyle = WHITE
+          ctx.beginPath()
+          ctx.roundRect(0, -30, w, 60, 14)
+          ctx.fill()
+          ctx.fillStyle = RED
+          ctx.textAlign = 'left'
+          ctx.fillText(FILE_NAME, 22, 2)
+          ctx.restore()
+        }
+
+        L.routine.forEach(([name, sets, weight], i) => {
+          const k = seg(t, PLATE_T[i] - 0.06, PLATE_T[i] + 0.16)
+          if (k <= 0) return
+          const s = 0.7 + 0.3 * outBack(k)
+          ctx.save()
+          ctx.translate(540, 1023 + i * 77)
+          ctx.scale(s, s)
+          ctx.globalAlpha *= Math.min(1, k * 3)
+          ctx.fillStyle = INK
+          ctx.beginPath()
+          ctx.roundRect(-430, -33, 860, 66, 18)
+          ctx.fill()
+          ctx.fillStyle = PLATE_COLORS[i] === '#15151c' ? '#8a8fa3' : PLATE_COLORS[i]
+          ctx.beginPath()
+          ctx.arc(-392, 0, 13, 0, TAU)
+          ctx.fill()
+          ctx.fillStyle = WHITE
+          ctx.textAlign = 'left'
+          ctx.font = `700 36px ${SANS}`
+          ctx.fillText(name, -362, 2)
+          ctx.textAlign = 'right'
+          ctx.fillStyle = YELLOW
+          ctx.font = `700 34px ${MONO}`
+          ctx.fillText(`${sets} · ${weight}`, 406, 2)
+          ctx.restore()
+        })
+        ctx.restore()
+      }
+
+      /** Stacked text slabs. A block that starts before 0 is already in place. */
+      function drawText(t) {
+        const SIZE = 104
+        const SLAB = 136
+        for (const block of TEXTS) {
+          if (t < block.at || t >= block.until) continue
+          block.lines.forEach((line, i) => {
+            const k = block.at < 0 ? 1 : clamp01((t - block.at - i * 0.07) / 0.18)
+            if (k <= 0) return
+            ctx.font = `900 ${SIZE}px ${DISPLAY}`
+            const natural = ctx.measureText(line.t).width
+            const size = natural > 880 ? (SIZE * 880) / natural : SIZE
+            const w = Math.min(natural, 880) + 72
+            const s = 0.6 + 0.4 * outBack(k)
+            ctx.save()
+            ctx.translate(540, 222 + SLAB / 2 + i * (SLAB + 10))
+            ctx.rotate(i % 2 ? 0.022 : -0.022)
+            ctx.scale(s, s)
+            ctx.globalAlpha = Math.min(1, k * 3)
+            ctx.fillStyle = 'rgba(11,11,16,0.28)'
+            ctx.beginPath()
+            ctx.roundRect(-w / 2 + 10, -SLAB / 2 + 12, w, SLAB, 24)
+            ctx.fill()
+            ctx.fillStyle = line.bg
+            ctx.beginPath()
+            ctx.roundRect(-w / 2, -SLAB / 2, w, SLAB, 24)
+            ctx.fill()
+            ctx.fillStyle = line.fg
+            ctx.font = `900 ${size}px ${DISPLAY}`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(line.t, 0, size * 0.05)
+            ctx.restore()
+          })
+        }
+      }
+
+      /** The address stays on screen all the way through and steps forward for the CTA. */
+      function drawBrand(t) {
+        const up = outBack(seg(t, T_CTA, T_CTA + 0.25)) * (1 - seg(t, T_RESET, 9.65))
+        const lit = clamp01(up)
+        const s = 0.62 + 0.38 * up + 0.025 * lit * Math.sin((t - T_CTA) * 9)
+        ctx.save()
+        ctx.translate(540, 1462)
+        ctx.scale(s, s)
+        ctx.font = `900 62px ${SANS}`
+        const w = ctx.measureText('wtxworkout.com').width + 96
+        for (const [bg, fg, alpha] of [
+          [INK, WHITE, 1],
+          [YELLOW, INK, lit],
+        ]) {
+          if (alpha <= 0) continue
+          ctx.globalAlpha = alpha
+          ctx.fillStyle = bg
+          ctx.beginPath()
+          ctx.roundRect(-w / 2, -54, w, 108, 54)
+          ctx.fill()
+          ctx.fillStyle = fg
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText('wtxworkout.com', 0, 3)
+        }
+        ctx.restore()
+      }
+
+      function draw(t) {
+        pose(t)
+        renderer.render(scene, camera)
+        const shake = pulse(t, T_CROSS, 22, 60, 9) + pulse(t, T_LAND, 30, 55, 8)
+        const dx = shake
+        const dy = shake * 0.6
+        drawBackground(t)
+        ctx.save()
+        ctx.translate(dx, dy)
+        ctx.drawImage(renderer.domElement, 0, 0)
+        drawImpact(t)
+        drawCross(t)
+        drawRoutine(t)
+        drawText(t)
+        drawBrand(t)
+        ctx.restore()
+      }
+
+      /* ---- Playback and recording ------------------------------------ */
+      const $ = (id) => document.getElementById(id)
+      const recBtn = $('rec')
+      const playBtn = $('play')
+      const scrub = $('scrub')
+      const status = $('status')
+      $('lang').textContent = lang === 'es' ? 'English' : 'Español'
+      $('lang').onclick = () => {
+        params.set('lang', lang === 'es' ? 'en' : 'es')
+        location.search = params.toString()
+      }
+      $('guides').onclick = () => $('safe').classList.toggle('on')
+
+      let playing = true
+      let recording = null
+      let started = performance.now()
+      let frame = -1
+      let notice = 0
+
+      function show(f) {
+        frame = f
+        draw((f % FRAMES) / FPS)
+        scrub.value = f % FRAMES
+        if (!recording && performance.now() > notice) status.textContent = `${((f % FRAMES) / FPS).toFixed(2)} s · frame ${f % FRAMES}`
+      }
+
+      function tick(now) {
+        requestAnimationFrame(tick)
+        if (!playing && !recording) return
+        const f = Math.floor(((now - started) / 1000) * FPS)
+        if (recording && f >= recording.frames) return stopRecording()
+        if (f === frame) return
+        show(f)
+        if (recording) {
+          recording.track.requestFrame()
+          status.textContent = `Recording ${(f / FPS).toFixed(1)} / ${(recording.frames / FPS).toFixed(0)} s`
+        }
+      }
+
+      playBtn.onclick = () => {
+        playing = !playing
+        playBtn.textContent = playing ? 'Pause' : 'Play'
+        if (playing) started = performance.now() - ((frame % FRAMES) / FPS) * 1000
+      }
+      scrub.oninput = () => {
+        if (recording) return
+        playing = false
+        playBtn.textContent = 'Play'
+        show(Number(scrub.value))
+      }
+
+      function startRecording() {
+        const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find((m) =>
+          MediaRecorder.isTypeSupported(m),
+        )
+        if (!mimeType) {
+          status.textContent = 'This browser cannot record WebM'
+          return
+        }
+        show(0)
+        /* Capture only when asked, so each drawn frame is recorded exactly once. */
+        const stream = out.captureStream(0)
+        const [track] = stream.getVideoTracks()
+        const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 16_000_000 })
+        const chunks = []
+        recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data)
+        recorder.onstop = () => {
+          stream.getTracks().forEach((track) => track.stop())
+          const link = document.createElement('a')
+          link.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }))
+          link.download = `wtx-routine-is-a-file-${lang}.webm`
+          link.click()
+          setTimeout(() => URL.revokeObjectURL(link.href), 10_000)
+          status.textContent = `Saved ${link.download}`
+          notice = performance.now() + 5000
+        }
+        recording = { recorder, track, frames: FRAMES * loops }
+        recBtn.disabled = playBtn.disabled = scrub.disabled = true
+        recBtn.textContent = '● Recording…'
+        started = performance.now()
+        frame = -1
+        recorder.start()
+      }
+
+      function stopRecording() {
+        recording.recorder.stop()
+        recording = null
+        recBtn.disabled = playBtn.disabled = scrub.disabled = false
+        recBtn.textContent = '● Record'
+        playing = true
+        playBtn.textContent = 'Pause'
+        started = performance.now()
+        frame = -1
+      }
+      recBtn.onclick = startRecording
+
+      /* For checking a frame from a script: __draw(seconds). */
+      window.__draw = draw
+      show(0)
+      requestAnimationFrame(tick)
+    </script>
+  </body>
+</html>
