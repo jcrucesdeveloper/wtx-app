@@ -148,3 +148,42 @@ trained together N times" (`trained-together`).
 The stage, the look and the Record button are shared in
 `videos/three/kit.js`, so a change to the text style or the recorder reaches
 all five. The first loop still carries its own copy.
+
+## Five more: formats people already watch, and no advert look
+
+Made 2026-10-06. The ten above share one look: yellow, blue and red, dark
+slabs, the address in a pill. Seen twice, that reads as a brand. These five
+each borrow a format with its own audience and its own look.
+
+| # | Source | Finding | Quality |
+|---|---|---|---|
+| 14 | [Know Your Meme: "Will the ball escape"](https://knowyourmeme.com/memes/will-the-ball-escape-ball-bouncing-brainrot) | Ball-in-a-ring simulations: balls bounce, multiply or break out, usually on black with neon colours. Viral on Shorts since late 2023. | Meme archive |
+| 15 | [Brand Industry: marble races](https://docs.thebrandindustry.com/news/why-this-marble-race-game-is-dominating-tiktok--youtube-8821354) | Marble races hold through competition and not knowing who wins; viewers pick a side. | Vendor blog |
+| 16 | [Clippie: text-story videos](https://clippie.ai/blog/make-fake-text-story-videos-ai-2026) | Chat-conversation videos are faceless and claim 65–80% completion; a chat is a story people finish. | Vendor, its own product |
+| 17 | [This-or-that format](https://eliro.pro/blog/10-video-formats-best-tiktok) | Two options and a quick choice: short videos that get finished and commented on. | Vendor blogs |
+| 18 | [Magna / Digiday](https://magnaglobal.com/magna-research-the-dos-and-donts-of-native-and-repurposed-advertising-on-tiktok/), [Ipsos](https://www.ipsos.com/en-us/how-brands-can-get-it-right-tiktok-ads) | Ads made to look like the platform's own content are better received than repurposed ads; they "felt more like content". | Research firms |
+| 19 | [Picsart](https://picsart.com/blog/design-trends-2026/), [Videobolt](https://blog.videobolt.net/post/top-motion-graphics-trends-2026) on 2026 design | Paper, grain and things that look made by hand; clay and warm earth tones; soft "tech" pastels; a few loud inks. | Vendor trend lists |
+
+**Not found:** numbers for any of these formats applied to an app. The
+formats are chosen because people watch them, which is weaker evidence
+than a measured lift.
+
+What changed in these five, from (18): no address pill and no call to
+action. The address is a small watermark, or in one case the hint in a
+message field. The text is set the way the apps' own editors set it. Each
+ends on something to answer or to send, not on "download".
+
+| File in `videos/three/` | Format | Look | Words on frame 1 | What happens | Length |
+|---|---|---|---|---|---|
+| `double-it.html` | Ball simulation (14) | Black, neon, a glowing ring | "Every bounce = 1 more gym bro with my routine" | One ball in a ring splits on every bounce while a counter climbs; the ring bursts | 10 s |
+| `race-day.html` | Race, pick a winner (15) | Clay pastels on a checked cloth | "who finishes leg day first? pick one" | Four numbered plates race up four lanes with lead changes; number 2, the one rolling with a partner, wins | 11 s |
+| `in-sync.html` | Satisfying loop (4) | Lavender-to-peach gradient, matte plates, grain | "me and my gym partner / every set, in sync" | Two barbells load, lift, turn and unload on exactly the same beat | 8 s |
+| `the-chat.html` | Text story (16) | A dark messages app, bubbles as objects | A message: "leg day tomorrow?" | Nine messages: the routine sent as a file, opened, then a room code and a countdown | 11 s |
+| `this-or-that.html` | This or that (17) | Two inks on paper, halftone dots, grain | "how do you send your gym routine?" | Panel 1: seven screenshots tumbling. Panel 2: one file turning. "be honest. 1 or 2?" | 9 s |
+
+Sharing: `double-it`, `this-or-that`, `the-chat`. Training with a partner:
+`race-day`, `in-sync`, `the-chat`.
+
+`race-day` says the plate with a partner "always" wins. That is a joke
+about gym partners, not a claim about the app.
+

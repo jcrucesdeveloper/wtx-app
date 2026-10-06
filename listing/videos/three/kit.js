@@ -91,6 +91,11 @@
    * wipes   [{ at, color, from: [x, y] }]: a circle of colour growing from a point.
    * shakes  [[at, pixels]].
    * cta     [at, until]: when the address pill steps forward.
+   *
+   * A loop that should not look like the others can also return:
+   * background(t)  draws its own backdrop instead of the colour wipes
+   * textStyle      'caption' (white label) or 'stroke' (outlined), with textY
+   * brand          false for none, or { color, alpha } for a quiet watermark
    */
   function run({ THREE, RoomEnvironment, slug, duration, from = 0, copy, build }) {
     const FRAMES = Math.round(FPS * duration)
@@ -243,9 +248,9 @@
     }
 
     /** Small coloured bits that burst from a point at `at` and fall. Returns its pose function. */
-    function confetti(count, at, origin, spread = 6) {
+    function confetti(count, at, origin, spread = 6, colors = [YELLOW, WHITE, BLUE, LIME, INK]) {
       const geo = new THREE.BoxGeometry(1, 1, 0.35)
-      const mats = [YELLOW, WHITE, BLUE, LIME, INK].map((c) => new THREE.MeshBasicMaterial({ color: c }))
+      const mats = colors.map((c) => new THREE.MeshBasicMaterial({ color: c }))
       const bits = Array.from({ length: count }, (_, i) => {
         const mesh = new THREE.Mesh(geo, mats[i % mats.length])
         scene.add(mesh)
@@ -333,15 +338,39 @@
       }
     }
 
+    /* Film grain: one tile of noise, moved to a new place every frame. */
+    const noise = makeCanvas(256, 256)
+    {
+      const c = noise.getContext('2d')
+      const img = c.createImageData(256, 256)
+      for (let i = 0; i < img.data.length; i += 4) {
+        const v = rand(i, 3) * 255
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = v
+        img.data[i + 3] = 255
+      }
+      c.putImageData(img, 0, 0)
+    }
+    function grain(t, alpha = 0.12) {
+      const f = Math.round(t * FPS) % FRAMES
+      ctx.save()
+      ctx.globalAlpha = alpha
+      ctx.globalCompositeOperation = 'overlay'
+      ctx.translate(-rand(f, 1) * 256, -rand(f, 2) * 256)
+      ctx.fillStyle = ctx.createPattern(noise, 'repeat')
+      ctx.fillRect(0, 0, W + 256, H + 256)
+      ctx.restore()
+    }
+
     const api = {
       THREE, scene, camera, ctx, lang, L: copy[lang], W, H,
       makeCanvas, textureOf, slab, faceZ, face, phone, card, plate, steel, emoji, confetti, px,
-      label, big, impact,
+      label, big, impact, grain,
     }
     const def = build(api)
 
     /* ---- The layers ------------------------------------------------- */
     function drawBackground(t) {
+      if (def.background) return def.background(t)
       ctx.fillStyle = def.base ?? YELLOW
       ctx.fillRect(0, 0, W, H)
       for (const wipe of def.wipes ?? []) {
@@ -369,7 +398,46 @@
         }
     }
 
+    /* Text the way the apps' own editors set it, for loops that should not
+       read as an advert: 'caption' is the white label, 'stroke' is outlined. */
+    function drawNative(t) {
+      const stroke = def.textStyle === 'stroke'
+      const size = stroke ? 88 : 62
+      const step = stroke ? 104 : 96
+      for (const block of def.texts) {
+        if (t < block.at || t >= block.until) continue
+        block.lines.forEach((line, i) => {
+          const text = line.t ?? line
+          const k = block.at < 0 ? 1 : clamp01((t - block.at - i * 0.05) / 0.12)
+          if (k <= 0) return
+          ctx.save()
+          ctx.translate(540, (def.textY ?? 270) + i * step)
+          ctx.scale(0.9 + 0.1 * k, 0.9 + 0.1 * k)
+          ctx.globalAlpha = k
+          ctx.font = `${stroke ? 900 : 800} ${size}px ${SANS}`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          if (stroke) {
+            ctx.lineJoin = 'round'
+            ctx.lineWidth = 18
+            ctx.strokeStyle = line.bg ?? INK
+            ctx.strokeText(text, 0, 0)
+          } else {
+            const w = ctx.measureText(text).width + 56
+            ctx.fillStyle = line.bg ?? WHITE
+            ctx.beginPath()
+            ctx.roundRect(-w / 2, -44, w, 90, 20)
+            ctx.fill()
+          }
+          ctx.fillStyle = line.fg ?? (stroke ? WHITE : INK)
+          ctx.fillText(text, 0, 3)
+          ctx.restore()
+        })
+      }
+    }
+
     function drawText(t) {
+      if (def.textStyle) return drawNative(t)
       const SIZE = 104
       const SLAB = 136
       for (const block of def.texts) {
@@ -407,6 +475,19 @@
 
     /** The address stays on screen all the way through and steps forward for the CTA. */
     function drawBrand(t) {
+      if (def.brand === false) return
+      if (def.brand) {
+        /* A quiet watermark instead of the pill. */
+        ctx.save()
+        ctx.globalAlpha = def.brand.alpha ?? 0.55
+        ctx.fillStyle = def.brand.color ?? WHITE
+        ctx.font = `700 34px ${SANS}`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('wtxworkout.com', 540, def.brand.y ?? 1500)
+        ctx.restore()
+        return
+      }
       const [at, until] = def.cta ?? [1e9, 1e9]
       const up = outBack(seg(t, at, at + 0.25)) * (1 - seg(t, until, until + 0.25))
       const lit = clamp01(up)
