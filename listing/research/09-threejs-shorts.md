@@ -122,3 +122,29 @@ Every position is a function of the frame number, so the loop has no seam
 (checked: frame 0 and frame 300 are pixel-identical). The recording runs in
 real time, so keep the tab in front while it records. It has no sound: add
 the track in the app.
+
+## Five more: a partner, and how easy sharing is
+
+Made 2026-10-06. The first loop is about the file. These five are about the
+two things people do with it: hand a routine to someone, and train with
+them. Each opens on a title or a number with something already moving
+(findings 8, 9, 11), shows only what the app does, and ends on a line worth
+sending to one person (13).
+
+| File in `videos/three/` | About | Words on frame 1 | What happens | Last line | Length |
+|---|---|---|---|---|---|
+| `scan-it.html` | Sharing | "Share a routine in 2 seconds" | One phone shows the QR, the other leans in and scans it; the five exercises fly across and fill its list; the phones bump | "Try it with your gym bro" | 9.5 s |
+| `pass-it-on.html` | Sharing | "1 routine. 6 gym bros." | The file sits in the middle and throws a copy to six phones, one by one, with a ×1…×6 badge; all six open the same plan | "Send yours to the group chat" | 9 s |
+| `start-together.html` | Partner | "How we start leg day together" | A room code crosses letter by letter; both phones show 3, 2, 1 on the same beat, then tick off the same sets | "Grab your gym partner" | 10 s |
+| `live-sets.html` | Partner | "Training together from 2 gyms" | Two towers, one block per finished set, landing at different times; cheers fly from one to the other; both reach 6/6 | "Who's your gym partner?" | 10 s |
+| `trained-together.html` | Partner | "Times we've trained together:" | Two plates with the two names clink, faster each time, and a counter climbs from 0 to 12, the number the app shows on a profile | "Send this to your gym partner" | 9 s |
+
+What each one leans on in the app: the QR share sheet and import link
+(`scan-it`; the code on screen is real and opens the site), `.wtt` files
+(`pass-it-on`), rooms with a 6-character code and a shared countdown
+(`start-together`), live sets and cheers in a room (`live-sets`), and "You've
+trained together N times" (`trained-together`).
+
+The stage, the look and the Record button are shared in
+`videos/three/kit.js`, so a change to the text style or the recorder reaches
+all five. The first loop still carries its own copy.

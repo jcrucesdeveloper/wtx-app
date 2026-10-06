@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — how we start leg day together (Three.js loop)</title>
+    <!-- Training with a partner: a room code crosses from one phone to the other,
+         then both count down together.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { seg, lerp, pop, pulse, outCubic, dark, tint, YELLOW, BLUE, RED, LIME, GREEN, INK, WHITE, SANS, MONO, DISPLAY, TAU } = R
+
+      const D = 10
+      const CODE = 'K7Q2MX'
+      const FLIGHT = 0.5
+      /* The first letter is already in the air on frame 1. */
+      const tileTime = (i) => -0.2 + i * 0.22
+      const T_JOINED = 1.55
+      const T_COUNT = 2.3
+      const T_GO = 5.3
+      const TICKS = [2.3, 3.3, 4.3]
+      const SET_T = [6.0, 6.6, 7.2]
+      const T_CTA = 7.7
+      const T_RESET = 9.4
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'start-together',
+        duration: D,
+        copy: {
+          en: {
+            hook: [dark('HOW WE START'), tint('LEG DAY TOGETHER', WHITE, RED)],
+            count: [dark('SAME'), tint('COUNTDOWN.', WHITE, BLUE)],
+            same: [dark('TWO PHONES.'), tint('ONE WORKOUT.', YELLOW)],
+            cta: [dark('GRAB YOUR'), tint('GYM PARTNER', YELLOW)],
+            code: 'Room code',
+            join: 'Join with code',
+            room: 'In the room (2/8)',
+            starting: 'Starting together',
+            go: 'GO',
+            squat: 'Squat',
+            me: 'You',
+            bro: 'Alex',
+          },
+          es: {
+            hook: [dark('ASÍ EMPEZAMOS'), tint('PIERNA JUNTOS', WHITE, RED)],
+            count: [dark('LA MISMA'), tint('CUENTA REGRESIVA.', WHITE, BLUE)],
+            same: [dark('DOS TELÉFONOS.'), tint('UN ENTRENO.', YELLOW)],
+            cta: [dark('TRAE A TU'), tint('GYM BRO', YELLOW)],
+            code: 'Código de sala',
+            join: 'Unirse con código',
+            room: 'En la sala (2/8)',
+            starting: 'Empezamos juntos',
+            go: 'YA',
+            squat: 'Sentadilla',
+            me: 'Tú',
+            bro: 'Alex',
+          },
+        },
+        build(api) {
+          const { L, ctx } = api
+          const host = api.phone()
+          const guest = api.phone()
+
+          const title = (c, w, text, bg = WHITE, fg = INK) => {
+            c.fillStyle = bg
+            c.fillRect(0, 0, w, 1112)
+            c.fillStyle = fg
+            c.textAlign = 'center'
+            c.textBaseline = 'middle'
+            c.font = `700 44px ${SANS}`
+            c.fillText(text, w / 2, 150)
+          }
+          const boxes = (c, w, y, filled) => {
+            for (let i = 0; i < 6; i++) {
+              const x = 30 + i * 76
+              c.fillStyle = i < filled ? INK : '#e6e8ef'
+              c.beginPath()
+              c.roundRect(x, y, 66, 92, 16)
+              c.fill()
+              if (i >= filled) continue
+              c.fillStyle = YELLOW
+              c.font = `800 60px ${MONO}`
+              c.fillText(CODE[i], x + 33, y + 50)
+            }
+          }
+          const showCode = (c, w) => {
+            title(c, w, L.code)
+            boxes(c, w, 260, 6)
+            c.fillStyle = '#eef0f5'
+            c.beginPath()
+            c.roundRect(96, 460, 320, 320, 30)
+            c.fill()
+            c.fillStyle = INK
+            for (let j = 0; j < 9; j++)
+              for (let i = 0; i < 9; i++)
+                if (R.rand(i, j) > 0.5 || (i < 3 && j < 3) || (i > 5 && j < 3) || (i < 3 && j > 5))
+                  c.fillRect(126 + i * 29, 490 + j * 29, 27, 27)
+          }
+          const enterCode = (n) => (c, w) => {
+            title(c, w, L.join)
+            boxes(c, w, 260, n)
+          }
+          const inRoom = (c, w) => {
+            title(c, w, L.room)
+            for (const [i, name, color] of [[0, L.me, RED], [1, L.bro, BLUE]]) {
+              const y = 330 + i * 190
+              c.fillStyle = '#eef0f5'
+              c.beginPath()
+              c.roundRect(34, y - 74, w - 68, 148, 40)
+              c.fill()
+              c.fillStyle = color
+              c.beginPath()
+              c.arc(116, y, 48, 0, TAU)
+              c.fill()
+              c.fillStyle = INK
+              c.textAlign = 'left'
+              c.font = `800 52px ${SANS}`
+              c.fillText(name, 194, y + 4)
+            }
+          }
+          const counting = (digit, bg) => (c, w) => {
+            title(c, w, L.starting, bg, WHITE)
+            c.font = `900 ${digit.length > 1 ? 250 : 520}px ${DISPLAY}`
+            c.fillText(digit, w / 2, 590)
+          }
+          const workout = (done) => (c, w) => {
+            title(c, w, `${L.squat} · 80 kg`)
+            for (let i = 0; i < 4; i++) {
+              const y = 250 + i * 150
+              const on = i < done
+              c.fillStyle = on ? GREEN : '#eef0f5'
+              c.beginPath()
+              c.roundRect(34, y, w - 68, 122, 34)
+              c.fill()
+              c.fillStyle = on ? WHITE : INK
+              c.textAlign = 'left'
+              c.font = `800 50px ${SANS}`
+              c.fillText(`${i + 1}`, 74, y + 64)
+              c.font = `700 46px ${MONO}`
+              c.fillText('6 × 80', 170, y + 64)
+              if (on) {
+                c.textAlign = 'right'
+                c.font = `900 56px ${SANS}`
+                c.fillText('✓', w - 70, y + 64)
+              }
+            }
+          }
+
+          const tiles = [...CODE].map((ch) =>
+            api.card(0.42, 0.56, 0x0b0b10, (c, w, h) => {
+              c.fillStyle = YELLOW
+              c.textAlign = 'center'
+              c.textBaseline = 'middle'
+              c.font = `800 ${h * 0.62}px ${MONO}`
+              c.fillText(ch, w / 2, h / 2 + 4)
+            }),
+          )
+          const burst = api.confetti(40, T_GO, [0, 0.2, 0.5], 8)
+
+          const COLORS = [BLUE, RED, '#8b5cf6']
+          const tick = (t) => TICKS.findLastIndex((at) => t >= at)
+
+          return {
+            texts: [
+              { at: -1, until: T_COUNT, lines: L.hook },
+              { at: T_COUNT, until: T_GO, lines: L.count },
+              { at: T_GO, until: T_CTA, lines: L.same },
+              { at: T_CTA, until: T_RESET, lines: L.cta },
+              { at: T_RESET + 0.15, until: 99, lines: L.hook },
+            ],
+            wipes: [
+              ...TICKS.map((at, i) => ({ at, color: COLORS[i], from: [540, 986] })),
+              { at: T_GO, color: RED, from: [540, 986] },
+              { at: T_RESET, color: YELLOW, from: [540, 960] },
+            ],
+            shakes: [...TICKS.map((at) => [at, 16]), [T_GO, 34]],
+            cta: [T_CTA, T_RESET],
+
+            pose(t) {
+              const bob = Math.sin((t / D) * 4 * TAU)
+              let beat = pulse(t, T_JOINED, 0.1) + pulse(t, T_GO, 0.22)
+              for (const at of TICKS) beat += pulse(t, at, 0.1)
+              for (const at of SET_T) beat += pulse(t, at, 0.06)
+              const jump = 0.35 * Math.sin(Math.PI * seg(t, T_GO, T_GO + 0.45))
+
+              host.group.position.set(-1.05, -0.1 + 0.05 * bob + jump, 0)
+              host.group.rotation.set(0.04 * bob, 0.28, 0.05)
+              host.group.scale.setScalar(1 + beat)
+              guest.group.position.set(1.05, -0.1 - 0.05 * bob + jump, 0)
+              guest.group.rotation.set(-0.04 * bob, -0.28, -0.05)
+              guest.group.scale.setScalar(1 + beat)
+
+              /* Letters fly across the seam of the loop, so wrap their clock. */
+              const flown = (i) => (((t - tileTime(i)) % D) + D) % D
+              const entered = t >= T_RESET ? 0 : tiles.filter((_, i) => t >= tileTime(i) + FLIGHT).length
+              const i3 = tick(t)
+              const done = SET_T.filter((at) => t >= at).length
+              if (t >= T_RESET || t < T_JOINED) {
+                host.paint('code', showCode)
+                guest.paint(`enter${entered}`, enterCode(entered))
+              } else if (t < T_COUNT) {
+                host.paint('room', inRoom)
+                guest.paint('room', inRoom)
+              } else if (t < T_GO) {
+                host.paint(`n${i3}`, counting(`${3 - i3}`, COLORS[i3]))
+                guest.paint(`n${i3}`, counting(`${3 - i3}`, COLORS[i3]))
+              } else if (t < T_GO + 0.6) {
+                host.paint('go', counting('', GREEN))
+                guest.paint('go', counting('', GREEN))
+              } else {
+                host.paint(`w${done}`, workout(done))
+                guest.paint(`w${done}`, workout(done))
+              }
+
+              tiles.forEach((tile, i) => {
+                const k = flown(i) / FLIGHT
+                tile.visible = k < 1
+                if (!tile.visible) return
+                const u = 1 - k
+                tile.position.set(
+                  lerp(-1.05, 1.05, k) + (i - 2.5) * 0.12 * u,
+                  0.55 * u + 0.5 * k + 0.45 * Math.sin(Math.PI * k),
+                  0.2 + 1.6 * Math.sin(Math.PI * k),
+                )
+                tile.rotation.set(0, 0, 0.3 * Math.sin(k * 5 + i))
+                tile.scale.setScalar(pop(k, 0, 0.25) * lerp(1.3, 0.55, k * k))
+              })
+              burst(t)
+            },
+
+            over(t) {
+              if (t >= T_GO && t < T_GO + 0.9) {
+                const a = t - T_GO
+                api.big(L.go, 540, 990, {
+                  size: 420,
+                  fill: LIME,
+                  scale: lerp(1.6, 1, outCubic(seg(a, 0, 0.16))),
+                  alpha: 1 - seg(a, 0.6, 0.9),
+                  rot: -0.06,
+                })
+              }
+              api.impact(t - T_JOINED, 540, 986, 0.5)
+              api.impact(t - T_GO, 540, 986)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>
