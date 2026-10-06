@@ -69,6 +69,23 @@ The whole routine is written up as a Claude Code skill in
 `.claude/skills/daily-reel/SKILL.md`. Just ask for "today's reel", or "this
 week's posts" for a batch of seven.
 
+## Animated reels (no app footage)
+
+`daily-2026-10-06-{es,en}-a01…a12-*` are twelve pure-animation reels built from
+the research in [`../research/09-animation-viral-and-sound.md`](../research/09-animation-viral-and-sound.md):
+a stick figure, a plate mascot, kinetic typography, a satisfying loop, a
+marimba ball run, a Wrapped-style data story, paper cut-out, glitch/code, an
+8-bit boss fight, a "dumb ways" bean list, a parallax night gym and a
+whiteboard doodle. Each is one module in `compositions/src/aNN-*.js` with an
+`{ es, en }` string table; `scripts/new-page.sh <slug>` makes the two pages.
+
+Shared pieces: `lib/art.js` + `lib/art.css` (stick-figure rig, plate mascot,
+discs, confetti, hand-drawn line boil, marker text, bubbles, the WTX sonic-logo
+`sting`). New sound in `scripts/music.mjs`: styles `phonk`, `cartoon`, `uke`,
+`lofi`, `chip`, `pop`, `synth`, `ambient`, `doodle` and ~25 effects (`boing`,
+`clank`, `cowbell`, `stinger`, `note` …). All original and synthesized, so
+there is nothing to license; each reel also exports an SFX-only cut.
+
 ## How it's made
 
 ```
