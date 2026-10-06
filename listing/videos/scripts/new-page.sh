@@ -13,6 +13,7 @@ cat > daily-$date-$lang-$slug.html <<HTML
     <link rel="stylesheet" href="../lib/motion.css" />
     <link rel="stylesheet" href="../lib/art.css" />
     <link rel="stylesheet" href="../lib/toon.css" />
+    <link rel="stylesheet" href="../lib/cel.css" />
   </head>
   <body>
     <div id="stage"></div>

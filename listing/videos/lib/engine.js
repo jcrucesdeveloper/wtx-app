@@ -49,6 +49,8 @@ export async function composition({ width, height, fps = 30, duration, bpm = 120
 
   const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } })
   const views = []
+  const frameHooks = []
+  const prepasses = []
   const audio = { bpm, sections: [], sfx: [] }
   const beat = 60 / bpm
 
@@ -106,6 +108,17 @@ export async function composition({ width, height, fps = 30, duration, bpm = 120
     sfx(t, type, opts = {}) {
       audio.sfx.push({ t, type, ...opts })
     },
+    /**
+     * Procedural drawing (lib/cel.js): `fn(frame)` runs after the timeline is
+     * seeked for every frame. It must be a pure function of the frame.
+     */
+    onFrame(fn) {
+      frameHooks.push(fn)
+    },
+    /** Work to do once, after `build` and before any frame (e.g. simulate springs over the whole timeline). */
+    prepass(fn) {
+      prepasses.push(fn)
+    },
     /** Music arrangement: [{ at, bars, part }] — see scripts/music.mjs for parts. */
     music(sections) {
       audio.sections.push(...sections)
@@ -121,6 +134,7 @@ export async function composition({ width, height, fps = 30, duration, bpm = 120
   }
 
   await build(ctx)
+  for (const fn of prepasses) await fn()
 
   // Hold every clip view on its first scheduled frame until it starts.
   tl.set({}, {}, duration)
@@ -147,6 +161,7 @@ export async function composition({ width, height, fps = 30, duration, bpm = 120
     // not moved, so nothing scheduled at 0 (every "hidden until…" set) would
     // apply and frame 0 would show everything at once.
     tl.seek(frame / fps + 1e-4, false)
+    for (const fn of frameHooks) fn(frame)
     await syncViews()
   }
   await window.__seek(Number(params.get('frame') ?? 0))
