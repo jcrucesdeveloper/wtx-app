@@ -10,6 +10,7 @@
 
         ?lang=es     Spanish text
         ?loops=2     record two loops in one file
+        ?hook=how    the opening: how (default), bytes, stop or quote
 
       Everything on screen is a function of the frame number, so the last
       frame runs into the first and the recording is the same every time.
@@ -119,6 +120,7 @@
         <button id="play">Pause</button>
         <input id="scrub" type="range" min="0" max="299" value="0" />
         <button id="lang"></button>
+        <button id="hook"></button>
         <button id="guides">Safe zones</button>
         <span id="status"></span>
       </div>
@@ -153,6 +155,10 @@
         en: {
           hook: [dark('“BRO SEND ME'), dark('YOUR ROUTINE”')],
           pain: [dark('ME: SENDS'), { t: '7 SCREENSHOTS', bg: RED, fg: WHITE }],
+          how: [dark('HOW I SEND'), { t: 'MY GYM ROUTINE', bg: WHITE, fg: BLUE }],
+          bytes: [dark('MY GYM ROUTINE'), { t: 'IS 300 BYTES', bg: WHITE, fg: BLUE }],
+          stop: [dark('STOP SENDING'), { t: '7 SCREENSHOTS', bg: RED, fg: WHITE }],
+          not: [dark("DON'T SEND"), { t: '7 SCREENSHOTS', bg: RED, fg: WHITE }],
           send: [dark('JUST SEND'), { t: 'THE FILE.', bg: WHITE, fg: BLUE }],
           payoff: [dark('WHOLE ROUTINE.'), { t: 'ONE FILE.', bg: YELLOW, fg: INK }],
           cta: [dark('NOW SEND IT TO'), { t: 'YOUR GYM BRO', bg: YELLOW, fg: INK }],
@@ -172,6 +178,10 @@
         es: {
           hook: [dark('“BRO PÁSAME'), dark('TU RUTINA”')],
           pain: [dark('YO: MANDO'), { t: '7 CAPTURAS', bg: RED, fg: WHITE }],
+          how: [dark('ASÍ MANDO'), { t: 'MI RUTINA DE GYM', bg: WHITE, fg: BLUE }],
+          bytes: [dark('MI RUTINA DE GYM'), { t: 'PESA 300 BYTES', bg: WHITE, fg: BLUE }],
+          stop: [dark('DEJA DE MANDAR'), { t: '7 CAPTURAS', bg: RED, fg: WHITE }],
+          not: [dark('NO MANDES'), { t: '7 CAPTURAS', bg: RED, fg: WHITE }],
           send: [dark('MEJOR MANDA'), { t: 'EL ARCHIVO.', bg: WHITE, fg: BLUE }],
           payoff: [dark('TODA LA RUTINA.'), { t: 'UN ARCHIVO.', bg: YELLOW, fg: INK }],
           cta: [dark('AHORA PÁSASELA'), { t: 'A TU GYM BRO', bg: YELLOW, fg: INK }],
@@ -221,11 +231,25 @@
       const MINE_PX = [271, 986]
       const BRO_PX = [809, 986]
 
+      /* The same loop can open on a different beat. `from` is where the video
+         starts, in seconds of the loop; the words on that beat are the hook, and
+         `hold` keeps them up long enough to read. Reasoning: research/09. */
+      const HOOKS = {
+        how: { from: 3.9, send: L.how, pain: L.not, hold: 6 },
+        bytes: { from: 3.9, send: L.bytes, pain: L.not, hold: 6 },
+        stop: { from: 1.6, send: L.send, pain: L.stop, painAt: 1.25 },
+        quote: { from: 0, send: L.send, pain: L.pain },
+      }
+      const hookName = params.get('hook') in HOOKS ? params.get('hook') : 'how'
+      const HOOK = HOOKS[hookName]
+      const START = Math.round(HOOK.from * FPS)
+      const painAt = HOOK.painAt ?? T_PAIN
+
       const TEXTS = [
-        { at: -1, until: T_PAIN, lines: L.hook },
-        { at: T_PAIN, until: T_SEND, lines: L.pain },
-        { at: T_SEND, until: T_LAND, lines: L.send },
-        { at: T_PAYOFF, until: T_CTA, lines: L.payoff },
+        { at: -1, until: painAt, lines: L.hook },
+        { at: painAt, until: T_SEND, lines: HOOK.pain },
+        { at: T_SEND, until: HOOK.hold ?? T_LAND, lines: HOOK.send },
+        { at: HOOK.hold ?? T_PAYOFF, until: T_CTA, lines: L.payoff },
         { at: T_CTA, until: T_RESET, lines: L.cta },
         { at: 9.45, until: 99, lines: L.hook },
       ]
@@ -898,6 +922,12 @@
         params.set('lang', lang === 'es' ? 'en' : 'es')
         location.search = params.toString()
       }
+      $('hook').textContent = `Hook: ${hookName}`
+      $('hook').onclick = () => {
+        const names = Object.keys(HOOKS)
+        params.set('hook', names[(names.indexOf(hookName) + 1) % names.length])
+        location.search = params.toString()
+      }
       $('guides').onclick = () => $('safe').classList.toggle('on')
 
       let playing = true
@@ -908,7 +938,7 @@
 
       function show(f) {
         frame = f
-        draw((f % FRAMES) / FPS)
+        draw(((f + START) % FRAMES) / FPS)
         scrub.value = f % FRAMES
         if (!recording && performance.now() > notice) status.textContent = `${((f % FRAMES) / FPS).toFixed(2)} s · frame ${f % FRAMES}`
       }
@@ -957,7 +987,7 @@
           stream.getTracks().forEach((track) => track.stop())
           const link = document.createElement('a')
           link.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }))
-          link.download = `wtx-routine-is-a-file-${lang}.webm`
+          link.download = `wtx-routine-is-a-file-${hookName}-${lang}.webm`
           link.click()
           setTimeout(() => URL.revokeObjectURL(link.href), 10_000)
           status.textContent = `Saved ${link.download}`
@@ -985,6 +1015,7 @@
 
       /* For checking a frame from a script: __draw(seconds). */
       window.__draw = draw
+      window.__show = show
       show(0)
       requestAnimationFrame(tick)
     </script>

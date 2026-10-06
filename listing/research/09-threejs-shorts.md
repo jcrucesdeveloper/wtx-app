@@ -54,11 +54,59 @@ into its last line, and it uses two of the three visuals asked for (the file
 between phones, the barbell built from data). 2 and 5 are the next to make:
 they reuse its barbell.
 
+## The hook, second pass
+
+Researched 2026-10-06, after watching the first cut: the animation holds,
+but would the opening line?
+
+| # | Source | Finding | Quality |
+|---|---|---|---|
+| 8 | [viral.app: TikTok vs Instagram hooks](https://viral.app/en/blog/insights/tiktok-hooks-vs-instagram-hooks) | 150,000 cross-posted videos, share that "break out" against a baseline of 5.4% (TikTok) and 4.9% (Reels). Numbered openers 6.8% / 7.4%. "How I…" 6.0%. Questions 5.7% / 5.1%. **POV 4.2%. "Me when…" 2.8%**, half the baseline. "This app…" 2.4% on Reels. The same hook does equally well on both apps. | Large dataset, one vendor |
+| 9 | [OpusClip: 13.5M clips](https://www.opus.pro/blog/anatomy-of-a-viral-tiktok-2026) (also in 08) | Hooks that show the product or outcome in the first three seconds: about 2× the views of the worst type. The worst type is the **story setup**, which "requires trust before it delivers value". | Large dataset, one vendor |
+| 10 | [quso.ai: 121,820 hooks](https://quso.ai/research/best-hooks-for-short-form) (also in 08) | Only 31% between the best and worst type. Specific beats vague ("I went viral at 47" over "I went viral"). Direct commands and authority are last. Test at least three hooks per video. | Large dataset, one vendor |
+| 11 | [NestScale](https://nestscale.com/blog/increase-tiktok-hook-rate.html), [Jelly](https://jellymarketing.ca/blog/stop-the-scroll-in-3-seconds-secrets-to-high-performing-short-form-video-hooks/), [Skeepers](https://community.skeepers.io/blog/writing-text-hooks/) | The picture stops the scroll before the words are read: motion in the first half second, then 5–8 words. Text plus visible motion in the first two seconds is claimed to lift 3-second retention by up to 50% over a static opening. | Vendor blogs, method not given |
+| 12 | [ShortsFast: faceless hooks](https://shortsfast.com/blog/faceless-shorts-hooks-retention-2026/) | With no face, the first frame has to say what the video is about with the sound off. Giving the answer first does not cost the watch if the video then shows how. No platform publishes a 3-second target. | Vendor, cites platform guidance |
+| 13 | [Socialync: send this to a friend](https://www.socialync.io/blog/send-this-to-friend-instagram-strategy-2026) | Reels built to be sent in a DM: the payoff is something one specific person needs to see, and the last line names that person. | Vendor blog |
+
+**Not found:** anything that measures a quoted line of dialogue as a hook,
+or a chat message as the first frame of a short video. Chat-story videos do
+hold (60–90 s "text stories"), but that is a different, long format.
+
+### What was wrong with the first hook
+
+| Problem with "Bro send me your routine" on frame 1 | Evidence |
+|---|---|
+| It is a story setup: a line of dialogue that only pays off 5 s later | The worst-ranked type (9) |
+| It does not say what the video is. A viewer who has never heard of WTX reads a quote with no label | First frame must name the topic (12) |
+| Frame 1 is two nearly empty phones that barely move | Motion first (11) |
+| The second line, "Me: sends 7 screenshots", is the "me when" shape | Half the baseline (8) |
+| The file, the thing being sold, first appears at 3.5 s | Outcome in the first three seconds (9) |
+
+### Four openings, one loop
+
+The loop has no seam, so it can start on any beat. Each hook below is the
+same animation entered at a different point, with its own opening words.
+The quote is not deleted: in the first three it becomes the last beat, which
+is where a story belongs.
+
+| `?hook=` | Words on frame 1 | Picture on frame 1 | Why | Bet for |
+|---|---|---|---|---|
+| `how` (default) | "How I send my gym routine" | The file turning in front of the two phones, then thrown | A title that labels the video, in the "How I…" shape (8), with the outcome on screen from the start (9) | Both audiences |
+| `bytes` | "My gym routine is 300 bytes" | The same | A specific number (10) that only makes sense once the file opens. 300 is the real size of `push-day.wtt` | Dev viewers |
+| `stop` | "Stop sending 7 screenshots" | Screenshots already flying out of the phone | Negative framing and a number (08, finding 6). It is also a direct command, which (10) ranks low: the evidence disagrees | Gym viewers |
+| `quote` | "Bro send me your routine" | Two phones, a chat | The first cut, kept as the control | — |
+
+Per the 31% in (10), which type wins is a small lever next to having a
+clear one. Post `how` and `stop` on different days and compare 3-second
+hold; keep `quote` only if it beats them.
+
 ## The build
 
 `listing/videos/three/routine-is-a-file.html`: one file, Three.js from a
 CDN. Open it in Chrome and press Record for a `.webm` of one loop.
-`?lang=es` for Spanish, `?loops=2` for two loops in one file.
+`?lang=es` for Spanish, `?loops=2` for two loops in one file, `?hook=` for
+the opening (above). The table below is the loop from its own zero, which
+is where `?hook=quote` starts.
 
 | Time | Beat | What changes |
 |---|---|---|
