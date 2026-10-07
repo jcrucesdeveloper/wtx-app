@@ -140,7 +140,7 @@ Rules (from the research; check each on the contact sheet):
 - **One open loop**, closed in the last seconds.
 - **No end card.** End on the payoff, a genuine question, or the first frame.
 - **A typed number must equal the number on the screen behind it.**
-- Keep `duration` even; music is in 2-second bars.
+- Keep `duration` even; music sections are written in 2-second bars, whatever the track's own tempo.
 - Use `fill: 1` or less when framing a full-width region, or its text is cropped.
 
 ## Comedy reels (no app, no branding)
@@ -250,7 +250,8 @@ Only claim what's on screen and actually shipped.
 ## Rules
 
 - **Real footage only.** Don't mock up or fake UI or numbers. If the app can't show it, don't say it.
-- **Music.** Only use `scripts/music.mjs`, which is original and license-free. Never add a copyrighted track to the file; that's what the SFX-only cut is for.
+- **Music.** Only the synthesized tracks (`scripts/music.mjs`, `scripts/soundtracks.mjs`), which are original and license-free. Never add a copyrighted track to the file; that's what the SFX-only cut is for.
+- **One track per reel.** Give every new composition its own line in `scripts/tracks.mjs` (a style that fits the tone, and a key and progression no other reel of that style uses) and run `node scripts/tracks.mjs`: it fails if two reels share a track.
 - **No price, no "new", no dates** in anything that might be reused for the stores.
 - **Hook in the first 3 s. Captions work muted.** Keep critical text in the safe zone.
 - **Timing.** Keep `duration` even and at 120 BPM (one beat = 15 frames), so cuts land on beats.

@@ -1,4 +1,4 @@
-<div align="center">
+rdiv align="center">
   <img src="listing/visuals/png/icon.png" alt="wtx icon" width="96" height="96">
 
   # wtx

@@ -14,9 +14,10 @@
 //   node scripts/render.mjs <composition> --sheet       contact sheet of the master
 //   options: --workers N   --no-deliver   --frames A:B (partial master, for drafts)
 //            --deliver-only (re-encode existing masters after a preset change)
+//            --audio-only (re-score: new audio on the existing master, no frames captured)
 
 import { createServer } from 'node:http'
-import { createReadStream, existsSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join, normalize, dirname } from 'node:path'
 import { spawn, spawnSync } from 'node:child_process'
 import { cpus } from 'node:os'
@@ -25,6 +26,7 @@ import ffmpeg from 'ffmpeg-static'
 import { CHROME, VIDEOS_DIR, BUILD_DIR, OUT_DIR } from './paths.mjs'
 import { renderAudio } from './music.mjs'
 import { targetsFor, PRESETS } from './targets.mjs'
+import { trackFor } from './tracks.mjs'
 
 const MIME = {
   '.html': 'text/html',
@@ -112,10 +114,18 @@ function parseArgs(argv) {
     else if (a === '--sheet') opts.sheet = true
     else if (a === '--no-deliver') opts.deliver = false
     else if (a === '--deliver-only') opts.deliverOnly = true
+    else if (a === '--audio-only') opts.audioOnly = true
     else if (a === '--frames') opts.frames = argv[++i].split(':').map(Number)
     else opts.names.push(a)
   }
   return opts
+}
+
+/** Both audio cuts of a composition: its soundtrack (tracks.mjs) and the sound design alone. */
+function renderAudioCuts(name, workDir, comp) {
+  const audio = { ...comp.audio, track: trackFor(name) }
+  renderAudio(audio, comp.duration, join(workDir, 'audio.wav'))
+  renderAudio(audio, comp.duration, join(workDir, 'audio-sfx-only.wav'), { music: false })
 }
 
 async function renderComposition(server, name, opts) {
@@ -123,6 +133,14 @@ async function renderComposition(server, name, opts) {
   const url = `http://127.0.0.1:${port}/compositions/${name}.html`
   const workDir = join(BUILD_DIR, 'render', name)
   mkdirSync(workDir, { recursive: true })
+
+  if (opts.audioOnly) {
+    // The cues were saved with the master, so a new soundtrack needs no browser.
+    const comp = JSON.parse(readFileSync(join(workDir, 'comp.json'), 'utf8'))
+    renderAudioCuts(name, workDir, comp)
+    deliver(name, workDir, comp)
+    return
+  }
 
   const probeBrowser = await launch()
   let comp
@@ -189,10 +207,7 @@ async function renderComposition(server, name, opts) {
     run(['-f', 'concat', '-safe', '0', '-i', join(workDir, 'segments.txt'), '-c', 'copy', master])
     segs.forEach((s) => rmSync(s))
 
-    const wav = join(workDir, 'audio.wav')
-    const music = join(workDir, 'audio-sfx-only.wav')
-    renderAudio(comp.audio, comp.duration, wav)
-    renderAudio(comp.audio, comp.duration, music, { music: false })
+    renderAudioCuts(name, workDir, comp)
     writeFileSync(join(workDir, 'comp.json'), JSON.stringify(comp, null, 2))
     console.log(`${name}: master ${comp.width}x${comp.height} @${comp.fps} ${comp.duration}s`)
   }
@@ -212,7 +227,7 @@ async function renderComposition(server, name, opts) {
  * Two-pass EBU R128 normalization: measure first, then apply as one linear
  * gain (single-pass loudnorm is dynamic and audibly pumps music).
  */
-function loudnormFilter(wav, lufs) {
+function loudnormFilter(wav, lufs, limit = 0.7) {
   /** Loudness stats of `wav` after `chain` (or of the file itself). */
   const measure = (chain) => {
     const af = `${chain ? chain + ',' : ''}loudnorm=I=${lufs}:TP=-1.5:LRA=11:print_format=json`
@@ -225,18 +240,24 @@ function loudnormFilter(wav, lufs) {
   if (!Number.isFinite(Number(m.input_i))) return 'aresample=48000'
   // The limiter sits at -3 dB: sparse, loud hits get a large gain here and the
   // AAC encode overshoots the sample peak by up to ~1.5 dB.
-  const LIMIT = 'alimiter=limit=0.7:level=false'
+  const LIMIT = `alimiter=limit=${limit}:level=false`
   let chain =
     `loudnorm=I=${lufs}:TP=-1.5:LRA=11:linear=true:measured_I=${m.input_i}:measured_TP=${m.input_tp}` +
     `:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset},${LIMIT}`
   // On a track of a few sparse hits the limiter eats the gain (or loudnorm
   // overshoots a very short one): measure the result and correct it.
-  for (let pass = 0; pass < 3; pass++) {
+  for (let pass = 0; pass < 6; pass++) {
     const delta = lufs - Number(measure(chain).input_i)
     if (!Number.isFinite(delta) || Math.abs(delta) <= 0.3) break
     chain += `,volume=${delta.toFixed(2)}dB,${LIMIT}`
   }
   return `${chain},aresample=48000`
+}
+
+/** True peak of a delivered file's audio, in dBFS. */
+function truePeak(file) {
+  const r = spawnSync(ffmpeg, ['-hide_banner', '-i', file, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' })
+  return parseFloat(r.stderr.match(/Peak:\s+(-?[\d.]+) dBFS/g).at(-1).split(/\s+/)[1])
 }
 
 /** Encodes the master once per delivery target, loudness-normalized per platform. */
@@ -247,7 +268,7 @@ export function deliver(name, workDir, comp) {
     mkdirSync(dirname(out), { recursive: true })
     const audio = join(workDir, target.music === false ? 'audio-sfx-only.wav' : 'audio.wav')
     const vf = [`scale=${preset.width ?? comp.width}:${preset.height ?? comp.height}:flags=lanczos`, 'format=yuv420p']
-    run([
+    const encode = (limit) => run([
       '-i', join(workDir, 'master.mkv'),
       '-i', audio,
       '-map', '0:v:0', '-map', '1:a:0',
@@ -255,12 +276,16 @@ export function deliver(name, workDir, comp) {
       '-r', String(comp.fps),
       ...preset.video,
       '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
-      '-af', loudnormFilter(audio, preset.lufs),
+      '-af', loudnormFilter(audio, preset.lufs, limit),
       '-c:a', 'aac', '-b:a', preset.audioBitrate, '-ar', '48000', '-ac', '2',
       '-movflags', '+faststart',
       '-t', String(comp.duration),
       out,
     ])
+    encode()
+    // A dense mix can overshoot further than the limiter allows for: if the
+    // encode peaks above -1.2 dBTP, do it again under a lower ceiling.
+    if (truePeak(out) > -1.2) encode(0.6)
     console.log(`  → ${target.out}  (${(statSync(out).size / 1e6).toFixed(1)} MB, ${target.preset})`)
   }
 }

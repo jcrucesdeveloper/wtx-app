@@ -65,6 +65,16 @@ blocks in `lib/cuts.js` (shots and cuts, punch-in framing, text labels,
 stopwatch, progress bar, countdown, chat). New reels should start from one
 of these.
 
+**Soundtracks.** Every daily reel plays its own original track, so no two
+share their audio. `scripts/soundtracks.mjs` has twenty synthesized styles
+(phonk, Brazilian funk, hardstyle, trap, house, lo-fi, reggaeton, drum and
+bass…); `scripts/tracks.mjs` gives each composition a style, key, chord
+progression and melody seed, and `node scripts/tracks.mjs` lists them and
+fails if two match. A composition still only says where the intro, build and
+drop fall. To change a reel's music, edit its line in `tracks.mjs` and run
+`node scripts/render.mjs <name> --audio-only`: it re-scores the saved master
+without capturing a frame.
+
 The whole routine is written up as a Claude Code skill in
 `.claude/skills/daily-reel/SKILL.md`. Just ask for "today's reel", or "this
 week's posts" for a batch of seven.
@@ -120,6 +130,8 @@ scripts/seed.mjs          8 weeks of Push/Pull/Leg history in the app's own stor
 compositions/*.html       one GSAP timeline per video (lib/engine.js: paused, seeked per frame;
                           lib/kit.js: phone, callouts, type, wipes, logo; lib/reel.js: 9:16 layout)
 scripts/music.mjs         original 120 BPM soundtrack + sound design, synthesized (no samples)
+scripts/soundtracks.mjs   twenty more styles, one track per daily reel (scripts/tracks.mjs)
+scripts/synth.mjs         the oscillators, filters and mix bus both of them use
 scripts/render.mjs        parallel frame capture → lossless master → one encode per preset
 scripts/targets.mjs       platform encode presets
 scripts/verify.mjs        spec checks on the delivered files
@@ -144,6 +156,7 @@ pnpm verify
 Other render options:
 - Preview one frame: `node scripts/render.mjs <comp> --still 150 --out f.png`. Several frames: `--still 30,90,150` (tiled into one sheet).
 - Re-encode after changing a preset: `--deliver-only`.
+- New soundtrack on a rendered video: `--audio-only`.
 - Open `compositions/<comp>.html?preview` through any local static server to scrub in real time.
 
 Compositions look up clip moments by marker name (`m('workout', 'pr-set')`),
