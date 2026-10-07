@@ -187,3 +187,41 @@ Sharing: `double-it`, `this-or-that`, `the-chat`. Training with a partner:
 `race-day` says the plate with a partner "always" wins. That is a joke
 about gym partners, not a claim about the app.
 
+## Five more formats, and how an advert earns its installs
+
+Made 2026-10-06. Same brief as the last five (a format people already
+watch, its own look), with one question added: these are adverts, so where
+does the app come in?
+
+| # | Source | Finding | Quality |
+|---|---|---|---|
+| 20 | [Playkit: views vs comments](https://playkit.beehiiv.com/p/views-vs-comments-the-hidden-conversion-engine-68f1), [Growth Kit handbook](https://growthkithandbook.notion.site/Going-From-Views-to-Downloads-11fd142e96d080d591a7db6df707f6b5) | The app videos that convert tend not to name the app. They show the outcome, viewers ask "what app is this?", and the answer in the comments is trusted more than the video. | Newsletter and a practitioner handbook |
+| 21 | [Harvard pendulum wave](https://openculture.com/category/physics/page/27) | Pendulums of stepped lengths drift from order into chaos and back; the Harvard demonstration passed 3M views. "Order versus chaos" is the hold. | Named example |
+| 22 | [Spin-the-wheel write-ups](https://brainstorms-newsletter.beehiiv.com/p/wheel-faith) | A spinning wheel holds until it stops: the result is not known until the last moment. | Newsletter and vendor blogs |
+| 23 | Stock libraries ([conveyor loops](https://elements.envato.com/3d-loop-satisfying-logistics-animation-SA9BALT), [soft falling blocks](https://elements.envato.com/soft-tetris-DQVSBKQ)) | "Satisfying" conveyor lines and falling-block loops are common enough to be sold as stock. Evidence that people make them, not that they work. | Weak |
+
+**Not found:** any measurement of the "only X can read this" challenge, the
+conveyor loop or the falling-block loop.
+
+From (20): the app is the punchline of each video, never its subject, and
+none of them says its name. The address stays as a small watermark so a
+viewer who looks can find it. When posting, leave the app's name out of the
+first line of the caption and answer "what app?" in the comments.
+
+| File in `videos/three/` | Format | Look | Words on frame 1 | What happens | Where the app comes in | Length |
+|---|---|---|---|---|---|---|
+| `factory.html` | Satisfying conveyor (23) | Toy colours on warm striped paper | "my routine screenshots go in / something sendable comes out" | Every 2 s a pile of seven screenshots rides into a machine and one file rides out | "it's a 300-byte text file. my gym partner just opens it." | 8 s |
+| `player-two.html` | Falling blocks (23) | A handheld's four greens, dot-matrix screen | "MY GYM WEEK / AS A BLOCK PUZZLE" | My week lands with gaps; my partner's pieces drop into them and the line clears, three times | "FIND YOUR PLAYER 2" | 10 s |
+| `blueprint.html` | "Only X can read this" | Blueprint: white line on blue, wireframe | "only people who lift can read this:" | The real file types itself out; each exercise adds a pair of plates to a wireframe bar | "you just read my whole routine file" | 10 s |
+| `the-wheel.html` | Spin the wheel (22) | Fairground reds, gold rim, chasing bulbs | "my gym partner & I let the wheel pick the workout" | It slows, nearly stops on REST, creeps one notch to LEGS | "at least we suffer in the same room" + a room chip | 10 s |
+| `sync-up.html` | Pendulum wave (21) | Night sky, neon plates, light trails | "8 gym partners. 8 gyms. wait for them to sync up" | Eight plates swing out of step, a 3-2-1 counts in, and they line up 4 s in | "same countdown. up to 8 people in one room." | 10 s |
+
+Sharing: `factory`, `blueprint`. Training with a partner: `player-two`,
+`the-wheel`, `sync-up`.
+
+Three things are jokes or pictures, not claims about the app: half the
+wheel says LEGS, the block puzzle is a metaphor for a partner keeping you
+consistent, and the eight plates stand for the eight people a room holds.
+The hook of `player-two` avoids the trademarked name of the game it looks
+like.
+

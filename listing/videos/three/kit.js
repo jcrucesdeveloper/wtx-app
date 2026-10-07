@@ -88,13 +88,14 @@
    *   build     (api) => { pose(t), over?(t), texts, wipes?, shakes?, cta? }
    *
    * texts   [{ at, until, lines }]. A block with `at` below 0 is already in place on frame 1.
+   *         So is one marked `still: true`, for a loop that opens part-way through (`from`).
    * wipes   [{ at, color, from: [x, y] }]: a circle of colour growing from a point.
    * shakes  [[at, pixels]].
    * cta     [at, until]: when the address pill steps forward.
    *
    * A loop that should not look like the others can also return:
    * background(t)  draws its own backdrop instead of the colour wipes
-   * textStyle      'caption' (white label) or 'stroke' (outlined), with textY
+   * textStyle      'caption' (white label) or 'stroke' (outlined), with textY and textFont
    * brand          false for none, or { color, alpha } for a quiet watermark
    */
   function run({ THREE, RoomEnvironment, slug, duration, from = 0, copy, build }) {
@@ -408,15 +409,18 @@
         if (t < block.at || t >= block.until) continue
         block.lines.forEach((line, i) => {
           const text = line.t ?? line
-          const k = block.at < 0 ? 1 : clamp01((t - block.at - i * 0.05) / 0.12)
+          const k = block.at < 0 || block.still ? 1 : clamp01((t - block.at - i * 0.05) / 0.12)
           if (k <= 0) return
           ctx.save()
           ctx.translate(540, (def.textY ?? 270) + i * step)
           ctx.scale(0.9 + 0.1 * k, 0.9 + 0.1 * k)
           ctx.globalAlpha = k
-          ctx.font = `${stroke ? 900 : 800} ${size}px ${SANS}`
+          ctx.font = `${stroke ? 900 : 800} ${size}px ${def.textFont ?? SANS}`
           ctx.textAlign = 'center'
           ctx.textBaseline = 'middle'
+          /* A line too long for the frame shrinks to fit. */
+          const fit = Math.min(1, 940 / ctx.measureText(text).width)
+          ctx.scale(fit, fit)
           if (stroke) {
             ctx.lineJoin = 'round'
             ctx.lineWidth = 18
@@ -443,7 +447,7 @@
       for (const block of def.texts) {
         if (t < block.at || t >= block.until) continue
         block.lines.forEach((line, i) => {
-          const k = block.at < 0 ? 1 : clamp01((t - block.at - i * 0.07) / 0.18)
+          const k = block.at < 0 || block.still ? 1 : clamp01((t - block.at - i * 0.07) / 0.18)
           if (k <= 0) return
           ctx.font = `900 ${SIZE}px ${DISPLAY}`
           const natural = ctx.measureText(line.t).width

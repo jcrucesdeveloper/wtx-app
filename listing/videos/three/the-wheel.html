@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — the wheel decides (Three.js loop)</title>
+    <!-- The spin-the-wheel format: it slows, almost stops on REST, and creeps
+         one more notch to LEGS. Fairground reds and gold.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { seg, pulse, inOut, pop, TAU, W, H, DISPLAY, SANS } = R
+
+      const D = 10
+      const SLOTS = 8
+      const NOTCH = TAU / SLOTS
+      const T_SLOW = 4.6
+      const T_CREEP = 4.9
+      const T_LAND = 5.5
+      const T_ROOM = 7.4
+      const T_AGAIN = 9.2
+      /* The wheel has to be turning as fast at the end of the loop as at the
+         start, and showing the same face: five whole turns, less the notch it creeps. */
+      const SPEED = (5 * TAU - NOTCH) / (T_SLOW / 2 + (D - T_AGAIN) / 2)
+      const START = -(SPEED * (T_SLOW / 2) + NOTCH)
+      function angle(t) {
+        const c = Math.min(t, T_SLOW)
+        const again = Math.max(0, t - T_AGAIN)
+        return (
+          START +
+          SPEED * (c - (c * c) / (2 * T_SLOW)) +
+          NOTCH * inOut(seg(t, T_CREEP, T_LAND)) +
+          0.5 * (SPEED / (D - T_AGAIN)) * again * again
+        )
+      }
+      const RADIUS = 1.7
+      const CENTER_Y = -0.45
+      const RED = '#e63946'
+      const CREAM = '#fff1d0'
+      const TEAL = '#2a9d8f'
+      const GOLD = '#f2b632'
+      const NAVY = '#264653'
+      const WINE = '#5a0d14'
+      /* Slot 0 is the one it lands on; slot 1 is the one it nearly stops at. */
+      const PAINT = [
+        [RED, CREAM], [CREAM, NAVY], [RED, CREAM], [TEAL, CREAM], [RED, CREAM], [GOLD, NAVY], [RED, CREAM], [NAVY, CREAM],
+      ]
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'the-wheel',
+        duration: D,
+        copy: {
+          en: {
+            hook: ['my gym partner & I let', 'the wheel pick the workout'],
+            legs: ['leg day.', 'again.'],
+            room: ['at least we suffer', 'in the same room'],
+            slots: ['LEGS', 'REST', 'LEGS', 'CHEST', 'LEGS', 'BACK', 'LEGS', 'ARMS'],
+            chip: 'Leg Day · room K7Q2MX · 2/8',
+          },
+          es: {
+            hook: ['mi gym bro y yo dejamos', 'que la ruleta elija el entreno'],
+            legs: ['pierna.', 'otra vez.'],
+            room: ['al menos sufrimos', 'en la misma sala'],
+            slots: ['PIERNA', 'DESCANSO', 'PIERNA', 'PECHO', 'PIERNA', 'ESPALDA', 'PIERNA', 'BRAZOS'],
+            chip: 'Pierna · sala K7Q2MX · 2/8',
+          },
+        },
+        build(api) {
+          const { L, ctx, px, scene } = api
+          const style = (t) => ({ t, bg: WINE })
+
+          const stand = new THREE.Group()
+          stand.position.y = CENTER_Y
+          scene.add(stand)
+          const rim = new THREE.Mesh(
+            new THREE.CylinderGeometry(RADIUS + 0.14, RADIUS + 0.14, 0.24, 72),
+            new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.3, metalness: 0.8 }),
+          )
+          rim.rotation.x = Math.PI / 2
+          stand.add(rim)
+
+          const wheel = new THREE.Group()
+          const face = api.face(RADIUS * 2, RADIUS * 2, (c, w) => {
+            const r = w / 2
+            c.translate(r, r)
+            for (let i = 0; i < SLOTS; i++) {
+              /* Slot 0 is drawn at the top. */
+              const mid = -Math.PI / 2 + i * NOTCH
+              c.fillStyle = PAINT[i][0]
+              c.beginPath()
+              c.moveTo(0, 0)
+              c.arc(0, 0, r, mid - NOTCH / 2, mid + NOTCH / 2)
+              c.fill()
+              c.save()
+              c.rotate(mid)
+              c.translate(r * 0.64, 0)
+              c.rotate(Math.PI / 2)
+              c.fillStyle = PAINT[i][1]
+              c.textAlign = 'center'
+              c.textBaseline = 'middle'
+              c.font = `900 ${L.slots[i].length > 6 ? 78 : 104}px ${DISPLAY}`
+              c.fillText(L.slots[i], 0, 0)
+              c.restore()
+            }
+            c.strokeStyle = WINE
+            c.lineWidth = 8
+            for (let i = 0; i < SLOTS; i++) {
+              const a = -Math.PI / 2 + (i + 0.5) * NOTCH
+              c.beginPath()
+              c.moveTo(0, 0)
+              c.lineTo(Math.cos(a) * r, Math.sin(a) * r)
+              c.stroke()
+            }
+          })
+          face.position.z = 0.125
+          const hub = new THREE.Mesh(
+            new THREE.SphereGeometry(0.2, 24, 16),
+            new THREE.MeshStandardMaterial({ color: GOLD, roughness: 0.25, metalness: 0.9 }),
+          )
+          hub.position.z = 0.2
+          wheel.add(face)
+          stand.add(wheel, hub)
+
+          const on = new THREE.MeshBasicMaterial({ color: '#fff7c2' })
+          const off = new THREE.MeshBasicMaterial({ color: '#b98a1f' })
+          const bulbs = Array.from({ length: 16 }, (_, i) => {
+            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 8), on)
+            const a = (i / 16) * TAU
+            bulb.position.set(Math.cos(a) * (RADIUS + 0.07), Math.sin(a) * (RADIUS + 0.07), 0.14)
+            stand.add(bulb)
+            return bulb
+          })
+          const groan = api.emoji('😩', 0.9)
+
+          return {
+            textStyle: 'stroke',
+            textY: 232,
+            brand: { color: CREAM, alpha: 0.65, y: 470 },
+            texts: [
+              { at: -1, until: T_LAND + 0.1, lines: L.hook.map(style) },
+              { at: T_LAND + 0.1, until: T_ROOM, lines: L.legs.map(style) },
+              { at: T_ROOM, until: T_AGAIN, lines: L.room.map(style) },
+              { at: T_AGAIN, until: 99, lines: L.hook.map(style) },
+            ],
+            shakes: [[T_LAND, 26]],
+
+            background(t) {
+              ctx.fillStyle = '#b3202a'
+              ctx.fillRect(0, 0, W, H)
+              /* A sunburst behind the wheel, turning one ray per loop. */
+              const [cx, cy] = px(0, CENTER_Y, 0)
+              const RAYS = 12
+              ctx.fillStyle = '#c93640'
+              for (let i = 0; i < RAYS; i++) {
+                const a = (i / RAYS) * TAU + (t / D) * (TAU / RAYS)
+                ctx.beginPath()
+                ctx.moveTo(cx, cy)
+                ctx.arc(cx, cy, 2400, a, a + TAU / RAYS / 2)
+                ctx.fill()
+              }
+            },
+
+            pose(t) {
+              stand.rotation.set(-0.12, 0.2 * Math.sin((t / D) * TAU), 0)
+              stand.scale.setScalar(1 + pulse(t, T_LAND, 0.06))
+              wheel.rotation.z = -angle(t)
+              const chase = Math.floor(t * 4)
+              bulbs.forEach((bulb, i) => (bulb.material = (i + chase) % 2 ? on : off))
+
+              const up = pop(t, T_LAND + 0.15, 0.3) * (1 - seg(t, T_ROOM - 0.2, T_ROOM))
+              groan.visible = up > 0
+              groan.position.set(1.25, CENTER_Y + 1.75 + 0.06 * Math.sin(t * 7), 1.2)
+              groan.scale.setScalar(groan.userData.size * up)
+            },
+
+            over(t) {
+              /* The pointer: it flicks each time a divider passes under it. */
+              const [x, y] = px(0, CENTER_Y + RADIUS + 0.12, 0.2)
+              const turned = (((angle(t) + NOTCH / 2) % NOTCH) + NOTCH) % NOTCH
+              const moving = Math.min(1, Math.abs(angle(t + 0.03) - angle(t)) / 0.03 / 3)
+              ctx.save()
+              ctx.translate(x, y - 36)
+              ctx.rotate(-0.6 * moving * Math.max(0, 1 - (turned / NOTCH) * 3))
+              ctx.fillStyle = WINE
+              ctx.beginPath()
+              ctx.moveTo(-44, -30)
+              ctx.lineTo(44, -30)
+              ctx.lineTo(0, 78)
+              ctx.closePath()
+              ctx.fill()
+              ctx.fillStyle = CREAM
+              ctx.beginPath()
+              ctx.moveTo(-28, -20)
+              ctx.lineTo(28, -20)
+              ctx.lineTo(0, 54)
+              ctx.closePath()
+              ctx.fill()
+              ctx.restore()
+
+              const shown = pop(t, T_ROOM + 0.2) * (1 - seg(t, T_AGAIN - 0.15, T_AGAIN))
+              api.label(L.chip, 540, 1470, { size: 40, weight: 800, bg: CREAM, fg: WINE, font: SANS, scale: shown })
+              api.grain(t, 0.12)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>
