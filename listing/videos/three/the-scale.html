@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — which is heavier? (Three.js loop)</title>
+    <!-- A question and a balance: seven screenshots on one pan, one routine file
+         on the other. Set like a poster: big black type, one green.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { seg, inOut, pop, rand, TAU, W, H, MONO } = R
+
+      const D = 9
+      const T_DROP = 3.0
+      const T_SEND = 6.0
+      const T_LEVEL = 8.3
+      const TILT = 0.36
+      const ARM = 1.35
+      const PIVOT_Y = 0.15
+      const HANG = 1.0
+      const PAPER = '#f2efe8'
+      const BLACK = '#0d0d0d'
+      const GREEN = '#00c26a'
+      const POSTER = '"Helvetica Neue", Helvetica, Arial, sans-serif'
+      /* A guess at seven phone screenshots, a little over 1 MB each. */
+      const HEAVY = 9
+
+      /** How far the beam has tipped: level and trembling, then down on the heavy side. */
+      function tip(t) {
+        if (t < T_DROP) return 0.035 * Math.sin(t * 9.4) * (1 - seg(t, T_DROP - 0.4, T_DROP))
+        const a = t - T_DROP
+        const down = TILT * (1 - Math.exp(-6 * a) * Math.cos(14 * a))
+        return down * (1 - inOut(seg(t, T_LEVEL, T_LEVEL + 0.6)))
+      }
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'the-scale',
+        duration: D,
+        copy: {
+          en: {
+            ask: ['WHICH IS', 'HEAVIER?'],
+            answer: ['MY WHOLE', 'ROUTINE IS', '300 BYTES.'],
+            send: ['SEND THE', 'LIGHT ONE.'],
+            left: '7 SCREENSHOTS',
+            right: '1 FILE',
+            no: 'No. 05',
+          },
+          es: {
+            ask: ['¿QUÉ PESA', 'MÁS?'],
+            answer: ['MI RUTINA', 'ENTERA PESA', '300 BYTES.'],
+            send: ['MANDA LO', 'LIVIANO.'],
+            left: '7 CAPTURAS',
+            right: '1 ARCHIVO',
+            no: 'N.º 05',
+          },
+        },
+        build(api) {
+          const { L, ctx, px, scene } = api
+          const black = new THREE.MeshBasicMaterial({ color: BLACK })
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.3, 0.1), black)
+          post.position.set(0, PIVOT_Y - 1.15, 0)
+          const foot = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.12, 0.6), black)
+          foot.position.set(0, PIVOT_Y - 2.3, 0)
+          const beam = new THREE.Mesh(new THREE.BoxGeometry(ARM * 2 + 0.2, 0.08, 0.1), black)
+          beam.position.y = PIVOT_Y
+          const knob = new THREE.Mesh(new THREE.SphereGeometry(0.13, 24, 16), black)
+          knob.position.y = PIVOT_Y
+          scene.add(post, foot, beam, knob)
+
+          /* Each pan hangs straight down from its end of the beam. */
+          const pans = [-1, 1].map((side) => {
+            const pan = new THREE.Group()
+            const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.05, 40), black)
+            dish.position.y = -HANG
+            pan.add(dish)
+            for (const x of [-0.55, 0.55]) {
+              const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, Math.hypot(HANG, 0.55), 6), black)
+              wire.position.set(x / 2, -HANG / 2, 0)
+              wire.rotation.z = Math.atan2(x, HANG)
+              pan.add(wire)
+            }
+            scene.add(pan)
+            return { pan, side }
+          })
+
+          for (let i = 0; i < 7; i++) {
+            const shot = api.face(0.5, 0.78, (c, w, h) => {
+              c.fillStyle = BLACK
+              c.fillRect(0, 0, w, h)
+              c.fillStyle = '#ffffff'
+              c.fillRect(8, 8, w - 16, h - 16)
+              c.fillStyle = BLACK
+              for (let r = 0; r < 14; r++) c.fillRect(26, 34 + r * 19, (w - 60) * (0.3 + 0.6 * rand(i + 2, r)), 7)
+            })
+            shot.material.side = THREE.DoubleSide
+            shot.position.set((rand(i, 1) - 0.5) * 0.7, -HANG + 0.42 + i * 0.012, (rand(i, 2) - 0.5) * 0.3)
+            shot.rotation.set(0, (rand(i, 3) - 0.5) * 1.2, (rand(i, 4) - 0.5) * 0.8)
+            pans[0].pan.add(shot)
+          }
+          const file = api.card(0.62, 0.8, GREEN, (c, w, h) => {
+            c.fillStyle = BLACK
+            c.textBaseline = 'middle'
+            c.font = `800 44px ${MONO}`
+            c.fillText('.wtt', 22, 44)
+            for (let r = 0; r < 6; r++) c.fillRect(22, 96 + r * 34, (w - 50) * (0.5 + 0.45 * rand(r, 6)), 12)
+          })
+          pans[1].pan.add(file)
+
+          /* Big type, set flush left, one block at a time. */
+          const BLOCKS = [
+            { at: -1, until: T_DROP + 0.2, lines: L.ask },
+            { at: T_DROP + 0.2, until: T_SEND, lines: L.answer },
+            { at: T_SEND, until: T_LEVEL + 0.3, lines: L.send },
+            { at: T_LEVEL + 0.3, until: 99, lines: L.ask },
+          ]
+
+          return {
+            texts: [],
+            brand: { color: BLACK, alpha: 0.7, y: 1540 },
+            shakes: [[T_DROP + 0.12, 26]],
+
+            background(t) {
+              ctx.fillStyle = PAPER
+              ctx.fillRect(0, 0, W, H)
+              /* The one colour: a disc behind the light side. */
+              const [x, y] = px(ARM, PIVOT_Y - HANG + 0.3 + ARM * Math.sin(tip(t)), 0)
+              ctx.fillStyle = GREEN
+              ctx.beginPath()
+              ctx.arc(x, y, 250, 0, TAU)
+              ctx.fill()
+              /* Column rules, like the grid a poster is set on. */
+              ctx.fillStyle = 'rgba(13,13,13,0.08)'
+              for (let i = 1; i < 6; i++) ctx.fillRect((W / 6) * i, 0, 2, H)
+            },
+
+            pose(t) {
+              const a = tip(t)
+              /* Tipping this way puts the left end, the heavy one, down. */
+              beam.rotation.z = a
+              for (const { pan, side } of pans) {
+                pan.position.set(side * ARM * Math.cos(a), PIVOT_Y + side * ARM * Math.sin(a), 0)
+                pan.rotation.z = 0.014 * Math.sin((t / D) * TAU * 4 + side)
+              }
+              /* The file barely weighs on its pan: it floats a little above it. */
+              file.position.set(0, -HANG + 0.5 + 0.05 * Math.sin((t / D) * TAU * 3), 0.1)
+              file.rotation.set(0, 0.5 * Math.sin((t / D) * TAU * 2), 0.06 * Math.sin((t / D) * TAU * 3))
+            },
+
+            over(t) {
+              ctx.fillStyle = BLACK
+              ctx.textBaseline = 'alphabetic'
+              ctx.textAlign = 'left'
+              for (const block of BLOCKS) {
+                if (t < block.at || t >= block.until) continue
+                block.lines.forEach((text, i) => {
+                  const k = block.at < 0 ? 1 : seg(t, block.at + i * 0.07, block.at + i * 0.07 + 0.12)
+                  if (k <= 0) return
+                  ctx.font = `900 ${block.lines.length > 2 ? 118 : 150}px ${POSTER}`
+                  const step = block.lines.length > 2 ? 112 : 140
+                  /* Each line slides up into place from behind a mask, as on a title card. */
+                  ctx.save()
+                  ctx.beginPath()
+                  ctx.rect(0, 190 + i * step, W, step + 8)
+                  ctx.clip()
+                  ctx.fillStyle = i === block.lines.length - 1 && block.lines.length > 2 ? GREEN : BLACK
+                  ctx.fillText(text, 64, 190 + (i + 1) * step - 14 + (1 - k) * step)
+                  ctx.restore()
+                })
+              }
+              ctx.fillStyle = BLACK
+              ctx.fillRect(64, 168, 952, 8)
+              ctx.font = `700 30px ${POSTER}`
+              ctx.fillText(L.no, 64, 150)
+              ctx.textAlign = 'right'
+              ctx.fillText('wtx', 1016, 150)
+
+              /* What each pan reads. */
+              pans.forEach(({ side }, i) => {
+                const a = tip(t)
+                const [x, y] = px(side * ARM * Math.cos(a), PIVOT_Y + side * ARM * Math.sin(a) - HANG - 0.2, 0)
+                const counting = seg(t, 0.4, 2.4) * (1 - seg(t, T_LEVEL + 0.3, T_LEVEL + 0.5))
+                const reading = i === 0 ? `~${(HEAVY * counting).toFixed(1)} MB` : '300 B'
+                const shown = i === 0 ? 1 : pop(t, 2.5) * (1 - seg(t, T_LEVEL + 0.3, T_LEVEL + 0.5))
+                ctx.textAlign = 'center'
+                ctx.fillStyle = BLACK
+                ctx.font = `700 30px ${POSTER}`
+                ctx.fillText(i === 0 ? L.left : L.right, x, y + 44)
+                if (shown <= 0) return
+                ctx.save()
+                ctx.translate(x, y + 104)
+                ctx.scale(shown, shown)
+                ctx.font = `900 60px ${POSTER}`
+                ctx.fillText(reading, 0, 0)
+                ctx.restore()
+              })
+              api.grain(t, 0.16)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>

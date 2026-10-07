@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — one pop for every set (Three.js loop)</title>
+    <!-- The pop-it toy: one bubble pushed in for every set two gym partners
+         finish, my half and theirs, then the board flips and it starts again.
+         Silicone colours on butter yellow.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { seg, lerp, pulse, inOut, rand, TAU, W, H, SANS } = R
+
+      const D = 9
+      const COLS = 6
+      const ROWS = 5
+      const STEP = 0.56
+      const BUBBLE = 0.21
+      /* The first pop lands a moment before the loop ends, so frame 1 is mid-pop. */
+      const FIRST = -0.06
+      const EVERY = 0.22
+      const T_FLIP = 7.0
+      const T_SWAP = 7.5
+      const T_FLAT = 8.0
+      const PLUM = '#4a2c6b'
+      const BOARD = '#b79cff'
+      const ROW_COLORS = ['#ff6b6b', '#ff9f43', '#ffd93d', '#4cd4a0', '#4aa8ff']
+      /* Pops alternate between my half (left) and my partner's (right), top row first. */
+      const cells = []
+      for (let k = 0; k < (COLS * ROWS) / 2; k++)
+        for (const who of [0, 1]) cells.push({ who, row: Math.floor(k / 3), col: (k % 3) + who * 3 })
+      cells.forEach((cell, n) => (cell.at = FIRST + n * EVERY))
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'pop-it',
+        duration: D,
+        copy: {
+          en: {
+            hook: ['one pop for every set', 'my gym partner and i finish'],
+            race: ['i can see their sets live.', "so now it's a race."],
+            again: ['same time tomorrow?'],
+            names: ['YOU', 'ALEX'],
+          },
+          es: {
+            hook: ['un pop por cada serie', 'que terminamos mi gym bro y yo'],
+            race: ['veo sus series en vivo.', 'así que ahora es una carrera.'],
+            again: ['¿mañana a la misma hora?'],
+            names: ['TÚ', 'ALEX'],
+          },
+        },
+        build(api) {
+          const { L, ctx, px, scene } = api
+          const style = (t) => ({ t, fg: PLUM })
+          const toy = new THREE.Group()
+          toy.position.y = -0.25
+          scene.add(toy)
+          const silicone = (color) =>
+            new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0, side: THREE.DoubleSide })
+
+          const board = new THREE.Mesh(
+            api.slab(COLS * STEP + 0.3, ROWS * STEP + 0.3, 0.35, 0.06),
+            new THREE.MeshBasicMaterial({ color: BOARD }),
+          )
+          toy.add(board)
+          /* A dome that points out of the board; pushed in, it points the other way. */
+          const dome = new THREE.SphereGeometry(BUBBLE, 28, 14, 0, TAU, 0, Math.PI / 2)
+          dome.rotateX(Math.PI / 2)
+          for (const cell of cells) {
+            cell.mesh = new THREE.Mesh(dome, silicone(ROW_COLORS[cell.row]))
+            cell.x = (cell.col - (COLS - 1) / 2) * STEP
+            cell.y = ((ROWS - 1) / 2 - cell.row) * STEP
+            cell.mesh.position.set(cell.x, cell.y, 0.056)
+            /* The dent it leaves: a darker round of the same colour, seen once the dome is through. */
+            const dent = new THREE.Mesh(
+              new THREE.CircleGeometry(BUBBLE, 28),
+              new THREE.MeshBasicMaterial({ color: new THREE.Color(ROW_COLORS[cell.row]).multiplyScalar(0.62) }),
+            )
+            dent.position.set(cell.x, cell.y, 0.055)
+            toy.add(dent, cell.mesh)
+          }
+
+          /** Seconds since a bubble was pushed, or a negative number if it is still up. */
+          function since(cell, t) {
+            if (t >= T_SWAP) return cell === cells[0] ? t - D - cell.at : -1
+            return t - cell.at
+          }
+          const popped = (who, t) => cells.filter((cell) => cell.who === who && since(cell, t) >= 0).length
+          const spot = new THREE.Vector3()
+
+          return {
+            textStyle: 'caption',
+            textY: 250,
+            brand: { color: PLUM, alpha: 0.55, y: 1530 },
+            texts: [
+              { at: -1, until: 3.4, lines: L.hook.map(style) },
+              { at: 3.4, until: T_FLIP, lines: L.race.map(style) },
+              { at: T_FLIP, until: D - 0.5, lines: L.again.map(style) },
+              { at: D - 0.5, until: 99, lines: L.hook.map(style) },
+            ],
+            shakes: cells.filter((cell) => cell.at > 0).map((cell) => [cell.at, 5]),
+
+            background(t) {
+              ctx.fillStyle = '#ffe9a8'
+              ctx.fillRect(0, 0, W, H)
+              /* Polka dots, drifting one step per loop. */
+              const drift = (t / D) * 300
+              ctx.fillStyle = 'rgba(255,255,255,0.55)'
+              for (let j = -3; j < H / 150 + 1; j++)
+                for (let i = -3; i < W / 150 + 1; i++) {
+                  ctx.beginPath()
+                  ctx.arc(i * 150 + (j % 2 ? 75 : 0) + drift, j * 150 + drift, 26, 0, TAU)
+                  ctx.fill()
+                }
+            },
+
+            pose(t) {
+              /* It flips edge-on, every bubble comes back up while nobody can see, and it lands flat. */
+              const flip =
+                t < T_SWAP
+                  ? (Math.PI / 2) * inOut(seg(t, T_FLIP, T_SWAP))
+                  : (-Math.PI / 2) * (1 - inOut(seg(t, T_SWAP, T_FLAT)))
+              toy.rotation.set(-0.42 + flip, 0.14 * Math.sin((t / D) * TAU), 0)
+              for (const cell of cells) {
+                const a = since(cell, t)
+                /* Through the board in a tenth of a second, with a wobble after. */
+                const push = a < 0 ? 0 : seg(a, 0, 0.1)
+                cell.mesh.scale.set(1, 1, lerp(1, -1, push) - (a < 0 ? 0 : pulse(a, 0.1, 0.25, 30, 14)))
+                cell.mesh.position.z = lerp(0.056, -0.056, push)
+              }
+              toy.updateMatrixWorld()
+            },
+
+            over(t) {
+              for (const cell of cells) {
+                const a = since(cell, t)
+                if (a < 0 || a > 0.25) continue
+                toy.localToWorld(spot.set(cell.x, cell.y, 0.1))
+                const [x, y] = px(spot.x, spot.y, spot.z)
+                ctx.strokeStyle = `rgba(255,255,255,${1 - a / 0.25})`
+                ctx.lineWidth = 8
+                ctx.beginPath()
+                ctx.arc(x, y, 40 + 90 * (a / 0.25), 0, TAU)
+                ctx.stroke()
+              }
+              const flat = t < T_FLIP || t >= T_FLAT ? 1 : 0
+              ;[0, 1].forEach((who) => {
+                const n = popped(who, t)
+                let bump = 1
+                for (const cell of cells) if (cell.who === who) bump += pulse(since(cell, t), 0, 0.14, 26, 12)
+                api.label(`${L.names[who]}  ${n}/15`, who ? 800 : 280, 520, {
+                  size: 46,
+                  weight: 900,
+                  font: SANS,
+                  bg: PLUM,
+                  fg: '#ffe9a8',
+                  scale: bump * flat,
+                })
+              })
+              api.grain(t, 0.1)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>

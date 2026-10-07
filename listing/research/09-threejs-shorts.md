@@ -225,3 +225,28 @@ consistent, and the eight plates stand for the eight people a room holds.
 The hook of `player-two` avoids the trademarked name of the game it looks
 like.
 
+## Five more: toys, boards and a poster
+
+Made 2026-10-06. No new research this round: these are five more formats
+from the same families as the last ten (things that fall, things that
+click, a question to answer), each with a look not used yet. The rules are
+the ones above: the app is the punchline, it is never named, and the
+address is a small watermark.
+
+| File in `videos/three/` | Format | Look | Words on frame 1 | What happens | Where the app comes in | Length |
+|---|---|---|---|---|---|---|
+| `group-chat-drop.html` | Peg-board drop | Loud shapes with black outlines on white | "dropping my routine in the group chat" | Nine balls, one per friend, bounce through the pegs into five bins: joined the room, "next week", left on read, "what app?", sent a 🔥 | "1 file. 9 friends. 4 already in the room." | 10 s |
+| `departures.html` | Split-flap board | Amber letters on black | "if gym partners had a departures board" | Leg day 18:00, room K7Q2MX. You and Alex are on time; Sam goes DELAYED, STILL HOME, RUNNING; then every row flips to BOARDING | "one room code. everyone starts together." | 10 s |
+| `my-set-your-set.html` | Newton's cradle | A chrome desk toy in a sage studio | "sharing a bench with my gym partner" | Five plates on cords: one end swings out and back, the other answers, a set counted each time | "we both see every set the second it lands" | 8 s |
+| `pop-it.html` | Pop-it toy | Silicone colours on butter yellow with polka dots | "one pop for every set my gym partner and i finish" | Thirty bubbles pushed in, my half and theirs in turn; the board flips and starts again | "i can see their sets live. so now it's a race." | 9 s |
+| `the-scale.html` | A question and a balance | A poster: big black type, one green, a column grid | "WHICH IS HEAVIER?" | Seven screenshots on one pan, one file on the other; the beam trembles, then drops | "MY WHOLE ROUTINE IS 300 BYTES. SEND THE LIGHT ONE." | 9 s |
+
+Sharing: `group-chat-drop`, `the-scale`. Training with a partner:
+`departures`, `my-set-your-set`, `pop-it`.
+
+Two numbers here are not the app's. In `group-chat-drop` the bins are named
+after the simulation has run, so "4 already in the room" is whatever the
+fullest bin holds; it is a picture of a group chat, not a statistic. In
+`the-scale` the "~9 MB" for seven screenshots is an estimate of a little
+over 1 MB each; the 300 bytes is the real size of `push-day.wtt`.
+
