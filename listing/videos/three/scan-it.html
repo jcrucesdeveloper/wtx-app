@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — share a routine in 2 seconds (Three.js loop)</title>
+    <!-- Sharing: one phone shows the QR, the other scans it, the routine arrives.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+      import { encode } from 'https://cdn.jsdelivr.net/npm/uqr@0.1.2/+esm'
+
+      const R = window.Reel
+      const { seg, lerp, pop, pulse, dark, tint, YELLOW, BLUE, RED, LIME, GREEN, INK, WHITE, SANS, MONO } = R
+
+      const D = 9.5
+      const T_SCAN = 1.8
+      const T_EASY = 4.9
+      const T_BUMP = 5.2
+      const T_CTA = 7.0
+      const T_RESET = 8.9
+      const FLIGHT = 0.55
+      const CARD_T = [2.3, 2.72, 3.14, 3.56, 3.98]
+      const DOTS = [YELLOW, '#c9ccd6', BLUE, '#8a8fa3', LIME]
+      /* A real code: it opens the site. */
+      const qr = encode('https://wtxworkout.com', { ecc: 'M', border: 1 })
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'scan-it',
+        duration: D,
+        copy: {
+          en: {
+            hook: [dark('SHARE A ROUTINE'), tint('IN 2 SECONDS', WHITE, RED)],
+            done: [dark('SCAN.'), tint('DONE.', WHITE, BLUE)],
+            easy: [dark('NO ACCOUNT.'), tint('NO TYPING.', YELLOW)],
+            cta: [dark('TRY IT WITH'), tint('YOUR GYM BRO', YELLOW)],
+            share: 'Share via QR',
+            scanning: 'Scanning…',
+            added: 'added',
+            routine: ['Bench Press', 'Shoulder Press', 'Incline DB Press', 'Triceps Pushdown', 'Lateral Raise'],
+          },
+          es: {
+            hook: [dark('COMPARTE UNA RUTINA'), tint('EN 2 SEGUNDOS', WHITE, RED)],
+            done: [dark('ESCANEA.'), tint('LISTO.', WHITE, BLUE)],
+            easy: [dark('SIN CUENTA.'), tint('SIN ESCRIBIR.', YELLOW)],
+            cta: [dark('PRUÉBALO CON'), tint('TU GYM BRO', YELLOW)],
+            share: 'Compartir por QR',
+            scanning: 'Escaneando…',
+            added: 'añadida',
+            routine: ['Press de banca', 'Press militar', 'Press inclinado', 'Jalón de tríceps', 'Elevación lateral'],
+          },
+        },
+        build(api) {
+          const { L, ctx, px } = api
+          const mine = api.phone()
+          const theirs = api.phone()
+
+          function drawQr(c, x, y, size) {
+            c.fillStyle = WHITE
+            c.fillRect(x, y, size, size)
+            const m = size / qr.size
+            c.fillStyle = INK
+            qr.data.forEach((row, j) =>
+              row.forEach((on, i) => on && c.fillRect(x + i * m, y + j * m, Math.ceil(m), Math.ceil(m))),
+            )
+          }
+          const header = (c, w) => {
+            c.fillStyle = WHITE
+            c.fillRect(0, 0, w, 1112)
+            c.fillStyle = INK
+            c.textBaseline = 'middle'
+            c.font = `800 58px ${SANS}`
+            c.fillText('Push Day', 40, 120)
+          }
+
+          mine.paint('qr', (c, w) => {
+            header(c, w)
+            c.fillStyle = '#6b6f80'
+            c.font = `600 36px ${SANS}`
+            c.fillText(L.share, 40, 186)
+            drawQr(c, 36, 270, 440)
+            c.fillStyle = RED
+            c.font = `700 40px ${MONO}`
+            c.textAlign = 'center'
+            c.fillText('push-day.wtt', w / 2, 790)
+          })
+
+          const viewfinder = (tt, lean) => (c, w, h) => {
+            c.fillStyle = '#15151c'
+            c.fillRect(0, 0, w, h)
+            drawQr(c, 126 + lerp(-420, 0, lean), 400, 260)
+            c.strokeStyle = LIME
+            c.lineWidth = 14
+            c.lineCap = 'round'
+            for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+              const cx = 256 + sx * 170
+              const cy = 530 + sy * 170
+              c.beginPath()
+              c.moveTo(cx - sx * 70, cy)
+              c.lineTo(cx, cy)
+              c.lineTo(cx, cy - sy * 70)
+              c.stroke()
+            }
+            c.fillStyle = LIME
+            c.fillRect(96, 530 + 150 * Math.sin(tt * 9), 320, 8)
+            c.fillStyle = WHITE
+            c.textAlign = 'center'
+            c.textBaseline = 'middle'
+            c.font = `700 40px ${SANS}`
+            c.fillText(L.scanning, w / 2, 190)
+          }
+          const added = (c, w, h) => {
+            c.fillStyle = GREEN
+            c.fillRect(0, 0, w, h)
+            c.strokeStyle = WHITE
+            c.lineWidth = 44
+            c.lineCap = c.lineJoin = 'round'
+            c.beginPath()
+            c.moveTo(150, 500)
+            c.lineTo(232, 590)
+            c.lineTo(372, 420)
+            c.stroke()
+            c.fillStyle = WHITE
+            c.textAlign = 'center'
+            c.textBaseline = 'middle'
+            c.font = `800 56px ${SANS}`
+            c.fillText('Push Day', w / 2, 740)
+            c.font = `700 42px ${SANS}`
+            c.fillText(L.added, w / 2, 806)
+          }
+          const row = (c, i, x, y, w, h, size) => {
+            c.fillStyle = INK
+            c.beginPath()
+            c.roundRect(x, y, w, h, h * 0.28)
+            c.fill()
+            c.fillStyle = DOTS[i]
+            c.beginPath()
+            c.arc(x + h * 0.5, y + h / 2, h * 0.2, 0, R.TAU)
+            c.fill()
+            c.fillStyle = WHITE
+            c.textAlign = 'left'
+            c.textBaseline = 'middle'
+            c.font = `700 ${size}px ${SANS}`
+            c.fillText(L.routine[i], x + h * 0.9, y + h / 2 + 2)
+          }
+          const list = (n) => (c, w) => {
+            header(c, w)
+            for (let i = 0; i < n; i++) row(c, i, 28, 210 + i * 104, w - 56, 88, 38)
+          }
+
+          const cards = L.routine.map((_, i) =>
+            api.card(1.3, 0.34, 0x0b0b10, (c, w, h) => row(c, i, 0, 0, w, h, h * 0.42)),
+          )
+          const burst = api.confetti(30, T_SCAN, [1.05, -0.1, 0.2])
+
+          return {
+            texts: [
+              { at: -1, until: T_SCAN, lines: L.hook },
+              { at: T_SCAN, until: T_EASY, lines: L.done },
+              { at: T_EASY, until: T_CTA, lines: L.easy },
+              { at: T_CTA, until: T_RESET, lines: L.cta },
+              { at: T_RESET + 0.15, until: 99, lines: L.hook },
+            ],
+            wipes: [
+              { at: T_SCAN, color: BLUE, from: [809, 986] },
+              { at: T_EASY, color: RED, from: [540, 960] },
+              { at: T_RESET, color: YELLOW, from: [540, 960] },
+            ],
+            shakes: [[T_SCAN, 30], [T_BUMP, 22]],
+            cta: [T_CTA, T_RESET],
+
+            pose(t) {
+              /* The scan runs across the seam: it starts before the loop ends. */
+              const tt = t > T_RESET ? t - D : t
+              const lean = seg(tt, -0.5, 1.2) * (1 - seg(tt, T_SCAN + 0.05, T_SCAN + 0.5))
+              const bump = Math.sin(Math.PI * seg(t, T_BUMP - 0.22, T_BUMP + 0.22)) * 0.3
+              const bob = Math.sin((t / D) * 4 * R.TAU)
+              const hit = pulse(t, T_BUMP, 0.1)
+
+              mine.group.position.set(-1.05 + bump, -0.1 + 0.05 * bob, 0)
+              mine.group.rotation.set(0.04 * bob, 0.28, 0.05)
+              mine.group.scale.setScalar(1 + hit)
+
+              let landed = 0
+              let knock = pulse(t, T_SCAN, 0.2) + hit
+              for (const at of CARD_T) {
+                if (t >= at + FLIGHT) landed++
+                knock += pulse(t, at + FLIGHT, 0.05)
+              }
+              theirs.group.position.set(1.05 - 0.2 * lean - bump, -0.1 - 0.05 * bob, 0.5 * lean)
+              theirs.group.rotation.set(-0.04 * bob, -0.28 - 0.32 * lean, -0.05 - 0.08 * lean)
+              theirs.group.scale.setScalar(1 + knock)
+              if (tt < T_SCAN) theirs.paint(`scan${Math.round(tt * 30)}`, viewfinder(tt, lean))
+              else if (t < CARD_T[0] + FLIGHT) theirs.paint('added', added)
+              else theirs.paint(`list${landed}`, list(landed))
+
+              cards.forEach((card, i) => {
+                const k = (t - CARD_T[i]) / FLIGHT
+                card.visible = k > 0 && k < 1
+                if (!card.visible) return
+                const u = 1 - k
+                card.position.set(
+                  u * u * -1.05 + k * k * 1.05,
+                  u * u * -0.1 + 2 * u * k * 1.3 + k * k * -0.1,
+                  u * u * 0.2 + 2 * u * k * 2.6 + k * k * 0.2,
+                )
+                card.rotation.set(0, 0, 0.25 * Math.sin(k * 6 + i))
+                card.scale.setScalar(pop(k, 0, 0.3) * lerp(1.1, 0.5, k * k))
+              })
+              burst(t)
+            },
+
+            over(t) {
+              const tt = t > T_RESET ? t - D : t
+              if (tt < T_SCAN) {
+                const [x, y] = px(-1.05, 0.12, 0.1)
+                const half = 150 * (1 + 0.05 * Math.sin(tt * 12))
+                ctx.strokeStyle = LIME
+                ctx.lineWidth = 16
+                ctx.lineCap = 'round'
+                for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+                  ctx.beginPath()
+                  ctx.moveTo(x + sx * (half - 60), y + sy * half)
+                  ctx.lineTo(x + sx * half, y + sy * half)
+                  ctx.lineTo(x + sx * half, y + sy * (half - 60))
+                  ctx.stroke()
+                }
+              }
+              api.impact(t - T_SCAN, 809, 986)
+              api.impact(t - T_BUMP, 540, 986, 0.4)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>
