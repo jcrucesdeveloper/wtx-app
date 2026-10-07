@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — every bounce, one more gym bro (Three.js loop)</title>
+    <!-- The bouncing-ball simulation format: every time a ball hits the ring it
+         splits, the way a shared routine spreads. Black and neon, no slabs.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { seg, pulse, outBack, FPS, TAU, W, H, DISPLAY } = R
+
+      const D = 10
+      const FRAMES = D * FPS
+      const RING = 1.85
+      const BALL = 0.115
+      const GRAVITY = -5
+      const CAP = 128
+      const T_BURST = 6.6
+      const T_CLEAR = 9.2
+      const START = { x: 0, y: 0.9, vx: 1.3, vy: -0.5 }
+      const NEON = ['#39ff88', '#00e5ff', '#ff3df2', '#fff44f', '#ff7a1a', '#8a7dff']
+
+      /* The whole simulation is worked out once, frame by frame, so any frame
+         can be drawn on its own and every recording is the same. */
+      const frames = []
+      {
+        const balls = [{ ...START, gen: 0, wait: 0 }]
+        let bounces = 0
+        const SUB = 4
+        const dt = 1 / (FPS * SUB)
+        for (let f = 0; f < FRAMES; f++) {
+          const t = f / FPS
+          frames.push({ balls: t < T_CLEAR ? balls.map((b) => [b.x, b.y, b.gen]) : [], count: balls.length, bounces })
+          for (let s = 0; s < SUB; s++) {
+            for (const b of [...balls]) {
+              b.vy += GRAVITY * dt
+              b.x += b.vx * dt
+              b.y += b.vy * dt
+              b.wait -= dt
+              const d = Math.hypot(b.x, b.y)
+              if (t >= T_BURST || d < RING - BALL) continue
+              const nx = b.x / d
+              const ny = b.y / d
+              const dot = b.vx * nx + b.vy * ny
+              if (dot <= 0) continue
+              b.vx -= 2 * dot * nx
+              b.vy -= 2 * dot * ny
+              b.x = nx * (RING - BALL)
+              b.y = ny * (RING - BALL)
+              bounces++
+              if (balls.length >= CAP || b.wait > 0) continue
+              /* Split: the copy leaves at an angle. */
+              const turn = balls.length % 2 ? 0.55 : -0.55
+              const c = Math.cos(turn)
+              const s2 = Math.sin(turn)
+              balls.push({ x: b.x, y: b.y, vx: b.vx * c - b.vy * s2, vy: b.vx * s2 + b.vy * c, gen: b.gen + 1, wait: 0.55 })
+              b.wait = 0.55
+            }
+          }
+        }
+      }
+      const bounceFrames = frames.map((fr, i) => (i > 0 && fr.bounces > frames[i - 1].bounces ? i / FPS : -1)).filter((t) => t >= 0)
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'double-it',
+        duration: D,
+        copy: {
+          en: {
+            hook: ['EVERY BOUNCE =', { t: '1 MORE GYM BRO', fg: NEON[0] }, 'WITH MY ROUTINE'],
+            end: ["IT'S JUST A FILE.", { t: 'SEND IT.', fg: NEON[3] }],
+          },
+          es: {
+            hook: ['CADA REBOTE =', { t: '1 GYM BRO MÁS', fg: NEON[0] }, 'CON MI RUTINA'],
+            end: ['ES SOLO UN ARCHIVO.', { t: 'MÁNDALO.', fg: NEON[3] }],
+          },
+        },
+        build(api) {
+          const { L, ctx, px, scene } = api
+          const mesh = new THREE.InstancedMesh(new THREE.SphereGeometry(BALL, 20, 14), new THREE.MeshBasicMaterial(), CAP)
+          mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+          scene.add(mesh)
+          const m = new THREE.Matrix4()
+          const color = new THREE.Color()
+          for (let i = 0; i < CAP; i++) mesh.setColorAt(i, color.set(NEON[i % NEON.length]))
+
+          const at = (t) => frames[Math.round(t * FPS) % FRAMES]
+          const lastBounce = (t) => {
+            let last = -9
+            for (const b of bounceFrames) if (b <= t) last = b
+            return last
+          }
+
+          return {
+            textStyle: 'stroke',
+            textY: 210,
+            brand: { alpha: 0.5 },
+            texts: [
+              { at: -1, until: T_BURST, lines: L.hook },
+              { at: T_BURST, until: T_CLEAR, lines: L.end },
+              { at: T_CLEAR + 0.3, until: 99, lines: L.hook },
+            ],
+            shakes: [[T_BURST, 30]],
+
+            background(t) {
+              ctx.fillStyle = '#050508'
+              ctx.fillRect(0, 0, W, H)
+              /* A faint grid, like the editors these videos come out of. */
+              ctx.strokeStyle = 'rgba(255,255,255,0.045)'
+              ctx.lineWidth = 2
+              for (let x = 0; x <= W; x += 90) {
+                ctx.beginPath()
+                ctx.moveTo(x, 0)
+                ctx.lineTo(x, H)
+                ctx.stroke()
+              }
+              for (let y = 0; y <= H; y += 90) {
+                ctx.beginPath()
+                ctx.moveTo(0, y)
+                ctx.lineTo(W, y)
+                ctx.stroke()
+              }
+              const [cx, cy] = px(0, 0, 0)
+              const radius = px(RING, 0, 0)[0] - cx
+              const hit = Math.exp(-9 * (t - lastBounce(t)))
+              const { count, bounces } = at(t)
+              const hue = NEON[bounces % NEON.length]
+              /* The ring blows open at the burst and a new one arrives before the loop restarts. */
+              const burst = seg(t, T_BURST, T_BURST + 0.25)
+              const back = seg(t, T_CLEAR, T_CLEAR + 0.3)
+              const alpha = t < T_CLEAR ? 1 - burst : back
+              const scale = t < T_CLEAR ? 1 + 0.5 * burst : 0.7 + 0.3 * outBack(back)
+              if (alpha <= 0) return
+
+              ctx.save()
+              ctx.globalAlpha = alpha
+              ctx.fillStyle = 'rgba(255,255,255,0.13)'
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
+              ctx.font = `900 ${count > 99 ? 300 : 380}px ${DISPLAY}`
+              ctx.fillText(`${t >= T_CLEAR ? 1 : count}`, cx, cy + 14)
+              ctx.strokeStyle = hue
+              ctx.shadowColor = hue
+              ctx.shadowBlur = 40 + 60 * hit
+              ctx.lineWidth = 14 + 14 * hit
+              ctx.beginPath()
+              ctx.arc(cx, cy, (radius + 10) * scale, 0, TAU)
+              ctx.stroke()
+              ctx.restore()
+            },
+
+            pose(t) {
+              const { balls } = at(t)
+              let n = 0
+              for (const [x, y] of balls) {
+                m.makeTranslation(x, y, 0)
+                mesh.setMatrixAt(n++, m)
+              }
+              /* The next first ball arrives along its own path, so the seam is invisible. */
+              if (t >= T_CLEAR + 0.3) {
+                const a = t - D
+                const s = seg(t, T_CLEAR + 0.3, T_CLEAR + 0.6)
+                m.makeScale(s, s, s)
+                m.setPosition(START.x + START.vx * a, START.y + START.vy * a + 0.5 * GRAVITY * a * a, 0)
+                mesh.setMatrixAt(0, m)
+                n = 1
+              }
+              mesh.count = n
+              mesh.instanceMatrix.needsUpdate = true
+            },
+
+            over(t) {
+              api.impact(t - T_BURST, 540, 960, 0.5)
+              api.grain(t, 0.1)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — player 2 (Three.js loop)</title>
+    <!-- The falling-blocks format, on a handheld's green screen: my week has
+         gaps, my gym partner's pieces fill them, and the line clears.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { seg, pulse, TAU, W, H, MONO, DISPLAY } = R
+
+      const D = 10
+      /* The four greens of the screen, dark to light. */
+      const G = ['#0f380f', '#306230', '#8bac0f', '#9bbc0f']
+      const COLS = 7
+      const CELL = 0.5
+      const FLOOR = -1.6
+      const DROP = 9
+      const ROUNDS = [
+        { at: 0, gaps: [[2, 3]] },
+        { at: 2.7, gaps: [[0], [4, 5]] },
+        { at: 5.3, gaps: [[1], [3], [6]] },
+      ]
+      const T_PIECE = 0.5
+      const T_LAND = 1.13
+      const T_CLEAR = 1.75
+      const T_END = 7.2
+      const T_RESET = 9.5
+      const colX = (c) => (c - (COLS - 1) / 2) * CELL
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'player-two',
+        duration: D,
+        copy: {
+          en: {
+            hook: ['MY GYM WEEK', 'AS A BLOCK PUZZLE'],
+            gaps: ['I SKIP DAYS.', "MY GYM PARTNER DOESN'T."],
+            end: ['FIND YOUR', 'PLAYER 2'],
+            lines: 'LINES',
+            days: 'MTWTFSS',
+            me: 'ME',
+            p2: 'P2 ALEX',
+          },
+          es: {
+            hook: ['MI SEMANA DE GYM', 'COMO JUEGO DE BLOQUES'],
+            gaps: ['YO FALTO DÍAS.', 'MI GYM BRO NO.'],
+            end: ['BUSCA A TU', 'JUGADOR 2'],
+            lines: 'LÍNEAS',
+            days: 'LMXJVSD',
+            me: 'YO',
+            p2: 'J2 ALEX',
+          },
+        },
+        build(api) {
+          const { L, ctx, px, scene } = api
+          const style = (t) => ({ t, bg: G[0], fg: G[3] })
+          const well = new THREE.Group()
+          scene.add(well)
+
+          const geo = new THREE.BoxGeometry(CELL * 0.92, CELL * 0.92, CELL * 0.92)
+          const stud = new THREE.PlaneGeometry(CELL * 0.42, CELL * 0.42)
+          function block(shade, inner) {
+            const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: shade, roughness: 1 }))
+            const dot = new THREE.Mesh(stud, new THREE.MeshBasicMaterial({ color: inner }))
+            dot.position.z = CELL * 0.465
+            mesh.add(dot)
+            well.add(mesh)
+            return mesh
+          }
+          /* One block per cell per round: mine where I trained, my partner's in the gaps. */
+          const cells = ROUNDS.flatMap((round, r) => {
+            const partner = new Map()
+            round.gaps.forEach((piece, p) => piece.forEach((c) => partner.set(c, p)))
+            return Array.from({ length: COLS }, (_, c) => ({
+              r,
+              c,
+              piece: partner.get(c),
+              mesh: partner.has(c) ? block(G[0], G[1]) : block(G[1], G[2]),
+            }))
+          })
+
+          /** Seconds into a round; the first round's blocks start falling before the loop ends. */
+          const clock = (r, t) => (r === 0 && t >= T_RESET ? t - D : t) - ROUNDS[r].at
+          const cleared = (t) => ROUNDS.filter((round) => t < T_RESET && t >= round.at + T_CLEAR).length
+          /** Rows above the floor, in whole steps like the game. */
+          const steps = (k) => Math.ceil((1 - k) * DROP)
+
+          return {
+            textStyle: 'caption',
+            textFont: MONO,
+            textY: 205,
+            brand: { color: G[0], alpha: 0.7, y: 1540 },
+            texts: [
+              { at: -1, until: ROUNDS[1].at, lines: L.hook.map(style) },
+              { at: ROUNDS[1].at, until: T_END, lines: L.gaps.map(style) },
+              { at: T_END, until: T_RESET, lines: L.end.map(style) },
+              { at: T_RESET + 0.1, until: 99, lines: L.hook.map(style) },
+            ],
+            shakes: ROUNDS.map((round) => [round.at + T_CLEAR, 20]),
+
+            background() {
+              ctx.fillStyle = G[3]
+              ctx.fillRect(0, 0, W, H)
+              /* The well, and the days of the week under it. */
+              const [x0, y1] = px(-COLS * CELL * 0.5, FLOOR - CELL / 2, 0)
+              const [x1] = px(COLS * CELL * 0.5, 0, 0)
+              ctx.fillStyle = G[2]
+              ctx.fillRect(x0 - 10, 470, x1 - x0 + 20, y1 - 470 + 10)
+              ctx.strokeStyle = G[0]
+              ctx.lineWidth = 12
+              ctx.strokeRect(x0 - 10, 470, x1 - x0 + 20, y1 - 470 + 10)
+              ctx.fillStyle = G[0]
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
+              ctx.font = `800 44px ${MONO}`
+              ;[...L.days].forEach((day, c) => ctx.fillText(day, px(colX(c), 0, 0)[0], y1 + 52))
+            },
+
+            pose(t) {
+              well.rotation.set(-0.06, 0.16 * Math.sin((t / D) * TAU), 0)
+              for (const cell of cells) {
+                const a = clock(cell.r, t)
+                const mine = cell.piece === undefined
+                /* Mine drop one after another; my partner's piece comes down later, as one. */
+                const start = mine ? -0.3 + cell.c * 0.05 : T_PIECE
+                const k = seg(a, start, mine ? start + 0.4 : T_LAND)
+                const blink = a >= T_LAND + 0.12 && a < T_CLEAR && Math.floor((a - T_LAND) / 0.09) % 2 === 0
+                cell.mesh.visible = a >= start && a < T_CLEAR && !blink
+                if (!cell.mesh.visible) continue
+                /* The piece starts one column over and is steered into the gap. */
+                const steer = !mine && steps(k) > 5 ? (cell.c > 3 ? -1 : 1) : 0
+                cell.mesh.position.set(colX(cell.c + steer), FLOOR + steps(k) * CELL, 0)
+                cell.mesh.scale.setScalar(1 + pulse(a, mine ? start + 0.4 : T_LAND, 0.12, 30, 12))
+              }
+            },
+
+            over(t) {
+              const n = cleared(t)
+              let bump = 1
+              for (const round of ROUNDS) bump += pulse(t, round.at + T_CLEAR, 0.3, 26, 10)
+              ctx.fillStyle = G[0]
+              ctx.textBaseline = 'middle'
+              ctx.font = `800 40px ${MONO}`
+              ctx.textAlign = 'left'
+              ctx.fillText(`■ ${L.me}`, 96, 420)
+              ctx.fillStyle = G[1]
+              ctx.fillText('■', 96, 420)
+              ctx.fillStyle = G[0]
+              ctx.textAlign = 'right'
+              ctx.fillText(`${L.p2} ■`, 984, 420)
+              api.label(`${L.lines} ${n}`, 540, 420, { size: 40, weight: 800, font: MONO, bg: G[0], fg: G[3], scale: bump })
+
+              if (t >= T_END && t < T_RESET) {
+                const a = t - T_END
+                api.big(`${ROUNDS.length} ${L.lines}!`, 540, 900, {
+                  size: 150,
+                  fill: G[3],
+                  stroke: G[0],
+                  scale: 0.6 + 0.4 * R.outBack(seg(a, 0, 0.25)),
+                  rot: -0.05,
+                })
+              }
+              /* The dot matrix of the screen. */
+              ctx.fillStyle = 'rgba(15,56,15,0.07)'
+              for (let y = 0; y < H; y += 8) ctx.fillRect(0, y, W, 2)
+              for (let x = 0; x < W; x += 8) ctx.fillRect(x, 0, 2, H)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>

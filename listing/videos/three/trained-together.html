@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — times we've trained together (Three.js loop)</title>
+    <!-- Training with a partner: two plates clink, faster and faster, and a
+         counter keeps the score the app keeps.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { seg, lerp, pulse, inCubic, outCubic, inOut, dark, tint, YELLOW, BLUE, RED, LIME, INK, WHITE, DISPLAY, TAU } = R
+
+      const D = 9
+      const RADIUS = 0.8
+      const REST = 1.25
+      const Y = -0.6
+      /* Twelve clinks, each gap shorter than the last. */
+      const GAPS = [0.6, 0.55, 0.5, 0.45, 0.4, 0.36, 0.32, 0.28, 0.25, 0.22, 0.2]
+      const CLINKS = GAPS.reduce((all, gap) => [...all, all.at(-1) + gap], [0.25])
+      const T_STUCK = CLINKS.at(-1)
+      const T_CTA = 6.8
+      const T_RESET = 8.4
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'trained-together',
+        duration: D,
+        copy: {
+          en: {
+            hook: [dark("TIMES WE'VE"), tint('TRAINED TOGETHER:', WHITE, RED)],
+            keeps: [dark('THE APP'), tint('KEEPS COUNT.', YELLOW)],
+            cta: [dark('SEND THIS TO'), tint('YOUR GYM PARTNER', YELLOW)],
+            names: ['YOU', 'ALEX'],
+            app: "You've trained together 12 times",
+          },
+          es: {
+            hook: [dark('VECES QUE HEMOS'), tint('ENTRENADO JUNTOS:', WHITE, RED)],
+            keeps: [dark('LA APP'), tint('LLEVA LA CUENTA.', YELLOW)],
+            cta: [dark('MÁNDASELO A'), tint('TU GYM BRO', YELLOW)],
+            names: ['TÚ', 'ALEX'],
+            app: 'Han entrenado juntos 12 veces',
+          },
+        },
+        build(api) {
+          const { L, ctx, px, scene } = api
+
+          /** A plate seen face-on, with a name so the roll shows. */
+          function disc(color, name) {
+            const group = new THREE.Group()
+            const body = new THREE.Mesh(
+              new THREE.CylinderGeometry(RADIUS, RADIUS, 0.2, 72),
+              new THREE.MeshStandardMaterial({ color, roughness: 0.38, metalness: 0.1 }),
+            )
+            body.rotation.x = Math.PI / 2
+            const front = api.face(RADIUS * 2, RADIUS * 2, (c, w) => {
+              const r = w / 2
+              c.translate(r, r)
+              c.fillStyle = color
+              c.beginPath()
+              c.arc(0, 0, r, 0, TAU)
+              c.fill()
+              c.strokeStyle = 'rgba(11,11,16,0.28)'
+              c.lineWidth = r * 0.07
+              c.beginPath()
+              c.arc(0, 0, r * 0.8, 0, TAU)
+              c.stroke()
+              c.fillStyle = WHITE
+              c.textAlign = 'center'
+              c.textBaseline = 'middle'
+              c.font = `900 ${r * 0.34}px ${DISPLAY}`
+              c.fillText(name, 0, -r * 0.46)
+              c.fillText('WTX', 0, r * 0.5)
+              c.fillStyle = '#e4e8ef'
+              c.beginPath()
+              c.arc(0, 0, r * 0.17, 0, TAU)
+              c.fill()
+              c.fillStyle = INK
+              c.beginPath()
+              c.arc(0, 0, r * 0.07, 0, TAU)
+              c.fill()
+            })
+            front.position.z = 0.102
+            group.add(body, front)
+            scene.add(group)
+            return group
+          }
+          const plates = [disc(RED, L.names[0]), disc(BLUE, L.names[1])]
+          const burst = api.confetti(40, T_STUCK, [0, Y, 0.5], 8)
+
+          /** How far each plate's centre is from the middle. */
+          function reach(t) {
+            if (t >= T_RESET && t < T_RESET + 0.3) return lerp(RADIUS, REST, outCubic(seg(t, T_RESET, T_RESET + 0.3)))
+            /* The first roll-in starts before the loop ends. */
+            const tt = t >= T_RESET ? t - D : t
+            if (tt < CLINKS[0]) return lerp(REST, RADIUS, inCubic(seg(tt, -0.2, CLINKS[0])))
+            if (tt >= T_STUCK) return RADIUS
+            const k = CLINKS.findLastIndex((at) => tt >= at)
+            const gap = GAPS[k]
+            return RADIUS + Math.min(0.45, gap * 0.9) * Math.sin((Math.PI * (tt - CLINKS[k])) / gap)
+          }
+          const count = (t) => (t >= T_RESET ? 0 : CLINKS.filter((at) => t >= at).length)
+
+          return {
+            texts: [
+              { at: -1, until: T_STUCK + 0.1, lines: L.hook },
+              { at: T_STUCK + 0.1, until: T_CTA, lines: L.keeps },
+              { at: T_CTA, until: T_RESET, lines: L.cta },
+              { at: T_RESET + 0.15, until: 99, lines: L.hook },
+            ],
+            wipes: [
+              { at: T_STUCK, color: BLUE, from: [540, 1114] },
+              { at: T_CTA, color: RED, from: [540, 1114] },
+              { at: T_RESET, color: YELLOW, from: [540, 960] },
+            ],
+            shakes: [...CLINKS.slice(0, -1).map((at) => [at, 8]), [T_STUCK, 34]],
+            cta: [T_CTA, T_RESET],
+
+            pose(t) {
+              const x = reach(t)
+              /* Stuck together, they turn against each other like gears. */
+              const gears = TAU * inOut(seg(t, T_STUCK + 0.15, T_STUCK + 1.3)) + TAU * inOut(seg(t, T_CTA, T_CTA + 1))
+              const hop = 0.3 * Math.sin(Math.PI * seg(t, T_STUCK, T_STUCK + 0.4))
+              let ring = 0
+              for (const at of CLINKS) ring += pulse(t, at, 0.05, 30, 12)
+              plates.forEach((plate, i) => {
+                const side = i ? 1 : -1
+                plate.position.set(side * x, Y + hop, 0)
+                plate.rotation.set(0, -side * 0.12, -side * ((x - REST) / RADIUS) - side * gears)
+                plate.scale.setScalar(1 + ring)
+              })
+              burst(t)
+            },
+
+            over(t) {
+              const [cx, cy] = px(0, Y, 0.1)
+              for (const at of CLINKS) {
+                const a = t - at
+                if (a < 0 || a > 0.22) continue
+                const k = a / 0.22
+                ctx.strokeStyle = WHITE
+                ctx.lineCap = 'round'
+                ctx.lineWidth = 12 * (1 - k)
+                for (let i = 0; i < 10; i++) {
+                  const angle = (i / 10) * TAU + 0.3
+                  ctx.beginPath()
+                  ctx.moveTo(cx + Math.cos(angle) * (30 + 110 * k), cy + Math.sin(angle) * (30 + 110 * k))
+                  ctx.lineTo(cx + Math.cos(angle) * (70 + 190 * k), cy + Math.sin(angle) * (70 + 190 * k))
+                  ctx.stroke()
+                }
+              }
+              api.impact(t - T_STUCK, cx, cy)
+
+              let s = 1 - seg(t, T_RESET, T_RESET + 0.15) + seg(t, T_RESET + 0.2, T_RESET + 0.4)
+              for (const at of CLINKS) s += pulse(t, at, 0.3, 26, 10)
+              api.big(`${count(t)}`, 540, 690, { size: 250, fill: WHITE, scale: s })
+
+              const shown = R.pop(t, T_STUCK + 0.3) * (1 - seg(t, T_CTA - 0.15, T_CTA))
+              api.label(L.app, 540, 1352, { size: 40, bg: WHITE, fg: INK, scale: shown })
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>

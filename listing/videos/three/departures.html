@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WTX — departures: leg day (Three.js loop)</title>
+    <!-- A split-flap departures board for a group workout: who is on time, who is
+         still at home, and the moment everyone boards. Amber on black.
+         ?lang=es for Spanish, ?loops=2 for two loops. Stage and controls: kit.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script src="kit.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from 'three'
+      import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+
+      const R = window.Reel
+      const { TAU, W, H, MONO, SANS } = R
+
+      const D = 10
+      const COLS = 18
+      const CW = 0.2
+      const CH = 0.31
+      const ROW = 0.44
+      const FLIP = 0.3
+      const AMBER = '#ffb000'
+      const BOARD = '#16161a'
+      const T_BACK = 9.7
+      const BOARD_Y = -0.35
+      /** A row of the board: a name on the left, a status on the right. */
+      const row = ([left, right]) => (left + ' '.repeat(COLS)).slice(0, COLS - right.length) + right
+
+      R.run({
+        THREE,
+        RoomEnvironment,
+        slug: 'departures',
+        duration: D,
+        copy: {
+          en: {
+            hook: ['if gym partners had', 'a departures board'],
+            room: ['one room code.', 'everyone starts together.'],
+            head: 'DEPARTURES',
+            /* Each row: its first face, then [seconds, new face]. */
+            rows: [
+              [['LEG DAY', '18:00'], [6.0, ['LEG DAY', 'NOW']]],
+              [['ROOM', 'K7Q2MX']],
+              [['YOU', 'ON TIME'], [6.1, ['YOU', 'BOARDING']]],
+              [['ALEX', 'ON TIME'], [6.2, ['ALEX', 'BOARDING']]],
+              [['SAM', 'DELAYED'], [2.2, ['SAM', 'STILL HOME']], [4.2, ['SAM', 'RUNNING']], [6.3, ['SAM', 'BOARDING']]],
+            ],
+          },
+          es: {
+            hook: ['si los gym bros tuvieran', 'un panel de salidas'],
+            room: ['un código de sala.', 'todos empiezan juntos.'],
+            head: 'SALIDAS',
+            rows: [
+              [['PIERNA', '18:00'], [6.0, ['PIERNA', 'AHORA']]],
+              [['SALA', 'K7Q2MX']],
+              [['TÚ', 'A TIEMPO'], [6.1, ['TÚ', 'EMBARCANDO']]],
+              [['ALEX', 'A TIEMPO'], [6.2, ['ALEX', 'EMBARCANDO']]],
+              [['SAM', 'RETRASADO'], [2.2, ['SAM', 'AÚN EN CASA']], [4.2, ['SAM', 'CORRIENDO']], [6.3, ['SAM', 'EMBARCANDO']]],
+            ],
+          },
+        },
+        build(api) {
+          const { L, ctx, px, scene } = api
+          const style = (t) => ({ t, bg: AMBER, fg: '#000000' })
+
+          /* One picture per character, shared by every flap that shows it. */
+          const glyphs = new Map()
+          function glyph(ch) {
+            if (!glyphs.has(ch)) {
+              const canvas = api.makeCanvas(96, 148)
+              const c = canvas.getContext('2d')
+              c.fillStyle = '#26262c'
+              c.beginPath()
+              c.roundRect(3, 3, 90, 142, 12)
+              c.fill()
+              c.fillStyle = AMBER
+              c.textAlign = 'center'
+              c.textBaseline = 'middle'
+              c.font = `800 104px ${MONO}`
+              c.fillText(ch, 48, 80)
+              c.fillStyle = '#0c0c0f'
+              c.fillRect(3, 72, 90, 4)
+              glyphs.set(ch, api.textureOf(canvas))
+            }
+            return glyphs.get(ch)
+          }
+
+          const board = new THREE.Group()
+          board.position.y = BOARD_Y
+          scene.add(board)
+          const back = new THREE.Mesh(
+            new THREE.BoxGeometry(COLS * CW + 0.3, L.rows.length * ROW + 0.25, 0.12),
+            new THREE.MeshStandardMaterial({ color: BOARD, roughness: 0.6, metalness: 0.4 }),
+          )
+          back.position.z = -0.08
+          board.add(back)
+
+          const flapGeo = new THREE.PlaneGeometry(CW * 0.94, CH)
+          const flaps = L.rows.flatMap(([first, ...changes], r) => {
+            /* The faces this row shows, in order, ending back on the first. */
+            const faces = [
+              { at: T_BACK - D, text: row(first) },
+              ...changes.map(([at, face]) => ({ at, text: row(face) })),
+              { at: T_BACK, text: row(first) },
+            ]
+            const last = row(changes.length ? changes.at(-1)[1] : first)
+            return Array.from({ length: COLS }, (_, c) => {
+              const mesh = new THREE.Mesh(flapGeo, new THREE.MeshBasicMaterial({ map: glyph(' ') }))
+              mesh.position.set((c - (COLS - 1) / 2) * CW, ((L.rows.length - 1) / 2 - r) * ROW, 0)
+              board.add(mesh)
+              /* Only the letters that change turn over, one after another along the row. */
+              const turns = []
+              let shown = last[c]
+              for (const face of faces) {
+                if (face.text[c] !== shown) turns.push({ at: face.at + c * 0.02, from: shown, to: face.text[c] })
+                shown = face.text[c]
+              }
+              return { mesh, turns, rest: row(first)[c] }
+            })
+          })
+
+          return {
+            textStyle: 'caption',
+            textY: 250,
+            brand: { color: AMBER, alpha: 0.6 },
+            texts: [
+              { at: -1, until: 6.6, lines: L.hook.map(style) },
+              { at: 6.6, until: T_BACK, lines: L.room.map(style) },
+              { at: T_BACK, until: 99, still: true, lines: L.hook.map(style) },
+            ],
+
+            background(t) {
+              ctx.fillStyle = '#050506'
+              ctx.fillRect(0, 0, W, H)
+              /* Two lamps from above. */
+              for (const x of [260, 820]) {
+                const g = ctx.createRadialGradient(x, 300, 0, x, 300, 900)
+                g.addColorStop(0, 'rgba(255,176,0,0.16)')
+                g.addColorStop(1, 'rgba(255,176,0,0)')
+                ctx.fillStyle = g
+                ctx.fillRect(0, 0, W, H)
+              }
+            },
+
+            pose(t) {
+              board.rotation.set(0.05, 0.16 * Math.sin((t / D) * TAU), 0)
+              for (const flap of flaps) {
+                /* Before its first turn of the loop, a flap still shows what the last loop left. */
+                let char = flap.turns.length ? flap.turns[0].from : flap.rest
+                let angle = 0
+                for (const turn of flap.turns) {
+                  if (t < turn.at) break
+                  const k = (t - turn.at) / FLIP
+                  char = k < 0.5 ? turn.from : turn.to
+                  /* Down to edge-on showing the old letter, then up from edge-on showing the new. */
+                  angle = k >= 1 ? 0 : k < 0.5 ? -k * Math.PI : (1 - k) * Math.PI
+                }
+                flap.mesh.material.map = glyph(char)
+                flap.mesh.rotation.x = angle
+              }
+            },
+
+            over(t) {
+              const [x, y] = px(0, BOARD_Y + (L.rows.length / 2) * ROW + 0.42, 0)
+              ctx.fillStyle = AMBER
+              ctx.textBaseline = 'middle'
+              ctx.textAlign = 'left'
+              ctx.font = `800 54px ${SANS}`
+              ctx.fillText(`✈ ${L.head}`, 96, y)
+              ctx.textAlign = 'right'
+              ctx.font = `700 46px ${MONO}`
+              /* The clock runs from 17:50 to 18:00 over the loop. */
+              ctx.fillText(t >= 6 && t < T_BACK ? '18:00' : `17:5${Math.min(9, Math.floor(t / 0.65))}`, 984, y)
+              api.grain(t, 0.12)
+            },
+          }
+        },
+      })
+    </script>
+  </body>
+</html>
