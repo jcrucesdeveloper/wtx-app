@@ -69,6 +69,47 @@ The whole routine is written up as a Claude Code skill in
 `.claude/skills/daily-reel/SKILL.md`. Just ask for "today's reel", or "this
 week's posts" for a batch of seven.
 
+## Animated reels (no app footage)
+
+`daily-2026-10-06-{es,en}-a01…a12-*` are twelve pure-animation reels built from
+the research in [`../research/09-animation-viral-and-sound.md`](../research/09-animation-viral-and-sound.md):
+a stick figure, a plate mascot, kinetic typography, a satisfying loop, a
+marimba ball run, a Wrapped-style data story, paper cut-out, glitch/code, an
+8-bit boss fight, a "dumb ways" bean list, a parallax night gym and a
+whiteboard doodle. Each is one module in `compositions/src/aNN-*.js` with an
+`{ es, en }` string table; `scripts/new-page.sh <slug>` makes the two pages.
+
+Shared pieces: `lib/art.js` + `lib/art.css` (stick-figure rig, plate mascot,
+discs, confetti, hand-drawn line boil, marker text, bubbles, the WTX sonic-logo
+`sting`). New sound in `scripts/music.mjs`: styles `phonk`, `cartoon`, `uke`,
+`lofi`, `chip`, `pop`, `synth`, `ambient`, `doodle` and ~25 effects (`boing`,
+`clank`, `cowbell`, `stinger`, `note` …). All original and synthesized, so
+there is nothing to license; each reel also exports an SFX-only cut.
+
+**Hook-first cut (`b01…b12`).** Same twelve reels behind a 1.3–1.8 s cold
+open that shows the payoff, a 3–7 word text hook and a sound hit on frame 0,
+then a tape "rewind" into the story. Why and what: [`../research/10-attention-and-hooks.md`](../research/10-attention-and-hooks.md).
+`A.shift(ctx, C)` runs an existing composition later on the timeline, so
+nothing inside it was edited; the cold opens are in `compositions/src/cold-opens.js`.
+Post an `a` and its `b` on different days and compare the 3 s hold.
+
+**Comedy reels (`c01…c12`).** Twelve crude hand-drawn gym skits, one joke each,
+with **no brand tag, no logo sting and no call to action**: the account is the
+brand, the video is the joke. Why: [`../research/11-the-art-of-going-viral.md`](../research/11-the-art-of-going-viral.md).
+The kit is `lib/toon.js` + `lib/toon.css` (front-facing doodle people with
+swappable faces, snap poses, gibberish speech bubbles, meme captions, the
+plate-with-eyes easter egg); the comedy sounds (`blab`, `boom`, `scratch`,
+`crickets`, `choir`, `dundun`, `squeak`, `bonk`, `tada` …) are in
+`scripts/music.mjs`. Captions to post with them: [`batch-c-posting.md`](batch-c-posting.md).
+
+**Comedy reels, hook-first (`d01…d12`).** Twelve more skits, new jokes, built
+on [`../research/12-comedy-hooks-and-retention.md`](../research/12-comedy-hooks-and-retention.md):
+frame 0 is already wrong (a face mid-sneeze filling the screen, a man flying
+off a treadmill), big characters on a saturated colour, a loud sound at t = 0,
+the first laugh inside 1.5 s, a second caption as a re-hook at ~45 %, and a
+cut on the peak. Same kit as batch C plus `T.closeup`, `T.punchIn`,
+`T.speedLines`, `T.ghosts`, `T.wallHole`. Captions: [`batch-d-posting.md`](batch-d-posting.md).
+
 ## How it's made
 
 ```
