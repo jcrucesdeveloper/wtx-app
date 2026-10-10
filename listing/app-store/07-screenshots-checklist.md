@@ -11,6 +11,6 @@ Specs: `research/04-asset-specs.md`. Shot list/content plan: `assets/checklist.m
       marked as running on iPad; skip if iPad support isn't enabled in the
       Capacitor/Xcode project
 - [ ] App icon — 1024×1024px, no alpha, no pre-rounded corners
-- [x] (Optional) App preview video — `videos/out/app-store/wtx-app-preview-886x1920.mp4`
+- [x] (Optional) App preview video — `videos/app-store/wtx-app-preview-886x1920.mp4`
       (English). There is no Spanish preview yet; the Spanish localizations
       can go without one.

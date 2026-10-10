@@ -42,6 +42,8 @@ listing/
   app-store/            Ready-to-paste App Store Connect copy
   assets/               Image specs + content shot list (no image files —
                         design work is separate from this copy pass)
+  visuals/              Icon, feature graphic and screenshots: source and PNGs
+  videos/               The App Store preview and the Google Play promo video
 ```
 
 ## How to use this
@@ -57,7 +59,7 @@ listing/
    and the two `*-worksheet.md` files — Data Safety (Play) and App Privacy
    (Apple) are compliance-sensitive and Apple can reject on mismatch.
 5. Upload the images from `visuals/png/` (shot list in
-   `assets/checklist.md`) and the videos from `videos/out/`.
+   `assets/checklist.md`) and the videos from `videos/`.
 
 ## Honesty check on the keyword research
 

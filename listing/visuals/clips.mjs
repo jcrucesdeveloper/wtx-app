@@ -1,14 +1,17 @@
-// Looks up single frames of the recorded takes (build/clips*/, see
-// capture-app.mjs) by marker name — for stills: slideshow slides and store
-// screenshots. Every frame is 886×1920, a real capture of the running app.
-//
-// Usage: node scripts/clips.mjs <lang> <clip> <marker>[+offset] <out.png>
-//        node scripts/clips.mjs es workout recap+1.5 /tmp/recap.png
+// Looks up single frames of the recorded app by marker name. The recordings
+// (886×1920 captures of the production build with seeded history) are made
+// in the wtx-studio project, expected next to this repo; set WTX_STUDIO_DIR
+// if it is somewhere else.
 
-import { copyFileSync, existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { clipsDir } from './paths.mjs'
+
+const here = dirname(fileURLToPath(import.meta.url))
+export const STUDIO_DIR = resolve(process.env.WTX_STUDIO_DIR ?? join(here, '..', '..', '..', 'wtx-studio'))
+
+/** Folder of a language's recorded takes: `clips` for English, `clips-es` for Spanish. */
+const clipsDir = (lang) => join(STUDIO_DIR, 'build', lang === 'en' ? 'clips' : `clips-${lang}`)
 
 const metaCache = new Map()
 
@@ -17,7 +20,7 @@ function loadMeta(lang, clip) {
   if (!metaCache.has(key)) {
     const dir = join(clipsDir(lang), clip)
     if (!existsSync(join(dir, 'frames.json'))) {
-      throw new Error(`no ${lang} take of "${clip}" — record it with: WTX_LOCALE=${lang} node scripts/capture-app.mjs ${clip}`)
+      throw new Error(`no ${lang} take of "${clip}" in ${clipsDir(lang)} — record it in wtx-studio: WTX_LOCALE=${lang} node scripts/capture-app.mjs ${clip}`)
     }
     metaCache.set(key, {
       dir,
@@ -31,8 +34,7 @@ function loadMeta(lang, clip) {
 /**
  * Path of the recorded frame at a moment of a take.
  *
- * @param ref - `'marker'`, `['marker', offsetSeconds]` or seconds — the same
- *   references the compositions use.
+ * @param ref - `'marker'`, `['marker', offsetSeconds]` or seconds.
  */
 export function framePath(lang, clip, ref) {
   const meta = loadMeta(lang, clip)
@@ -52,11 +54,4 @@ export function parseRef(text) {
   if (/^[\d.]+$/.test(text)) return Number(text)
   const [, label, offset] = text.match(/^(.+?)([+-][\d.]+)?$/)
   return [label, offset ? Number(offset) : 0]
-}
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const [lang, clip, ref, out] = process.argv.slice(2)
-  if (!out) throw new Error('usage: node scripts/clips.mjs <lang> <clip> <marker>[+offset] <out.png>')
-  copyFileSync(framePath(lang, clip, parseRef(ref)), out)
-  console.log(out)
 }

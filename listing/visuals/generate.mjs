@@ -1,7 +1,6 @@
 // Builds the store screenshot set in every language (shots.mjs):
 //   1. copies each shot's frame from the recorded takes into screens/<lang>/
-//      (record them first: listing/videos → node scripts/capture-app.mjs,
-//      and WTX_LOCALE=es for Spanish)
+//      (recorded in the wtx-studio project, see clips.mjs)
 //   2. stamps src/_shot.html into both store sizes: <store>/<lang>/<id>.html
 //
 // Every size in styles.css is in container query units (cqw/cqh), so the
@@ -14,7 +13,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { SHOTS, LANGS } from './shots.mjs'
 import { TARGETS } from './targets.mjs'
-import { framePath, parseRef } from '../videos/scripts/clips.mjs'
+import { framePath, parseRef } from './clips.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
