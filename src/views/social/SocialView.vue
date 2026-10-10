@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppPage from '@/components/AppPage.vue'
 import FriendsHome from '@/components/social/FriendsHome.vue'
+import SkeletonBlock from '@/components/ui/SkeletonBlock.vue'
 import UserAvatar from '@/components/social/UserAvatar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { isSupabaseConfigured } from '@/services/supabase'
@@ -39,7 +40,11 @@ function onAuthDone() {
       <p class="empty__hint">{{ t('social.notConfiguredHint') }}</p>
     </div>
 
-    <div v-else-if="!auth.ready" class="empty" />
+    <div v-else-if="!auth.ready" class="loading" aria-busy="true">
+      <SkeletonBlock height="196px" radius="xl" />
+      <SkeletonBlock width="40%" height="20px" />
+      <SkeletonBlock height="64px" radius="lg" />
+    </div>
 
     <FriendsHome v-else @auth-done="onAuthDone" />
   </AppPage>
@@ -56,6 +61,12 @@ function onAuthDone() {
   padding: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
 }
 
 .empty {

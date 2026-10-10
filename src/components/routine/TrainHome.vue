@@ -13,7 +13,7 @@ import { useStartRoutine } from '@/composables/useStartRoutine'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { formatClock } from '@/lib/format'
 import { sessionDateStrs } from '@/lib/sessionDates'
-import { computeWeekStreak, sessionsThisWeek } from '@/lib/sessionStats'
+import { computeWeekStreak, sessionsThisWeek, streakRepair } from '@/lib/sessionStats'
 
 /**
  * The Train screen, top to bottom:
@@ -37,9 +37,28 @@ const dateStrs = computed(() => sessionDateStrs(sessions))
 const streak = computed(() => computeWeekStreak(dateStrs.value))
 const weekCount = computed(() => sessionsThisWeek(dateStrs.value))
 
+/**
+ * Nothing logged yet: instead of an empty week, the first steps — and the
+ * first of them is already done, because the starter routines are here.
+ */
+const firstRun = computed(() => dateStrs.value.length === 0)
+const firstSteps = computed(() => [
+  { label: t('train.stepRoutines'), done: true },
+  { label: t('train.stepStart'), done: activeSession.isActive },
+  { label: t('train.stepFinish'), done: false },
+])
+const firstDone = computed(() => firstSteps.value.filter((step) => step.done).length)
+
 /** The week in one sentence: what you have, and what one workout would make it. */
 const weekLine = computed(() => {
-  if (!dateStrs.value.length) return { lead: t('train.weekFirst'), rest: '' }
+  // A run missed by a single week can still be picked back up: say how.
+  const repair = streakRepair(dateStrs.value)
+  if (repair) {
+    return {
+      lead: t(repair.needed > 1 ? 'train.repairTwo' : 'train.repairOne', { count: repair.weeks }),
+      rest: '',
+    }
+  }
   // A run that ended is not mentioned: the screen just offers the next one.
   if (streak.value === 0) return { lead: t('train.weekFresh'), rest: '' }
   if (weekCount.value === 0) {
@@ -117,7 +136,25 @@ function removeRoutine(id: string) {
 
 <template>
   <div class="train">
-    <section class="week">
+    <section v-if="firstRun" class="first">
+      <p class="week__line">
+        <b>{{ t('train.firstTitle') }}</b>
+        · {{ t('train.firstProgress', { done: firstDone, total: firstSteps.length }) }}
+      </p>
+      <ol class="first__steps">
+        <li
+          v-for="step in firstSteps"
+          :key="step.label"
+          class="first__step"
+          :class="{ 'first__step--done': step.done }"
+        >
+          <span class="first__bar" />
+          <span class="first__label">{{ step.label }}</span>
+        </li>
+      </ol>
+    </section>
+
+    <section v-else class="week">
       <p class="week__line">
         <b>{{ weekLine.lead }}</b>
         <template v-if="weekLine.rest"> · {{ weekLine.rest }}</template>
@@ -235,6 +272,43 @@ function removeRoutine(id: string) {
 .week__line b {
   font-weight: 700;
   color: var(--color-heading);
+}
+
+/* First run: three steps, the first already filled in. */
+.first {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.first__steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 0;
+}
+
+.first__step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-small);
+}
+
+.first__bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-background-mute);
+}
+
+.first__step--done {
+  color: var(--color-heading);
+  font-weight: var(--weight-medium);
+}
+
+.first__step--done .first__bar {
+  background: var(--color-accent);
 }
 
 /* The only container on the screen, and the only accent on it. */

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, MonitorSmartphone, RefreshCw, Share2, Timer, Users } from '@lucide/vue'
 import AuthForm, { openAuthMode } from '@/components/social/AuthForm.vue'
+import SkeletonBlock from '@/components/ui/SkeletonBlock.vue'
 import FeedPostCard from '@/components/social/FeedPostCard.vue'
 import UserAvatar from '@/components/social/UserAvatar.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -113,6 +114,9 @@ const myCode = computed(() => auth.inviteCode ?? '')
 
   <!-- Logged in. -->
   <div v-else class="friends">
+    <!-- Nothing is lost while offline; say so before anything looks broken. -->
+    <p v-if="sync.status === 'offline'" class="offline" role="status">{{ t('friends.offline') }}</p>
+
     <button
       v-if="currentRoom"
       type="button"
@@ -177,10 +181,20 @@ const myCode = computed(() => auth.inviteCode ?? '')
 
     <section>
       <h2 class="heading heading--spaced">{{ t('friends.activity') }}</h2>
-      <p v-if="feed.postsError" class="quiet">{{ t('social.feed.error') }}</p>
-      <p v-else-if="feed.loadingPosts && feed.posts.length === 0" class="quiet">
-        {{ t('social.feed.loading') }}
+      <p v-if="feed.postsError" class="quiet quiet--action">
+        {{ t('social.feed.error') }}
+        <button type="button" class="text-btn" @click="feed.loadFeed({ force: true })">
+          {{ t('social.profile.retry') }}
+        </button>
       </p>
+      <div
+        v-else-if="feed.loadingPosts && feed.posts.length === 0"
+        class="feed"
+        role="status"
+        :aria-label="t('social.feed.loading')"
+      >
+        <SkeletonBlock v-for="n in 2" :key="n" height="132px" radius="lg" />
+      </div>
       <p v-else-if="feed.posts.length === 0" class="quiet">{{ t('friends.feedEmpty') }}</p>
       <div v-else class="feed">
         <FeedPostCard v-for="post in feed.posts" :key="post.sessionId" :post="post" />
@@ -485,6 +499,22 @@ button.hero {
 .quiet {
   font-size: 13px;
   line-height: 1.45;
+}
+
+.quiet--action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.offline {
+  padding: var(--space-3) 14px;
+  border-radius: 14px;
+  font-size: var(--text-small);
+  line-height: 1.4;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
 }
 
 .sync {

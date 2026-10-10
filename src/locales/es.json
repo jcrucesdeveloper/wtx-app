@@ -11,8 +11,14 @@
     "mainNavAria": "Navegación principal"
   },
   "train": {
+    "repairTwo": "Dos entrenamientos esta semana retoman tu racha en {count} semanas.",
+    "repairOne": "Un entrenamiento más esta semana retoma tu racha en {count} semanas.",
+    "firstTitle": "Ya empezaste",
+    "firstProgress": "{done} de {total} hechos",
+    "stepRoutines": "Rutinas listas",
+    "stepStart": "Empieza un entrenamiento",
+    "stepFinish": "Termínalo",
     "weekFresh": "Semana nueva. Un entrenamiento empieza una racha.",
-    "weekFirst": "Tu primer entrenamiento abre la semana uno.",
     "weekKeep": "Entrena una vez esta semana para llegar a {count} semanas seguidas.",
     "weekCount": "Aún sin entrenamientos esta semana | {count} entrenamiento esta semana | {count} entrenamientos esta semana",
     "inProgress": "En curso",
@@ -61,6 +67,7 @@
     "goTrain": "Empezar un entrenamiento"
   },
   "friends": {
+    "offline": "Estás sin conexión. Los entrenamientos se guardan en este teléfono y se sincronizan después.",
     "pitchTitle": "Entrena con alguien",
     "pitchBody": "Es más fácil no faltar cuando alguien entrena contigo. Con una cuenta puedes:",
     "benefitTogether": "Entrenar juntos en vivo: la misma rutina, la misma cuenta atrás y las series de cada uno al momento.",
@@ -81,20 +88,20 @@
     "feedEmpty": "Aquí aparecen los entrenamientos que comparten las personas que sigues."
   },
   "onboarding": {
-    "skip": "Omitir",
-    "next": "Siguiente",
+    "headline": "Tu entrenamiento, en texto simple.",
+    "lead": "Hay una rutina inicial lista. Cámbiala o escribe la tuya. | Hay {count} rutinas iniciales listas. Cámbialas o escribe las tuyas.",
     "getStarted": "Empezar",
     "routines": {
       "title": "Escribe tus rutinas como texto",
-      "body": "Guarda tus rutinas de entrenamiento como plantillas de texto simple: escribe una desde cero, pégala, o escanea un código QR de un amigo."
+      "short": "Escribe una, pégala o escanea el código QR de un amigo."
     },
     "sessions": {
       "title": "Registra cada entrenamiento",
-      "body": "Sigue tus series y repeticiones según tu rutina, detecta un nuevo récord personal en el momento en que lo logras, y mira crecer tu racha en el calendario de entrenamiento."
+      "short": "Un toque por serie, con los números de la última vez ya puestos."
     },
     "social": {
       "title": "Entrena en vivo con amigos",
-      "body": "Crea una cuenta para sincronizar entre dispositivos y luego crea una sala para entrenar juntos en tiempo real: mismo conteo, progreso compartido y porras incluidas."
+      "short": "Opcional. Una cuenta añade amigos y sincronización entre dispositivos."
     }
   },
   "notifications": {

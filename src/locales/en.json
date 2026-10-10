@@ -11,8 +11,14 @@
     "mainNavAria": "Main navigation"
   },
   "train": {
+    "repairTwo": "Two workouts this week pick your run back up at {count} weeks.",
+    "repairOne": "One more workout this week picks your run back up at {count} weeks.",
+    "firstTitle": "You've already started",
+    "firstProgress": "{done} of {total} done",
+    "stepRoutines": "Routines ready",
+    "stepStart": "Start a workout",
+    "stepFinish": "Finish it",
     "weekFresh": "A new week. One workout starts a run.",
-    "weekFirst": "Your first workout starts week one.",
     "weekKeep": "Train once this week to make it {count} weeks in a row.",
     "weekCount": "No workouts this week yet | {count} workout this week | {count} workouts this week",
     "inProgress": "In progress",
@@ -61,6 +67,7 @@
     "goTrain": "Start a workout"
   },
   "friends": {
+    "offline": "You're offline. Workouts still save on this phone and sync later.",
     "pitchTitle": "Train with a friend",
     "pitchBody": "It's easier to keep showing up when someone trains with you. With an account you can:",
     "benefitTogether": "Train together live: same routine, same countdown, each other's sets as they happen.",
@@ -81,20 +88,20 @@
     "feedEmpty": "Workouts shared by the people you follow show up here."
   },
   "onboarding": {
-    "skip": "Skip",
-    "next": "Next",
+    "headline": "Your training, in plain text.",
+    "lead": "A starter routine is ready. Change it, or write your own. | {count} starter routines are ready. Change them, or write your own.",
     "getStarted": "Get started",
     "routines": {
       "title": "Write your routines as text",
-      "body": "Keep your training routines as small, plain-text templates — type one from scratch, paste it in, or scan a QR code from a friend."
+      "short": "Type one, paste one, or scan a friend's QR code."
     },
     "sessions": {
       "title": "Log every workout",
-      "body": "Track sets and reps against your routine, catch a new personal record the moment you hit it, and see your streak build on the training calendar."
+      "short": "One tap per set, with last time's numbers already filled in."
     },
     "social": {
       "title": "Train live with friends",
-      "body": "Create an account to sync across devices, then start a room and train together in real time — same countdown, shared progress, cheers included."
+      "short": "Optional. An account adds friends and sync across devices."
     }
   },
   "notifications": {
