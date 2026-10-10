@@ -30,10 +30,12 @@ export interface WorkoutCardData {
   accent: string
 }
 
-const BACKGROUND = '#181818'
-const SURFACE = '#232323'
-const TEXT = '#fff6ef'
-const MUTED = 'rgba(255, 246, 239, 0.6)'
+// The dark theme's tokens (src/assets/base.css): a share always looks like the app at its default.
+const BACKGROUND = '#0f1012'
+const SURFACE = '#18191c'
+const HAIRLINE = 'rgba(255, 255, 255, 0.1)'
+const TEXT = '#f4f4f5'
+const MUTED = 'rgba(244, 244, 245, 0.62)'
 const FONT = '-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
 
 /** Stories cover the top and bottom with their own UI; everything stays inside this box. */
@@ -141,9 +143,9 @@ export function drawWorkoutCard(ctx: CanvasRenderingContext2D, data: WorkoutCard
 
   // Eyebrow and title.
   y += 190
-  ctx.fillStyle = data.accent
-  ctx.font = font(700, 38)
-  ctx.fillText(data.eyebrow.toUpperCase(), MARGIN_X, y)
+  ctx.fillStyle = MUTED
+  ctx.font = font(600, 40)
+  ctx.fillText(data.eyebrow, MARGIN_X, y)
 
   ctx.fillStyle = TEXT
   const titleSize = fitSize(ctx, data.title, 800, 124, 88, CONTENT_WIDTH)
@@ -159,6 +161,10 @@ export function drawWorkoutCard(ctx: CanvasRenderingContext2D, data: WorkoutCard
   data.stats.slice(0, 4).forEach((stat, index) => {
     const x = MARGIN_X + (index % 2) * columnWidth
     const rowY = y + Math.floor(index / 2) * 230
+    if (index % 2 === 0) {
+      ctx.fillStyle = HAIRLINE
+      ctx.fillRect(MARGIN_X, rowY, CONTENT_WIDTH, 3)
+    }
     ctx.fillStyle = TEXT
     ctx.font = font(800, fitSize(ctx, stat.value, 800, 124, 72, columnWidth - 40))
     ctx.fillText(stat.value, x, rowY + 110)
@@ -172,16 +178,17 @@ export function drawWorkoutCard(ctx: CanvasRenderingContext2D, data: WorkoutCard
   if (data.highlight) {
     y += 40
     const height = 220
-    roundedRect(ctx, MARGIN_X, y, CONTENT_WIDTH, height, 28)
+    roundedRect(ctx, MARGIN_X, y, CONTENT_WIDTH, height, 48)
     ctx.fillStyle = SURFACE
     ctx.fill()
-    ctx.lineWidth = 4
-    ctx.strokeStyle = data.accent
-    ctx.stroke()
 
     ctx.fillStyle = data.accent
-    ctx.font = font(700, 36)
-    ctx.fillText(data.highlight.label.toUpperCase(), MARGIN_X + 44, y + 84)
+    ctx.beginPath()
+    ctx.arc(MARGIN_X + 58, y + 71, 14, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = MUTED
+    ctx.font = font(600, 38)
+    ctx.fillText(data.highlight.label, MARGIN_X + 92, y + 84)
     ctx.fillStyle = TEXT
     const size = fitSize(ctx, data.highlight.text, 700, 60, 44, CONTENT_WIDTH - 88)
     ctx.font = font(700, size)
@@ -190,8 +197,11 @@ export function drawWorkoutCard(ctx: CanvasRenderingContext2D, data: WorkoutCard
 
   // Footer, above the area a story's reply bar covers.
   const footerY = CARD_HEIGHT - 400
-  ctx.fillStyle = data.accent
-  ctx.fillRect(MARGIN_X, footerY - 86, 96, 8)
+  // The accent appears once: on the highlight when there is one, else as this rule.
+  if (!data.highlight) {
+    ctx.fillStyle = data.accent
+    ctx.fillRect(MARGIN_X, footerY - 86, 96, 8)
+  }
   ctx.fillStyle = MUTED
   ctx.font = font(600, 40)
   ctx.fillText(data.footer, MARGIN_X, footerY)

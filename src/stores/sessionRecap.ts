@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import type { PersonalRecord } from '@/lib/sessionRecords'
 import type { SessionComparison } from '@/lib/sessionComparisons'
 import type { Milestone } from '@/lib/sessionMilestones'
+import type { PlateStep } from '@/lib/plateLevel'
 
 export interface SessionRecap {
   sessionId: string
@@ -11,6 +12,8 @@ export interface SessionRecap {
   milestone: Milestone | undefined
   weekStreak: number
   elapsedSeconds: number
+  /** The plate this workout earned on the profile, if it earned one. */
+  plateUp?: PlateStep
 }
 
 /**

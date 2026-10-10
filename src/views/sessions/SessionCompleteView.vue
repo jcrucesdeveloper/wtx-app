@@ -8,6 +8,7 @@ import { useSessionsStore } from '@/stores/sessions'
 import { useSessionRecapStore } from '@/stores/sessionRecap'
 import { formatClock, formatNumber } from '@/lib/format'
 import { HapticsService } from '@/services/haptics'
+import { celebrationTier } from '@/lib/celebration'
 import { AdService } from '@/services/ads'
 import { AppReviewService } from '@/services/appReview'
 import { canShare, shareImage, shareLink } from '@/services/nativeShare'
@@ -34,9 +35,23 @@ const recap = computed(() =>
   sessionRecap.recap?.sessionId === id.value ? sessionRecap.recap : null,
 )
 
-// A record is felt as it lands on screen (the summary's reveal starts with it).
+// Felt as it lands on screen, and sized like the screen is: nothing extra for
+// an ordinary finish (the outro already marked it), a success for something
+// earned, and a heavier beat first for the rare one.
 onMounted(() => {
-  if (recap.value?.personalRecords.length) HapticsService.success()
+  if (!recap.value) return
+  const tier = celebrationTier({
+    personalRecords: recap.value.personalRecords.length,
+    milestone: recap.value.milestone,
+    plateUp: !!recap.value.plateUp,
+  })
+  if (tier === 'routine') return
+  if (tier === 'event') {
+    void HapticsService.heavy()
+    setTimeout(() => void HapticsService.success(), 220)
+  } else {
+    void HapticsService.success()
+  }
 })
 
 async function onDone() {

@@ -40,6 +40,8 @@ const weekCount = computed(() => sessionsThisWeek(dateStrs.value))
 /** The week in one sentence: what you have, and what one workout would make it. */
 const weekLine = computed(() => {
   if (!dateStrs.value.length) return { lead: t('train.weekFirst'), rest: '' }
+  // A run that ended is not mentioned: the screen just offers the next one.
+  if (streak.value === 0) return { lead: t('train.weekFresh'), rest: '' }
   if (weekCount.value === 0) {
     return { lead: t('train.weekKeep', { count: streak.value + 1 }), rest: '' }
   }

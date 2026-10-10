@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Award, Check, Share2 } from '@lucide/vue'
+import { Award, Check, Share2, Trophy } from '@lucide/vue'
 import WeekStrip from './WeekStrip.vue'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { SessionRecap } from '@/stores/sessionRecap'
@@ -9,12 +9,19 @@ import { useSessionsStore } from '@/stores/sessions'
 import { useExerciseName } from '@/composables/useExerciseName'
 import { formatClock, formatNumber } from '@/lib/format'
 import { sessionDateStrs } from '@/lib/sessionDates'
+import { celebrationTier } from '@/lib/celebration'
+import { PLATE_COLORS } from '@/lib/plateLevel'
+import { usePlateLabels } from '@/composables/usePlateLabels'
 
 /**
  * The finish screen as one statement and then
  * its supporting facts, in a fixed order: the best thing that happened, the
  * numbers, your week, what you did. The reveal is a CSS stagger (`--i` is
  * each block's place in it), so reduced motion needs no second code path.
+ *
+ * How loud it is depends on what happened (see `celebrationTier`): most
+ * finishes are calm, a record lands with weight, and a rare moment — a new
+ * plate, a year of weeks — gets the burst.
  */
 const props = defineProps<{
   session: WorkoutSession
@@ -29,11 +36,29 @@ const emit = defineEmits<{ done: []; share: []; recap: [] }>()
 
 const { t } = useI18n()
 const { exerciseName } = useExerciseName()
+const { plateTitle } = usePlateLabels()
 const sessions = useSessionsStore()
 
 const unit = computed(() => props.session.unit ?? '')
 const topPr = computed(() => props.recap?.personalRecords[0])
 const streak = computed(() => props.recap?.weekStreak ?? 0)
+
+const tier = computed(() =>
+  celebrationTier({
+    personalRecords: props.recap?.personalRecords.length ?? 0,
+    milestone: props.recap?.milestone,
+    plateUp: !!props.recap?.plateUp,
+  }),
+)
+
+const plateUp = computed(() => props.recap?.plateUp)
+const plateColor = computed(() => (plateUp.value ? PLATE_COLORS[plateUp.value.kg] : null))
+
+/**
+ * Sparks from the badge, for the rare finish. The badge sits at the left edge,
+ * so they fan up and to the right, where there is room to see them.
+ */
+const BURST = Array.from({ length: 11 }, (_, i) => i * 16)
 const dateStrs = computed(() => sessionDateStrs(sessions))
 
 /** How far the record moved, e.g. "2.5". Empty when there's no earlier weight to compare. */
@@ -88,7 +113,8 @@ const streakNote = computed(() =>
 )
 
 const prNames = computed(
-  () => new Set((props.recap?.personalRecords ?? []).map((pr) => pr.exerciseName.trim().toLowerCase())),
+  () =>
+    new Set((props.recap?.personalRecords ?? []).map((pr) => pr.exerciseName.trim().toLowerCase())),
 )
 
 /** One line per exercise: its heaviest set. */
@@ -112,31 +138,62 @@ const lines = computed(() =>
 </script>
 
 <template>
-  <div class="finish">
+  <div class="finish" :class="`finish--${tier}`">
     <section class="hero">
-      <span class="hero__badge land" style="--i: 0"><Check :size="22" :stroke-width="3" /></span>
+      <span v-if="tier === 'event'" class="burst" aria-hidden="true">
+        <i v-for="angle in BURST" :key="angle" :style="{ '--a': `${angle}deg` }" />
+      </span>
+      <span class="hero__badge land" style="--i: 0">
+        <Trophy v-if="topPr" :size="22" :stroke-width="2.5" />
+        <Check v-else :size="22" :stroke-width="3" />
+      </span>
 
       <template v-if="topPr">
         <p class="hero__label hero__label--accent rise" style="--i: 1">
           {{ t('session.personalRecordBanner.title') }}
         </p>
-        <p class="hero__value rise" style="--i: 2">
+        <p class="hero__value punch" style="--i: 2">
           {{ topPr.weight }}<small>{{ unit }}</small>
           <span class="hero__reps">× {{ topPr.reps }}</span>
         </p>
         <p class="hero__sub rise" style="--i: 3">
           {{ exerciseName(topPr.exerciseName) }}
-          <template v-if="prDelta"> · {{ t('finish.overBest', { value: prDelta, unit }) }}</template>
+          <template v-if="prDelta">
+            · {{ t('finish.overBest', { value: prDelta, unit }) }}</template
+          >
         </p>
       </template>
       <template v-else>
         <p class="hero__label rise" style="--i: 1">{{ t('sessionComplete.workoutComplete') }}</p>
         <p class="hero__value rise" style="--i: 2">
-          <template v-if="volume">{{ volume }}<small>{{ unit }}</small></template>
-          <template v-else>{{ session.totalWorkingSets }}<small>{{ t('sessionComplete.sets') }}</small></template>
+          <template v-if="volume"
+            >{{ volume }}<small>{{ unit }}</small></template
+          >
+          <template v-else
+            >{{ session.totalWorkingSets }}<small>{{ t('sessionComplete.sets') }}</small></template
+          >
         </p>
         <p v-if="volume" class="hero__sub rise" style="--i: 3">{{ t('finish.lifted') }}</p>
       </template>
+    </section>
+
+    <!-- A new plate: rare, so it gets its own block right under the headline. -->
+    <section v-if="plateUp && plateColor" class="plate-up punch" style="--i: 4">
+      <span class="plate-up__plates" aria-hidden="true">
+        <span
+          v-for="n in plateUp.count"
+          :key="n"
+          class="plate-up__plate"
+          :style="{ background: plateColor.fill, color: plateColor.ink }"
+        >
+          <template v-if="n === plateUp.count">{{ plateUp.kg }}</template>
+        </span>
+      </span>
+      <span class="plate-up__body">
+        <span class="plate-up__label">{{ t('finish.newPlate') }}</span>
+        <span class="plate-up__title">{{ plateTitle(plateUp) }}</span>
+        <span class="plate-up__note">{{ t('finish.plateOnProfile') }}</span>
+      </span>
     </section>
 
     <section class="rise" style="--i: 4">
@@ -154,7 +211,9 @@ const lines = computed(() =>
     <section v-if="recap" class="card rise" style="--i: 5">
       <WeekStrip :date-strs="dateStrs" />
       <div class="card__text">
-        <span class="card__title">{{ t('session.streakRecap.weekInARow', { count: streak }, streak) }}</span>
+        <span class="card__title">{{
+          t('session.streakRecap.weekInARow', { count: streak }, streak)
+        }}</span>
         <span class="card__note">{{ streakNote }}</span>
       </div>
       <p v-if="milestone" class="milestone">
@@ -455,15 +514,123 @@ const lines = computed(() =>
   background: var(--color-accent);
 }
 
-/* The staged reveal: the badge lands, then each block rises into place in order. */
-@media (prefers-reduced-motion: no-preference) {
-  .rise {
-    animation: finish-rise 0.32s var(--ease-out) both;
-    animation-delay: calc(var(--i, 0) * 80ms + 80ms);
-  }
+/* A new plate. */
+.plate-up {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  background: var(--color-background-soft);
+  transform-origin: left center;
+}
 
-  .land {
-    animation: finish-land 0.42s var(--ease-spring) both;
+.plate-up__plates {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.plate-up__plate {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: var(--weight-heavy);
+  line-height: 1;
+  box-shadow:
+    inset 0 0 0 3px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 14px rgba(255, 255, 255, 0.16);
+}
+
+.plate-up__plate + .plate-up__plate {
+  margin-left: -56px;
+}
+
+.plate-up__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.plate-up__label {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+}
+
+.plate-up__title {
+  font-size: var(--text-title);
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--color-heading);
+}
+
+.plate-up__note {
+  font-size: var(--text-small);
+}
+
+/* Sparks leave the badge once, for the rare finish. */
+.hero {
+  position: relative;
+}
+
+.burst {
+  position: absolute;
+  top: 34px;
+  left: 22px;
+}
+
+.burst i {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0;
+  animation: finish-burst calc(var(--motion-slow) * 1.8) var(--ease-out) var(--motion-quick) both;
+}
+
+/* The staged reveal: the badge lands, then each block rises into place in
+   order. `punch` is for what was earned: it arrives with weight. All of it
+   runs on the motion tokens, so reduced motion shows the screen at once. */
+.rise {
+  animation: finish-rise var(--motion-base) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--motion-stagger) + var(--motion-stagger));
+}
+
+.land {
+  animation: finish-land var(--motion-slow) var(--ease-spring) both;
+}
+
+.punch {
+  transform-origin: left center;
+  animation: finish-punch var(--motion-slow) var(--ease-spring) both;
+  animation-delay: calc(var(--i, 0) * var(--motion-stagger) + var(--motion-stagger));
+}
+
+@keyframes finish-punch {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes finish-burst {
+  from {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(-26px) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(-110px) scale(0.3);
   }
 }
 

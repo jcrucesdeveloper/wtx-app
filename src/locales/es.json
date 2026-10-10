@@ -11,6 +11,7 @@
     "mainNavAria": "Navegación principal"
   },
   "train": {
+    "weekFresh": "Semana nueva. Un entrenamiento empieza una racha.",
     "weekFirst": "Tu primer entrenamiento abre la semana uno.",
     "weekKeep": "Entrena una vez esta semana para llegar a {count} semanas seguidas.",
     "weekCount": "Aún sin entrenamientos esta semana | {count} entrenamiento esta semana | {count} entrenamientos esta semana",
@@ -43,6 +44,8 @@
     "setTypeAria": "Cambiar el tipo de serie"
   },
   "finish": {
+    "newPlate": "Nuevo disco",
+    "plateOnProfile": "Ya está en tu perfil.",
     "overBest": "{value} {unit} sobre tu mejor marca",
     "lifted": "levantados hoy",
     "whatYouDid": "Lo que hiciste",
@@ -97,8 +100,8 @@
   "notifications": {
     "reminderTitle": "Hora de entrenar",
     "reminderBody": "Todavía no registraste un entrenamiento hoy — uno rápido también cuenta.",
-    "streakTitle": "Tu racha está en juego",
-    "streakBody": "Registra una sesión antes de que termine la semana para mantener tu racha de {count} semanas."
+    "streakTitle": "{count} semana seguida hasta ahora | {count} semanas seguidas hasta ahora",
+    "streakBody": "Un entrenamiento esta semana y serán {next}."
   },
   "colorPicker": {
     "accentColorAria": "Color de acento"

@@ -11,6 +11,7 @@
     "mainNavAria": "Main navigation"
   },
   "train": {
+    "weekFresh": "A new week. One workout starts a run.",
     "weekFirst": "Your first workout starts week one.",
     "weekKeep": "Train once this week to make it {count} weeks in a row.",
     "weekCount": "No workouts this week yet | {count} workout this week | {count} workouts this week",
@@ -43,6 +44,8 @@
     "setTypeAria": "Change set type"
   },
   "finish": {
+    "newPlate": "New plate",
+    "plateOnProfile": "It's on your profile now.",
     "overBest": "{value} {unit} over your best",
     "lifted": "lifted today",
     "whatYouDid": "What you did",
@@ -97,8 +100,8 @@
   "notifications": {
     "reminderTitle": "Time to train",
     "reminderBody": "You haven't logged a workout today — a quick one still counts.",
-    "streakTitle": "Your streak is on the line",
-    "streakBody": "Log a session before the week ends to keep your {count}-week streak."
+    "streakTitle": "{count} week in a row so far | {count} weeks in a row so far",
+    "streakBody": "One workout this week makes it {next}."
   },
   "colorPicker": {
     "accentColorAria": "Accent color"

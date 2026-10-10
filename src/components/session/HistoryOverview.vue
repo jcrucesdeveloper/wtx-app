@@ -184,8 +184,13 @@ const groups = computed(() => {
 <template>
   <div class="history">
     <section class="summary">
+      <!-- With no run going, the headline is what you have, not what you lost. -->
       <h2 class="summary__headline">
-        {{ t('session.streakRecap.weekInARow', { count: streak }, streak) }}
+        {{
+          streak > 0
+            ? t('session.streakRecap.weekInARow', { count: streak }, streak)
+            : t('sessionComplete.milestoneSessions', { count: items.length })
+        }}
       </h2>
       <p class="summary__sub">{{ t('history.last12', { count: total12 }, total12) }}</p>
 
