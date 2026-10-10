@@ -8,7 +8,6 @@ import FocusSession from '@/components/session/FocusSession.vue'
 import ReorderExercisesSheet from '@/components/session/ReorderExercisesSheet.vue'
 import FinishSessionSheet from '@/components/session/FinishSessionSheet.vue'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
-import PreSessionTransition from '@/components/session/PreSessionTransition.vue'
 import PostSessionTransition from '@/components/session/PostSessionTransition.vue'
 import GroupProgressStrip from '@/components/social/GroupProgressStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
@@ -23,8 +22,12 @@ const { finishSession } = useFinishSession()
 
 const draft = computed(() => activeSession.session?.draft)
 
-/** Only the moment a workout truly starts, not every time this view is re-entered. */
-const showIntro = ref(false)
+/**
+ * Only the moment a workout truly starts, not every time this view is
+ * re-entered: a freshly-started session is a few seconds old at most, and
+ * resuming one (backgrounding and returning) shouldn't replay its arrival.
+ */
+const fresh = activeSession.elapsedSeconds < 2
 
 /** Set once finishing, so the outro beat can outlive `draft` going null. */
 const finishing = ref(false)
@@ -38,9 +41,6 @@ onMounted(() => {
   document.addEventListener('click', closeMenu)
   // Pre-load now so it's ready to show the moment the workout finishes.
   AdService.loadInterstitial()
-  // A freshly-started session is a few seconds old at most — resuming an
-  // already-in-progress one (e.g. backgrounding and returning) shouldn't replay it.
-  if (!prefersReducedMotion() && activeSession.elapsedSeconds < 2) showIntro.value = true
 })
 onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 
@@ -174,7 +174,7 @@ function onStartGroupWorkout() {
     <template v-else-if="draft">
       <GroupProgressStrip v-if="roomId" :room-id="roomId" />
 
-      <FocusSession @finish="onFinish" />
+      <FocusSession :fresh="fresh" @finish="onFinish" />
 
       <ReorderExercisesSheet v-model:open="reorderOpen" />
       <ExerciseListSheet
@@ -185,11 +185,6 @@ function onStartGroupWorkout() {
       <FinishSessionSheet v-model:open="finishSheetOpen" @finish="onFinishSheetChoice" />
     </template>
 
-    <PreSessionTransition
-      v-if="showIntro && draft"
-      :routine-name="draft.name"
-      @done="showIntro = false"
-    />
     <PostSessionTransition v-if="finishing" @done="onFinishTransitionDone" />
   </AppPage>
 </template>

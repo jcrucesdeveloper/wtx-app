@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, Minus, Plus } from '@lucide/vue'
+import { Check, Minus, Plus, Trophy } from '@lucide/vue'
+import AppButton from '@/components/ui/AppButton.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useSessionsStore } from '@/stores/sessions'
 import { useExerciseName } from '@/composables/useExerciseName'
 import { formatClock, formatCompactDuration } from '@/lib/format'
 import { HapticsService } from '@/services/haptics'
+import { allTimeBestsByExercise } from '@/lib/sessionRecords'
 import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSession'
 
 /**
@@ -15,7 +18,16 @@ import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSessi
  * time: the set you're on is the only large thing on screen, logging it is
  * the one big button under your thumb, and every other exercise is a single
  * line you can tap to jump to. Same store, same data, one tap per set.
+ *
+ * Nothing here waits on an animation: every tap changes state at once, and
+ * motion only follows it. Celebration mid-workout is a line and a buzz, never
+ * something to dismiss.
  */
+defineProps<{
+  /** The workout has just started: the screen arrives in sequence, once. */
+  fresh?: boolean
+}>()
+
 const emit = defineEmits<{ finish: [] }>()
 
 const { t } = useI18n()
@@ -104,7 +116,8 @@ function onInput(field: 'weight' | 'reps', event: Event) {
 
 function step(field: 'weight' | 'reps', delta: number) {
   if (!currentSet.value) return
-  const from = field === 'weight' ? shownWeight(currentSet.value.set) : shownReps(currentSet.value.set)
+  const from =
+    field === 'weight' ? shownWeight(currentSet.value.set) : shownReps(currentSet.value.set)
   update({ [field]: Math.max(0, Math.round((from + delta) * 100) / 100) })
   void HapticsService.selection()
 }
@@ -112,16 +125,61 @@ function step(field: 'weight' | 'reps', delta: number) {
 /** The set that was just logged, so its row can acknowledge it once. */
 const justLoggedId = ref<string | null>(null)
 
+// ----- a record, recognised the moment it is logged -----
+const sessions = useSessionsStore()
+
+/** All-time bests before this workout started. */
+const priorBests = allTimeBestsByExercise(
+  sessions.list.flatMap((stored) => {
+    const result = sessions.parsed(stored.id)
+    return result?.ok ? [result.session] : []
+  }),
+)
+
+/** Sets logged today that beat the all-time best, so their chips can say so. */
+const recordSetIds = ref(new Set<string>())
+const recordFlash = ref<number | null>(null)
+let recordTimer: ReturnType<typeof setTimeout> | undefined
+
+/**
+ * Heavier than the all-time best, and heavier than anything already logged
+ * for this exercise today — a second set at the same new weight is not news.
+ * Same rule as the finish screen: only a strictly heavier weight counts, and
+ * an exercise with no history has no record to beat.
+ */
+function isRecord(exercise: SessionExerciseDraft, weight: number): boolean {
+  const prior = priorBests.get(exercise.name.trim().toLowerCase())
+  if (!prior || weight <= prior.weight) return false
+  return !exercise.loggedSets.some(
+    (s) => s.completed && s.type !== 'W' && (s.weight ?? 0) >= weight,
+  )
+}
+
 function logSet() {
   const target = currentSet.value
   if (!target) return
   const { set } = target
+  const exercise = current.value
   // Logging commits whatever is on screen, so a set that needs no edits is one tap.
   if (set.weight === null || set.reps === null) {
     update({ weight: shownWeight(set), reps: shownReps(set) })
   }
+  const record = !!exercise && set.type !== 'W' && isRecord(exercise, shownWeight(set))
   activeSession.completeSet(currentIndex.value, set.id)
-  HapticsService.light()
+
+  // One buzz per set, scaled to what just happened.
+  if (record) {
+    recordSetIds.value.add(set.id)
+    recordFlash.value = shownWeight(set)
+    clearTimeout(recordTimer)
+    recordTimer = setTimeout(() => (recordFlash.value = null), 2800)
+    void HapticsService.success()
+  } else if (exercise && isDone(exercise)) {
+    void HapticsService.medium()
+  } else {
+    void HapticsService.light()
+  }
+
   pickedSetId.value = null
   justLoggedId.value = set.id
   setTimeout(() => {
@@ -144,15 +202,14 @@ function cycleType() {
 function removeExercise() {
   const exercise = current.value
   if (!exercise) return
+  const name = exerciseName(exercise.name)
   const logged = exercise.loggedSets.filter((s) => s.completed).length
-  if (logged > 0) {
-    const message = t(
-      'session.activeExerciseCard.removeConfirm',
-      { name: exerciseName(exercise.name), count: logged },
-      logged,
-    )
-    if (!confirm(message)) return
-  }
+  // One tap from the workout screen, so it always asks — and says what would be lost.
+  const message =
+    logged > 0
+      ? t('session.activeExerciseCard.removeConfirm', { name, count: logged }, logged)
+      : t('workout.removeConfirm', { name })
+  if (!confirm(message)) return
   activeSession.removeExercise(currentIndex.value)
   pickedIndex.value = null
   pickedSetId.value = null
@@ -220,6 +277,38 @@ const restFraction = computed(() => {
   return Math.min(1, Math.max(0, activeSession.restRemainingSeconds / duration))
 })
 
+// ----- rest -----
+/** The timer ran out on its own (not skipped): said once, briefly. */
+const restOver = ref(false)
+let restOverTimer: ReturnType<typeof setTimeout> | undefined
+let restEndedByHand = false
+
+watch(resting, (now, before) => {
+  if (!before || now) return
+  if (!restEndedByHand) {
+    restOver.value = true
+    clearTimeout(restOverTimer)
+    restOverTimer = setTimeout(() => (restOver.value = false), 2600)
+  }
+  restEndedByHand = false
+})
+
+function adjustRest(seconds: number) {
+  activeSession.adjustRestTimer(seconds)
+  void HapticsService.selection()
+}
+
+function skipRest() {
+  restEndedByHand = true
+  activeSession.skipRestTimer()
+  void HapticsService.selection()
+}
+
+onBeforeUnmount(() => {
+  clearTimeout(recordTimer)
+  clearTimeout(restOverTimer)
+})
+
 const showImage = ref(false)
 
 function onNoteInput(event: Event) {
@@ -228,7 +317,7 @@ function onNoteInput(event: Event) {
 </script>
 
 <template>
-  <div v-if="current" class="session">
+  <div v-if="current" class="session" :class="{ 'session--fresh': fresh }">
     <div class="progress">
       <div class="progress__segments" aria-hidden="true">
         <span v-for="(fraction, i) in segments" :key="i" class="progress__segment">
@@ -241,7 +330,8 @@ function onNoteInput(event: Event) {
       </div>
     </div>
 
-    <section class="now">
+    <!-- Keyed, so moving to another exercise arrives as a new thing. -->
+    <section :key="currentIndex" class="now">
       <button type="button" class="now__exercise" @click="showImage = true">
         <ExerciseThumb :name="current.name" />
         <span class="now__name">{{ exerciseName(current.name) }}</span>
@@ -271,71 +361,74 @@ function onNoteInput(event: Event) {
           </button>
         </div>
 
-        <div class="field">
-          <button
-            type="button"
-            class="field__step"
-            :aria-label="t('workout.less')"
-            @click="step('weight', -weightStep)"
-          >
-            <Minus :size="20" :stroke-width="2.5" />
-          </button>
-          <label class="field__value">
-            <!-- `row__input` only so the existing capture scripts still find it. -->
-            <input
-              class="field__input row__input"
-              type="number"
-              inputmode="decimal"
-              :value="fieldValue('weight', currentSet.set)"
-              @input="onInput('weight', $event)"
-              @focus="onFocus('weight', $event)"
-              @blur="editing = null"
-            />
-            <span class="field__unit">{{ unit || t('session.activeExerciseCard.weight') }}</span>
-          </label>
-          <button
-            type="button"
-            class="field__step"
-            :aria-label="t('workout.more')"
-            @click="step('weight', weightStep)"
-          >
-            <Plus :size="20" :stroke-width="2.5" />
-          </button>
-        </div>
+        <!-- Keyed by set: the next set's numbers arrive, they don't just change. -->
+        <div :key="currentSet.set.id" class="fields">
+          <div class="field">
+            <button
+              type="button"
+              class="field__step"
+              :aria-label="t('workout.less')"
+              @click="step('weight', -weightStep)"
+            >
+              <Minus :size="20" :stroke-width="2.5" />
+            </button>
+            <label class="field__value">
+              <!-- `row__input` only so the existing capture scripts still find it. -->
+              <input
+                class="field__input row__input"
+                type="number"
+                inputmode="decimal"
+                :value="fieldValue('weight', currentSet.set)"
+                @input="onInput('weight', $event)"
+                @focus="onFocus('weight', $event)"
+                @blur="editing = null"
+              />
+              <span class="field__unit">{{ unit || t('session.activeExerciseCard.weight') }}</span>
+            </label>
+            <button
+              type="button"
+              class="field__step"
+              :aria-label="t('workout.more')"
+              @click="step('weight', weightStep)"
+            >
+              <Plus :size="20" :stroke-width="2.5" />
+            </button>
+          </div>
 
-        <div class="field">
-          <button
-            type="button"
-            class="field__step"
-            :aria-label="t('workout.less')"
-            @click="step('reps', -repsStep)"
-          >
-            <Minus :size="20" :stroke-width="2.5" />
-          </button>
-          <label class="field__value">
-            <input
-              class="field__input"
-              type="number"
-              inputmode="numeric"
-              :value="fieldValue('reps', currentSet.set)"
-              @input="onInput('reps', $event)"
-              @focus="onFocus('reps', $event)"
-              @blur="editing = null"
-            />
-            <span class="field__unit">{{
-              isTime
-                ? t('session.activeExerciseCard.seconds')
-                : t('session.activeExerciseCard.reps')
-            }}</span>
-          </label>
-          <button
-            type="button"
-            class="field__step"
-            :aria-label="t('workout.more')"
-            @click="step('reps', repsStep)"
-          >
-            <Plus :size="20" :stroke-width="2.5" />
-          </button>
+          <div class="field">
+            <button
+              type="button"
+              class="field__step"
+              :aria-label="t('workout.less')"
+              @click="step('reps', -repsStep)"
+            >
+              <Minus :size="20" :stroke-width="2.5" />
+            </button>
+            <label class="field__value">
+              <input
+                class="field__input"
+                type="number"
+                inputmode="numeric"
+                :value="fieldValue('reps', currentSet.set)"
+                @input="onInput('reps', $event)"
+                @focus="onFocus('reps', $event)"
+                @blur="editing = null"
+              />
+              <span class="field__unit">{{
+                isTime
+                  ? t('session.activeExerciseCard.seconds')
+                  : t('session.activeExerciseCard.reps')
+              }}</span>
+            </label>
+            <button
+              type="button"
+              class="field__step"
+              :aria-label="t('workout.more')"
+              @click="step('reps', repsStep)"
+            >
+              <Plus :size="20" :stroke-width="2.5" />
+            </button>
+          </div>
         </div>
       </template>
 
@@ -356,6 +449,7 @@ function onNoteInput(event: Event) {
               <template v-else>{{ label }}</template>
             </span>
             <span class="set__value">{{ shownWeight(set) }} {{ unit }} × {{ shownReps(set) }}</span>
+            <span v-if="recordSetIds.has(set.id)" class="set__pr">PR</span>
           </button>
         </li>
         <li>
@@ -410,6 +504,13 @@ function onNoteInput(event: Event) {
     </section>
 
     <div class="dock">
+      <p v-if="recordFlash !== null" class="record" role="status">
+        <Trophy :size="18" :stroke-width="2.25" />
+        {{ t('workout.newRecord', { weight: recordFlash, unit }) }}
+      </p>
+
+      <p v-if="restOver && !resting" class="rest-over" role="status">{{ t('workout.restOver') }}</p>
+
       <div v-if="resting" class="rest">
         <span class="rest__track" aria-hidden="true">
           <i :style="{ transform: `scaleX(${restFraction})` }" />
@@ -417,30 +518,34 @@ function onNoteInput(event: Event) {
         <span class="rest__label">{{ t('session.restTimer.rest') }}</span>
         <span class="rest__time">{{ formatClock(activeSession.restRemainingSeconds) }}</span>
         <span class="rest__actions">
-          <button type="button" @click="activeSession.adjustRestTimer(-15)">−15</button>
-          <button type="button" @click="activeSession.adjustRestTimer(15)">+15</button>
-          <button type="button" @click="activeSession.skipRestTimer()">
+          <AppButton variant="quiet" size="sm" @click="adjustRest(-15)">−15</AppButton>
+          <AppButton variant="quiet" size="sm" @click="adjustRest(15)">+15</AppButton>
+          <AppButton variant="quiet" size="sm" @click="skipRest">
             {{ t('session.restTimer.skip') }}
-          </button>
+          </AppButton>
         </span>
       </div>
       <!-- `row__check` only so the existing capture scripts still find it. -->
-      <button
-        type="button"
+      <AppButton
+        :variant="primary === 'next' ? 'quiet' : 'primary'"
+        size="lg"
+        block
         class="primary-action"
-        :class="{ row__check: primary === 'log', 'primary-action--quiet': primary === 'next' }"
+        :class="{ row__check: primary === 'log' }"
         @click="onPrimary"
       >
         <template v-if="primary === 'log'">
           <Check :size="20" :stroke-width="3" />
           {{ t('workout.logSet', { n: currentSet?.label }) }}
         </template>
-        <template v-else-if="primary === 'next'">{{ t('workout.nextExercise', { name: nextName }) }}</template>
+        <template v-else-if="primary === 'next'">{{
+          t('workout.nextExercise', { name: nextName })
+        }}</template>
         <template v-else>
           <Check :size="20" :stroke-width="3" />
           {{ t('workout.finishWorkout') }}
         </template>
-      </button>
+      </AppButton>
     </div>
 
     <ExerciseImageSheet :open="showImage" :name="current.name" @close="showImage = false" />
@@ -832,43 +937,93 @@ function onNoteInput(event: Event) {
   margin-left: auto;
 }
 
-.rest__actions button {
-  height: 36px;
-  padding: 0 12px;
-  border: none;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-heading);
-  background: var(--color-background-mute);
-  cursor: pointer;
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fields-in var(--motion-quick) var(--ease-out);
 }
 
-.primary-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 58px;
-  border: none;
-  border-radius: 16px;
-  font: inherit;
-  font-size: 17px;
-  font-weight: 700;
+.now {
+  animation: now-in var(--motion-base) var(--ease-out);
+}
+
+.set__pr {
+  margin-left: 2px;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-heavy);
   color: var(--color-on-accent);
   background: var(--color-accent);
-  cursor: pointer;
 }
 
-/* The press itself is the first feedback: no animation has to start for it. */
-.primary-action:active {
-  transform: scale(0.97);
-}
-
-.primary-action--quiet {
+/* A record mid-workout: one line above the button, gone on its own. */
+.record,
+.rest-over {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
   color: var(--color-heading);
-  background: var(--color-background-mute);
+  animation: note-in var(--motion-base) var(--ease-spring);
+}
+
+.record svg {
+  color: var(--color-accent);
+}
+
+/* The start of a workout: the screen arrives in order, and is usable throughout. */
+.session--fresh .progress,
+.session--fresh .now__exercise,
+.session--fresh .now__meta,
+.session--fresh .sets {
+  animation: session-rise var(--motion-base) var(--ease-out) both;
+}
+
+.session--fresh .now__exercise {
+  animation-delay: calc(var(--motion-stagger) * 1);
+}
+
+.session--fresh .now__meta {
+  animation-delay: calc(var(--motion-stagger) * 2);
+}
+
+.session--fresh .fields {
+  animation: session-rise var(--motion-base) var(--ease-out) calc(var(--motion-stagger) * 3) both;
+}
+
+.session--fresh .sets {
+  animation-delay: calc(var(--motion-stagger) * 4);
+}
+
+@keyframes fields-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes now-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+@keyframes note-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+}
+
+@keyframes session-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
 /* Movement only. With reduced motion every state above still changes, instantly. */
@@ -879,10 +1034,6 @@ function onNoteInput(event: Event) {
 
   .rest__track i {
     transition: transform 1s linear;
-  }
-
-  .primary-action {
-    transition: transform 0.08s ease-out;
   }
 
   .set--just .set__mark {

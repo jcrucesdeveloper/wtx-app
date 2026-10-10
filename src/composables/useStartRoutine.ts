@@ -1,6 +1,7 @@
 import { useRouter } from 'vue-router'
 import { useRoutinesStore } from '@/stores/routines'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { HapticsService } from '@/services/haptics'
 
 /** Starts (or resumes) a routine's workout session, navigating to the active session. */
 export function useStartRoutine() {
@@ -30,6 +31,8 @@ export function useStartRoutine() {
     if (!result?.ok || !routine) return
 
     activeSession.start(routine, result.template, opts)
+    // Starting is a commitment worth feeling; the workout screen does the rest.
+    void HapticsService.medium()
     router.push({ name: 'active-session' })
   }
 

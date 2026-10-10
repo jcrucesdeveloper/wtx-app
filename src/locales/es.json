@@ -22,6 +22,9 @@
     "edit": "Editar"
   },
   "workout": {
+    "removeConfirm": "¿Quitar {name} de este entrenamiento?",
+    "newRecord": "Nuevo récord: {weight} {unit}",
+    "restOver": "Descanso terminado. Vamos.",
     "exerciseOf": "Ejercicio {n} de {total}",
     "setOf": "Serie {n} de {total}",
     "lastTimeSet": "la última vez {weight} × {reps}",
@@ -301,9 +304,6 @@
     },
     "postSessionTransition": {
       "workoutLogged": "Entrenamiento registrado"
-    },
-    "preSessionTransition": {
-      "letsGo": "Vamos"
     },
     "reorderSheet": {
       "title": "Reordenar ejercicios",

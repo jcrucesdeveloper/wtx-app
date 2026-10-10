@@ -60,7 +60,7 @@ const previewName = ref<string | null>(null)
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   padding: 0;
 }
 
@@ -70,20 +70,20 @@ const previewName = ref<string | null>(null)
   gap: 12px;
   align-items: center;
   width: 100%;
-  padding: 11px 12px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
+  padding: 10px 0;
+  background: transparent;
+  border: none;
   font: inherit;
   color: inherit;
   text-align: left;
   cursor: pointer;
+  min-height: 64px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .exercise__index {
-  font-size: 11px;
-  font-weight: 700;
-  opacity: 0.45;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -96,13 +96,13 @@ const previewName = ref<string | null>(null)
 }
 
 .exercise__name {
-  font-weight: 600;
+  font-weight: var(--weight-medium);
   color: var(--color-heading);
+  font-size: var(--text-body);
 }
 
 .exercise__meta {
-  font-size: 12px;
-  opacity: 0.7;
+  font-size: var(--text-small);
   font-variant-numeric: tabular-nums;
 }
 </style>
