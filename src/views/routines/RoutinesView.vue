@@ -9,6 +9,10 @@ import StartRoutineButton from '@/components/routine/StartRoutineButton.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { useUiStore } from '@/stores/ui'
 import { parseTemplateText } from '@/lib/parseRoutine'
+// PROTO (redesign Phase 1)
+import ProtoHome from '@/proto/ProtoHome.vue'
+import ProtoHeaderLink from '@/proto/ProtoHeaderLink.vue'
+import { protoDirection } from '@/proto/direction'
 
 const { t } = useI18n()
 const routines = useRoutinesStore()
@@ -25,9 +29,13 @@ const items = computed({
 </script>
 
 <template>
-  <AppPage :title="t('routines.title')">
+  <AppPage
+    class="home"
+    :title="protoDirection === 'focus' ? t('proto.tabTrain') : t('routines.title')"
+  >
     <template #actions>
-      <button v-if="routines.list.length" type="button" class="add" @click="ui.openLoadSheet()">
+      <ProtoHeaderLink v-if="protoDirection === 'focus'" kind="settings" />
+      <button v-else-if="routines.list.length" type="button" class="add" @click="ui.openLoadSheet()">
         {{ t('routines.load') }}
       </button>
     </template>
@@ -39,6 +47,8 @@ const items = computed({
         {{ t('routines.emptyBtn') }}
       </button>
     </div>
+
+    <ProtoHome v-else-if="protoDirection === 'focus'" />
 
     <VueDraggable
       v-else

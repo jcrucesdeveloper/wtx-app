@@ -4,6 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { Smartphone, X } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+// PROTO (redesign Phase 1): the page is titled like its tab.
+import { protoDirection } from '@/proto/direction'
+import ProtoHistory from '@/proto/ProtoHistory.vue'
 import TrainingCalendar from '@/components/session/TrainingCalendar.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
@@ -92,7 +95,10 @@ const volumeDeltas = computed(() => {
 </script>
 
 <template>
-  <AppPage :title="t('sessions.title')">
+  <AppPage :title="protoDirection === 'focus' ? t('proto.tabHistory') : t('sessions.title')">
+    <ProtoHistory v-if="protoDirection === 'focus' && items.length" />
+
+    <template v-else>
     <RouterLink v-if="activeSession.isActive" to="/sessions/active" class="resume">
       <span class="resume__label">{{ t('sessions.continueWorkout') }}</span>
       <span class="resume__name">{{ activeSession.session?.draft.name }}</span>
@@ -174,6 +180,7 @@ const volumeDeltas = computed(() => {
         </ul>
       </section>
     </div>
+    </template>
   </AppPage>
 </template>
 

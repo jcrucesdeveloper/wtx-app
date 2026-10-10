@@ -20,6 +20,9 @@ import { publicOrigin, publicRouteUrl } from '@/lib/publicUrl'
 import { renderWorkoutCard, type WorkoutCardData } from '@/lib/workoutCard'
 import { useThemeStore } from '@/stores/theme'
 import { useExerciseName } from '@/composables/useExerciseName'
+// PROTO (redesign Phase 1)
+import ProtoFinish from '@/proto/ProtoFinish.vue'
+import { protoDirection } from '@/proto/direction'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -182,7 +185,10 @@ async function share() {
 </script>
 
 <template>
-  <AppPage :title="result?.ok ? result.session.name : t('sessionComplete.fallbackTitle')">
+  <AppPage
+    class="session-complete"
+    :title="result?.ok ? result.session.name : t('sessionComplete.fallbackTitle')"
+  >
     <template #actions>
       <button
         v-if="result?.ok"
@@ -200,6 +206,14 @@ async function share() {
     </template>
 
     <p v-if="!stored || !result?.ok" class="msg">{{ t('sessionDetail.notFound') }}</p>
+
+    <ProtoFinish
+      v-else-if="protoDirection === 'focus'"
+      :session="result.session"
+      :recap="recap"
+      @done="onDone"
+      @share="share"
+    />
 
     <template v-else>
       <div class="headline">

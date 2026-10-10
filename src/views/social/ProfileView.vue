@@ -10,7 +10,7 @@ import {
   Flag,
   Flame,
   Lock,
-  Share2,
+  LogOut,
   UserMinus,
   Users,
 } from '@lucide/vue'
@@ -27,9 +27,9 @@ import BlockConfirmSheet from '@/components/social/BlockConfirmSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 import { useModerationStore } from '@/stores/moderation'
-import { buildFollowUrl } from '@/lib/followCode'
 import { computeWeekStreak, toDateStr } from '@/lib/sessionStats'
-import { useShareLink } from '@/composables/useShareLink'
+import { useUiStore } from '@/stores/ui'
+import { useLogout } from '@/composables/useLogout'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -37,6 +37,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const profiles = useProfileStore()
 const moderation = useModerationStore()
+const ui = useUiStore()
 
 const id = computed(() => String(route.params.id))
 const isMe = computed(() => id.value === auth.user?.id)
@@ -63,15 +64,10 @@ const workouts = computed(() => {
 
 // ----- own profile: edit + share -----
 const editOpen = ref(false)
-const { share, copied } = useShareLink()
 
+/** Opens the one share sheet: QR and code, and from there the system share. */
 function shareProfile() {
-  const code = auth.inviteCode
-  if (!code) return
-  void share({
-    url: buildFollowUrl(code, router.resolve({ name: 'follow' }).href),
-    text: t('social.follow.shareText'),
-  })
+  ui.open('shareProfile')
 }
 
 function onSaved() {
@@ -88,6 +84,15 @@ const ownMenuOpen = ref(false)
 function openBlocked() {
   ownMenuOpen.value = false
   router.push({ name: 'blocked' })
+}
+
+const { logout, loggingOut } = useLogout()
+
+async function onLogout() {
+  if (!(await logout())) return
+  ownMenuOpen.value = false
+  // The profile needs an account; Social is where logging back in happens.
+  router.replace({ name: 'social' })
 }
 
 // ----- someone else's: ⋯ → report / block / remove follower -----
@@ -139,7 +144,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="profile?.displayName ?? t('social.profile.title')">
+  <AppPage class="profile" :title="t('social.profile.title')">
     <template #leading>
       <button
         type="button"
@@ -152,14 +157,6 @@ function goBack() {
     </template>
     <template v-if="profile" #actions>
       <template v-if="isMe">
-        <button
-          type="button"
-          class="icon-btn"
-          :aria-label="t('social.profile.shareProfile')"
-          @click="shareProfile"
-        >
-          <Share2 :size="18" :stroke-width="2.25" />
-        </button>
         <button
           type="button"
           class="icon-btn"
@@ -216,7 +213,7 @@ function goBack() {
             {{ t('social.profile.edit') }}
           </button>
           <button type="button" class="secondary" @click="shareProfile">
-            {{ copied ? t('social.profile.linkCopied') : t('social.profile.shareProfile') }}
+            {{ t('social.profile.shareProfile') }}
           </button>
         </template>
         <FollowButton
@@ -314,6 +311,12 @@ function goBack() {
           <Ban :size="18" :stroke-width="2.25" />
           <span class="sheet__label">{{ t('social.moderation.blockedAccounts') }}</span>
           <ChevronRight :size="18" :stroke-width="2.25" class="sheet__chevron" />
+        </button>
+        <button type="button" class="sheet__row" :disabled="loggingOut" @click="onLogout">
+          <LogOut :size="18" :stroke-width="2.25" />
+          <span class="sheet__label">
+            {{ loggingOut ? t('account.logoutChecking') : t('account.logout') }}
+          </span>
         </button>
       </div>
     </BottomSheet>

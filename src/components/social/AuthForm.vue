@@ -13,6 +13,11 @@ const draft = reactive({
   consent: false,
 })
 
+/** PROTO (redesign Phase 1): opens the form already on log in or sign up. */
+export function openAuthMode(mode: 'login' | 'signup') {
+  draft.mode = mode
+}
+
 /** Opens the form on "forgot password" — e.g. from an expired reset link. */
 export function openForgotPassword() {
   draft.mode = 'forgot'

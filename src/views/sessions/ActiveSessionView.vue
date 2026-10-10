@@ -17,6 +17,9 @@ import { useFinishSession, type FinishSessionOptions } from '@/composables/useFi
 import { formatClock } from '@/lib/format'
 import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { AdService } from '@/services/ads'
+// PROTO (redesign Phase 1)
+import ProtoSession from '@/proto/ProtoSession.vue'
+import { protoDirection } from '@/proto/direction'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -149,7 +152,7 @@ function onStartGroupWorkout() {
 </script>
 
 <template>
-  <AppPage :title="draft?.name || t('activeSession.fallbackTitle')">
+  <AppPage class="active-session" :title="draft?.name || t('activeSession.fallbackTitle')">
     <template #leading>
       <button type="button" class="icon-btn" :aria-label="t('activeSession.backAria')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
@@ -202,6 +205,8 @@ function onStartGroupWorkout() {
     <template v-else>
       <GroupProgressStrip v-if="roomId" :room-id="roomId" />
 
+      <ProtoSession v-if="protoDirection === 'focus'" @finish="onFinish" />
+      <template v-else>
       <div class="stats-bar">
         <div class="stats-bar__row">
           <div class="stats-bar__time">
@@ -241,6 +246,7 @@ function onStartGroupWorkout() {
       <RestTimerBar />
 
       <div class="bottom-space" aria-hidden="true" />
+      </template>
 
       <ReorderExercisesSheet v-model:open="reorderOpen" />
       <ExerciseListSheet

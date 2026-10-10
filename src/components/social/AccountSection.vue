@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAuthStore, type LogoutCheck } from '@/stores/auth'
+import SettingsGroup from '@/components/settings/SettingsGroup.vue'
+import SettingsRow from '@/components/settings/SettingsRow.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useLogout } from '@/composables/useLogout'
 import { useSyncStore } from '@/stores/sync'
 import { isSupabaseConfigured } from '@/services/supabase'
 
@@ -11,77 +14,23 @@ const router = useRouter()
 const auth = useAuthStore()
 const sync = useSyncStore()
 
-const name = ref(auth.profile?.display_name ?? '')
-watch(
-  () => auth.profile?.display_name,
-  (value) => {
-    if (value) name.value = value
-  },
-)
-
-const saving = ref(false)
-const saved = ref(false)
-const nameValid = computed(() => {
-  const n = name.value.trim()
-  return n.length >= 1 && n.length <= 24
+/** "Up to date · Last synced 14:05" — the state, then when. */
+const syncLine = computed(() => {
+  const status = t(`account.syncStatus.${sync.status}`)
+  if (!sync.lastSyncedAt) return status
+  const time = new Date(sync.lastSyncedAt).toLocaleTimeString(locale.value, {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  return `${status} · ${t('account.lastSynced', { time })}`
 })
-const nameChanged = computed(() => name.value.trim() !== (auth.profile?.display_name ?? ''))
 
-const nameError = ref('')
-watch(name, () => (nameError.value = ''))
-
-async function saveName() {
-  if (!nameValid.value || !nameChanged.value || saving.value) return
-  saving.value = true
-  nameError.value = ''
-  try {
-    await auth.updateDisplayName(name.value)
-    saved.value = true
-    setTimeout(() => (saved.value = false), 1500)
-  } catch {
-    nameError.value = t('account.nameError')
-  } finally {
-    saving.value = false
-  }
+/** Your name and bio are edited on your profile, where people see them. */
+function openProfile() {
+  if (auth.user) router.push({ name: 'profile', params: { id: auth.user.id } })
 }
 
-const lastSynced = computed(() =>
-  sync.lastSyncedAt
-    ? t('account.lastSynced', {
-        time: new Date(sync.lastSyncedAt).toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' }),
-      })
-    : '',
-)
-
-const loggingOut = ref(false)
-
-/** The log-out confirmation, spelling out anything that won't be in the account afterwards. */
-function logoutMessage(check: LogoutCheck): string {
-  const lines: string[] = []
-  if (!check.synced) {
-    lines.push(t(check.offline ? 'account.logoutOffline' : 'account.logoutSyncFailed'))
-    if (check.unsyncedSessions) lines.push(t('account.logoutUnsyncedSessions', check.unsyncedSessions))
-    lines.push(t('account.logoutUnsyncedChanges'))
-  }
-  if (check.activeWorkout) lines.push(t('account.logoutActiveWorkout'))
-  if (check.deviceOnlySessions) lines.push(t('account.logoutDeviceOnly', check.deviceOnlySessions))
-  const warned = !check.synced || check.activeWorkout
-  if (!warned) lines.unshift(t('account.logoutConfirm'))
-  else lines.push(t('account.logoutAnyway'))
-  return lines.join('\n\n')
-}
-
-async function logout() {
-  if (loggingOut.value) return
-  loggingOut.value = true
-  try {
-    const check = await auth.checkLogout()
-    if (!confirm(logoutMessage(check))) return
-    await auth.signOut()
-  } finally {
-    loggingOut.value = false
-  }
-}
+const { logout, loggingOut } = useLogout()
 
 const deleting = ref(false)
 const deleteOpen = ref(false)
@@ -104,192 +53,134 @@ async function deleteAccount() {
 </script>
 
 <template>
-  <div v-if="isSupabaseConfigured" class="group">
-    <h2 class="group__title">{{ t('account.title') }}</h2>
-
-    <template v-if="!auth.isLoggedIn">
-      <p class="group__hint">{{ t('account.loggedOutHint') }}</p>
-      <button type="button" class="btn" @click="router.push({ name: 'social' })">
-        {{ t('account.goToSocial') }}
-      </button>
-    </template>
+  <SettingsGroup v-if="isSupabaseConfigured" :title="t('account.title')">
+    <SettingsRow
+      v-if="!auth.isLoggedIn"
+      :label="t('account.goToSocial')"
+      :hint="t('account.loggedOutHint')"
+      action
+      @click="router.push({ name: 'social' })"
+    />
 
     <template v-else>
-      <p class="group__hint">{{ t('account.signedInAs', { email: auth.user?.email ?? '' }) }}</p>
+      <SettingsRow
+        :label="auth.profile?.display_name ?? t('social.profile.openMine')"
+        :hint="auth.user?.email ?? ''"
+        action
+        @click="openProfile"
+      />
 
-      <label class="field">
-        <span class="field__label">{{ t('account.displayName') }}</span>
-        <span class="field__row">
-          <input v-model="name" maxlength="24" autocomplete="nickname" @keydown.enter="saveName" />
-          <button type="button" class="btn btn--small" :disabled="!nameValid || !nameChanged || saving" @click="saveName">
-            {{ saved ? t('account.saved') : t('account.save') }}
-          </button>
-        </span>
-      </label>
-      <p v-if="nameError" class="error">{{ nameError }}</p>
-
-      <div class="sync">
-        <span class="field__label">{{ t('account.sync') }}</span>
-        <span class="sync__row">
-          <span class="sync__status" :class="`sync__status--${sync.status}`">
-            {{ t(`account.syncStatus.${sync.status}`) }}
-          </span>
-          <button type="button" class="btn btn--small" :disabled="sync.status === 'syncing'" @click="sync.syncNow({ force: true })">
-            {{ t('account.syncNow') }}
-          </button>
-        </span>
-        <span v-if="lastSynced" class="sync__time">{{ lastSynced }}</span>
-      </div>
-
-      <button type="button" class="btn" :disabled="loggingOut" @click="logout">
-        {{ loggingOut ? t('account.logoutChecking') : t('account.logout') }}
-      </button>
-
-      <p class="group__hint group__hint--spaced">{{ t('account.deleteHint') }}</p>
-      <button v-if="!deleteOpen" type="button" class="danger-btn" @click="deleteOpen = true">
-        {{ t('account.delete') }}
-      </button>
-      <div v-else class="delete">
-        <label class="field">
-          <span class="field__label">{{ t('account.deletePrompt') }}</span>
-          <input v-model="deleteText" autocapitalize="characters" autocomplete="off" spellcheck="false" />
-        </label>
+      <SettingsRow :label="t('account.sync')" :hint="syncLine">
         <button
           type="button"
-          class="danger-btn"
-          :disabled="deleting || deleteText.trim().toUpperCase() !== t('account.deleteWord')"
-          @click="deleteAccount"
+          class="pill"
+          :disabled="sync.status === 'syncing'"
+          @click="sync.syncNow({ force: true })"
         >
-          {{ deleting ? t('account.deleting') : t('account.delete') }}
+          {{ t('account.syncNow') }}
         </button>
-        <p v-if="deleteError" class="error">{{ deleteError }}</p>
+      </SettingsRow>
+
+      <SettingsRow
+        :label="loggingOut ? t('account.logoutChecking') : t('account.logout')"
+        :disabled="loggingOut"
+        action
+        @click="logout"
+      />
+
+      <SettingsRow
+        v-if="!deleteOpen"
+        :label="t('account.delete')"
+        :hint="t('account.deleteHint')"
+        action
+        danger
+        @click="deleteOpen = true"
+      />
+      <div v-else class="delete">
+        <label class="delete__field">
+          <span class="delete__label">{{ t('account.deletePrompt') }}</span>
+          <input v-model="deleteText" autocapitalize="characters" autocomplete="off" spellcheck="false" />
+        </label>
+        <p v-if="deleteError" class="delete__error">{{ deleteError }}</p>
+        <div class="delete__actions">
+          <button type="button" class="pill" @click="deleteOpen = false">
+            {{ t('common.cancel') }}
+          </button>
+          <button
+            type="button"
+            class="pill pill--danger"
+            :disabled="deleting || deleteText.trim().toUpperCase() !== t('account.deleteWord')"
+            @click="deleteAccount"
+          >
+            {{ deleting ? t('account.deleting') : t('account.delete') }}
+          </button>
+        </div>
       </div>
     </template>
-  </div>
+  </SettingsGroup>
 </template>
 
 <style scoped>
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 16px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-}
-
-.group__title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--color-heading);
-}
-
-.group__hint {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-.group__hint--spaced {
-  margin-top: 8px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field__label {
-  font-size: var(--label-size);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.6;
-}
-
-.field__row,
-.sync__row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-input {
-  flex: 1;
-  min-width: 0;
-  font-size: 15px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background);
-  color: var(--color-heading);
-}
-
-.sync {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sync__status {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.sync__status--error {
-  color: #e11d48;
-}
-
-.sync__status--offline {
-  color: #b45309;
-}
-
-.sync__time {
-  font-size: 12px;
-  opacity: 0.6;
-}
-
-.btn,
-.danger-btn {
+.pill {
+  min-height: 40px;
+  padding: 0 14px;
   border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  padding: 11px 14px;
-  font-size: 12px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: var(--color-text);
-  background: var(--color-background-mute);
+  color: var(--color-heading);
+  background: transparent;
   cursor: pointer;
 }
 
-.btn--small {
-  padding: 9px 12px;
-  flex-shrink: 0;
-}
-
-.btn:disabled,
-.danger-btn:disabled {
+.pill:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.danger-btn {
-  color: #fff;
-  background: #e11d48;
+.pill--danger {
   border-color: #e11d48;
+  color: #e11d48;
 }
 
 .delete {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.delete__field {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.error {
-  font-size: 12px;
+.delete__label {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.delete__field input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 14px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--color-heading);
+  background: var(--color-background);
+}
+
+.delete__error {
+  font-size: 13px;
   color: #e11d48;
+}
+
+.delete__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>

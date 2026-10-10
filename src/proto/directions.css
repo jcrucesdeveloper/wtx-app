@@ -1,0 +1,522 @@
+/* TEMPORARY — redesign Phase 1 (see direction.ts).
+   The proposed look: calm neutral surfaces, one accent used only for the
+   primary action and for progress, and space instead of borders. The screens
+   themselves are the Proto*.vue components; this file holds the tokens and
+   quietens the shared chrome (page header, tab bar) around them. Selectors
+   mirror the scoped ones they override, with `:root[...]` in front. */
+
+:root[data-direction='focus'] {
+  --color-background: #0f1012;
+  --color-background-soft: #18191c;
+  --color-background-mute: #222428;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.16);
+  --color-heading: #f4f4f5;
+  --color-text: rgba(244, 244, 245, 0.62);
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Set from the chosen accent by ProtoSwitch.vue. */
+  --p-on-accent: #ffffff;
+
+  --p-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --p-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root[data-direction='focus'][data-theme='light'] {
+  --color-background: #f6f6f4;
+  --color-background-soft: #ffffff;
+  --color-background-mute: #ececea;
+  --color-border: rgba(20, 20, 22, 0.08);
+  --color-border-hover: rgba(20, 20, 22, 0.18);
+  --color-heading: #141416;
+  --color-text: rgba(20, 20, 22, 0.62);
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-direction='focus']:not([data-theme]) {
+    --color-background: #f6f6f4;
+    --color-background-soft: #ffffff;
+    --color-background-mute: #ececea;
+    --color-border: rgba(20, 20, 22, 0.08);
+    --color-border-hover: rgba(20, 20, 22, 0.18);
+    --color-heading: #141416;
+    --color-text: rgba(20, 20, 22, 0.62);
+  }
+}
+
+/* Page header: the title leads, the controls stay quiet. */
+:root[data-direction='focus'] .page .page__header {
+  padding: 20px 20px 8px;
+}
+
+:root[data-direction='focus'] .page .page__title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+:root[data-direction='focus'] .active-session .page__title,
+:root[data-direction='focus'] .session-complete .page__title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+:root[data-direction='focus'] .active-session .icon-btn {
+  border: none;
+  background: transparent;
+}
+
+/* Lets the workout and finish screens fill the page, so their dock rests at
+   the bottom even when there is little above it. */
+:root[data-direction='focus'] .active-session .page__body,
+:root[data-direction='focus'] .session-complete .page__body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Finishing is the last thing you do, so it stops being the loudest thing on
+   screen: the big button at the bottom turns into it when the sets are done. */
+:root[data-direction='focus'] .active-session .finish-btn {
+  border: 1px solid var(--color-border-hover);
+  border-radius: 999px;
+  color: var(--color-heading);
+  background: transparent;
+}
+
+/* The finish screen's own buttons sit in its bottom dock instead. */
+:root[data-direction='focus'] .session-complete .page__header .share-btn,
+:root[data-direction='focus'] .session-complete .page__header .done-btn {
+  display: none;
+}
+
+/* A workout in progress, seen from anywhere else in the app: it rides above
+   the bottom bar the way a now-playing strip does, one tap from resuming. */
+:root[data-direction='focus'] .app-shell .banner {
+  margin: 0 12px 8px;
+  padding: 10px 10px 10px 16px;
+  border-radius: 16px;
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+}
+
+:root[data-direction='focus'] .app-shell .banner .banner__dot {
+  background: var(--color-accent);
+}
+
+:root[data-direction='focus'] .app-shell .banner .banner__cta {
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--p-on-accent);
+  background: var(--color-accent);
+}
+
+/* On Train the hero already says a workout is running, so the strip would repeat it. */
+:root[data-direction='focus'] .app-shell:has(.home) .banner {
+  display: none;
+}
+
+/* The account form, when Friends opens it: same fields, the new shapes. */
+:root[data-direction='focus'] .friends-auth .form {
+  gap: 14px;
+}
+
+:root[data-direction='focus'] .friends-auth .form .title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+:root[data-direction='focus'] .friends-auth .form .field .field__label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 1;
+}
+
+:root[data-direction='focus'] .friends-auth .form .field input {
+  height: 52px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-size: 16px;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
+}
+
+:root[data-direction='focus'] .friends-auth .form .field input:focus {
+  border-color: var(--color-border-hover);
+  outline: none;
+}
+
+:root[data-direction='focus'] .friends-auth .primary {
+  min-height: 56px;
+  border-radius: 16px;
+  font-size: 16px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--p-on-accent);
+}
+
+:root[data-direction='focus'] .friends-auth .switch__link {
+  color: var(--color-heading);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The month calendar inside History: the same component, without its box. */
+:root[data-direction='focus'] :is(.history, .profile) .cal {
+  gap: 12px;
+  margin-bottom: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__count {
+  font-size: 16px;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__count-label,
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__fresh {
+  font-size: 13px;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__sub {
+  font-size: 13px;
+  font-weight: 400;
+  opacity: 1;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__month {
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 1;
+  color: var(--color-heading);
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__weekdays,
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__grid {
+  gap: 4px;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__day {
+  border-radius: 12px;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__day--trained {
+  color: var(--p-on-accent);
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__day,
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__pad {
+  height: 38px;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__num {
+  font-size: 13px;
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__day--trained .cal__num {
+  color: var(--p-on-accent);
+}
+
+/* The rings sit on the page now, not on a card. */
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__day--trained.cal__day--today {
+  box-shadow:
+    0 0 0 2px var(--color-background),
+    0 0 0 3.5px var(--color-accent);
+}
+
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__day--selected,
+:root[data-direction='focus'] :is(.history, .profile) .cal .cal__day--trained.cal__day--selected {
+  box-shadow:
+    0 0 0 2px var(--color-background),
+    0 0 0 3.5px var(--color-heading);
+}
+
+/* The profile header, so the plate sits in a header that matches it: numbers
+   in a row divided by hairlines, plain labels, the new button shape. */
+:root[data-direction='focus'] .profile .icon-btn {
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+}
+
+:root[data-direction='focus'] .profile .header {
+  gap: 18px;
+}
+
+:root[data-direction='focus'] .profile .header .identity__name {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+:root[data-direction='focus'] .profile .header .identity__since {
+  font-size: 13px;
+  opacity: 1;
+}
+
+:root[data-direction='focus'] .profile .header .stats {
+  gap: 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+:root[data-direction='focus'] .profile .header .stat {
+  align-items: flex-start;
+  min-height: 0;
+  padding: 14px 0 14px 16px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+:root[data-direction='focus'] .profile .header .stat:first-child {
+  padding-left: 0;
+}
+
+:root[data-direction='focus'] .profile .header .stat + .stat {
+  border-left: 1px solid var(--color-border);
+}
+
+:root[data-direction='focus'] .profile .header .stat .stat__value {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+:root[data-direction='focus'] .profile .header .stat .stat__label {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 1;
+}
+
+:root[data-direction='focus'] .profile .buttons .secondary {
+  min-height: 48px;
+  border-radius: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+  background: transparent;
+}
+
+:root[data-direction='focus'] .profile .section__title {
+  font-size: 16px;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 1;
+  color: var(--color-heading);
+}
+
+/* ---------- Profile: the rest of the screen ---------- */
+
+/* A sub-page: its title is a label, the person's name leads. */
+:root[data-direction='focus'] .profile .page__title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+:root[data-direction='focus'] .profile .stack {
+  gap: 20px;
+}
+
+:root[data-direction='focus'] .profile .note {
+  font-weight: 400;
+  opacity: 1;
+}
+
+:root[data-direction='focus'] .profile .section {
+  gap: 12px;
+}
+
+/* The streak is a fact about them, not the thing to tap: no accent. */
+:root[data-direction='focus'] .profile .streak {
+  font-size: 13px;
+  color: var(--color-heading);
+}
+
+:root[data-direction='focus'] .profile .muted {
+  opacity: 1;
+}
+
+:root[data-direction='focus'] .profile .locked,
+:root[data-direction='focus'] .profile .empty.empty--inline {
+  padding: 28px 20px;
+  border: none;
+  border-radius: 16px;
+  background: var(--color-background-soft);
+}
+
+:root[data-direction='focus'] .profile .locked .locked__title,
+:root[data-direction='focus'] .profile .empty .empty__title {
+  font-size: 16px;
+}
+
+:root[data-direction='focus'] .profile .locked .locked__hint,
+:root[data-direction='focus'] .profile .empty .empty__hint {
+  opacity: 1;
+}
+
+/* ---------- A shared workout, wherever it is listed (profile, Friends) ---------- */
+:root[data-direction='focus'] article.card {
+  gap: 12px;
+  padding: 16px;
+  border: none;
+  border-radius: 16px;
+}
+
+:root[data-direction='focus'] article.card .head__name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+:root[data-direction='focus'] article.card .head__meta {
+  font-size: 13px;
+  opacity: 1;
+}
+
+:root[data-direction='focus'] article.card .summary .stat__value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+:root[data-direction='focus'] article.card .summary .stat__label {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 1;
+}
+
+/* Records, comparisons and milestones inside a card: quiet surfaces, no coloured outlines. */
+:root[data-direction='focus'] article.card .pr,
+:root[data-direction='focus'] article.card .milestone {
+  border: none;
+  border-radius: 12px;
+  background: var(--color-background-mute);
+}
+
+:root[data-direction='focus'] article.card .pr .pr__icon,
+:root[data-direction='focus'] article.card .pr .pr__title,
+:root[data-direction='focus'] article.card .milestone .milestone__icon {
+  color: var(--color-heading);
+}
+
+:root[data-direction='focus'] article.card .pr .pr__title {
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-direction='focus'] article.card .compare {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+:root[data-direction='focus'] article.card .compare .compare__icon--up,
+:root[data-direction='focus'] article.card .compare .compare__icon--down {
+  color: var(--color-heading);
+}
+
+:root[data-direction='focus'] article.card .kudos {
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+}
+
+/* Given: marked by an outline, so the accent stays for the screen's one action. */
+:root[data-direction='focus'] article.card .kudos.kudos--on {
+  background: var(--color-background-mute);
+  box-shadow: inset 0 0 0 1.5px var(--color-heading);
+}
+
+/* ---------- Menu rows inside sheets (profile menus) ---------- */
+:root[data-direction='focus'] .sheet .sheet__row {
+  min-height: 52px;
+  border-color: var(--color-border-hover);
+  border-radius: 14px;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+  background: transparent;
+}
+
+:root[data-direction='focus'] .profile .header .tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Follow / Following: the same button shape as the rest of the profile. */
+:root[data-direction='focus'] .profile .buttons button {
+  min-height: 48px;
+  border-radius: 14px;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-direction='focus'] article.card .kudos {
+  color: var(--color-heading);
+  font-weight: 700;
+}
+
+/* ---------- Settings ----------
+   The screen itself is built from SettingsGroup/SettingsRow. What is left here
+   is its sub-page title and the pickers, whose chosen option is marked by fill
+   and weight so the accent stays out of a screen with no primary action. */
+:root[data-direction='focus'] .settings .page__title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+:root[data-direction='focus'] .settings .option {
+  min-height: 44px;
+  border-color: var(--color-border-hover);
+  border-radius: 12px;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  background: transparent;
+}
+
+:root[data-direction='focus'] .settings .option.option--active {
+  border-color: var(--color-heading);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+}
+
+:root[data-direction='focus'] .settings .swatch {
+  border-radius: 50%;
+}
+
+:root[data-direction='focus'] .settings .swatch.swatch--active {
+  color: var(--p-on-accent);
+  box-shadow:
+    0 0 0 2px var(--color-background-soft),
+    0 0 0 4px var(--swatch);
+}

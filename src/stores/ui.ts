@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 /** Bottom sheets that hang off the WTX button — only one is open at a time. */
-export type Sheet = 'menu' | 'start' | 'group' | 'load' | 'create'
+export type Sheet = 'menu' | 'start' | 'group' | 'load' | 'create' | 'shareProfile'
 
 /** Transient UI state shared across screens (not persisted). */
 export const useUiStore = defineStore('ui', () => {
@@ -22,6 +22,8 @@ export const useUiStore = defineStore('ui', () => {
   const groupSheetOpen = computed(() => activeSheet.value === 'group')
   const loadSheetOpen = computed(() => activeSheet.value === 'load')
   const createSheetOpen = computed(() => activeSheet.value === 'create')
+  /** Your profile's QR and code, with the ways to send it on. */
+  const shareProfileSheetOpen = computed(() => activeSheet.value === 'shareProfile')
 
   /** @deprecated Prefer `open('load')`. Kept for existing callers. */
   function openLoadSheet() {
@@ -42,6 +44,7 @@ export const useUiStore = defineStore('ui', () => {
     groupSheetOpen,
     loadSheetOpen,
     createSheetOpen,
+    shareProfileSheetOpen,
     openLoadSheet,
     closeLoadSheet,
   }

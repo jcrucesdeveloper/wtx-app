@@ -3,6 +3,9 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ChevronRight, QrCode, RefreshCw, UserPlus, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+// PROTO (redesign Phase 1): the page is titled like its tab.
+import { protoDirection } from '@/proto/direction'
+import ProtoFriends from '@/proto/ProtoFriends.vue'
 import AuthForm from '@/components/social/AuthForm.vue'
 import FeedList from '@/components/social/FeedList.vue'
 import FollowingStrip from '@/components/social/FollowingStrip.vue'
@@ -35,7 +38,7 @@ function openRoom(row: RoomRow) {
 </script>
 
 <template>
-  <AppPage :title="t('nav.social')">
+  <AppPage :title="protoDirection === 'focus' ? t('proto.tabFriends') : t('nav.social')">
     <!-- Your profile, top right — where social apps put "you". -->
     <template v-if="isSupabaseConfigured && auth.isLoggedIn && auth.user" #actions>
       <button
@@ -55,6 +58,8 @@ function openRoom(row: RoomRow) {
     </div>
 
     <div v-else-if="!auth.ready" class="empty" />
+
+    <ProtoFriends v-else-if="protoDirection === 'focus'" @auth-done="onAuthDone" />
 
     <!-- Logged out: log in, or switch to sign up. -->
     <AuthForm v-else-if="!auth.isLoggedIn" @done="onAuthDone" />

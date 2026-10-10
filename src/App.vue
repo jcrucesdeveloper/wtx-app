@@ -9,6 +9,11 @@ import CreateRoutineSheet from './components/wtx/CreateRoutineSheet.vue'
 import StartTrainingSheet from './components/routine/StartTrainingSheet.vue'
 import ResumeSessionBanner from './components/session/ResumeSessionBanner.vue'
 import RoomLiveLayer from './components/social/RoomLiveLayer.vue'
+import ShareProfileSheet from './components/social/ShareProfileSheet.vue'
+// PROTO (redesign Phase 1): temporary old/new switch.
+import ProtoSwitch from './proto/ProtoSwitch.vue'
+import ProtoTabBar from './proto/ProtoTabBar.vue'
+import { protoDirection } from './proto/direction'
 import { useThemeStore } from './stores/theme'
 import { useUiStore } from './stores/ui'
 import { useLocaleStore } from './stores/locale'
@@ -21,7 +26,14 @@ useLocaleStore()
 const ui = useUiStore()
 const route = useRoute()
 // The first-run intro is a standalone flow — no tab bar/banner underneath it.
-const showChrome = computed(() => route.name !== 'onboarding')
+const showChrome = computed(() => {
+  if (route.name === 'onboarding') return false
+  // PROTO: the proposed workout and finish screens own the bottom of the screen.
+  if (protoDirection.value === 'focus') {
+    return route.name !== 'active-session' && route.name !== 'session-complete'
+  }
+  return true
+})
 </script>
 
 <template>
@@ -33,13 +45,16 @@ const showChrome = computed(() => route.name !== 'onboarding')
     </main>
     <template v-if="showChrome">
       <ResumeSessionBanner />
-      <AppTabBar @menu="ui.open('menu')" />
+      <ProtoTabBar v-if="protoDirection === 'focus'" />
+      <AppTabBar v-else @menu="ui.open('menu')" />
     </template>
     <WtxActionSheet />
     <StartTrainingSheet />
     <LoadRoutineSheet />
     <CreateRoutineSheet />
+    <ShareProfileSheet />
     <RoomLiveLayer />
+    <ProtoSwitch />
   </div>
 </template>
 
