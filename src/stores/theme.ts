@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { DEFAULT_ACCENT } from '@/config/theme'
+import { ACCENT_COLORS, DEFAULT_ACCENT } from '@/config/theme'
+import { inkOnAccent } from '@/lib/accentInk'
 
 const ACCENT_STORAGE_KEY = 'wtx:accent'
 const MODE_STORAGE_KEY = 'wtx:theme-mode'
@@ -8,9 +9,11 @@ const MODE_STORAGE_KEY = 'wtx:theme-mode'
 /** `native` follows the OS/browser color scheme; `light`/`dark` force one. */
 export type ThemeMode = 'native' | 'light' | 'dark'
 
+/** A stored accent that is no longer on offer falls back to the default. */
 function readStoredAccent(): string {
   try {
-    return localStorage.getItem(ACCENT_STORAGE_KEY) ?? DEFAULT_ACCENT
+    const stored = localStorage.getItem(ACCENT_STORAGE_KEY)
+    return ACCENT_COLORS.some((color) => color.value === stored) ? stored! : DEFAULT_ACCENT
   } catch {
     return DEFAULT_ACCENT
   }
@@ -30,7 +33,10 @@ function readStoredMode(): ThemeMode {
 }
 
 function applyAccent(value: string) {
-  document.documentElement.style.setProperty('--color-accent', value)
+  const root = document.documentElement.style
+  root.setProperty('--color-accent', value)
+  // The ink for text and icons on an accent fill, so every accent stays readable.
+  root.setProperty('--color-on-accent', inkOnAccent(value))
 }
 
 function applyMode(mode: ThemeMode) {

@@ -1,168 +1,62 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
-import { VueDraggable } from 'vue-draggable-plus'
 import AppPage from '@/components/AppPage.vue'
-import RoutineSummary from '@/components/routine/RoutineSummary.vue'
-import StartRoutineButton from '@/components/routine/StartRoutineButton.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import HeaderLink from '@/components/ui/HeaderLink.vue'
+import TrainHome from '@/components/routine/TrainHome.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { useUiStore } from '@/stores/ui'
-import { parseTemplateText } from '@/lib/parseRoutine'
-// PROTO (redesign Phase 1)
-import ProtoHome from '@/proto/ProtoHome.vue'
-import ProtoHeaderLink from '@/proto/ProtoHeaderLink.vue'
-import { protoDirection } from '@/proto/direction'
 
 const { t } = useI18n()
 const routines = useRoutinesStore()
 const ui = useUiStore()
-
-const items = computed({
-  get: () =>
-    routines.list.map((routine) => ({
-      routine,
-      result: parseTemplateText(routine.rawText),
-    })),
-  set: (value) => routines.reorder(value.map((item) => item.routine)),
-})
 </script>
 
 <template>
-  <AppPage
-    class="home"
-    :title="protoDirection === 'focus' ? t('proto.tabTrain') : t('routines.title')"
-  >
+  <AppPage :title="t('nav.train')">
     <template #actions>
-      <ProtoHeaderLink v-if="protoDirection === 'focus'" kind="settings" />
-      <button v-else-if="routines.list.length" type="button" class="add" @click="ui.openLoadSheet()">
-        {{ t('routines.load') }}
-      </button>
+      <HeaderLink kind="settings" />
     </template>
 
     <div v-if="!routines.list.length" class="empty">
       <p class="empty__title">{{ t('routines.emptyTitle') }}</p>
       <p class="empty__hint">{{ t('routines.emptyHint', { ext: '.wtt' }) }}</p>
-      <button type="button" class="empty__btn" @click="ui.openLoadSheet()">
-        {{ t('routines.emptyBtn') }}
-      </button>
+      <div class="empty__actions">
+        <AppButton variant="primary" size="lg" block @click="ui.open('create')">
+          {{ t('wtx.actions.create.title') }}
+        </AppButton>
+        <AppButton block @click="ui.open('load')">{{ t('wtx.actions.load.title') }}</AppButton>
+      </div>
     </div>
 
-    <ProtoHome v-else-if="protoDirection === 'focus'" />
-
-    <VueDraggable
-      v-else
-      v-model="items"
-      tag="ul"
-      class="list"
-      ghost-class="card--ghost"
-      drag-class="card--dragging"
-      :animation="150"
-      :delay="150"
-      :delay-on-touch-only="true"
-    >
-      <li v-for="{ routine, result } in items" :key="routine.id">
-        <RouterLink :to="`/routines/${routine.id}`" class="card">
-          <template v-if="result.ok">
-            <span class="card__name">{{ result.template.name }}</span>
-            <RoutineSummary :template="result.template" />
-            <StartRoutineButton :routine-id="routine.id" />
-          </template>
-          <template v-else>
-            <span class="card__name">{{ routine.filename }}</span>
-            <span class="card__error">{{ t('routines.parseError') }}</span>
-          </template>
-        </RouterLink>
-      </li>
-    </VueDraggable>
+    <TrainHome v-else />
   </AppPage>
 </template>
 
 <style scoped>
-.add {
-  border: 1px solid var(--color-border-hover);
-  background: var(--color-background-mute);
-  color: var(--color-text);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-}
-
-.list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-accent);
-  text-decoration: none;
-  color: inherit;
-  touch-action: manipulation;
-}
-
-.card--ghost {
-  opacity: 0.4;
-}
-
-.card--dragging {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-}
-
-.card__name {
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.card__error {
-  font-size: 13px;
-  color: #e11d48;
-}
-
 .empty {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 64px 24px;
-  text-align: center;
+  gap: var(--space-2);
+  padding-top: var(--space-8);
 }
 
 .empty__title {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--text-display);
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   color: var(--color-heading);
 }
 
 .empty__hint {
-  font-size: 13px;
-  opacity: 0.7;
+  font-size: var(--text-body);
 }
 
-.empty__btn {
-  margin-top: 14px;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 20px;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
-  background: var(--color-accent);
-  cursor: pointer;
+.empty__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: var(--space-5);
 }
 </style>

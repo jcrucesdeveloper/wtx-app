@@ -144,7 +144,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage class="profile" :title="t('social.profile.title')">
+  <AppPage sub :title="t('social.profile.title')">
     <template #leading>
       <button
         type="button"
@@ -372,15 +372,15 @@ function goBack() {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
 }
 
 .icon-btn--lead {
-  margin-left: -4px;
+  margin-left: -10px;
 }
 
 .icon-btn:active {
@@ -390,7 +390,7 @@ function goBack() {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   padding-bottom: 24px;
 }
 
@@ -402,16 +402,14 @@ function goBack() {
 }
 
 .secondary {
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 12px;
   border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  border-radius: 14px;
+  background: transparent;
   color: var(--color-heading);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 
@@ -433,19 +431,18 @@ function goBack() {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  font-weight: 600;
-  opacity: 0.75;
+  font-weight: var(--weight-regular);
 }
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .section__head {
@@ -456,25 +453,22 @@ function goBack() {
 }
 
 .section__title {
-  font-size: var(--label-size);
+  font-size: var(--text-body);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.6;
+  color: var(--color-heading);
 }
 
 .streak {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-heading);
 }
 
 .muted {
   font-size: 13px;
-  opacity: 0.6;
 }
 
 .locked {
@@ -482,9 +476,10 @@ function goBack() {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 32px 20px;
+  padding: 28px 20px;
   text-align: center;
-  border-top: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-soft);
 }
 
 .locked__icon {
@@ -493,14 +488,13 @@ function goBack() {
 }
 
 .locked__title {
-  font-size: 15px;
+  font-size: var(--text-body);
   font-weight: 700;
   color: var(--color-heading);
 }
 
 .locked__hint {
   font-size: 13px;
-  opacity: 0.7;
   max-width: 32ch;
 }
 
@@ -516,18 +510,18 @@ function goBack() {
 .empty--inline {
   padding: 28px 20px;
   border-radius: var(--radius-lg);
-  border: 1px dashed var(--color-border);
+  border: none;
+  background: var(--color-background-soft);
 }
 
 .empty__title {
-  font-size: 15px;
+  font-size: var(--text-body);
   font-weight: 700;
   color: var(--color-heading);
 }
 
 .empty__hint {
   font-size: 13px;
-  opacity: 0.7;
   max-width: 34ch;
 }
 
@@ -547,16 +541,14 @@ function goBack() {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  border: 1px solid var(--color-border-hover);
+  border-radius: 14px;
+  background: transparent;
   color: var(--color-heading);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   text-align: left;
   cursor: pointer;
 }
@@ -566,8 +558,8 @@ function goBack() {
 }
 
 .sheet__row--danger {
-  border-color: #e11d48;
-  color: #e11d48;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .sheet__label {

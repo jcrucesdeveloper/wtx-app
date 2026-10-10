@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Award, Check, Share2 } from '@lucide/vue'
-import ProtoWeekStrip from './ProtoWeekStrip.vue'
+import WeekStrip from './WeekStrip.vue'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { SessionRecap } from '@/stores/sessionRecap'
 import { useSessionsStore } from '@/stores/sessions'
@@ -11,7 +11,7 @@ import { formatClock, formatNumber } from '@/lib/format'
 import { sessionDateStrs } from '@/lib/sessionDates'
 
 /**
- * TEMPORARY — redesign Phase 1. The finish screen as one statement and then
+ * The finish screen as one statement and then
  * its supporting facts, in a fixed order: the best thing that happened, the
  * numbers, your week, what you did. The reveal is a CSS stagger (`--i` is
  * each block's place in it), so reduced motion needs no second code path.
@@ -19,9 +19,13 @@ import { sessionDateStrs } from '@/lib/sessionDates'
 const props = defineProps<{
   session: WorkoutSession
   recap: SessionRecap | null
+  /** Set when this workout was part of a group one, which has its own recap. */
+  roomId?: string
+  /** The share text went to the clipboard (where there is no share sheet). */
+  shareCopied?: boolean
 }>()
 
-const emit = defineEmits<{ done: []; share: [] }>()
+const emit = defineEmits<{ done: []; share: []; recap: [] }>()
 
 const { t } = useI18n()
 const { exerciseName } = useExerciseName()
@@ -56,7 +60,8 @@ const stats = computed(() => [
 
 const comparison = computed(() => {
   const c = props.recap?.comparison
-  if (!c) return undefined
+  // The same volume as last time is not worth a line.
+  if (!c || c.volumeDelta === 0) return undefined
   return {
     up: c.isVolumeUp,
     text: t(c.isVolumeUp ? 'sessionComplete.moreVolume' : 'sessionComplete.lessVolume', {
@@ -79,7 +84,7 @@ const milestone = computed(() => {
 
 /** Looks forward to the next week instead of warning about losing this one. */
 const streakNote = computed(() =>
-  streak.value <= 1 ? t('proto.firstWeek') : t('proto.streakNext', { count: streak.value }),
+  streak.value <= 1 ? t('finish.firstWeek') : t('finish.streakNext', { count: streak.value }),
 )
 
 const prNames = computed(
@@ -121,7 +126,7 @@ const lines = computed(() =>
         </p>
         <p class="hero__sub rise" style="--i: 3">
           {{ exerciseName(topPr.exerciseName) }}
-          <template v-if="prDelta"> · {{ t('proto.overBest', { value: prDelta, unit }) }}</template>
+          <template v-if="prDelta"> · {{ t('finish.overBest', { value: prDelta, unit }) }}</template>
         </p>
       </template>
       <template v-else>
@@ -130,7 +135,7 @@ const lines = computed(() =>
           <template v-if="volume">{{ volume }}<small>{{ unit }}</small></template>
           <template v-else>{{ session.totalWorkingSets }}<small>{{ t('sessionComplete.sets') }}</small></template>
         </p>
-        <p v-if="volume" class="hero__sub rise" style="--i: 3">{{ t('proto.lifted') }}</p>
+        <p v-if="volume" class="hero__sub rise" style="--i: 3">{{ t('finish.lifted') }}</p>
       </template>
     </section>
 
@@ -147,7 +152,7 @@ const lines = computed(() =>
     </section>
 
     <section v-if="recap" class="card rise" style="--i: 5">
-      <ProtoWeekStrip :date-strs="dateStrs" />
+      <WeekStrip :date-strs="dateStrs" />
       <div class="card__text">
         <span class="card__title">{{ t('session.streakRecap.weekInARow', { count: streak }, streak) }}</span>
         <span class="card__note">{{ streakNote }}</span>
@@ -158,7 +163,7 @@ const lines = computed(() =>
     </section>
 
     <section class="rise" style="--i: 6">
-      <h2 class="label">{{ t('proto.whatYouDid') }}</h2>
+      <h2 class="label">{{ t('finish.whatYouDid') }}</h2>
       <ul class="list">
         <li v-for="(line, i) in lines" :key="i" class="line">
           <span class="line__name">
@@ -171,9 +176,14 @@ const lines = computed(() =>
       </ul>
     </section>
 
+    <button v-if="roomId" type="button" class="group-recap" @click="emit('recap')">
+      {{ t('room.viewRecap') }}
+    </button>
+
     <div class="dock">
       <button type="button" class="dock__share share-btn" @click="emit('share')">
-        <Share2 :size="18" :stroke-width="2.25" /> {{ t('proto.share') }}
+        <Share2 :size="18" :stroke-width="2.25" />
+        {{ shareCopied ? t('sessionComplete.shareCopied') : t('finish.share') }}
       </button>
       <button type="button" class="dock__done done-btn" @click="emit('done')">
         {{ t('sessionComplete.done') }}
@@ -215,7 +225,7 @@ const lines = computed(() =>
   height: 44px;
   margin-bottom: 20px;
   border-radius: 50%;
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
@@ -376,7 +386,7 @@ const lines = computed(() =>
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
@@ -390,6 +400,18 @@ const lines = computed(() =>
 
 .line__sets {
   font-size: 13px;
+}
+
+.group-recap {
+  min-height: var(--size-control);
+  border: 1px solid var(--color-border-hover);
+  border-radius: 14px;
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+  background: transparent;
+  cursor: pointer;
 }
 
 .dock {
@@ -429,19 +451,19 @@ const lines = computed(() =>
 }
 
 .dock__done {
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
 /* The staged reveal: the badge lands, then each block rises into place in order. */
 @media (prefers-reduced-motion: no-preference) {
   .rise {
-    animation: finish-rise 0.32s var(--p-ease-out) both;
+    animation: finish-rise 0.32s var(--ease-out) both;
     animation-delay: calc(var(--i, 0) * 80ms + 80ms);
   }
 
   .land {
-    animation: finish-land 0.42s var(--p-spring) both;
+    animation: finish-land 0.42s var(--ease-spring) both;
   }
 }
 

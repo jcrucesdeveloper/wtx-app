@@ -34,14 +34,14 @@ const { exerciseName } = useExerciseName()
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-background-soft));
-  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-background-mute);
+  border: none;
 }
 
 .pr__icon {
   flex-shrink: 0;
-  color: var(--color-accent);
+  color: var(--color-heading);
 }
 
 .pr__body {
@@ -52,11 +52,9 @@ const { exerciseName } = useExerciseName()
 }
 
 .pr__title {
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: var(--color-accent);
+  color: var(--color-heading);
 }
 
 .pr__detail {

@@ -31,16 +31,19 @@ function toggleKudos() {
   align-items: center;
   gap: 6px;
   align-self: flex-start;
-  border: 1px solid var(--color-border-hover);
+  border: none;
   border-radius: var(--radius-pill);
-  padding: 6px 12px;
+  padding: 0 14px;
   font-size: 14px;
   background: var(--color-background-mute);
   cursor: pointer;
+  min-height: 40px;
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
 }
 
 .kudos--on {
-  border-color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-background-mute));
+  background: var(--color-background-mute);
+  box-shadow: inset 0 0 0 1.5px var(--color-heading);
 }
 </style>

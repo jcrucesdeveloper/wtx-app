@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-/** Bottom sheets that hang off the WTX button — only one is open at a time. */
-export type Sheet = 'menu' | 'start' | 'group' | 'load' | 'create' | 'shareProfile'
+/** The app-wide bottom sheets — only one is open at a time. */
+export type Sheet = 'start' | 'group' | 'load' | 'create' | 'shareProfile'
 
 /** Transient UI state shared across screens (not persisted). */
 export const useUiStore = defineStore('ui', () => {
@@ -16,7 +16,6 @@ export const useUiStore = defineStore('ui', () => {
     activeSheet.value = null
   }
 
-  const menuOpen = computed(() => activeSheet.value === 'menu')
   const startSheetOpen = computed(() => activeSheet.value === 'start')
   /** The same routine picker, but picking creates a group workout room. */
   const groupSheetOpen = computed(() => activeSheet.value === 'group')
@@ -39,7 +38,6 @@ export const useUiStore = defineStore('ui', () => {
     activeSheet,
     open,
     close,
-    menuOpen,
     startSheetOpen,
     groupSheetOpen,
     loadSheetOpen,

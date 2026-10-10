@@ -14,7 +14,7 @@ import { useSyncStore } from '@/stores/sync'
 import { useUiStore } from '@/stores/ui'
 
 /**
- * TEMPORARY — redesign Phase 1. The Friends tab.
+ * The Friends tab.
  *
  * Logged out, it says what an account is for before asking for one, and the
  * form only appears once you've chosen to continue. Logged in, it reads top
@@ -47,9 +47,9 @@ function openForm(mode: 'login' | 'signup') {
 }
 
 const benefits = computed(() => [
-  { icon: Timer, text: t('proto.benefitTogether') },
-  { icon: Users, text: t('proto.benefitFeed') },
-  { icon: MonitorSmartphone, text: t('proto.benefitSync') },
+  { icon: Timer, text: t('friends.benefitTogether') },
+  { icon: Users, text: t('friends.benefitFeed') },
+  { icon: MonitorSmartphone, text: t('friends.benefitSync') },
 ])
 
 // ----- logged in -----
@@ -89,8 +89,8 @@ const myCode = computed(() => auth.inviteCode ?? '')
 
     <template v-else>
       <section class="pitch">
-        <h2 class="pitch__title">{{ t('proto.friendsPitchTitle') }}</h2>
-        <p class="pitch__body">{{ t('proto.friendsPitchBody') }}</p>
+        <h2 class="pitch__title">{{ t('friends.pitchTitle') }}</h2>
+        <p class="pitch__body">{{ t('friends.pitchBody') }}</p>
         <ul class="pitch__list">
           <li v-for="benefit in benefits" :key="benefit.text">
             <span class="pitch__icon"><component :is="benefit.icon" :size="20" :stroke-width="2" /></span>
@@ -101,12 +101,12 @@ const myCode = computed(() => auth.inviteCode ?? '')
 
       <div class="choose">
         <button type="button" class="button button--primary" @click="openForm('signup')">
-          {{ t('proto.createAccount') }}
+          {{ t('friends.createAccount') }}
         </button>
         <button type="button" class="button" @click="openForm('login')">
-          {{ t('proto.haveAccount') }}
+          {{ t('friends.haveAccount') }}
         </button>
-        <p class="note">{{ t('proto.localNote') }}</p>
+        <p class="note">{{ t('friends.localNote') }}</p>
       </div>
     </template>
   </div>
@@ -128,10 +128,10 @@ const myCode = computed(() => auth.inviteCode ?? '')
     </button>
 
     <section v-else class="hero">
-      <span class="hero__name">{{ t('proto.trainTogether') }}</span>
-      <span class="hero__meta">{{ t('proto.trainTogetherHint') }}</span>
+      <span class="hero__name">{{ t('friends.trainTogether') }}</span>
+      <span class="hero__meta">{{ t('friends.trainTogetherHint') }}</span>
       <button type="button" class="button button--primary hero__action" @click="ui.open('group')">
-        {{ t('proto.startGroup') }}
+        {{ t('friends.startGroup') }}
       </button>
       <button type="button" class="button hero__second" @click="router.push({ name: 'room-join' })">
         {{ t('social.joinWithCode') }}
@@ -142,21 +142,21 @@ const myCode = computed(() => auth.inviteCode ?? '')
       <div class="heading-row">
         <h2 class="heading">{{ t('social.follow.followingTitle') }}</h2>
         <button type="button" class="text-btn" @click="ui.open('shareProfile')">
-          {{ t('proto.add') }}
+          {{ t('friends.add') }}
         </button>
       </div>
 
       <div v-if="noFriendsYet" class="invite">
-        <p class="invite__title">{{ t('proto.firstPartner') }}</p>
-        <p class="invite__hint">{{ t('proto.firstPartnerHint') }}</p>
+        <p class="invite__title">{{ t('friends.firstPartner') }}</p>
+        <p class="invite__hint">{{ t('friends.firstPartnerHint') }}</p>
         <p v-if="myCode" class="invite__code">{{ myCode.slice(0, 4) }} {{ myCode.slice(4) }}</p>
         <div class="invite__actions">
           <button type="button" class="button" :disabled="!myCode" @click="ui.open('shareProfile')">
             <Share2 :size="18" :stroke-width="2.25" />
-            {{ t('proto.shareCode') }}
+            {{ t('friends.shareCode') }}
           </button>
           <button type="button" class="button" @click="router.push({ name: 'follow' })">
-            {{ t('proto.enterCode') }}
+            {{ t('friends.enterCode') }}
           </button>
         </div>
       </div>
@@ -176,12 +176,12 @@ const myCode = computed(() => auth.inviteCode ?? '')
     </section>
 
     <section>
-      <h2 class="heading heading--spaced">{{ t('proto.activity') }}</h2>
+      <h2 class="heading heading--spaced">{{ t('friends.activity') }}</h2>
       <p v-if="feed.postsError" class="quiet">{{ t('social.feed.error') }}</p>
       <p v-else-if="feed.loadingPosts && feed.posts.length === 0" class="quiet">
         {{ t('social.feed.loading') }}
       </p>
-      <p v-else-if="feed.posts.length === 0" class="quiet">{{ t('proto.feedEmpty') }}</p>
+      <p v-else-if="feed.posts.length === 0" class="quiet">{{ t('friends.feedEmpty') }}</p>
       <div v-else class="feed">
         <FeedPostCard v-for="post in feed.posts" :key="post.sessionId" :post="post" />
         <button
@@ -243,7 +243,7 @@ const myCode = computed(() => auth.inviteCode ?? '')
   border: none;
   border-radius: 16px;
   font-size: 16px;
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 

@@ -44,20 +44,20 @@ const OPTIONS = computed<{ value: Locale; label: string }[]>(() => [
 }
 
 .option {
-  padding: 10px 8px;
+  padding: 0 8px;
   border: 1px solid var(--color-border-hover);
   border-radius: var(--radius-md);
-  background: var(--color-background-mute);
+  background: transparent;
   color: var(--color-text);
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
+  min-height: var(--size-touch);
 }
 
 .option--active {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  border-color: var(--color-heading);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
 }
 </style>

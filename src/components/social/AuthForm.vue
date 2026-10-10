@@ -13,7 +13,7 @@ const draft = reactive({
   consent: false,
 })
 
-/** PROTO (redesign Phase 1): opens the form already on log in or sign up. */
+/** Opens the form already on log in or sign up, for a caller that has asked which. */
 export function openAuthMode(mode: 'login' | 'signup') {
   draft.mode = mode
 }
@@ -222,52 +222,50 @@ async function submit() {
 }
 
 .title {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: var(--text-display);
+  font-weight: var(--weight-heavy);
   color: var(--color-heading);
+  letter-spacing: -0.02em;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .field__label {
-  font-size: var(--label-size);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.7;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
 }
 
 input {
   width: 100%;
   font-family: inherit;
-  font-size: 14px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
+  font-size: var(--text-body);
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
   background: var(--color-background-soft);
-  color: var(--color-text);
+  color: var(--color-heading);
+  min-height: var(--size-control);
 }
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .primary {
   border: none;
-  border-radius: var(--radius-md);
-  padding: 14px;
-  font-size: 14px;
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-5);
+  font-size: var(--text-body);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   cursor: pointer;
+  min-height: var(--size-action);
 }
 
 .primary:disabled {
@@ -287,8 +285,10 @@ input {
   padding: 0 2px;
   font: inherit;
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-heading);
   cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .forgot {
@@ -310,5 +310,9 @@ input {
   text-align: center;
   font-size: 14px;
   color: var(--color-heading);
+}
+input:focus {
+  border-color: var(--color-border-hover);
+  outline: none;
 }
 </style>

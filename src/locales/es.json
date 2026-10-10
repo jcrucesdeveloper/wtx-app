@@ -5,21 +5,58 @@
     "close": "Cerrar"
   },
   "nav": {
-    "routines": "Rutinas",
-    "sessions": "Sesiones",
-    "social": "Social",
-    "config": "Ajustes",
-    "mainNavAria": "Navegación principal",
-    "openActionsAria": "Abrir acciones de WTX",
-    "wtxLabel": "WTX"
+    "train": "Entrenar",
+    "history": "Historial",
+    "friends": "Amigos",
+    "mainNavAria": "Navegación principal"
   },
-  "proto": {
+  "train": {
+    "weekFirst": "Tu primer entrenamiento abre la semana uno.",
+    "weekKeep": "Entrena una vez esta semana para llegar a {count} semanas seguidas.",
+    "weekCount": "Aún sin entrenamientos esta semana | {count} entrenamiento esta semana | {count} entrenamientos esta semana",
+    "inProgress": "En curso",
+    "continue": "Continuar",
+    "nextUp": "Siguiente",
+    "start": "Empezar",
+    "notDoneYet": "Aún sin hacer",
+    "edit": "Editar"
+  },
+  "workout": {
+    "exerciseOf": "Ejercicio {n} de {total}",
+    "setOf": "Serie {n} de {total}",
+    "lastTimeSet": "la última vez {weight} × {reps}",
+    "less": "Menos",
+    "more": "Más",
+    "logSet": "Registrar serie {n}",
+    "nextExercise": "Siguiente: {name}",
+    "finishWorkout": "Terminar entrenamiento",
+    "upNext": "A continuación",
+    "planSet": "plan {weight} × {reps}",
+    "setType": {
+      "number": "Serie efectiva",
+      "W": "Calentamiento",
+      "D": "Serie descendente"
+    },
+    "setTypeAria": "Cambiar el tipo de serie"
+  },
+  "finish": {
+    "overBest": "{value} {unit} sobre tu mejor marca",
+    "lifted": "levantados hoy",
+    "whatYouDid": "Lo que hiciste",
+    "share": "Compartir",
+    "firstWeek": "La primera semana ya está anotada.",
+    "streakNext": "Ya van {count}. Nos vemos la próxima semana."
+  },
+  "history": {
     "last12": "Sin entrenamientos en las últimas 12 semanas | {count} entrenamiento en las últimas 12 semanas | {count} entrenamientos en las últimas 12 semanas",
     "bestSets": "Mejores series",
     "workouts": "Entrenamientos",
     "today": "Hoy",
-    "friendsPitchTitle": "Entrena con alguien",
-    "friendsPitchBody": "Es más fácil no faltar cuando alguien entrena contigo. Con una cuenta puedes:",
+    "goTrain": "Empezar un entrenamiento"
+  },
+  "friends": {
+    "pitchTitle": "Entrena con alguien",
+    "pitchBody": "Es más fácil no faltar cuando alguien entrena contigo. Con una cuenta puedes:",
     "benefitTogether": "Entrenar juntos en vivo: la misma rutina, la misma cuenta atrás y las series de cada uno al momento.",
     "benefitFeed": "Ver los entrenamientos de tus amigos y animarlos.",
     "benefitSync": "Tener tus rutinas e historial en todos tus dispositivos.",
@@ -35,36 +72,7 @@
     "shareCode": "Compartir mi código",
     "enterCode": "Escribir un código",
     "activity": "Actividad",
-    "feedEmpty": "Aquí aparecen los entrenamientos que comparten las personas que sigues.",
-    "edit": "Editar",
-    "weekFirst": "Tu primer entrenamiento abre la semana uno.",
-    "weekKeep": "Entrena una vez esta semana para llegar a {count} semanas seguidas.",
-    "inProgress": "En curso",
-    "continue": "Continuar",
-    "tabTrain": "Entrenar",
-    "tabHistory": "Historial",
-    "tabFriends": "Amigos",
-    "switchAria": "Cambiar entre el diseño actual y el propuesto",
-    "weekCount": "Aún sin entrenamientos esta semana | {count} entrenamiento esta semana | {count} entrenamientos esta semana",
-    "nextUp": "Siguiente",
-    "start": "Empezar",
-    "lastTime": "Última vez: {date}",
-    "notDoneYet": "Aún sin hacer",
-    "exerciseOf": "Ejercicio {n} de {total}",
-    "setOf": "Serie {n} de {total}",
-    "lastTimeSet": "la última vez {weight} × {reps}",
-    "less": "Menos",
-    "more": "Más",
-    "logSet": "Registrar serie {n}",
-    "nextExercise": "Siguiente: {name}",
-    "finishWorkout": "Terminar entrenamiento",
-    "upNext": "A continuación",
-    "overBest": "{value} {unit} sobre tu mejor marca",
-    "lifted": "levantados hoy",
-    "whatYouDid": "Lo que hiciste",
-    "share": "Compartir",
-    "firstWeek": "La primera semana ya está anotada.",
-    "streakNext": "Ya van {count}. Nos vemos la próxima semana."
+    "feedEmpty": "Aquí aparecen los entrenamientos que comparten las personas que sigues."
   },
   "onboarding": {
     "skip": "Omitir",

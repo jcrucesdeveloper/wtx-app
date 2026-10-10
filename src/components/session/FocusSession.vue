@@ -11,11 +11,10 @@ import { HapticsService } from '@/services/haptics'
 import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSession'
 
 /**
- * TEMPORARY — redesign Phase 1. The active session as one focused step at a
+ * The active session as one focused step at a
  * time: the set you're on is the only large thing on screen, logging it is
  * the one big button under your thumb, and every other exercise is a single
  * line you can tap to jump to. Same store, same data, one tap per set.
- * (Per-exercise remove and warm-up/drop-set cycling are not rebuilt here.)
  */
 const emit = defineEmits<{ finish: [] }>()
 
@@ -107,6 +106,7 @@ function step(field: 'weight' | 'reps', delta: number) {
   if (!currentSet.value) return
   const from = field === 'weight' ? shownWeight(currentSet.value.set) : shownReps(currentSet.value.set)
   update({ [field]: Math.max(0, Math.round((from + delta) * 100) / 100) })
+  void HapticsService.selection()
 }
 
 /** The set that was just logged, so its row can acknowledge it once. */
@@ -132,6 +132,30 @@ function logSet() {
 function onSetTap(set: SessionSetDraft) {
   if (set.completed) activeSession.uncompleteSet(currentIndex.value, set.id)
   else pickedSetId.value = set.id
+}
+
+/** Working set, warm-up or drop set — tapping the label steps through them. */
+function cycleType() {
+  if (!currentSet.value) return
+  activeSession.cycleSetType(currentIndex.value, currentSet.value.set.id)
+  void HapticsService.selection()
+}
+
+function removeExercise() {
+  const exercise = current.value
+  if (!exercise) return
+  const logged = exercise.loggedSets.filter((s) => s.completed).length
+  if (logged > 0) {
+    const message = t(
+      'session.activeExerciseCard.removeConfirm',
+      { name: exerciseName(exercise.name), count: logged },
+      logged,
+    )
+    if (!confirm(message)) return
+  }
+  activeSession.removeExercise(currentIndex.value)
+  pickedIndex.value = null
+  pickedSetId.value = null
 }
 
 function focusExercise(index: number) {
@@ -212,7 +236,7 @@ function onNoteInput(event: Event) {
         </span>
       </div>
       <div class="progress__row">
-        <span>{{ t('proto.exerciseOf', { n: currentIndex + 1, total: exercises.length }) }}</span>
+        <span>{{ t('workout.exerciseOf', { n: currentIndex + 1, total: exercises.length }) }}</span>
         <span class="progress__clock">{{ formatClock(activeSession.elapsedSeconds) }}</span>
       </div>
     </div>
@@ -224,24 +248,34 @@ function onNoteInput(event: Event) {
       </button>
 
       <template v-if="currentSet">
-        <p class="now__set">
-          {{ t('proto.setOf', { n: currentSet.label, total: labeledSets.length }) }}
-          <span v-if="currentSet.set.ghostWeight != null" class="now__last">
-            ·
-            {{
-              t('proto.lastTimeSet', {
-                weight: currentSet.set.ghostWeight,
-                reps: currentSet.set.ghostReps,
-              })
-            }}
-          </span>
-        </p>
+        <div class="now__meta">
+          <p class="now__set">
+            {{ t('workout.setOf', { n: currentSet.label, total: labeledSets.length }) }}
+            <span v-if="currentSet.set.ghostWeight != null" class="now__last">
+              ·
+              {{
+                t(currentSet.set.ghostFromLast ? 'workout.lastTimeSet' : 'workout.planSet', {
+                  weight: currentSet.set.ghostWeight,
+                  reps: currentSet.set.ghostReps,
+                })
+              }}
+            </span>
+          </p>
+          <button
+            type="button"
+            class="now__type"
+            :aria-label="t('workout.setTypeAria')"
+            @click="cycleType"
+          >
+            {{ t(`workout.setType.${currentSet.set.type}`) }}
+          </button>
+        </div>
 
         <div class="field">
           <button
             type="button"
             class="field__step"
-            :aria-label="t('proto.less')"
+            :aria-label="t('workout.less')"
             @click="step('weight', -weightStep)"
           >
             <Minus :size="20" :stroke-width="2.5" />
@@ -262,7 +296,7 @@ function onNoteInput(event: Event) {
           <button
             type="button"
             class="field__step"
-            :aria-label="t('proto.more')"
+            :aria-label="t('workout.more')"
             @click="step('weight', weightStep)"
           >
             <Plus :size="20" :stroke-width="2.5" />
@@ -273,7 +307,7 @@ function onNoteInput(event: Event) {
           <button
             type="button"
             class="field__step"
-            :aria-label="t('proto.less')"
+            :aria-label="t('workout.less')"
             @click="step('reps', -repsStep)"
           >
             <Minus :size="20" :stroke-width="2.5" />
@@ -297,7 +331,7 @@ function onNoteInput(event: Event) {
           <button
             type="button"
             class="field__step"
-            :aria-label="t('proto.more')"
+            :aria-label="t('workout.more')"
             @click="step('reps', repsStep)"
           >
             <Plus :size="20" :stroke-width="2.5" />
@@ -339,10 +373,14 @@ function onNoteInput(event: Event) {
         :value="current.note"
         @input="onNoteInput"
       />
+
+      <button v-if="exercises.length > 1" type="button" class="remove" @click="removeExercise">
+        {{ t('session.activeExerciseCard.removeExercise') }}
+      </button>
     </section>
 
     <section v-if="upcoming.length">
-      <h2 class="label">{{ t('proto.upNext') }}</h2>
+      <h2 class="label">{{ t('workout.upNext') }}</h2>
       <ul class="list">
         <li v-for="item in upcoming" :key="item.index">
           <button type="button" class="item" @click="focusExercise(item.index)">
@@ -395,12 +433,12 @@ function onNoteInput(event: Event) {
       >
         <template v-if="primary === 'log'">
           <Check :size="20" :stroke-width="3" />
-          {{ t('proto.logSet', { n: currentSet?.label }) }}
+          {{ t('workout.logSet', { n: currentSet?.label }) }}
         </template>
-        <template v-else-if="primary === 'next'">{{ t('proto.nextExercise', { name: nextName }) }}</template>
+        <template v-else-if="primary === 'next'">{{ t('workout.nextExercise', { name: nextName }) }}</template>
         <template v-else>
           <Check :size="20" :stroke-width="3" />
-          {{ t('proto.finishWorkout') }}
+          {{ t('workout.finishWorkout') }}
         </template>
       </button>
     </div>
@@ -494,8 +532,42 @@ function onNoteInput(event: Event) {
   color: var(--color-heading);
 }
 
-.now__set {
+.now__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: 6px;
+}
+
+.now__type {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+  cursor: pointer;
+}
+
+.remove {
+  align-self: flex-start;
+  min-height: var(--size-touch);
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-danger);
+  background: transparent;
+  cursor: pointer;
+}
+
+.now__set {
   font-size: 14px;
   font-weight: 700;
   color: var(--color-heading);
@@ -627,7 +699,7 @@ function onNoteInput(event: Event) {
 }
 
 .set--done .set__mark {
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
@@ -699,7 +771,7 @@ function onNoteInput(event: Event) {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
@@ -784,7 +856,7 @@ function onNoteInput(event: Event) {
   font: inherit;
   font-size: 17px;
   font-weight: 700;
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
   cursor: pointer;
 }
@@ -802,7 +874,7 @@ function onNoteInput(event: Event) {
 /* Movement only. With reduced motion every state above still changes, instantly. */
 @media (prefers-reduced-motion: no-preference) {
   .progress__segment i {
-    transition: transform 0.3s var(--p-ease-out);
+    transition: transform 0.3s var(--ease-out);
   }
 
   .rest__track i {
@@ -814,7 +886,7 @@ function onNoteInput(event: Event) {
   }
 
   .set--just .set__mark {
-    animation: set-land 0.36s var(--p-spring);
+    animation: set-land 0.36s var(--ease-spring);
   }
 }
 

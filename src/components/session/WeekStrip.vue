@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { toDateStr } from '@/lib/sessionStats'
 
 /**
- * TEMPORARY — redesign Phase 1. This week, Monday to Sunday, with the days
+ * This week, Monday to Sunday, with the days
  * trained filled in. The same strip is used on the home and finish screens so
  * "how is my week going" always looks the same.
  */
@@ -116,7 +116,7 @@ const days = computed(() => {
 
 .strip--small .strip__day--trained .strip__letter {
   opacity: 1;
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
 }
 
 .strip__day--future .strip__dot {
@@ -136,7 +136,7 @@ const days = computed(() => {
 /* Today's dot lands as the workout is logged. */
 @media (prefers-reduced-motion: no-preference) {
   .strip__day--today.strip__day--trained .strip__dot {
-    animation: week-land 0.4s var(--p-spring, ease-out) 0.5s both;
+    animation: week-land 0.4s var(--ease-spring, ease-out) 0.5s both;
   }
 }
 

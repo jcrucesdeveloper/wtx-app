@@ -66,14 +66,13 @@ function select(value: string) {
   position: relative;
   aspect-ratio: 1;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 50%;
   background: var(--swatch);
   cursor: pointer;
   padding: 0;
   color: #fff;
   box-shadow: 0 0 0 0 var(--swatch);
-  transition:
-    transform 0.12s ease,
+  transition: transform 0.12s ease,
     box-shadow 0.12s ease;
 }
 
@@ -82,9 +81,8 @@ function select(value: string) {
 }
 
 .swatch--active {
-  box-shadow:
-    0 0 0 3px var(--color-background),
-    0 0 0 6px var(--swatch);
+  box-shadow: 0 0 0 2px var(--color-background-soft), 0 0 0 4px var(--swatch);
+  color: var(--color-on-accent);
 }
 
 .swatch__check {

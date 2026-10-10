@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { ArrowLeft, Settings } from '@lucide/vue'
 
 /**
- * TEMPORARY — redesign Phase 1. With settings out of the bottom bar, the Train
+ * With settings out of the bottom bar, the Train
  * screen's header carries a gear to it, and settings carries a way back.
  */
 defineProps<{ kind: 'settings' | 'back' }>()

@@ -109,7 +109,7 @@ const stats = computed(() => [
 .header {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .identity {
@@ -128,16 +128,16 @@ const stats = computed(() => [
 }
 
 .identity__name {
-  font-size: 20px;
+  font-size: var(--text-title);
   font-weight: 800;
   color: var(--color-heading);
   line-height: 1.15;
   overflow-wrap: anywhere;
+  letter-spacing: -0.02em;
 }
 
 .identity__since {
-  font-size: 12px;
-  opacity: 0.6;
+  font-size: var(--text-small);
 }
 
 .plate-chip {
@@ -207,12 +207,10 @@ const stats = computed(() => [
 }
 
 .tag {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: var(--weight-medium);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
   background: var(--color-background-mute);
   color: var(--color-text);
 }
@@ -228,27 +226,26 @@ const stats = computed(() => [
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 2px;
-  min-height: 52px;
-  padding: 6px 4px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  padding: 14px 0 14px 16px;
+  border: none;
   background: none;
   color: inherit;
   font: inherit;
 }
 
 .stat--link {
-  border-color: var(--color-border);
-  background: var(--color-background-soft);
+  background: none;
   cursor: pointer;
 }
 
@@ -257,18 +254,22 @@ const stats = computed(() => [
 }
 
 .stat__value {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: var(--text-title);
+  font-weight: var(--weight-bold);
   color: var(--color-heading);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
 .stat__label {
-  font-size: 10px;
-  font-weight: 700;
-  opacity: 0.6;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+}
+.stat:first-child {
+  padding-left: 0;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--color-border);
 }
 </style>

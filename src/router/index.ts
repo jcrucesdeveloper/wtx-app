@@ -135,6 +135,17 @@ const router = createRouter({
       name: 'settings',
       component: () => import('../views/menu/ConfigurationView.vue'),
     },
+    // Development only: the design tokens and building blocks on one page.
+    ...(import.meta.env.DEV
+      ? [
+          {
+            path: '/dev/ui',
+            name: 'ui-reference',
+            component: () => import('../views/dev/UiReferenceView.vue'),
+            meta: { skipOnboarding: true },
+          },
+        ]
+      : []),
   ],
 })
 

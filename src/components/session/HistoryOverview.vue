@@ -13,7 +13,7 @@ import { computeWeekStreak, toDateStr } from '@/lib/sessionStats'
 import { compareSessions } from '@/lib/sessionComparisons'
 
 /**
- * TEMPORARY — redesign Phase 1. The History tab, in the order the question
+ * The History tab, in the order the question
  * gets more specific:
  *   1. Am I keeping it up?  — a headline and twelve weeks of bars.
  *   2. Am I getting stronger? — the best set on the lifts you do most.
@@ -158,7 +158,7 @@ const groups = computed(() => {
       monthLabel: date.toLocaleDateString(locale.value, { month: 'long', year: 'numeric' }),
       when:
         (session.date === today
-          ? t('proto.today')
+          ? t('history.today')
           : date.toLocaleDateString(locale.value, { weekday: 'short', month: 'short', day: 'numeric' })) +
         ` · ${formatTimeOfDay(stored.addedAt)}`,
       facts: [
@@ -187,9 +187,9 @@ const groups = computed(() => {
       <h2 class="summary__headline">
         {{ t('session.streakRecap.weekInARow', { count: streak }, streak) }}
       </h2>
-      <p class="summary__sub">{{ t('proto.last12', { count: total12 }, total12) }}</p>
+      <p class="summary__sub">{{ t('history.last12', { count: total12 }, total12) }}</p>
 
-      <div class="chart" role="img" :aria-label="t('proto.last12', { count: total12 }, total12)">
+      <div class="chart" role="img" :aria-label="t('history.last12', { count: total12 }, total12)">
         <div v-for="week in weeks" :key="week.key" class="chart__col" :title="week.aria">
           <span class="chart__count">{{ week.count || '' }}</span>
           <span class="chart__track">
@@ -205,7 +205,7 @@ const groups = computed(() => {
     </section>
 
     <section v-if="records.length">
-      <h2 class="heading">{{ t('proto.bestSets') }}</h2>
+      <h2 class="heading">{{ t('history.bestSets') }}</h2>
       <ul class="plain">
         <li v-for="record in records" :key="record.name" class="record">
           <span class="record__name">{{ exerciseName(record.name) }}</span>
@@ -216,7 +216,7 @@ const groups = computed(() => {
     </section>
 
     <section>
-      <h2 class="heading">{{ t('proto.workouts') }}</h2>
+      <h2 class="heading">{{ t('history.workouts') }}</h2>
       <TrainingCalendar :dates="dates" :selected="selectedDate" @select="selectedDate = $event" />
 
       <div v-if="selectedDate" class="filter">
@@ -471,7 +471,7 @@ const groups = computed(() => {
 
 @media (prefers-reduced-motion: no-preference) {
   .chart__bar {
-    animation: chart-grow 0.45s var(--p-ease-out, ease-out) both;
+    animation: chart-grow 0.45s var(--ease-out, ease-out) both;
   }
 }
 

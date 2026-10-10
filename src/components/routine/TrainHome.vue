@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 import { VueDraggable } from 'vue-draggable-plus'
 import { Download, GripVertical, Play, Plus, Trash2 } from '@lucide/vue'
-import ProtoWeekStrip from './ProtoWeekStrip.vue'
+import WeekStrip from '@/components/session/WeekStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
@@ -16,7 +16,7 @@ import { sessionDateStrs } from '@/lib/sessionDates'
 import { computeWeekStreak, sessionsThisWeek } from '@/lib/sessionStats'
 
 /**
- * TEMPORARY — redesign Phase 1. The Train screen, top to bottom:
+ * The Train screen, top to bottom:
  *   1. one line of status (your week), never a box of empty dots on its own;
  *   2. the one thing to do, above the fold: continue the workout in progress,
  *      or start the routine that is next in your rotation;
@@ -39,13 +39,13 @@ const weekCount = computed(() => sessionsThisWeek(dateStrs.value))
 
 /** The week in one sentence: what you have, and what one workout would make it. */
 const weekLine = computed(() => {
-  if (!dateStrs.value.length) return { lead: t('proto.weekFirst'), rest: '' }
+  if (!dateStrs.value.length) return { lead: t('train.weekFirst'), rest: '' }
   if (weekCount.value === 0) {
-    return { lead: t('proto.weekKeep', { count: streak.value + 1 }), rest: '' }
+    return { lead: t('train.weekKeep', { count: streak.value + 1 }), rest: '' }
   }
   return {
     lead: t('session.streakRecap.weekInARow', { count: streak.value }, streak.value),
-    rest: t('proto.weekCount', { count: weekCount.value }, weekCount.value),
+    rest: t('train.weekCount', { count: weekCount.value }, weekCount.value),
   }
 })
 
@@ -59,7 +59,7 @@ const items = computed(() =>
           month: 'short',
           day: 'numeric',
         })
-      : t('proto.notDoneYet')
+      : t('train.notDoneYet')
     return {
       id: routine.id,
       name: result.ok ? result.template.name : routine.filename,
@@ -120,24 +120,24 @@ function removeRoutine(id: string) {
         <b>{{ weekLine.lead }}</b>
         <template v-if="weekLine.rest"> · {{ weekLine.rest }}</template>
       </p>
-      <ProtoWeekStrip :date-strs="dateStrs" small />
+      <WeekStrip :date-strs="dateStrs" small />
     </section>
 
     <button v-if="running" type="button" class="hero" @click="router.push({ name: 'active-session' })">
-      <span class="hero__label"><i class="hero__dot" />{{ t('proto.inProgress') }}</span>
+      <span class="hero__label"><i class="hero__dot" />{{ t('train.inProgress') }}</span>
       <span class="hero__name">{{ running.draft.name }}</span>
       <span class="hero__meta">{{ formatClock(activeSession.elapsedSeconds) }}</span>
-      <span class="hero__action">{{ t('proto.continue') }}</span>
+      <span class="hero__action">{{ t('train.continue') }}</span>
     </button>
 
     <RouterLink v-else-if="next" :to="`/routines/${next.id}`" class="hero">
-      <span class="hero__label">{{ t('proto.nextUp') }}</span>
+      <span class="hero__label">{{ t('train.nextUp') }}</span>
       <span class="hero__name">{{ next.name }}</span>
       <span class="hero__meta">{{ next.meta }}</span>
       <!-- `start-btn` only so the existing capture scripts still find it. -->
       <button type="button" class="hero__action start-btn" @click.stop.prevent="startRoutine(next.id)">
         <Play :size="16" :stroke-width="2.5" fill="currentColor" />
-        {{ t('proto.start') }}
+        {{ t('train.start') }}
       </button>
     </RouterLink>
 
@@ -145,7 +145,7 @@ function removeRoutine(id: string) {
       <div class="heading-row">
         <h2 class="heading">{{ t('routines.title') }}</h2>
         <button type="button" class="edit-toggle" @click="editing = !editing">
-          {{ editing ? t('sessionComplete.done') : t('proto.edit') }}
+          {{ editing ? t('sessionComplete.done') : t('train.edit') }}
         </button>
       </div>
 
@@ -187,11 +187,11 @@ function removeRoutine(id: string) {
             v-if="item.ok"
             type="button"
             class="row__start"
-            :aria-label="`${t('proto.start')} ${item.name}`"
+            :aria-label="`${t('train.start')} ${item.name}`"
             @click="startRoutine(item.id)"
           >
             <Play :size="14" :stroke-width="2.5" fill="currentColor" />
-            {{ t('proto.start') }}
+            {{ t('train.start') }}
           </button>
         </li>
       </ul>
@@ -292,7 +292,7 @@ function removeRoutine(id: string) {
   font: inherit;
   font-size: 16px;
   font-weight: 700;
-  color: var(--p-on-accent);
+  color: var(--color-on-accent);
   background: var(--color-accent);
   cursor: pointer;
 }

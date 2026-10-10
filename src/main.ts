@@ -1,7 +1,4 @@
 import './assets/main.css'
-// PROTO (redesign Phase 1): the candidate design directions. Remove with src/proto/.
-import './proto/directions.css'
-import './proto/direction'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

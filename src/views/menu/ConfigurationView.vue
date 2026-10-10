@@ -5,9 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Sparkles } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
-// PROTO (redesign Phase 1)
-import ProtoHeaderLink from '@/proto/ProtoHeaderLink.vue'
-import { protoDirection } from '@/proto/direction'
+import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ColorPicker from '@/components/ColorPicker.vue'
 import ThemeModePicker from '@/components/ThemeModePicker.vue'
 import UnitPicker from '@/components/UnitPicker.vue'
@@ -192,9 +190,9 @@ async function toggleReminders() {
 </script>
 
 <template>
-  <AppPage class="settings" :title="t('settings.title')">
-    <template v-if="protoDirection === 'focus'" #leading>
-      <ProtoHeaderLink kind="back" />
+  <AppPage sub :title="t('settings.title')">
+    <template #leading>
+      <HeaderLink kind="back" />
     </template>
 
     <div class="stack">

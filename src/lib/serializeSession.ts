@@ -22,6 +22,8 @@ export interface SessionSetDraft {
   /** "Last time" placeholder — display only, never serialized. */
   ghostWeight?: number
   ghostReps?: number
+  /** The placeholder comes from the last session, not from the routine's plan. Display only. */
+  ghostFromLast?: boolean
 }
 
 /** One exercise being logged in an {@link ActiveSession} draft. */
@@ -112,6 +114,7 @@ export function draftFromTemplate(
         completed: false,
         ghostWeight: ghost?.weight ?? override?.weight ?? templateWeight,
         ghostReps: ghost?.reps ?? override?.reps ?? templateReps,
+        ghostFromLast: ghost !== undefined,
       }
     })
 

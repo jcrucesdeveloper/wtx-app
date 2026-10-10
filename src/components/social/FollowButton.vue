@@ -97,26 +97,23 @@ function unfollow() {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 16px;
   border: 1px solid var(--color-accent);
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
-  transition:
-    background 0.2s ease,
+  transition: background 0.2s ease,
     color 0.2s ease,
     border-color 0.2s ease;
 }
 
 .follow--on {
   border-color: var(--color-border-hover);
-  background: var(--color-background-soft);
+  background: transparent;
   color: var(--color-heading);
 }
 
@@ -133,7 +130,7 @@ function unfollow() {
 
 .error {
   font-size: 12px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .sheet {
@@ -150,14 +147,12 @@ function unfollow() {
 
 .sheet__danger {
   min-height: 48px;
-  border: 1px solid #e11d48;
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-danger);
+  border-radius: 14px;
   background: transparent;
-  color: #e11d48;
+  color: var(--color-danger);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 </style>
