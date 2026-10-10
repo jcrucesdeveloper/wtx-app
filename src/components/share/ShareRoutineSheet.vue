@@ -167,8 +167,6 @@ watch(
   color: var(--color-text);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   padding: 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -197,13 +195,11 @@ watch(
   padding: 13px;
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 
 .primary {
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 

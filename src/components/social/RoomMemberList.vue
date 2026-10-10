@@ -145,10 +145,8 @@ const { exerciseName } = useExerciseName()
 }
 
 .tag {
-  font-size: 9px;
+  font-size: var(--text-micro);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   padding: 2px 5px;
   border-radius: var(--radius-xs);
   background: var(--color-background-mute);

@@ -66,7 +66,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="t('room.recapTitle')">
+  <AppPage sub :title="t('room.recapTitle')">
     <template #leading>
       <button type="button" class="icon-btn" :aria-label="t('legal.back')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
@@ -141,15 +141,15 @@ function goBack() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  margin-left: -4px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
   cursor: pointer;
+  margin-left: -10px;
 }
 
 .msg {
@@ -160,7 +160,7 @@ function goBack() {
 }
 
 .msg--error {
-  color: #e11d48;
+  color: var(--color-danger);
   opacity: 1;
 }
 
@@ -183,14 +183,12 @@ function goBack() {
   padding: 16px;
   border-radius: var(--radius-lg);
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 .together__title {
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.9;
 }
 
@@ -224,11 +222,9 @@ function goBack() {
 }
 
 .section__title {
-  font-size: var(--label-size);
+  font-size: var(--text-body);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.6;
+  color: var(--color-heading);
 }
 
 .totals,

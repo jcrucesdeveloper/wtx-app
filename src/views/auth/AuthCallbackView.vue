@@ -61,14 +61,13 @@ onMounted(async () => {
 
 .primary {
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   padding: 14px;
   font-size: 14px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   cursor: pointer;
+  min-height: var(--size-control);
 }
 </style>

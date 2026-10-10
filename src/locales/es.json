@@ -176,6 +176,8 @@
     "parseError": "No se pudo interpretar — toca para revisar"
   },
   "routineDetail": {
+    "notFoundTitle": "Rutina no encontrada",
+    "backToTrain": "Volver a Entrenar",
     "fallbackTitle": "Rutina",
     "backAria": "Atrás",
     "playAria": "Iniciar rutina",
@@ -375,6 +377,9 @@
     "cardStreakLabel": "Racha"
   },
   "sessionDetail": {
+    "title": "Entrenamiento",
+    "notFoundTitle": "Entrenamiento no encontrado",
+    "backToHistory": "Volver al historial",
     "fallbackTitle": "Sesión",
     "backAria": "Atrás",
     "optionsAria": "Opciones de sesión",
@@ -430,6 +435,7 @@
     "openRoom": "Abrir",
     "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" },
     "feed": {
+      "notFoundTitle": "Entrenamiento no disponible",
       "emptyTitle": "Tu feed está vacío",
       "emptyHint": "Sigue a las personas con las que entrenas para ver sus entrenamientos aquí, o comparte tu código para que ellas te sigan.",
       "emptyCta": "Buscar compañeros de entrenamiento",

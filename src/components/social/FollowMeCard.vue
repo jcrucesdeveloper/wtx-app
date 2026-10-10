@@ -143,10 +143,8 @@ async function share() {
 }
 
 .code-block__label {
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.6;
 }
 
@@ -175,10 +173,8 @@ async function share() {
   border: 1px solid var(--color-border-hover);
   border-radius: var(--radius-md);
   padding: 11px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   color: var(--color-text);
   background: var(--color-background-mute);
   cursor: pointer;
@@ -210,7 +206,7 @@ async function share() {
 
 .sheet__error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .sheet__danger,
@@ -219,15 +215,13 @@ async function share() {
   border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 
 .sheet__danger {
   border: none;
-  background: #e11d48;
-  color: #fff;
+  background: transparent;
+  color: var(--color-danger);
 }
 
 .sheet__danger:disabled {

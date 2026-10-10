@@ -76,7 +76,7 @@ function close() {
 <style scoped>
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   word-break: break-word;
 }

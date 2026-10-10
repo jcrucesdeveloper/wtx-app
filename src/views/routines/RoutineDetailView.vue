@@ -7,6 +7,7 @@ import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import QuietState from '@/components/ui/QuietState.vue'
 import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
@@ -118,7 +119,13 @@ function onDelete() {
       </div>
     </template>
 
-    <p v-if="!routine" class="msg">{{ t('routineDetail.notFound') }}</p>
+    <QuietState
+      v-if="!routine"
+      :title="t('routineDetail.notFoundTitle')"
+      :hint="t('routineDetail.notFound')"
+    >
+      <AppButton @click="router.replace('/')">{{ t('routineDetail.backToTrain') }}</AppButton>
+    </QuietState>
 
     <template v-else-if="result">
       <div v-if="result.ok" class="stack">

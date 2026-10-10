@@ -81,10 +81,8 @@ onBeforeUnmount(() => clearInterval(timer))
 }
 
 .countdown__title {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   color: var(--color-accent);
 }
 

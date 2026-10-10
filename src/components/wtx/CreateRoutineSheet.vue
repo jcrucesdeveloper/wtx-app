@@ -60,22 +60,21 @@ function onSubmit() {
 <style scoped>
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   word-break: break-word;
 }
 
 .primary {
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   padding: 14px;
   font-size: 14px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   cursor: pointer;
+  min-height: var(--size-control);
 }
 
 .primary:disabled {

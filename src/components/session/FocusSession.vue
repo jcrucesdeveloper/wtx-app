@@ -562,11 +562,9 @@ function onNoteInput(event: Event) {
 
 .label {
   margin-bottom: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.6;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
 }
 
 /* Progress: shown once, at the top. */

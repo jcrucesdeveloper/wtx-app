@@ -125,7 +125,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="current?.routine_name ?? t('room.lobbyTitle')">
+  <AppPage sub :title="current?.routine_name ?? t('room.lobbyTitle')">
     <template #leading>
       <button type="button" class="icon-btn" :aria-label="t('legal.back')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
@@ -215,15 +215,15 @@ function goBack() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  margin-left: -4px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
   cursor: pointer;
+  margin-left: -10px;
 }
 
 .stack {
@@ -241,7 +241,7 @@ function goBack() {
 
 .msg--error {
   padding: 0;
-  color: #e11d48;
+  color: var(--color-danger);
   opacity: 1;
 }
 
@@ -273,28 +273,25 @@ function goBack() {
 }
 
 .section__title {
-  font-size: var(--label-size);
+  font-size: var(--text-body);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.6;
+  color: var(--color-heading);
 }
 
 .primary,
 .danger,
 .ghost {
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   padding: 14px;
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
+  min-height: var(--size-control);
 }
 
 .primary {
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
@@ -304,8 +301,8 @@ function goBack() {
 }
 
 .danger {
-  color: #fff;
-  background: #e11d48;
+  color: var(--color-danger);
+  background: transparent;
 }
 
 .ghost {

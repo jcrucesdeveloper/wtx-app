@@ -192,10 +192,8 @@ const previewName = ref<string | null>(null)
   background: var(--color-background-mute);
   color: var(--color-text);
   font: inherit;
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   padding: 6px 12px;
   border-radius: 999px;
   opacity: 0.7;
@@ -266,10 +264,8 @@ const previewName = ref<string | null>(null)
 }
 
 .picker__meta {
-  font-size: 11px;
+  font-size: var(--text-small);
   opacity: 0.6;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   flex-shrink: 0;
 }
 </style>

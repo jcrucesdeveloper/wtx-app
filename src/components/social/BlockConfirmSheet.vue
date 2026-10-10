@@ -74,7 +74,7 @@ async function confirm() {
 
 .sheet__error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .sheet__danger,
@@ -83,15 +83,13 @@ async function confirm() {
   border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 
 .sheet__danger {
   border: none;
-  background: #e11d48;
-  color: #fff;
+  background: transparent;
+  color: var(--color-danger);
 }
 
 .sheet__danger:disabled {

@@ -55,7 +55,6 @@ const { exerciseName } = useExerciseName()
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   padding: 0;
 }
 
@@ -63,10 +62,11 @@ const { exerciseName } = useExerciseName()
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 11px 12px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
+  padding: 14px 0;
+}
+
+.exercise + .exercise {
+  border-top: 1px solid var(--color-border);
 }
 
 .exercise__head {
@@ -104,14 +104,12 @@ const { exerciseName } = useExerciseName()
 
 .exercise__badge {
   align-self: center;
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   padding: 3px 6px;
   border-radius: var(--radius-xs);
-  border: 1px solid #e11d48;
-  color: #e11d48;
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
 }
 
 .sets {
@@ -138,7 +136,8 @@ const { exerciseName } = useExerciseName()
 }
 
 .set--warmup .set__label {
-  color: var(--color-accent);
+  color: var(--color-heading);
+  opacity: 1;
 }
 
 .set__value {

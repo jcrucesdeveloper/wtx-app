@@ -1,21 +1,25 @@
+<script setup lang="ts">
+import SkeletonBlock from '@/components/ui/SkeletonBlock.vue'
+</script>
+
 <template>
   <div class="skeleton" aria-hidden="true">
     <div class="row">
-      <span class="block block--avatar" />
+      <SkeletonBlock width="72px" height="72px" radius="circle" />
       <div class="col">
-        <span class="block block--name" />
-        <span class="block block--line" />
+        <SkeletonBlock width="55%" height="18px" />
+        <SkeletonBlock width="80%" height="12px" />
       </div>
     </div>
-    <div class="stats">
-      <span v-for="i in 3" :key="i" class="block block--stat" />
+    <div class="line">
+      <SkeletonBlock v-for="i in 3" :key="i" class="grow" height="40px" />
     </div>
-    <div class="buttons">
-      <span class="block block--btn" />
-      <span class="block block--btn" />
+    <div class="line">
+      <SkeletonBlock class="grow" height="48px" radius="lg" />
+      <SkeletonBlock class="grow" height="48px" radius="lg" />
     </div>
-    <span class="block block--card" />
-    <span class="block block--card" />
+    <SkeletonBlock height="120px" radius="lg" />
+    <SkeletonBlock height="120px" radius="lg" />
   </div>
 </template>
 
@@ -23,74 +27,29 @@
 .skeleton {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .col {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
   flex: 1;
 }
 
-.stats,
-.buttons {
+.line {
   display: flex;
   gap: 10px;
 }
 
-.block {
-  display: block;
-  border-radius: var(--radius-md);
-  background: var(--color-background-mute);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-.block--avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-}
-
-.block--name {
-  width: 55%;
-  height: 18px;
-}
-
-.block--line {
-  width: 80%;
-  height: 12px;
-}
-
-.block--stat {
+.grow {
   flex: 1;
-  height: 40px;
-}
-
-.block--btn {
-  flex: 1;
-  height: 44px;
-}
-
-.block--card {
-  height: 120px;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .block {
-    animation: none;
-  }
+  min-width: 0;
 }
 </style>

@@ -167,10 +167,8 @@ function onTeamLine() {
 }
 
 .team__label {
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.6;
 }
 
@@ -214,10 +212,8 @@ function onTeamLine() {
   color: inherit;
   padding: 4px 0;
   cursor: pointer;
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.6;
 }
 

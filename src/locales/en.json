@@ -176,6 +176,8 @@
     "parseError": "Could not parse — tap to review"
   },
   "routineDetail": {
+    "notFoundTitle": "Routine not found",
+    "backToTrain": "Back to Train",
     "fallbackTitle": "Routine",
     "backAria": "Back",
     "playAria": "Play routine",
@@ -375,6 +377,9 @@
     "cardStreakLabel": "Streak"
   },
   "sessionDetail": {
+    "title": "Workout",
+    "notFoundTitle": "Workout not found",
+    "backToHistory": "Back to history",
     "fallbackTitle": "Session",
     "backAria": "Back",
     "optionsAria": "Session options",
@@ -430,6 +435,7 @@
     "openRoom": "Open",
     "status": { "lobby": "Waiting", "active": "In progress", "finished": "Finished" },
     "feed": {
+      "notFoundTitle": "Workout unavailable",
       "emptyTitle": "Your feed is empty",
       "emptyHint": "Follow people you train with to see their workouts here — or share your code so they can follow you.",
       "emptyCta": "Find training partners",

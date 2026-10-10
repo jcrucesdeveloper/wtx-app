@@ -73,7 +73,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="t('social.follow.title')">
+  <AppPage sub :title="t('social.follow.title')">
     <template #leading>
       <button type="button" class="icon-btn" :aria-label="t('legal.back')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
@@ -136,15 +136,15 @@ function goBack() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  margin-left: -4px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
   cursor: pointer;
+  margin-left: -10px;
 }
 
 .stack {
@@ -190,7 +190,7 @@ function goBack() {
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
   text-align: center;
 }
 
@@ -203,15 +203,14 @@ function goBack() {
 
 .primary {
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   padding: 13px;
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   cursor: pointer;
+  min-height: var(--size-control);
 }
 
 .primary:disabled {
@@ -226,11 +225,9 @@ function goBack() {
 }
 
 .list__title {
-  font-size: var(--label-size);
+  font-size: var(--text-body);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.6;
+  color: var(--color-heading);
 }
 
 .list__empty {

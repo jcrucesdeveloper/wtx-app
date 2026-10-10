@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Ban, EllipsisVertical, Flag } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import QuietState from '@/components/ui/QuietState.vue'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
 import FeedPostSummary from '@/components/social/FeedPostSummary.vue'
@@ -72,7 +73,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="post?.session.name ?? t('social.feed.postTitle')">
+  <AppPage sub :title="post?.session.name ?? t('social.feed.postTitle')">
     <template #leading>
       <button
         type="button"
@@ -95,7 +96,11 @@ function goBack() {
     </template>
 
     <p v-if="loading" class="msg">{{ t('social.feed.loading') }}</p>
-    <p v-else-if="!post" class="msg">{{ t('social.feed.notFound') }}</p>
+    <QuietState
+      v-else-if="!post"
+      :title="t('social.feed.notFoundTitle')"
+      :hint="t('social.feed.notFound')"
+    />
 
     <div v-else class="stack">
       <div class="byline">
@@ -149,15 +154,15 @@ function goBack() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  margin-left: -4px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
   cursor: pointer;
+  margin-left: -10px;
 }
 
 .icon-btn:active {
@@ -190,8 +195,6 @@ function goBack() {
   color: var(--color-heading);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   text-align: left;
   cursor: pointer;
 }
@@ -201,8 +204,8 @@ function goBack() {
 }
 
 .sheet__row--danger {
-  border-color: #e11d48;
-  color: #e11d48;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .msg {

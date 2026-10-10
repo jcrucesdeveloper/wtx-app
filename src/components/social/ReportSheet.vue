@@ -195,7 +195,7 @@ async function submit() {
 .reason--on .reason__check {
   border-color: var(--color-accent);
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 .field {
@@ -211,10 +211,8 @@ async function submit() {
 }
 
 .field__label {
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.6;
 }
 
@@ -243,7 +241,7 @@ async function submit() {
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .primary,
@@ -252,14 +250,12 @@ async function submit() {
   border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 
 .primary {
   border: none;
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 
@@ -269,9 +265,9 @@ async function submit() {
 }
 
 .danger {
-  border: 1px solid #e11d48;
+  border: 1px solid var(--color-danger);
   background: transparent;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .done {
@@ -291,7 +287,7 @@ async function submit() {
   height: 44px;
   border-radius: 50%;
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 .done__title {

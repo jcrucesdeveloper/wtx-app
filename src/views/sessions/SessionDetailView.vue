@@ -4,13 +4,15 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, CloudUpload, EllipsisVertical, Smartphone } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import QuietState from '@/components/ui/QuietState.vue'
 import LoggedExerciseList from '@/components/session/LoggedExerciseList.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useAuthStore } from '@/stores/auth'
 import { isSupabaseConfigured } from '@/services/supabase'
 import { formatNumber } from '@/lib/format'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const sessions = useSessionsStore()
@@ -22,6 +24,20 @@ const result = computed(() => (stored.value ? sessions.parsed(id.value) : null))
 
 /** Accounts exist in this build and the session was kept off them on finish. */
 const isDeviceOnly = computed(() => isSupabaseConfigured && !!stored.value?.localOnly)
+
+/** "Friday, October 2" from the session's `YYYY-MM-DD`; the raw text if it isn't one. */
+const dateLabel = computed(() => {
+  if (!result.value?.ok) return ''
+  const raw = result.value.session.date
+  const [y, m, d] = raw.split('-').map(Number)
+  if (!y || !m || !d) return raw
+  return new Date(y, m - 1, d).toLocaleDateString(locale.value, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: y === new Date().getFullYear() ? undefined : 'numeric',
+  })
+})
 
 function onSaveToProfile() {
   if (stored.value) sessions.saveToProfile(stored.value.id)
@@ -50,21 +66,21 @@ function onDelete() {
 </script>
 
 <template>
-  <AppPage :title="result?.ok ? result.session.name : t('sessionDetail.fallbackTitle')">
+  <AppPage sub :title="t('sessionDetail.title')">
     <template #leading>
       <button type="button" class="icon-btn" :aria-label="t('sessionDetail.backAria')" @click="goBack">
-        <ArrowLeft :size="20" :stroke-width="2.25" />
+        <ArrowLeft :size="22" :stroke-width="2.25" />
       </button>
     </template>
     <template v-if="stored" #actions>
       <div class="menu">
         <button
           type="button"
-          class="icon-btn"
+          class="icon-btn icon-btn--end"
           :aria-label="t('sessionDetail.optionsAria')"
           @click.stop="menuOpen = !menuOpen"
         >
-          <EllipsisVertical :size="18" :stroke-width="2.25" />
+          <EllipsisVertical :size="20" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
           <button type="button" class="menu__item menu__item--danger" @click="onDelete">
@@ -74,24 +90,24 @@ function onDelete() {
       </div>
     </template>
 
-    <p v-if="!stored" class="msg">{{ t('sessionDetail.notFound') }}</p>
+    <QuietState
+      v-if="!stored"
+      :title="t('sessionDetail.notFoundTitle')"
+      :hint="t('sessionDetail.notFound')"
+    >
+      <AppButton @click="router.replace('/sessions')">{{ t('sessionDetail.backToHistory') }}</AppButton>
+    </QuietState>
 
     <template v-else-if="result">
       <div v-if="result.ok" class="stack">
-        <p class="date">{{ result.session.date }}</p>
-
-        <div v-if="isDeviceOnly" class="local">
-          <Smartphone :size="18" :stroke-width="2.25" class="local__icon" />
-          <div class="local__text">
-            <span class="local__title">{{ t('sessionDetail.deviceOnly') }}</span>
-            <span class="local__hint">{{ t('sessionDetail.deviceOnlyHint') }}</span>
-          </div>
-          <button v-if="auth.isLoggedIn" type="button" class="local__btn" @click="onSaveToProfile">
-            <CloudUpload :size="14" :stroke-width="2.5" />
-            {{ t('sessionDetail.saveToProfile') }}
-          </button>
-        </div>
-        <p v-if="result.session.notes" class="notes">{{ result.session.notes }}</p>
+        <header class="head">
+          <h2 class="head__name">{{ result.session.name }}</h2>
+          <p class="head__date">
+            {{ dateLabel }}
+            <template v-if="!result.session.isComplete"> · {{ t('sessionDetail.incomplete') }}</template>
+          </p>
+          <p v-if="result.session.notes" class="head__notes">{{ result.session.notes }}</p>
+        </header>
 
         <div class="summary">
           <span class="chip">{{ t('sessionDetail.exercises', { count: result.session.exerciseCount }) }}</span>
@@ -103,9 +119,18 @@ function onDelete() {
               })
             }}
           </span>
-          <span class="chip" :class="{ 'chip--done': result.session.isComplete }">
-            {{ result.session.isComplete ? t('sessionDetail.complete') : t('sessionDetail.incomplete') }}
-          </span>
+        </div>
+
+        <div v-if="isDeviceOnly" class="local">
+          <Smartphone :size="20" :stroke-width="2" class="local__icon" />
+          <div class="local__text">
+            <span class="local__title">{{ t('sessionDetail.deviceOnly') }}</span>
+            <span class="local__hint">{{ t('sessionDetail.deviceOnlyHint') }}</span>
+          </div>
+          <AppButton v-if="auth.isLoggedIn" variant="quiet" size="sm" @click="onSaveToProfile">
+            <CloudUpload :size="15" :stroke-width="2.5" />
+            {{ t('sessionDetail.saveToProfile') }}
+          </AppButton>
         </div>
 
         <LoggedExerciseList :exercises="result.session.exercises" :unit="result.session.unit" />
@@ -123,22 +148,23 @@ function onDelete() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  margin-left: -10px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
   cursor: pointer;
+}
+
+.icon-btn--end {
+  margin: 0 -10px 0 0;
 }
 
 .icon-btn:active {
   background: var(--color-background-mute);
-}
-
-.icon-btn:first-child {
-  margin-left: -4px;
 }
 
 .menu {
@@ -152,22 +178,24 @@ function onDelete() {
   z-index: 5;
   display: flex;
   flex-direction: column;
-  min-width: 160px;
-  padding: 4px;
-  border-radius: var(--radius-md);
+  min-width: 180px;
+  padding: var(--space-1);
+  border-radius: 14px;
   border: 1px solid var(--color-border-hover);
-  background: var(--color-background);
+  background: var(--color-background-soft);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
 
 .menu__item {
+  min-height: var(--size-touch);
   border: none;
   background: transparent;
-  color: var(--color-text);
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--color-heading);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
   text-align: left;
-  padding: 8px 10px;
+  padding: 0 var(--space-3);
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
@@ -178,75 +206,37 @@ function onDelete() {
 }
 
 .menu__item--danger {
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-5);
 }
 
-.date {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.55;
-}
-
-.local {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-}
-
-.local__icon {
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-.local__text {
-  flex: 1;
-  min-width: 0;
+.head {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 6px;
 }
 
-.local__title {
-  font-size: 13px;
-  font-weight: 700;
+.head__name {
+  font-size: var(--text-display);
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   color: var(--color-heading);
 }
 
-.local__hint {
-  font-size: 12px;
-  opacity: 0.65;
+.head__date::first-letter {
+  text-transform: capitalize;
 }
 
-.local__btn {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-md);
-  padding: 7px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  background: transparent;
-  color: var(--color-accent);
-  cursor: pointer;
-}
-
-.notes {
-  font-size: 14px;
-  opacity: 0.8;
+.head__date,
+.head__notes {
+  font-size: var(--text-body);
+  line-height: 1.4;
 }
 
 .summary {
@@ -256,29 +246,50 @@ function onDelete() {
 }
 
 .chip {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 7px;
-  border-radius: var(--radius-xs);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-soft);
+  color: var(--color-heading);
   font-variant-numeric: tabular-nums;
 }
 
-.chip--done {
-  color: var(--color-accent);
-  border-color: var(--color-accent);
+.local {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 14px;
+  border-radius: 14px;
+  background: var(--color-background-soft);
 }
 
-.msg {
-  font-size: 14px;
-  opacity: 0.7;
+.local__icon {
+  flex-shrink: 0;
+}
+
+.local__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.local__title {
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+}
+
+.local__hint {
+  font-size: var(--text-small);
+  line-height: 1.35;
 }
 
 .error {
-  font-size: 13px;
-  color: #e11d48;
+  font-size: var(--text-small);
+  color: var(--color-danger);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -288,8 +299,7 @@ function onDelete() {
   line-height: 1.5;
   padding: 14px;
   border-radius: var(--radius-md);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
+  background: var(--color-background-soft);
   overflow-x: auto;
   white-space: pre;
 }
