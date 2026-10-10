@@ -99,11 +99,9 @@ function dismiss() {
   flex-shrink: 0;
   border-radius: var(--radius-md);
   padding: 8px 14px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 

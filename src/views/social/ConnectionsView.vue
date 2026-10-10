@@ -68,7 +68,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="auth.profile?.display_name ?? ''">
+  <AppPage sub :title="auth.profile?.display_name ?? ''">
     <template #leading>
       <button
         type="button"
@@ -154,15 +154,15 @@ function goBack() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  margin-left: -4px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
   cursor: pointer;
+  margin-left: -10px;
 }
 
 .tabs {
@@ -181,8 +181,6 @@ function goBack() {
   color: var(--color-text);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.6;
   cursor: pointer;
 }
@@ -262,7 +260,7 @@ function goBack() {
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
   margin-bottom: 8px;
 }
 
@@ -297,8 +295,6 @@ function goBack() {
   color: var(--color-heading);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 
@@ -316,14 +312,12 @@ function goBack() {
 
 .sheet__danger {
   min-height: 48px;
-  border: 1px solid #e11d48;
+  border: 1px solid var(--color-danger);
   border-radius: var(--radius-md);
   background: transparent;
-  color: #e11d48;
+  color: var(--color-danger);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 </style>

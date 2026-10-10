@@ -444,10 +444,8 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
 }
 
 .field__label {
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.7;
 }
 
@@ -480,10 +478,8 @@ textarea {
   border: 1px solid var(--color-border-hover);
   background: var(--color-background-mute);
   color: var(--color-text);
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   padding: 6px 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -629,7 +625,7 @@ textarea {
 }
 
 .exercise__menu-item--danger {
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .exercise__menu-item:disabled {
@@ -669,10 +665,8 @@ textarea {
   background: transparent;
   padding: 5px 16px;
   border-radius: var(--radius-xs);
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   color: var(--color-text);
   opacity: 0.6;
   cursor: pointer;
@@ -694,10 +688,8 @@ textarea {
   display: grid;
   grid-template-columns: 28px 1fr 1fr 24px;
   gap: 8px;
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.5;
 }
 
@@ -724,8 +716,8 @@ textarea {
 
 .sets__remove:hover {
   opacity: 1;
-  color: #e11d48;
-  border-color: #e11d48;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
 }
 
 .sets__add {
@@ -733,10 +725,8 @@ textarea {
   border: 1px dashed var(--color-border-hover);
   background: transparent;
   color: var(--color-text);
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   padding: 6px 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -766,7 +756,7 @@ textarea {
 .sets__label--marked {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
   opacity: 1;
 }
 

@@ -2,13 +2,17 @@
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { Sparkles } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ColorPicker from '@/components/ColorPicker.vue'
 import ThemeModePicker from '@/components/ThemeModePicker.vue'
 import UnitPicker from '@/components/UnitPicker.vue'
 import LanguagePicker from '@/components/LanguagePicker.vue'
 import AccountSection from '@/components/social/AccountSection.vue'
+import SettingsGroup from '@/components/settings/SettingsGroup.vue'
+import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { useThemeStore } from '@/stores/theme'
 import { useSettingsStore } from '@/stores/settings'
 import { useRoutinesStore } from '@/stores/routines'
@@ -30,6 +34,7 @@ import {
 } from '@/lib/exportData'
 
 const { t } = useI18n()
+const router = useRouter()
 
 const theme = useThemeStore()
 const { accent, mode } = storeToRefs(theme)
@@ -133,6 +138,10 @@ const supportHref = SUPPORT_EMAIL
   ? `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`WTX v${appVersion}`)}`
   : ''
 
+function contactSupport() {
+  window.location.href = supportHref
+}
+
 /**
  * Hides the "Remove ads" purchase card until a real In-App Purchase flow exists.
  * App Review rejects a tappable price that does nothing (guideline 2.1), and a
@@ -181,7 +190,11 @@ async function toggleReminders() {
 </script>
 
 <template>
-  <AppPage :title="t('settings.title')">
+  <AppPage sub :title="t('settings.title')">
+    <template #leading>
+      <HeaderLink kind="back" />
+    </template>
+
     <div class="stack">
       <button
         v-if="REMOVE_ADS_PURCHASE_ENABLED"
@@ -201,84 +214,95 @@ async function toggleReminders() {
 
       <AccountSection />
 
-      <div class="group">
-        <h2 class="group__title">{{ t('settings.theme') }}</h2>
-        <p class="group__hint">{{ t('settings.themeHint') }}</p>
-        <ThemeModePicker v-model="mode" />
-      </div>
+      <SettingsGroup :title="t('settings.appearance')">
+        <SettingsRow :label="t('settings.theme')">
+          <template #below><ThemeModePicker v-model="mode" /></template>
+        </SettingsRow>
+        <SettingsRow :label="t('settings.accentColor')">
+          <template #below><ColorPicker v-model="accent" class="accent" /></template>
+        </SettingsRow>
+        <SettingsRow :label="t('settings.language')">
+          <template #below><LanguagePicker v-model="locale" /></template>
+        </SettingsRow>
+      </SettingsGroup>
 
-      <div class="group">
-        <h2 class="group__title">{{ t('settings.language') }}</h2>
-        <p class="group__hint">{{ t('settings.languageHint') }}</p>
-        <LanguagePicker v-model="locale" />
-      </div>
-
-      <div class="group">
-        <h2 class="group__title">{{ t('settings.accentColor') }}</h2>
-        <p class="group__hint">{{ t('settings.accentColorHint') }}</p>
-        <ColorPicker v-model="accent" />
-      </div>
-
-      <div class="group">
-        <h2 class="group__title">{{ t('settings.units') }}</h2>
-        <p class="group__hint">{{ t('settings.unitsHint') }}</p>
-        <UnitPicker v-model="defaultUnit" />
-      </div>
-
-      <div class="group">
-        <h2 class="group__title">{{ t('settings.data') }}</h2>
-        <p class="group__hint">{{ t('settings.dataExportHint') }}</p>
-        <button type="button" class="export-btn" @click="exportData">
-          {{ exported ? t('settings.exported') : t('settings.exportData') }}
-        </button>
-
-        <p class="group__hint group__hint--spaced">{{ t('settings.dataImportHint') }}</p>
-        <label class="import-btn" :class="{ 'import-btn--busy': importing }">
-          <input type="file" accept=".zip" :disabled="importing" @change="onImportFile" />
-          {{ importing ? t('settings.importing') : t('settings.importData') }}
-        </label>
-        <p v-if="importMessage" class="msg">{{ importMessage }}</p>
-        <p v-if="importError" class="msg msg--error">{{ importError }}</p>
-
-        <p class="group__hint group__hint--spaced">{{ t('settings.dataDeleteHint') }}</p>
-        <button type="button" class="danger-btn" @click="resetAllData">
-          {{ t('settings.deleteAllData') }}
-        </button>
-      </div>
-
-      <div class="group">
-        <h2 class="group__title">{{ t('settings.reminders') }}</h2>
-        <p class="group__hint">{{ t('settings.remindersHint') }}</p>
-        <button type="button" class="export-btn" @click="toggleReminders">
-          {{ remindersEnabled ? t('settings.remindersOn') : t('settings.enableReminders') }}
-        </button>
-        <p v-if="remindersDenied" class="msg msg--error">{{ t('settings.remindersDenied') }}</p>
-      </div>
-
-      <div class="group">
-        <h2 class="group__title">{{ t('settings.about') }}</h2>
-        <p class="group__hint group__hint--tight">{{ t('settings.version', { version: appVersion }) }}</p>
-        <p class="group__hint group__hint--tight legal-links">
-          <RouterLink :to="{ name: 'legal', params: { doc: 'privacy' } }">{{ t('legal.privacy.title') }}</RouterLink>
-          ·
-          <RouterLink :to="{ name: 'legal', params: { doc: 'terms' } }">{{ t('legal.terms.title') }}</RouterLink>
-          <template v-if="supportHref">
-            ·
-            <a :href="supportHref">{{ t('settings.contactSupport') }}</a>
-          </template>
-        </p>
-        <template v-if="privacyOptionsRequired">
-          <p class="group__hint group__hint--spaced">{{ t('settings.adPrivacyHint') }}</p>
+      <SettingsGroup :title="t('settings.training')">
+        <SettingsRow :label="t('settings.units')" :hint="t('settings.unitsHint')">
+          <template #below><UnitPicker v-model="defaultUnit" /></template>
+        </SettingsRow>
+        <SettingsRow :label="t('settings.reminders')" :hint="t('settings.remindersHint')">
           <button
             type="button"
-            class="import-btn"
-            :disabled="openingPrivacyOptions"
-            @click="openAdPrivacyOptions"
+            class="switch"
+            role="switch"
+            :aria-checked="remindersEnabled"
+            :aria-label="t('settings.reminders')"
+            @click="toggleReminders"
           >
-            {{ t('settings.adPrivacy') }}
+            <i />
           </button>
-        </template>
-      </div>
+          <template v-if="remindersDenied" #below>
+            <p class="msg msg--error">{{ t('settings.remindersDenied') }}</p>
+          </template>
+        </SettingsRow>
+      </SettingsGroup>
+
+      <SettingsGroup :title="t('settings.data')">
+        <SettingsRow
+          :label="exported ? t('settings.exported') : t('settings.exportData')"
+          :hint="t('settings.dataExportHint')"
+          action
+          @click="exportData"
+        />
+        <!-- The file input covers the row, so the whole row opens the picker. -->
+        <label class="file" :class="{ 'file--busy': importing }">
+          <SettingsRow
+            :label="importing ? t('settings.importing') : t('settings.importData')"
+            :hint="t('settings.dataImportHint')"
+          >
+            <template v-if="importMessage || importError" #below>
+              <p v-if="importMessage" class="msg">{{ importMessage }}</p>
+              <p v-if="importError" class="msg msg--error">{{ importError }}</p>
+            </template>
+          </SettingsRow>
+          <input type="file" accept=".zip" :disabled="importing" @change="onImportFile" />
+        </label>
+        <SettingsRow
+          :label="t('settings.deleteAllData')"
+          :hint="t('settings.dataDeleteHint')"
+          action
+          danger
+          @click="resetAllData"
+        />
+      </SettingsGroup>
+
+      <SettingsGroup :title="t('settings.about')">
+        <SettingsRow :label="t('settings.version', { version: appVersion })" />
+        <SettingsRow
+          :label="t('legal.privacy.title')"
+          action
+          @click="router.push({ name: 'legal', params: { doc: 'privacy' } })"
+        />
+        <SettingsRow
+          :label="t('legal.terms.title')"
+          action
+          @click="router.push({ name: 'legal', params: { doc: 'terms' } })"
+        />
+        <SettingsRow
+          v-if="supportHref"
+          :label="t('settings.contactSupport')"
+          action
+          @click="contactSupport"
+        />
+        <SettingsRow
+          v-if="privacyOptionsRequired"
+          :label="t('settings.adPrivacy')"
+          :hint="t('settings.adPrivacyHint')"
+          :disabled="openingPrivacyOptions"
+          action
+          @click="openAdPrivacyOptions"
+        />
+      </SettingsGroup>
     </div>
   </AppPage>
 </template>
@@ -287,14 +311,8 @@ async function toggleReminders() {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.group {
-  padding: 16px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
+  gap: 24px;
+  padding-top: 4px;
 }
 
 .cta {
@@ -303,7 +321,7 @@ async function toggleReminders() {
   gap: 12px;
   width: 100%;
   padding: 14px 16px;
-  border-radius: var(--radius-md);
+  border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
   background: color-mix(in srgb, var(--color-accent) 10%, var(--color-background-soft));
   color: var(--color-text);
@@ -350,99 +368,86 @@ async function toggleReminders() {
 .cta__price {
   flex-shrink: 0;
   padding: 6px 10px;
-  border-radius: var(--radius-md);
+  border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
   color: #fff;
   background: var(--color-accent);
 }
 
-.group__title {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: var(--color-heading);
+/* All the accent colours on one line. */
+.accent.color-picker {
+  grid-template-columns: repeat(9, 1fr);
+  gap: 8px;
 }
 
-.group__hint {
-  font-size: 13px;
-  opacity: 0.7;
-  margin: 2px 0 16px;
-}
-
-.group__hint--spaced {
-  margin-top: 16px;
-}
-
-.group__hint--tight {
-  margin-bottom: 0;
-}
-
-.export-btn,
-.import-btn,
-.danger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+/* On or off, read by position and fill; the accent stays out of settings. */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 32px;
   border: none;
-  border-radius: var(--radius-md);
-  padding: 13px;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
+  border-radius: 999px;
+  background: var(--color-background-mute);
+  box-shadow: inset 0 0 0 1px var(--color-border-hover);
   cursor: pointer;
 }
 
-.export-btn {
-  color: #fff;
-  background: var(--color-accent);
+.switch i {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-text);
 }
 
-.import-btn {
+.switch[aria-checked='true'] {
+  background: var(--color-heading);
+  box-shadow: none;
+}
+
+.switch[aria-checked='true'] i {
+  transform: translateX(20px);
+  background: var(--color-background);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .switch i {
+    transition: transform 0.16s ease-out;
+  }
+}
+
+.file {
   position: relative;
-  color: var(--color-text);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border-hover);
-  overflow: hidden;
+  display: block;
+  cursor: pointer;
 }
 
-.import-btn--busy {
+.file--busy {
   opacity: 0.7;
   cursor: default;
 }
 
-.import-btn input {
+.file input {
   position: absolute;
   inset: 0;
   opacity: 0;
   cursor: pointer;
 }
 
-.import-btn input:disabled {
+.file input:disabled {
   cursor: default;
 }
 
-.danger-btn {
-  color: #e11d48;
-  background: transparent;
-  border: 1px solid #e11d4855;
-}
-
 .msg {
-  font-size: 12px;
-  margin: 8px 0 0;
-  opacity: 0.7;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .msg--error {
   color: #e11d48;
-  opacity: 1;
-}
-
-.legal-links a {
-  color: var(--color-accent);
 }
 </style>

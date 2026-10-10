@@ -9,10 +9,17 @@ const { t } = useI18n()
 const activeSession = useActiveSessionStore()
 const route = useRoute()
 
-const visible = computed(() => activeSession.isActive && route.name !== 'active-session')
+/**
+ * A workout in progress, seen from elsewhere in the app. Not on Train, whose
+ * hero already says so, and not on the workout itself.
+ */
+const visible = computed(
+  () => activeSession.isActive && route.name !== 'active-session' && route.name !== 'home',
+)
 </script>
 
 <template>
+  <!-- Rides above the bottom bar the way a now-playing strip does: one tap from resuming. -->
   <RouterLink v-if="visible" to="/sessions/active" class="banner">
     <span class="banner__dot" />
     <span class="banner__name">{{ activeSession.session?.draft.name }}</span>
@@ -25,46 +32,56 @@ const visible = computed(() => activeSession.isActive && route.name !== 'active-
 .banner {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: var(--color-accent);
-  color: #fff;
+  gap: var(--space-2);
+  margin: 0 var(--space-3) var(--space-2);
+  padding: 10px 10px 10px var(--space-4);
+  border-radius: var(--radius-lg);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
   text-decoration: none;
 }
 
 .banner__dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #fff;
-  animation: pulse 1.6s ease-in-out infinite;
+  background: var(--color-accent);
   flex-shrink: 0;
 }
 
 .banner__name {
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: var(--weight-medium);
+  font-size: var(--text-small);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .banner__time {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-variant-numeric: tabular-nums;
-  opacity: 0.9;
+  color: var(--color-text);
 }
 
 .banner__cta {
   margin-left: auto;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
+  padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-on-accent);
+  background: var(--color-accent);
   flex-shrink: 0;
 }
 
-@keyframes pulse {
+/* The dot breathes while the clock runs. */
+@media (prefers-reduced-motion: no-preference) {
+  .banner__dot {
+    animation: banner-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes banner-pulse {
   0%,
   100% {
     opacity: 1;

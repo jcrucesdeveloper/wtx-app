@@ -47,10 +47,10 @@ function openProfile() {
 .card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  gap: 12px;
+  padding: 16px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border: none;
   background: var(--color-background-soft);
   cursor: pointer;
 }
@@ -89,14 +89,13 @@ function openProfile() {
 }
 
 .head__name {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
   color: var(--color-heading);
 }
 
 .head__meta {
-  font-size: 12px;
-  opacity: 0.6;
+  font-size: var(--text-small);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

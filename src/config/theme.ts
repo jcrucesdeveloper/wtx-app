@@ -12,7 +12,6 @@ export const ACCENT_COLORS: AccentColor[] = [
   { name: 'Amber', value: '#f59e0b' },
   { name: 'Cyan', value: '#06b6d4' },
   { name: 'Lime', value: '#84cc16' },
-  { name: 'Slate', value: '#64748b' },
 ]
 
 export const DEFAULT_ACCENT = '#e0263a'

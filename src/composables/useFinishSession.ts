@@ -9,6 +9,7 @@ import { compareSessions } from '@/lib/sessionComparisons'
 import { detectMilestone } from '@/lib/sessionMilestones'
 import { computeWeekStreak } from '@/lib/sessionStats'
 import { sessionDateStrs } from '@/lib/sessionDates'
+import { countWorkoutDays, plateLevel } from '@/lib/plateLevel'
 import { toFeedSnapshot } from '@/lib/feedSnapshot'
 import { track } from '@/services/analytics'
 import { NotificationService } from '@/services/notifications'
@@ -56,6 +57,17 @@ export function useFinishSession() {
       .map((r) => r.session)
     const priorBests = allTimeBestsByExercise(pastSessions)
 
+    /** Days with a shared workout — what the plate on the profile counts. */
+    const sharedDays = () =>
+      countWorkoutDays(
+        sessions.list.flatMap((s) => {
+          if (!s.shared) return []
+          const result = sessions.parsed(s.id)
+          return result?.ok ? [result.session.date] : []
+        }),
+      )
+    const plateBefore = plateLevel(sharedDays()).current
+
     const stored = activeSession.finish(opts)
     track('session_finished')
     // Fire-and-forget: tell the room this member is done (it closes once everyone is).
@@ -74,6 +86,9 @@ export function useFinishSession() {
     // Today's session just landed — push the reminder past it (or drop the streak warning).
     if (useNotificationsStore().remindersEnabled) void NotificationService.schedule(dateStrs)
 
+    const plateAfter = plateLevel(sharedDays()).current
+    const plateUp = plateAfter && plateAfter !== plateBefore ? plateAfter : undefined
+
     sessionRecap.setRecap({
       sessionId: stored.id,
       personalRecords,
@@ -81,13 +96,16 @@ export function useFinishSession() {
       milestone,
       weekStreak,
       elapsedSeconds,
+      plateUp,
     })
 
     if (stored.shared) {
       // Room members are only known while this device still has the room open.
       const trainedWith =
         stored.roomId && room.room?.id === stored.roomId
-          ? room.members.filter((m) => m.userId !== useAuthStore().user?.id).map((m) => m.displayName)
+          ? room.members
+              .filter((m) => m.userId !== useAuthStore().user?.id)
+              .map((m) => m.displayName)
           : []
       sessions.setFeedSnapshot(
         stored.id,

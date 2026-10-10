@@ -136,7 +136,7 @@ const { t } = useI18n()
 }
 
 .with__label {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -156,7 +156,7 @@ const { t } = useI18n()
 }
 
 .stat__value {
-  font-size: 17px;
+  font-size: var(--text-body);
   font-weight: 700;
   color: var(--color-heading);
   font-variant-numeric: tabular-nums;
@@ -164,11 +164,8 @@ const { t } = useI18n()
 }
 
 .stat__label {
-  font-size: 10px;
-  font-weight: 600;
-  opacity: 0.6;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
 }
 
 .stack {
@@ -181,17 +178,17 @@ const { t } = useI18n()
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
   color: var(--color-text);
 }
 
 .compare__icon--up {
-  color: #16a34a;
+  color: var(--color-heading);
 }
 
 .compare__icon--down {
-  color: #e11d48;
+  color: var(--color-heading);
 }
 
 .milestone {
@@ -200,16 +197,16 @@ const { t } = useI18n()
   gap: 8px;
   padding: 8px 10px;
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-background-soft));
-  border: 1px solid var(--color-accent);
+  background: var(--color-background-mute);
+  border: none;
 }
 
 .milestone__icon {
-  color: var(--color-accent);
+  color: var(--color-heading);
 }
 
 .milestone__label {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
   color: var(--color-heading);
 }

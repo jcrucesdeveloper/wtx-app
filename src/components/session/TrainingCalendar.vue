@@ -215,12 +215,7 @@ function onPointerUp(e: PointerEvent) {
 .cal {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 12px 12px 14px;
-  margin-bottom: 16px;
-  border-radius: var(--radius-lg);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
+  gap: 12px;
 }
 
 .cal__head {
@@ -245,7 +240,7 @@ function onPointerUp(e: PointerEvent) {
 }
 
 .cal__count {
-  font-size: 26px;
+  font-size: var(--text-body);
   font-weight: 700;
   line-height: 1;
   color: var(--color-heading);
@@ -254,16 +249,15 @@ function onPointerUp(e: PointerEvent) {
 
 .cal__count-label,
 .cal__fresh {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
   line-height: 1.25;
   color: var(--color-heading);
 }
 
 .cal__sub {
-  font-size: 11px;
-  font-weight: 600;
-  opacity: 0.55;
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -277,21 +271,19 @@ function onPointerUp(e: PointerEvent) {
 .cal__month {
   min-width: 64px;
   text-align: center;
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.7;
   white-space: nowrap;
+  color: var(--color-heading);
 }
 
 .cal__nav-btn {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 50%;
   background: transparent;
   color: var(--color-text);
   cursor: pointer;
@@ -318,7 +310,7 @@ function onPointerUp(e: PointerEvent) {
 .cal__grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 4px;
 }
 
 .cal__weekdays span {
@@ -331,7 +323,7 @@ function onPointerUp(e: PointerEvent) {
 
 .cal__day,
 .cal__pad {
-  height: 28px;
+  height: 38px;
 }
 
 .cal__day {
@@ -341,14 +333,14 @@ function onPointerUp(e: PointerEvent) {
   width: 100%;
   padding: 0;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--color-background-mute);
   color: var(--color-text);
   font-family: inherit;
 }
 
 .cal__num {
-  font-size: 11px;
+  font-size: var(--text-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   opacity: 0.6;
@@ -381,7 +373,7 @@ function onPointerUp(e: PointerEvent) {
 .cal__day--trained .cal__num {
   opacity: 1;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 .cal__day--trained:active {
@@ -389,16 +381,12 @@ function onPointerUp(e: PointerEvent) {
 }
 
 .cal__day--trained.cal__day--today {
-  box-shadow:
-    0 0 0 2px var(--color-background-soft),
-    0 0 0 3.5px var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 3.5px var(--color-accent);
 }
 
 .cal__day--selected,
 .cal__day--trained.cal__day--selected {
-  box-shadow:
-    0 0 0 2px var(--color-background-soft),
-    0 0 0 3.5px var(--color-heading);
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 3.5px var(--color-heading);
 }
 
 .cal__day--trained:focus-visible {

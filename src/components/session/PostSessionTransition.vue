@@ -11,7 +11,7 @@ const DURATION_MS = 900
 
 let timer: ReturnType<typeof setTimeout> | undefined
 onMounted(() => {
-  HapticsService.success()
+  HapticsService.medium()
   timer = setTimeout(() => emit('done'), DURATION_MS)
 })
 onBeforeUnmount(() => clearTimeout(timer))
@@ -27,6 +27,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 </template>
 
 <style scoped>
+/* A beat between the workout and its summary: done, then what it added up to. */
 .outro {
   position: fixed;
   inset: 0;
@@ -35,53 +36,34 @@ onBeforeUnmount(() => clearTimeout(timer))
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: var(--space-4);
   background: var(--color-background);
 }
 
 .outro__check {
   color: var(--color-accent);
-  opacity: 0;
-  transform: scale(0.6);
-  animation: outro-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: outro-land var(--motion-slow) var(--ease-spring) both;
 }
 
 .outro__label {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: var(--text-title);
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
   color: var(--color-heading);
-  opacity: 0;
-  animation: outro-rise 0.35s ease 0.2s forwards;
+  animation: outro-rise var(--motion-base) var(--ease-out) var(--motion-quick) both;
 }
 
-@keyframes outro-pop {
+@keyframes outro-land {
   from {
     opacity: 0;
-    transform: scale(0.6);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
+    transform: scale(0.5);
   }
 }
 
 @keyframes outro-rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .outro__check,
-  .outro__label {
-    animation: none;
-    opacity: 1;
-    transform: none;
+    transform: translateY(10px);
   }
 }
 </style>

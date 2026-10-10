@@ -10,7 +10,7 @@ import {
   Flag,
   Flame,
   Lock,
-  Share2,
+  LogOut,
   UserMinus,
   Users,
 } from '@lucide/vue'
@@ -27,9 +27,9 @@ import BlockConfirmSheet from '@/components/social/BlockConfirmSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 import { useModerationStore } from '@/stores/moderation'
-import { buildFollowUrl } from '@/lib/followCode'
 import { computeWeekStreak, toDateStr } from '@/lib/sessionStats'
-import { useShareLink } from '@/composables/useShareLink'
+import { useUiStore } from '@/stores/ui'
+import { useLogout } from '@/composables/useLogout'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -37,6 +37,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const profiles = useProfileStore()
 const moderation = useModerationStore()
+const ui = useUiStore()
 
 const id = computed(() => String(route.params.id))
 const isMe = computed(() => id.value === auth.user?.id)
@@ -63,15 +64,10 @@ const workouts = computed(() => {
 
 // ----- own profile: edit + share -----
 const editOpen = ref(false)
-const { share, copied } = useShareLink()
 
+/** Opens the one share sheet: QR and code, and from there the system share. */
 function shareProfile() {
-  const code = auth.inviteCode
-  if (!code) return
-  void share({
-    url: buildFollowUrl(code, router.resolve({ name: 'follow' }).href),
-    text: t('social.follow.shareText'),
-  })
+  ui.open('shareProfile')
 }
 
 function onSaved() {
@@ -88,6 +84,15 @@ const ownMenuOpen = ref(false)
 function openBlocked() {
   ownMenuOpen.value = false
   router.push({ name: 'blocked' })
+}
+
+const { logout, loggingOut } = useLogout()
+
+async function onLogout() {
+  if (!(await logout())) return
+  ownMenuOpen.value = false
+  // The profile needs an account; Social is where logging back in happens.
+  router.replace({ name: 'social' })
 }
 
 // ----- someone else's: ⋯ → report / block / remove follower -----
@@ -139,7 +144,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="profile?.displayName ?? t('social.profile.title')">
+  <AppPage sub :title="t('social.profile.title')">
     <template #leading>
       <button
         type="button"
@@ -152,14 +157,6 @@ function goBack() {
     </template>
     <template v-if="profile" #actions>
       <template v-if="isMe">
-        <button
-          type="button"
-          class="icon-btn"
-          :aria-label="t('social.profile.shareProfile')"
-          @click="shareProfile"
-        >
-          <Share2 :size="18" :stroke-width="2.25" />
-        </button>
         <button
           type="button"
           class="icon-btn"
@@ -216,7 +213,7 @@ function goBack() {
             {{ t('social.profile.edit') }}
           </button>
           <button type="button" class="secondary" @click="shareProfile">
-            {{ copied ? t('social.profile.linkCopied') : t('social.profile.shareProfile') }}
+            {{ t('social.profile.shareProfile') }}
           </button>
         </template>
         <FollowButton
@@ -315,6 +312,12 @@ function goBack() {
           <span class="sheet__label">{{ t('social.moderation.blockedAccounts') }}</span>
           <ChevronRight :size="18" :stroke-width="2.25" class="sheet__chevron" />
         </button>
+        <button type="button" class="sheet__row" :disabled="loggingOut" @click="onLogout">
+          <LogOut :size="18" :stroke-width="2.25" />
+          <span class="sheet__label">
+            {{ loggingOut ? t('account.logoutChecking') : t('account.logout') }}
+          </span>
+        </button>
       </div>
     </BottomSheet>
 
@@ -369,15 +372,15 @@ function goBack() {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
 }
 
 .icon-btn--lead {
-  margin-left: -4px;
+  margin-left: -10px;
 }
 
 .icon-btn:active {
@@ -387,7 +390,7 @@ function goBack() {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   padding-bottom: 24px;
 }
 
@@ -399,16 +402,14 @@ function goBack() {
 }
 
 .secondary {
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 12px;
   border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  border-radius: 14px;
+  background: transparent;
   color: var(--color-heading);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
 }
 
@@ -430,19 +431,18 @@ function goBack() {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  font-weight: 600;
-  opacity: 0.75;
+  font-weight: var(--weight-regular);
 }
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .section__head {
@@ -453,25 +453,22 @@ function goBack() {
 }
 
 .section__title {
-  font-size: var(--label-size);
+  font-size: var(--text-body);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.6;
+  color: var(--color-heading);
 }
 
 .streak {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 700;
-  color: var(--color-accent);
+  color: var(--color-heading);
 }
 
 .muted {
   font-size: 13px;
-  opacity: 0.6;
 }
 
 .locked {
@@ -479,9 +476,10 @@ function goBack() {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 32px 20px;
+  padding: 28px 20px;
   text-align: center;
-  border-top: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-background-soft);
 }
 
 .locked__icon {
@@ -490,14 +488,13 @@ function goBack() {
 }
 
 .locked__title {
-  font-size: 15px;
+  font-size: var(--text-body);
   font-weight: 700;
   color: var(--color-heading);
 }
 
 .locked__hint {
   font-size: 13px;
-  opacity: 0.7;
   max-width: 32ch;
 }
 
@@ -513,18 +510,18 @@ function goBack() {
 .empty--inline {
   padding: 28px 20px;
   border-radius: var(--radius-lg);
-  border: 1px dashed var(--color-border);
+  border: none;
+  background: var(--color-background-soft);
 }
 
 .empty__title {
-  font-size: 15px;
+  font-size: var(--text-body);
   font-weight: 700;
   color: var(--color-heading);
 }
 
 .empty__hint {
   font-size: 13px;
-  opacity: 0.7;
   max-width: 34ch;
 }
 
@@ -544,16 +541,14 @@ function goBack() {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  border: 1px solid var(--color-border-hover);
+  border-radius: 14px;
+  background: transparent;
   color: var(--color-heading);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   text-align: left;
   cursor: pointer;
 }
@@ -563,8 +558,8 @@ function goBack() {
 }
 
 .sheet__row--danger {
-  border-color: #e11d48;
-  color: #e11d48;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .sheet__label {

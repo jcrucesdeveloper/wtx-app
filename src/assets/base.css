@@ -1,87 +1,136 @@
-/* color palette from <https://github.com/vuejs/theme> */
+/* The design tokens. Every colour, size, radius and timing in the app comes
+   from here, so a screen is built by choosing roles, not values.
+
+   The look in one paragraph: calm neutral surfaces; one accent, kept for the
+   single thing to do on a screen and for progress; three text sizes doing
+   most of the work; groups made with space and hairlines before boxes. */
+
+/* ───────────── Colour roles ─────────────
+   Dark is the bare default (no data-theme set yet, or explicit `dark`) — a
+   training app should look like one before any JS or OS preference kicks in.
+   `native` mode (src/stores/theme.ts) removes data-theme and falls back to the
+   prefers-color-scheme query below to follow the OS; explicit `light` always
+   wins via the [data-theme='light'] block. */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  /* The page, a surface resting on it, and a surface raised or pressed. */
+  --color-background: #0f1012;
+  --color-background-soft: #18191c;
+  --color-background-mute: #222428;
 
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  /* Hairlines between rows, and the stronger edge of an outlined control. */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.16);
 
-  --vt-c-indigo: #2c3e50;
+  /* Text that leads, and text that supports it. */
+  --color-heading: #f4f4f5;
+  --color-text: rgba(244, 244, 245, 0.62);
 
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+  /* The user's accent and the ink that reads on it — both set at runtime by
+     the theme store (src/stores/theme.ts). */
+  --color-accent: #e0263a;
+  --color-on-accent: #ffffff;
 
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+  /* Destructive actions and errors. Always text or an outline, never a fill. */
+  --color-danger: #e5484d;
 }
 
-/* semantic color variables for this project.
-   Dark is the bare default (no data-theme set yet, or explicit `dark`) — a
-   training app should look like one before any JS or OS preference kicks
-   in. `native` mode (src/stores/theme.ts) removes data-theme and falls back
-   to the prefers-color-scheme queries below to still follow the OS both
-   ways; explicit `light` always wins via the [data-theme='light'] block. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']):not([data-theme='light']) {
+    --color-background: #f6f6f4;
+    --color-background-soft: #ffffff;
+    --color-background-mute: #ececea;
+    --color-border: rgba(20, 20, 22, 0.08);
+    --color-border-hover: rgba(20, 20, 22, 0.18);
+    --color-heading: #141416;
+    --color-text: rgba(20, 20, 22, 0.62);
+    --color-danger: #d5303a;
+  }
+}
+
+:root[data-theme='light'] {
+  --color-background: #f6f6f4;
+  --color-background-soft: #ffffff;
+  --color-background-mute: #ececea;
+  --color-border: rgba(20, 20, 22, 0.08);
+  --color-border-hover: rgba(20, 20, 22, 0.18);
+  --color-heading: #141416;
+  --color-text: rgba(20, 20, 22, 0.62);
+  --color-danger: #d5303a;
+}
+
 :root {
-  --color-background: var(--vt-c-black);
-  --color-background-soft: var(--vt-c-black-soft);
-  --color-background-mute: var(--vt-c-black-mute);
+  /* ───────────── Type ─────────────
+     Three sizes carry a screen: display for its one thing, body, and small.
+     Title is for a page or sub-page name; micro only for dense data labels. */
+  --text-display: 28px;
+  --text-title: 22px;
+  --text-body: 16px;
+  --text-small: 13px;
+  --text-micro: 11px;
 
-  --color-border: var(--vt-c-divider-dark-1);
-  --color-border-hover: var(--vt-c-divider-dark-1);
+  --weight-regular: 400;
+  --weight-medium: 600;
+  --weight-bold: 700;
+  --weight-heavy: 800;
 
-  --color-heading: var(--vt-c-text-dark-1);
-  --color-text: var(--vt-c-text-dark-2);
+  /* ───────────── Space ─────────────
+     A 4px scale. 20 is the page gutter; 24–28 separates sections. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
 
-  /* Overridden at runtime by the theme store (see src/stores/theme.ts). */
-  --color-accent: #e0263a;
+  /* ───────────── Shape ───────────── */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
 
-  --section-gap: 160px;
+  /* The smallest comfortable touch target, and the height of a main button. */
+  --size-touch: 44px;
+  --size-control: 52px;
+  --size-action: 56px;
 
-  /* Radii — kept tight for a utilitarian, tool-like feel. */
-  --radius-xs: 2px;
-  --radius-sm: 3px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  /* Was a full pill; now just a soft corner. */
-  --radius-pill: 4px;
+  /* ───────────── Elevation ─────────────
+     Surfaces separate by tone, not shadow. The one exception is something
+     that floats over the page; its shadow is static and never animated. */
+  --elevation-overlay: 0 -8px 32px rgba(0, 0, 0, 0.28);
 
-  /* Uppercase micro-labels used for section headers and metadata. */
+  /* ───────────── Motion ─────────────
+     instant: a press answering a finger. quick: a state change. base: an
+     element entering. slow: a celebration landing. stagger: the gap between
+     items revealed in sequence. */
+  --motion-instant: 80ms;
+  --motion-quick: 160ms;
+  --motion-base: 280ms;
+  --motion-slow: 420ms;
+  --motion-stagger: 80ms;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Legacy: uppercase micro-labels on screens not yet rebuilt. */
   --label-size: 11px;
   --label-tracking: 0.06em;
 }
 
-/* Native mode + light OS: the only case that still needs to opt into light. */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme='dark']):not([data-theme='light']) {
-    --color-background: var(--vt-c-white);
-    --color-background-soft: var(--vt-c-white-soft);
-    --color-background-mute: var(--vt-c-white-mute);
-
-    --color-border: var(--vt-c-divider-light-1);
-    --color-border-hover: var(--vt-c-divider-light-1);
-
-    --color-heading: var(--vt-c-text-light-1);
-    --color-text: var(--vt-c-text-light-1);
+/* Reduced motion, in one place: every duration collapses, so a state change
+   still happens — it just arrives without the movement. Components that
+   animate with these tokens need no query of their own. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant: 1ms;
+    --motion-quick: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
+    --motion-stagger: 0ms;
   }
-}
-
-/* Explicit light choice (see src/stores/theme.ts): wins over the OS setting either way. */
-:root[data-theme='light'] {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
-
-  --color-border: var(--vt-c-divider-light-1);
-  --color-border-hover: var(--vt-c-divider-light-1);
-
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
 }
 
 *,
@@ -118,6 +167,14 @@ a,
   touch-action: manipulation;
 }
 
+/* A keyboard still gets a visible focus ring. */
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--color-heading);
+  outline-offset: 2px;
+}
+
 html {
   height: 100%;
 }
@@ -127,10 +184,7 @@ body {
   overflow: hidden;
   color: var(--color-text);
   background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
-  line-height: 1.6;
+  line-height: 1.5;
   font-family:
     Inter,
     -apple-system,
@@ -144,7 +198,7 @@ body {
     'Droid Sans',
     'Helvetica Neue',
     sans-serif;
-  font-size: 15px;
+  font-size: var(--text-body);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

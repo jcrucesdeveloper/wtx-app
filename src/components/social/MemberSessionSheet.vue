@@ -202,10 +202,8 @@ function formatSet(weight: number, reps: number, kind: 'reps' | 'time'): string 
 }
 
 .cheer__label {
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.7;
 }
 
@@ -310,14 +308,12 @@ function formatSet(weight: number, reps: number, kind: 'reps' | 'time'): string 
 }
 
 .exercise__badge {
-  font-size: 10px;
+  font-size: var(--text-micro);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   padding: 3px 6px;
   border-radius: var(--radius-xs);
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-on-accent);
 }
 
 .sets {

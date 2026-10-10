@@ -116,10 +116,8 @@ async function save() {
 }
 
 .field__label {
-  font-size: var(--label-size);
+  font-size: var(--text-small);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   opacity: 0.6;
 }
 
@@ -130,7 +128,7 @@ async function save() {
 }
 
 .field__count--over {
-  color: #e11d48;
+  color: var(--color-danger);
   opacity: 1;
 }
 
@@ -155,7 +153,7 @@ async function save() {
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .primary {
@@ -164,9 +162,7 @@ async function save() {
   border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   cursor: pointer;
 }

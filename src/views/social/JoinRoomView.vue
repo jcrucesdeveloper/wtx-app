@@ -99,7 +99,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage :title="t('room.joinTitle')">
+  <AppPage sub :title="t('room.joinTitle')">
     <template #leading>
       <button type="button" class="icon-btn" :aria-label="t('legal.back')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
@@ -146,15 +146,15 @@ function goBack() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  margin-left: -4px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  color: var(--color-text);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-heading);
   cursor: pointer;
+  margin-left: -10px;
 }
 
 .form {
@@ -194,7 +194,7 @@ function goBack() {
 
 .error {
   font-size: 13px;
-  color: #e11d48;
+  color: var(--color-danger);
   text-align: center;
 }
 
@@ -205,17 +205,16 @@ function goBack() {
   justify-content: center;
   gap: 8px;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   padding: 14px;
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
   cursor: pointer;
+  min-height: var(--size-control);
 }
 
 .primary {
-  color: #fff;
+  color: var(--color-on-accent);
   background: var(--color-accent);
 }
 

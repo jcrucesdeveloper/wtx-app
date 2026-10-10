@@ -347,43 +347,38 @@ const targets = computed(() => [
 </template>
 
 <style scoped>
-.label {
-  font-size: var(--label-size);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  opacity: 0.7;
-}
-
+/* The step before the summary: what you did so far, then one decision to make. */
 .summary {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: var(--radius-lg);
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
+  gap: var(--space-3);
 }
 
 .summary__row {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .summary__time {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+}
+
+.label {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
 }
 
 .summary__time-value {
-  font-size: 28px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-heading);
+  font-size: var(--text-display);
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
   line-height: 1.1;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
 }
 
 .summary__chips {
@@ -394,98 +389,147 @@ const targets = computed(() => [
 }
 
 .chip {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 7px;
-  border-radius: var(--radius-xs);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-heading);
+  background: var(--color-background-soft);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .summary__track {
-  height: 6px;
-  border-radius: var(--radius-pill);
+  height: 4px;
+  border-radius: 2px;
   background: var(--color-background-mute);
   overflow: hidden;
 }
 
 .summary__fill {
   height: 100%;
-  border-radius: var(--radius-pill);
+  border-radius: 2px;
   background: var(--color-accent);
 }
 
+/* A heads-up, not an alarm: sets left is a fact about the workout. */
 .notice {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-  font-size: 13px;
+  gap: var(--space-2);
+  padding: var(--space-3) 14px;
+  border-radius: 14px;
+  font-size: var(--text-small);
   line-height: 1.4;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
 }
 
 .notice--strong {
-  border-color: #d97706;
-  color: var(--color-heading);
+  font-weight: var(--weight-bold);
 }
 
 .notice__icon {
   flex-shrink: 0;
   margin-top: 1px;
-  color: #d97706;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
-input {
+.field input[type='text'] {
   width: 100%;
-  font-family: inherit;
-  font-size: 15px;
-  padding: 11px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
+  min-height: var(--size-control);
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font: inherit;
+  font-size: var(--text-body);
   color: var(--color-heading);
+  background: var(--color-background-soft);
+  outline: none;
 }
 
-input:focus {
-  outline: none;
-  border-color: var(--color-accent);
+.field input[type='text']:focus {
+  border-color: var(--color-border-hover);
 }
 
 .targets {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
+}
+
+/* The chosen place is marked by fill and outline; the accent is for the button below. */
+.target {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 14px;
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.target--on {
+  border-color: var(--color-heading);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+}
+
+.target__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.target__check {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--color-border-hover);
+}
+
+.target--on .target__check {
+  color: var(--color-background);
+  background: var(--color-heading);
+  box-shadow: none;
+}
+
+.target__title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-heading);
+}
+
+.target__desc {
+  font-size: var(--text-small);
+  line-height: 1.35;
 }
 
 .share-toggle {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
+  gap: var(--space-3);
   cursor: pointer;
 }
 
 .share-toggle input {
-  width: 18px;
-  height: 18px;
-  margin-top: 1px;
   flex-shrink: 0;
-  accent-color: var(--color-accent);
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  accent-color: var(--color-heading);
 }
 
 .share-toggle__body {
@@ -495,167 +539,102 @@ input:focus {
 }
 
 .share-toggle__title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
   color: var(--color-heading);
 }
 
 .share-toggle__desc {
-  font-size: 12px;
-  opacity: 0.65;
-}
-
-.target {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-  text-align: left;
-  padding: 11px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.target:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.target--on {
-  border-color: var(--color-accent);
-  box-shadow: inset 0 0 0 1px var(--color-accent);
-}
-
-.target__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-  opacity: 0.85;
-}
-
-.target--on .target__head {
-  color: var(--color-accent);
-  opacity: 1;
-}
-
-.target__check {
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1.5px solid var(--color-border-hover);
-}
-
-.target--on .target__check {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.target__title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-heading);
-}
-
-.target__desc {
-  font-size: 12px;
+  font-size: var(--text-small);
   line-height: 1.35;
-  opacity: 0.65;
 }
 
 .hint {
-  font-size: 13px;
-  opacity: 0.75;
+  font-size: var(--text-small);
+  line-height: 1.45;
 }
 
 .choices {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .choice {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding: 14px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 14px;
   text-align: left;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
+  font: inherit;
   color: var(--color-text);
+  background: transparent;
   cursor: pointer;
 }
 
-.choice:hover,
-.choice:focus-visible {
-  border-color: var(--color-border-hover);
+.choice:active {
+  background: var(--color-background-mute);
 }
 
 .choice__title {
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
   color: var(--color-heading);
 }
 
 .choice__desc {
-  font-size: 12px;
-  opacity: 0.65;
+  font-size: var(--text-small);
+  line-height: 1.35;
 }
 
+/* "Keep training" stays quiet beside the one accent on the sheet. */
 .actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 2px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
 }
 
-.secondary {
-  flex: 1;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  padding: 13px 12px;
-  font-size: 14px;
-  font-weight: 700;
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-}
-
+.secondary,
 .primary {
-  flex: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-2);
+  min-height: var(--size-action);
+  padding: 0 var(--space-5);
   border: none;
-  border-radius: var(--radius-md);
-  padding: 13px 12px;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
-  background: var(--color-accent);
+  border-radius: var(--radius-lg);
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
   cursor: pointer;
+  transition: transform var(--motion-instant) ease-out;
+}
+
+.secondary:active,
+.primary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.secondary {
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+}
+
+.primary {
+  color: var(--color-on-accent);
+  background: var(--color-accent);
 }
 
 .primary:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  opacity: 0.5;
+  cursor: default;
 }
 
 .error {
-  font-size: 13px;
-  color: #e11d48;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  word-break: break-word;
+  font-size: var(--text-small);
+  color: var(--color-danger);
 }
 </style>

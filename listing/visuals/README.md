@@ -23,6 +23,7 @@ visuals/
   shots.mjs                the screenshot set: order, screen, headline per language
   targets.mjs              the two store sizes
   src/_shot.html           the one screenshot template
+  clips.mjs                finds a frame of the recorded app by marker name
   generate.mjs             copies each shot's screen from the recorded app, stamps the template
   export.mjs               renders every generated page to an exact-size PNG
   screens/<lang>/          the real app captures each shot wraps (generated)
@@ -52,14 +53,16 @@ accounts against a real backend (see `../assets/checklist.md`).
 
 ## Regenerating
 
-The screens come from the video pipeline's recordings of the production
-build with seeded history, so they never drift from the app:
+The screens come from recordings of the production build with seeded
+history, so they never drift from the app. The recorder is part of the
+`wtx-studio` project (the one that makes the videos), expected next to this
+repo; set `WTX_STUDIO_DIR` if it is somewhere else.
 
 ```sh
-# 1. record the app in both languages (listing/videos, with a production build served — see its README)
-cd ../videos && node scripts/capture-app.mjs && WTX_LOCALE=es node scripts/capture-app.mjs
+# 1. record the app in both languages (in wtx-studio, with a production build served — see its README)
+(cd ../../../wtx-studio && node scripts/capture-app.mjs && WTX_LOCALE=es node scripts/capture-app.mjs)
 # 2. copy the screens, stamp the pages, export the PNGs
-cd ../visuals && node generate.mjs && node export.mjs
+node generate.mjs && node export.mjs
 ```
 
 Build the app with `VITE_PUBLIC_URL` set to the production domain before

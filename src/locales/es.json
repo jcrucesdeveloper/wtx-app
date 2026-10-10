@@ -5,36 +5,110 @@
     "close": "Cerrar"
   },
   "nav": {
-    "routines": "Rutinas",
-    "sessions": "Sesiones",
-    "social": "Social",
-    "config": "Ajustes",
-    "mainNavAria": "Navegación principal",
-    "openActionsAria": "Abrir acciones de WTX",
-    "wtxLabel": "WTX"
+    "train": "Entrenar",
+    "history": "Historial",
+    "friends": "Amigos",
+    "mainNavAria": "Navegación principal"
+  },
+  "train": {
+    "repairTwo": "Dos entrenamientos esta semana retoman tu racha en {count} semanas.",
+    "repairOne": "Un entrenamiento más esta semana retoma tu racha en {count} semanas.",
+    "firstTitle": "Ya empezaste",
+    "firstProgress": "{done} de {total} hechos",
+    "stepRoutines": "Rutinas listas",
+    "stepStart": "Empieza un entrenamiento",
+    "stepFinish": "Termínalo",
+    "weekFresh": "Semana nueva. Un entrenamiento empieza una racha.",
+    "weekKeep": "Entrena una vez esta semana para llegar a {count} semanas seguidas.",
+    "weekCount": "Aún sin entrenamientos esta semana | {count} entrenamiento esta semana | {count} entrenamientos esta semana",
+    "inProgress": "En curso",
+    "continue": "Continuar",
+    "nextUp": "Siguiente",
+    "start": "Empezar",
+    "notDoneYet": "Aún sin hacer",
+    "edit": "Editar"
+  },
+  "workout": {
+    "removeConfirm": "¿Quitar {name} de este entrenamiento?",
+    "newRecord": "Nuevo récord: {weight} {unit}",
+    "restOver": "Descanso terminado. Vamos.",
+    "exerciseOf": "Ejercicio {n} de {total}",
+    "setOf": "Serie {n} de {total}",
+    "lastTimeSet": "la última vez {weight} × {reps}",
+    "less": "Menos",
+    "more": "Más",
+    "logSet": "Registrar serie {n}",
+    "nextExercise": "Siguiente: {name}",
+    "finishWorkout": "Terminar entrenamiento",
+    "upNext": "A continuación",
+    "planSet": "plan {weight} × {reps}",
+    "setType": {
+      "number": "Serie efectiva",
+      "W": "Calentamiento",
+      "D": "Serie descendente"
+    },
+    "setTypeAria": "Cambiar el tipo de serie"
+  },
+  "finish": {
+    "newPlate": "Nuevo disco",
+    "plateOnProfile": "Ya está en tu perfil.",
+    "overBest": "{value} {unit} sobre tu mejor marca",
+    "lifted": "levantados hoy",
+    "whatYouDid": "Lo que hiciste",
+    "share": "Compartir",
+    "firstWeek": "La primera semana ya está anotada.",
+    "streakNext": "Ya van {count}. Nos vemos la próxima semana."
+  },
+  "history": {
+    "last12": "Sin entrenamientos en las últimas 12 semanas | {count} entrenamiento en las últimas 12 semanas | {count} entrenamientos en las últimas 12 semanas",
+    "bestSets": "Mejores series",
+    "workouts": "Entrenamientos",
+    "today": "Hoy",
+    "goTrain": "Empezar un entrenamiento"
+  },
+  "friends": {
+    "offline": "Estás sin conexión. Los entrenamientos se guardan en este teléfono y se sincronizan después.",
+    "pitchTitle": "Entrena con alguien",
+    "pitchBody": "Es más fácil no faltar cuando alguien entrena contigo. Con una cuenta puedes:",
+    "benefitTogether": "Entrenar juntos en vivo: la misma rutina, la misma cuenta atrás y las series de cada uno al momento.",
+    "benefitFeed": "Ver los entrenamientos de tus amigos y animarlos.",
+    "benefitSync": "Tener tus rutinas e historial en todos tus dispositivos.",
+    "createAccount": "Crear una cuenta",
+    "haveAccount": "Ya tengo una cuenta",
+    "localNote": "Sin cuenta, todo se queda en este teléfono.",
+    "trainTogether": "Entrenar juntos",
+    "trainTogetherHint": "Elige una rutina, comparte el código y registren sus series lado a lado.",
+    "startGroup": "Empezar un entrenamiento en grupo",
+    "add": "Añadir",
+    "firstPartner": "Añade a tu primer compañero de entrenamiento",
+    "firstPartnerHint": "Comparte tu código para que te sigan, o escribe el suyo para seguirles.",
+    "shareCode": "Compartir mi código",
+    "enterCode": "Escribir un código",
+    "activity": "Actividad",
+    "feedEmpty": "Aquí aparecen los entrenamientos que comparten las personas que sigues."
   },
   "onboarding": {
-    "skip": "Omitir",
-    "next": "Siguiente",
+    "headline": "Tu entrenamiento, en texto simple.",
+    "lead": "Hay una rutina inicial lista. Cámbiala o escribe la tuya. | Hay {count} rutinas iniciales listas. Cámbialas o escribe las tuyas.",
     "getStarted": "Empezar",
     "routines": {
       "title": "Escribe tus rutinas como texto",
-      "body": "Guarda tus rutinas de entrenamiento como plantillas de texto simple: escribe una desde cero, pégala, o escanea un código QR de un amigo."
+      "short": "Escribe una, pégala o escanea el código QR de un amigo."
     },
     "sessions": {
       "title": "Registra cada entrenamiento",
-      "body": "Sigue tus series y repeticiones según tu rutina, detecta un nuevo récord personal en el momento en que lo logras, y mira crecer tu racha en el calendario de entrenamiento."
+      "short": "Un toque por serie, con los números de la última vez ya puestos."
     },
     "social": {
       "title": "Entrena en vivo con amigos",
-      "body": "Crea una cuenta para sincronizar entre dispositivos y luego crea una sala para entrenar juntos en tiempo real: mismo conteo, progreso compartido y porras incluidas."
+      "short": "Opcional. Una cuenta añade amigos y sincronización entre dispositivos."
     }
   },
   "notifications": {
     "reminderTitle": "Hora de entrenar",
     "reminderBody": "Todavía no registraste un entrenamiento hoy — uno rápido también cuenta.",
-    "streakTitle": "Tu racha está en juego",
-    "streakBody": "Registra una sesión antes de que termine la semana para mantener tu racha de {count} semanas."
+    "streakTitle": "{count} semana seguida hasta ahora | {count} semanas seguidas hasta ahora",
+    "streakBody": "Un entrenamiento esta semana y serán {next}."
   },
   "colorPicker": {
     "accentColorAria": "Color de acento"
@@ -102,6 +176,8 @@
     "parseError": "No se pudo interpretar — toca para revisar"
   },
   "routineDetail": {
+    "notFoundTitle": "Rutina no encontrada",
+    "backToTrain": "Volver a Entrenar",
     "fallbackTitle": "Rutina",
     "backAria": "Atrás",
     "playAria": "Iniciar rutina",
@@ -241,9 +317,6 @@
     "postSessionTransition": {
       "workoutLogged": "Entrenamiento registrado"
     },
-    "preSessionTransition": {
-      "letsGo": "Vamos"
-    },
     "reorderSheet": {
       "title": "Reordenar ejercicios",
       "hint": "Arrastra para reordenar. Esto solo cambia este entrenamiento, no la rutina.",
@@ -304,6 +377,9 @@
     "cardStreakLabel": "Racha"
   },
   "sessionDetail": {
+    "title": "Entrenamiento",
+    "notFoundTitle": "Entrenamiento no encontrado",
+    "backToHistory": "Volver al historial",
     "fallbackTitle": "Sesión",
     "backAria": "Atrás",
     "optionsAria": "Opciones de sesión",
@@ -359,6 +435,7 @@
     "openRoom": "Abrir",
     "status": { "lobby": "En espera", "active": "En curso", "finished": "Terminado" },
     "feed": {
+      "notFoundTitle": "Entrenamiento no disponible",
       "emptyTitle": "Tu feed está vacío",
       "emptyHint": "Sigue a las personas con las que entrenas para ver sus entrenamientos aquí, o comparte tu código para que ellas te sigan.",
       "emptyCta": "Buscar compañeros de entrenamiento",
@@ -375,6 +452,19 @@
       "title": "Perfil",
       "openMine": "Tu perfil",
       "followsYou": "Te sigue",
+      "level": {
+        "none": "Aún sin disco",
+        "plate": "Disco de {kg} kg",
+        "plates": "{count} discos de 25 kg",
+        "days": "{count} día entrenado | {count} días entrenados",
+        "first": "Tu primer entrenamiento compartido te da el disco de 5 kg",
+        "next": "Faltan {count} para el disco de {kg} kg",
+        "nextStack": "Faltan {count} para otro disco de 25 kg",
+        "max": "Todos los discos conseguidos",
+        "title": "Discos",
+        "from": "{count} día entrenado | {count} días entrenados",
+        "about": "Los discos se ganan con los días que entrenas. Cuentan los entrenamientos que compartes, una vez por día, y un disco nunca se pierde."
+      },
       "trainingSince": "Entrena desde {date}",
       "stats": {
         "workouts": "Entrenamiento | Entrenamientos",
@@ -431,6 +521,7 @@
       "shareText": "Sígueme en wtx",
       "copyLink": "Copiar enlace",
       "enterHint": "¿Tienes el código de un amigo? Escríbelo aquí para seguirlo.",
+      "enterCode": "Escribir el código de un amigo",
       "codeLabel": "Código para seguir",
       "follow": "Seguir",
       "following": "Siguiendo…",
@@ -648,8 +739,8 @@
   },
   "account": {
     "title": "Cuenta",
-    "loggedOutHint": "Crea una cuenta en Social para sincronizar tus datos y entrenar con amigos.",
-    "goToSocial": "Ir a Social",
+    "loggedOutHint": "Crea una cuenta para sincronizar tus datos y entrenar con amigos.",
+    "goToSocial": "Crear una cuenta o iniciar sesión",
     "signedInAs": "Sesión iniciada como {email}",
     "displayName": "Nombre visible",
     "save": "Guardar",
@@ -942,6 +1033,8 @@
     }
   },
   "settings": {
+    "appearance": "Apariencia",
+    "training": "Entrenamiento",
     "title": "Ajustes",
     "removeAds": "Quitar anuncios para siempre",
     "removeAdsHint": "Pago único. Sin suscripciones, sin anuncios, nunca.",

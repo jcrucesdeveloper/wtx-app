@@ -59,28 +59,90 @@ function mondayOf(date: Date): Date {
   return d
 }
 
-/** Set of Monday timestamps (local midnight) for every week that has a session. */
-function weeksWithSessions(dateStrs: string[]): Set<number> {
-  return new Set(dateStrs.map((d) => mondayOf(parseLocalDate(d)).getTime()))
+/** Sessions per week, keyed by the week's Monday timestamp (local midnight). */
+function sessionsPerWeek(dateStrs: string[]): Map<number, number> {
+  const counts = new Map<number, number>()
+  for (const d of dateStrs) {
+    const key = mondayOf(parseLocalDate(d)).getTime()
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return counts
+}
+
+/** Workouts in one week that make up for the single week missed before it. */
+export const REPAIR_WORKOUTS = 2
+
+function weekBefore(monday: Date): Date {
+  const d = new Date(monday)
+  d.setDate(d.getDate() - 7)
+  return d
 }
 
 /**
  * Consecutive weeks (Mon–Sun) with at least one session, walking back from
  * the current week. A week still in progress with no session yet doesn't
  * break the streak — it just isn't counted until it has one.
+ *
+ * One missed week is forgiven when the week after it had
+ * {@link REPAIR_WORKOUTS} sessions: the run carries on across the gap (the
+ * missed week itself adds nothing to the count). Two missed weeks in a row
+ * end the run.
  */
 export function computeWeekStreak(dateStrs: string[], now: Date = new Date()): number {
-  const weeks = weeksWithSessions(dateStrs)
+  const counts = sessionsPerWeek(dateStrs)
 
-  const cursor = mondayOf(now)
-  if (!weeks.has(cursor.getTime())) cursor.setDate(cursor.getDate() - 7)
+  let cursor = mondayOf(now)
+  if (!counts.has(cursor.getTime())) cursor = weekBefore(cursor)
 
   let streak = 0
-  while (weeks.has(cursor.getTime())) {
-    streak++
-    cursor.setDate(cursor.getDate() - 7)
+  /** Sessions in the week just counted — the one after `cursor`. */
+  let newerCount = 0
+
+  for (;;) {
+    const count = counts.get(cursor.getTime()) ?? 0
+    if (count > 0) {
+      streak++
+      newerCount = count
+      cursor = weekBefore(cursor)
+      continue
+    }
+    const beyond = weekBefore(cursor)
+    const repaired = streak > 0 && newerCount >= REPAIR_WORKOUTS && counts.has(beyond.getTime())
+    if (!repaired) break
+    cursor = beyond
   }
   return streak
+}
+
+/** A run that was missed by one week and can still be picked back up this week. */
+export interface StreakRepair {
+  /** Workouts still needed this week to make up the missed one. */
+  needed: number
+  /** How long the run will be once they are done. */
+  weeks: number
+}
+
+/**
+ * Whether last week was missed after a run, and this week can still repair
+ * it. `null` when there is nothing to repair: no run before the gap, the gap
+ * is longer than a week, or this week already made it up.
+ */
+export function streakRepair(dateStrs: string[], now: Date = new Date()): StreakRepair | null {
+  const counts = sessionsPerWeek(dateStrs)
+  const thisWeek = mondayOf(now)
+  const lastWeek = weekBefore(thisWeek)
+  const weekBeforeLast = weekBefore(lastWeek)
+
+  if (counts.has(lastWeek.getTime()) || !counts.has(weekBeforeLast.getTime())) return null
+
+  const doneThisWeek = counts.get(thisWeek.getTime()) ?? 0
+  if (doneThisWeek >= REPAIR_WORKOUTS) return null
+
+  // The run as it stood when the missed week began.
+  const earlier = dateStrs.filter((d) => parseLocalDate(d).getTime() < lastWeek.getTime())
+  const runBefore = computeWeekStreak(earlier, weekBeforeLast)
+
+  return { needed: REPAIR_WORKOUTS - doneThisWeek, weeks: runBefore + 1 }
 }
 
 /** `YYYY-MM-DD` for a local date — the same shape sessions store their date in. */

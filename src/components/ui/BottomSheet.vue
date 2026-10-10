@@ -91,11 +91,11 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-4);
   padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
   background: var(--color-background);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  border-top: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--elevation-overlay);
 }
 
 .sheet--full {
@@ -103,7 +103,7 @@ onBeforeUnmount(() => {
   max-height: 100dvh;
   padding-top: calc(12px + env(safe-area-inset-top));
   border-radius: 0;
-  border-top: none;
+  box-shadow: none;
 }
 
 .sheet__grabber {
@@ -122,8 +122,8 @@ onBeforeUnmount(() => {
 }
 
 .sheet__head h2 {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: var(--weight-bold);
   color: var(--color-heading);
 }
 
@@ -139,19 +139,21 @@ onBeforeUnmount(() => {
   border: none;
   background: transparent;
   color: var(--color-text);
-  padding: 6px;
+  padding: 0;
   cursor: pointer;
-  opacity: 0.6;
+  width: var(--size-touch);
+  height: var(--size-touch);
+  margin-right: -10px;
 }
 
 .sheet-enter-active,
 .sheet-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--motion-quick) ease;
 }
 
 .sheet-enter-active .sheet,
 .sheet-leave-active .sheet {
-  transition: transform 0.25s ease;
+  transition: transform var(--motion-base) var(--ease-out);
 }
 
 .sheet-enter-from,

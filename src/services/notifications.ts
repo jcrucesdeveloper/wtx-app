@@ -62,9 +62,11 @@ export const NotificationService = {
         notifications: [
           {
             id: REMINDER_ID,
-            title: t(atRisk ? 'notifications.streakTitle' : 'notifications.reminderTitle'),
+            title: atRisk
+              ? t('notifications.streakTitle', { count: streak }, streak)
+              : t('notifications.reminderTitle'),
             body: atRisk
-              ? t('notifications.streakBody', { count: streak })
+              ? t('notifications.streakBody', { count: streak, next: streak + 1 })
               : t('notifications.reminderBody'),
             schedule: { at },
           },

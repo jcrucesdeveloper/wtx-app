@@ -4,14 +4,22 @@
 // Usage: node export.mjs
 
 import { execFileSync } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { SHOTS, LANGS } from './shots.mjs'
 import { TARGETS } from './targets.mjs'
-import { CHROME } from '../videos/scripts/paths.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
+
+const CHROME_CANDIDATES = [
+  process.env.CHROME_PATH,
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  '/usr/bin/google-chrome',
+  '/usr/bin/chromium',
+].filter(Boolean)
+const CHROME = CHROME_CANDIDATES.find((p) => existsSync(p)) ?? CHROME_CANDIDATES[0]
 
 for (const target of TARGETS) {
   for (const lang of LANGS) {

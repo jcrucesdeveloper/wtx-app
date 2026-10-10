@@ -5,36 +5,110 @@
     "close": "Close"
   },
   "nav": {
-    "routines": "Routines",
-    "sessions": "Sessions",
-    "social": "Social",
-    "config": "Config",
-    "mainNavAria": "Main navigation",
-    "openActionsAria": "Open WTX actions",
-    "wtxLabel": "WTX"
+    "train": "Train",
+    "history": "History",
+    "friends": "Friends",
+    "mainNavAria": "Main navigation"
+  },
+  "train": {
+    "repairTwo": "Two workouts this week pick your run back up at {count} weeks.",
+    "repairOne": "One more workout this week picks your run back up at {count} weeks.",
+    "firstTitle": "You've already started",
+    "firstProgress": "{done} of {total} done",
+    "stepRoutines": "Routines ready",
+    "stepStart": "Start a workout",
+    "stepFinish": "Finish it",
+    "weekFresh": "A new week. One workout starts a run.",
+    "weekKeep": "Train once this week to make it {count} weeks in a row.",
+    "weekCount": "No workouts this week yet | {count} workout this week | {count} workouts this week",
+    "inProgress": "In progress",
+    "continue": "Continue",
+    "nextUp": "Next up",
+    "start": "Start",
+    "notDoneYet": "Not done yet",
+    "edit": "Edit"
+  },
+  "workout": {
+    "removeConfirm": "Remove {name} from this workout?",
+    "newRecord": "New record: {weight} {unit}",
+    "restOver": "Rest over. Go.",
+    "exerciseOf": "Exercise {n} of {total}",
+    "setOf": "Set {n} of {total}",
+    "lastTimeSet": "last time {weight} × {reps}",
+    "less": "Less",
+    "more": "More",
+    "logSet": "Log set {n}",
+    "nextExercise": "Next: {name}",
+    "finishWorkout": "Finish workout",
+    "upNext": "Up next",
+    "planSet": "plan {weight} × {reps}",
+    "setType": {
+      "number": "Working set",
+      "W": "Warm-up",
+      "D": "Drop set"
+    },
+    "setTypeAria": "Change set type"
+  },
+  "finish": {
+    "newPlate": "New plate",
+    "plateOnProfile": "It's on your profile now.",
+    "overBest": "{value} {unit} over your best",
+    "lifted": "lifted today",
+    "whatYouDid": "What you did",
+    "share": "Share",
+    "firstWeek": "Week one is on the board.",
+    "streakNext": "That makes {count}. See you next week."
+  },
+  "history": {
+    "last12": "No workouts in the last 12 weeks | {count} workout in the last 12 weeks | {count} workouts in the last 12 weeks",
+    "bestSets": "Best sets",
+    "workouts": "Workouts",
+    "today": "Today",
+    "goTrain": "Start a workout"
+  },
+  "friends": {
+    "offline": "You're offline. Workouts still save on this phone and sync later.",
+    "pitchTitle": "Train with a friend",
+    "pitchBody": "It's easier to keep showing up when someone trains with you. With an account you can:",
+    "benefitTogether": "Train together live: same routine, same countdown, each other's sets as they happen.",
+    "benefitFeed": "See your friends' workouts and cheer them on.",
+    "benefitSync": "Keep your routines and history on every device.",
+    "createAccount": "Create an account",
+    "haveAccount": "I already have an account",
+    "localNote": "Without an account, everything stays on this phone.",
+    "trainTogether": "Train together",
+    "trainTogetherHint": "Pick a routine, share the code, and log your sets side by side.",
+    "startGroup": "Start a group workout",
+    "add": "Add",
+    "firstPartner": "Add your first training partner",
+    "firstPartnerHint": "Share your code so they can follow you, or enter theirs to follow them.",
+    "shareCode": "Share my code",
+    "enterCode": "Enter a code",
+    "activity": "Activity",
+    "feedEmpty": "Workouts shared by the people you follow show up here."
   },
   "onboarding": {
-    "skip": "Skip",
-    "next": "Next",
+    "headline": "Your training, in plain text.",
+    "lead": "A starter routine is ready. Change it, or write your own. | {count} starter routines are ready. Change them, or write your own.",
     "getStarted": "Get started",
     "routines": {
       "title": "Write your routines as text",
-      "body": "Keep your training routines as small, plain-text templates — type one from scratch, paste it in, or scan a QR code from a friend."
+      "short": "Type one, paste one, or scan a friend's QR code."
     },
     "sessions": {
       "title": "Log every workout",
-      "body": "Track sets and reps against your routine, catch a new personal record the moment you hit it, and see your streak build on the training calendar."
+      "short": "One tap per set, with last time's numbers already filled in."
     },
     "social": {
       "title": "Train live with friends",
-      "body": "Create an account to sync across devices, then start a room and train together in real time — same countdown, shared progress, cheers included."
+      "short": "Optional. An account adds friends and sync across devices."
     }
   },
   "notifications": {
     "reminderTitle": "Time to train",
     "reminderBody": "You haven't logged a workout today — a quick one still counts.",
-    "streakTitle": "Your streak is on the line",
-    "streakBody": "Log a session before the week ends to keep your {count}-week streak."
+    "streakTitle": "{count} week in a row so far | {count} weeks in a row so far",
+    "streakBody": "One workout this week makes it {next}."
   },
   "colorPicker": {
     "accentColorAria": "Accent color"
@@ -102,6 +176,8 @@
     "parseError": "Could not parse — tap to review"
   },
   "routineDetail": {
+    "notFoundTitle": "Routine not found",
+    "backToTrain": "Back to Train",
     "fallbackTitle": "Routine",
     "backAria": "Back",
     "playAria": "Play routine",
@@ -241,9 +317,6 @@
     "postSessionTransition": {
       "workoutLogged": "Workout logged"
     },
-    "preSessionTransition": {
-      "letsGo": "Let's go"
-    },
     "reorderSheet": {
       "title": "Reorder exercises",
       "hint": "Drag to reorder. This only changes this workout, not the routine.",
@@ -304,6 +377,9 @@
     "cardStreakLabel": "Streak"
   },
   "sessionDetail": {
+    "title": "Workout",
+    "notFoundTitle": "Workout not found",
+    "backToHistory": "Back to history",
     "fallbackTitle": "Session",
     "backAria": "Back",
     "optionsAria": "Session options",
@@ -359,6 +435,7 @@
     "openRoom": "Open",
     "status": { "lobby": "Waiting", "active": "In progress", "finished": "Finished" },
     "feed": {
+      "notFoundTitle": "Workout unavailable",
       "emptyTitle": "Your feed is empty",
       "emptyHint": "Follow people you train with to see their workouts here — or share your code so they can follow you.",
       "emptyCta": "Find training partners",
@@ -375,6 +452,19 @@
       "title": "Profile",
       "openMine": "Your profile",
       "followsYou": "Follows you",
+      "level": {
+        "none": "No plate yet",
+        "plate": "{kg} kg plate",
+        "plates": "{count} × 25 kg plates",
+        "days": "{count} day trained | {count} days trained",
+        "first": "Your first shared workout earns the 5 kg plate",
+        "next": "{count} more for the {kg} kg plate",
+        "nextStack": "{count} more for another 25 kg plate",
+        "max": "Every plate earned",
+        "title": "Plates",
+        "from": "{count} day trained | {count} days trained",
+        "about": "Plates are earned by the days you train. Workouts you share count, once per day, and a plate is never taken away."
+      },
       "trainingSince": "Training since {date}",
       "stats": {
         "workouts": "Workout | Workouts",
@@ -431,6 +521,7 @@
       "shareText": "Follow me on wtx",
       "copyLink": "Copy link",
       "enterHint": "Got a friend's code? Enter it here to follow them.",
+      "enterCode": "Enter a friend's code",
       "codeLabel": "Follow code",
       "follow": "Follow",
       "following": "Following…",
@@ -648,8 +739,8 @@
   },
   "account": {
     "title": "Account",
-    "loggedOutHint": "Create an account in Social to sync your data and train with friends.",
-    "goToSocial": "Go to Social",
+    "loggedOutHint": "Create an account to sync your data and train with friends.",
+    "goToSocial": "Create an account or log in",
     "signedInAs": "Signed in as {email}",
     "displayName": "Display name",
     "save": "Save",
@@ -942,7 +1033,9 @@
     }
   },
   "settings": {
-    "title": "Configuration",
+    "appearance": "Appearance",
+    "training": "Training",
+    "title": "Settings",
     "removeAds": "Remove ads forever",
     "removeAdsHint": "One-time payment. No subscriptions, no ads, ever.",
     "theme": "Theme",

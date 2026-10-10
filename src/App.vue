@@ -4,13 +4,12 @@ import { RouterView, useRoute } from 'vue-router'
 import AppTabBar from './components/AppTabBar.vue'
 import GetAppBanner from './components/GetAppBanner.vue'
 import LoadRoutineSheet from './components/load/LoadRoutineSheet.vue'
-import WtxActionSheet from './components/wtx/WtxActionSheet.vue'
 import CreateRoutineSheet from './components/wtx/CreateRoutineSheet.vue'
 import StartTrainingSheet from './components/routine/StartTrainingSheet.vue'
 import ResumeSessionBanner from './components/session/ResumeSessionBanner.vue'
 import RoomLiveLayer from './components/social/RoomLiveLayer.vue'
+import ShareProfileSheet from './components/social/ShareProfileSheet.vue'
 import { useThemeStore } from './stores/theme'
-import { useUiStore } from './stores/ui'
 import { useLocaleStore } from './stores/locale'
 
 // Initialise the theme so the stored accent color is applied on load.
@@ -18,27 +17,31 @@ useThemeStore()
 // Initialise the locale so the stored/detected language is applied on load.
 useLocaleStore()
 
-const ui = useUiStore()
 const route = useRoute()
-// The first-run intro is a standalone flow — no tab bar/banner underneath it.
-const showChrome = computed(() => route.name !== 'onboarding')
+
+/**
+ * Screens that own the whole display, with no tab bar under them: the
+ * first-run intro, and a workout from its first set to its summary — a
+ * self-contained task whose own dock sits where the tab bar would be.
+ */
+const BARE_ROUTES = ['onboarding', 'active-session', 'session-complete']
+const showChrome = computed(() => !BARE_ROUTES.includes(String(route.name)))
 </script>
 
 <template>
   <div class="app-shell" :class="{ 'app-shell--bare': !showChrome }">
-    <!-- Not over a workout in progress: that screen is for logging, nothing else. -->
-    <GetAppBanner v-if="showChrome && route.name !== 'active-session'" />
+    <GetAppBanner v-if="showChrome" />
     <main class="app-content">
       <RouterView />
     </main>
     <template v-if="showChrome">
       <ResumeSessionBanner />
-      <AppTabBar @menu="ui.open('menu')" />
+      <AppTabBar />
     </template>
-    <WtxActionSheet />
     <StartTrainingSheet />
     <LoadRoutineSheet />
     <CreateRoutineSheet />
+    <ShareProfileSheet />
     <RoomLiveLayer />
   </div>
 </template>
@@ -57,7 +60,7 @@ const showChrome = computed(() => route.name !== 'onboarding')
   padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
 
-/* No tab bar (onboarding): the content itself reaches the bottom edge. */
+/* No tab bar: the content itself reaches the bottom edge. */
 .app-shell--bare {
   padding-bottom: env(safe-area-inset-bottom);
 }

@@ -2,64 +2,41 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
-import AppIcon, { type IconName } from './AppIcon.vue'
+import { CalendarDays, Dumbbell, Users } from '@lucide/vue'
 
-interface Tab {
-  to: string
-  label: string
-  icon: IconName
-  /** Path prefixes that count as "on this tab". */
-  match: string[]
-}
-
+/**
+ * The bottom bar: three destinations,
+ * each a place and none an action, with labels that say what is there.
+ * Starting a workout lives on the Train screen; settings sits behind the gear
+ * in its header; a workout in progress shows as the strip above this bar.
+ */
 const { t } = useI18n()
-
-const tabs = computed<Tab[]>(() => [
-  { to: '/', label: t('nav.routines'), icon: 'routines', match: ['/', '/routines'] },
-  { to: '/sessions', label: t('nav.sessions'), icon: 'sessions', match: ['/sessions'] },
-  { to: '/social', label: t('nav.social'), icon: 'social', match: ['/social', '/rooms'] },
-  { to: '/settings', label: t('nav.config'), icon: 'settings', match: ['/settings'] },
-])
-
-const leftTabs = computed(() => tabs.value.slice(0, 2))
-const rightTabs = computed(() => tabs.value.slice(2))
-
 const route = useRoute()
 
-function isActive(tab: Tab): boolean {
-  return tab.match.some((path) => route.path === path || route.path.startsWith(`${path}/`))
-}
+const tabs = computed(() => [
+  { to: '/sessions', label: t('nav.history'), icon: CalendarDays, match: ['/sessions'] },
+  // In the middle: the most used tab, equally close to a left or a right thumb.
+  // Settings and import are reached from Train, so they keep it lit.
+  { to: '/', label: t('nav.train'), icon: Dumbbell, match: ['/', '/routines', '/settings', '/import'] },
+  { to: '/social', label: t('nav.friends'), icon: Users, match: ['/social', '/rooms'] },
+])
 
-const emit = defineEmits<{
-  menu: []
-}>()
+function isActive(match: string[]): boolean {
+  return match.some((path) => route.path === path || route.path.startsWith(`${path}/`))
+}
 </script>
 
 <template>
   <nav class="tab-bar" :aria-label="t('nav.mainNavAria')">
     <RouterLink
-      v-for="tab in leftTabs"
+      v-for="tab in tabs"
       :key="tab.to"
       :to="tab.to"
       class="tab"
-      :class="{ 'tab--active': isActive(tab) }"
+      :class="{ 'tab--active': isActive(tab.match) }"
+      :aria-current="isActive(tab.match) ? 'page' : undefined"
     >
-      <AppIcon :name="tab.icon" :size="22" class="tab__icon" />
-      <span class="tab__label">{{ tab.label }}</span>
-    </RouterLink>
-
-    <button type="button" class="fab" :aria-label="t('nav.openActionsAria')" @click="emit('menu')">
-      <span class="fab__label">{{ t('nav.wtxLabel') }}</span>
-    </button>
-
-    <RouterLink
-      v-for="tab in rightTabs"
-      :key="tab.to"
-      :to="tab.to"
-      class="tab"
-      :class="{ 'tab--active': isActive(tab) }"
-    >
-      <AppIcon :name="tab.icon" :size="22" class="tab__icon" />
+      <span class="tab__icon"><component :is="tab.icon" :size="22" :stroke-width="2.25" /></span>
       <span class="tab__label">{{ tab.label }}</span>
     </RouterLink>
   </nav>
@@ -71,73 +48,72 @@ const emit = defineEmits<{
   bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  align-items: center;
-  gap: 2px;
-  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  grid-template-columns: repeat(3, 1fr);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
   background: var(--color-background);
-  border-top: 1px solid var(--color-border-hover);
 }
 
+/* Each tab is a third of the screen wide and 56px tall: hard to miss at the
+   bottom edge, where taps are least accurate. */
 .tab {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 0;
-  border-radius: var(--radius-sm);
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
   color: var(--color-text);
-  opacity: 0.55;
-  text-decoration: none;
-  transition:
-    opacity 0.15s ease,
-    color 0.15s ease;
 }
 
-.tab:hover {
-  opacity: 0.8;
-  background: transparent;
-}
-
-.tab--active {
-  opacity: 1;
-  color: var(--color-accent);
+.tab__icon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 30px;
+  border-radius: 999px;
 }
 
 .tab__label {
-  font-size: 10px;
-  line-height: 1;
+  font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
+  line-height: 1.2;
 }
 
-.fab {
-  justify-self: stretch;
-  align-self: stretch;
-  display: grid;
-  place-items: center;
-  height: 100%;
-  min-height: 44px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--color-accent);
-  color: #fff;
-  cursor: pointer;
-  transition: filter 0.12s ease;
+/* The current place is marked by shape and weight, not by the accent: that
+   colour is kept for the one thing to do on each screen. */
+.tab--active {
+  color: var(--color-heading);
 }
 
-.fab:hover {
-  filter: brightness(1.08);
+.tab--active .tab__icon {
+  background: var(--color-background-mute);
 }
 
-.fab:active {
-  filter: brightness(0.95);
+.tab--active .tab__label {
+  font-weight: 700;
 }
 
-.fab__label {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.tab:active .tab__icon {
+  transform: scale(0.92);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tab__icon {
+    transition: transform 0.12s ease-out;
+  }
+
+  .tab--active .tab__icon {
+    animation: tab-select 0.28s var(--ease-spring, ease-out);
+  }
+}
+
+@keyframes tab-select {
+  from {
+    transform: scaleX(0.6);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 </style>

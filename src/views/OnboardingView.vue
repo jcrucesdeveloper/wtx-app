@@ -1,55 +1,58 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import AppIcon, { type IconName } from '@/components/AppIcon.vue'
+import { CalendarDays, Dumbbell, Users } from '@lucide/vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import { useRoutinesStore } from '@/stores/routines'
 import { markOnboardingSeen } from '@/lib/onboarding'
 
+/**
+ * First run, on one screen. It says what the app is, shows that there is
+ * already something in it (the starter routines), and gets out of the way:
+ * the app itself is where people learn it.
+ */
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const routines = useRoutinesStore()
 
-const STEPS: { icon: IconName; key: 'routines' | 'sessions' | 'social' }[] = [
-  { icon: 'routines', key: 'routines' },
-  { icon: 'sessions', key: 'sessions' },
-  { icon: 'social', key: 'social' },
-]
-
-const step = ref(0)
-const isLast = computed(() => step.value === STEPS.length - 1)
+const points = computed(() => [
+  { icon: Dumbbell, title: t('onboarding.routines.title'), text: t('onboarding.routines.short') },
+  { icon: CalendarDays, title: t('onboarding.sessions.title'), text: t('onboarding.sessions.short') },
+  { icon: Users, title: t('onboarding.social.title'), text: t('onboarding.social.short') },
+])
 
 function finish() {
   markOnboardingSeen()
   const redirect = route.query.redirect
   router.replace(typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/')
 }
-
-function next() {
-  if (isLast.value) finish()
-  else step.value++
-}
 </script>
 
 <template>
   <div class="onboarding">
-    <button type="button" class="skip" @click="finish">{{ t('onboarding.skip') }}</button>
-
     <div class="content">
-      <div class="icon">
-        <AppIcon :name="STEPS[step]!.icon" :size="40" />
-      </div>
-      <h1 class="title">{{ t(`onboarding.${STEPS[step]!.key}.title`) }}</h1>
-      <p class="body">{{ t(`onboarding.${STEPS[step]!.key}.body`) }}</p>
+      <h1 class="headline">{{ t('onboarding.headline') }}</h1>
+      <p class="lead">
+        {{ t('onboarding.lead', { count: routines.list.length }, routines.list.length) }}
+      </p>
+
+      <ul class="points">
+        <li v-for="(point, i) in points" :key="point.title" class="point" :style="{ '--i': i }">
+          <span class="point__icon"><component :is="point.icon" :size="20" :stroke-width="2" /></span>
+          <span class="point__body">
+            <span class="point__title">{{ point.title }}</span>
+            <span class="point__text">{{ point.text }}</span>
+          </span>
+        </li>
+      </ul>
     </div>
 
-    <div class="footer">
-      <div class="dots" role="presentation">
-        <span v-for="(_, i) in STEPS" :key="i" class="dot" :class="{ 'dot--active': i === step }" />
-      </div>
-      <button type="button" class="next" @click="next">
-        {{ isLast ? t('onboarding.getStarted') : t('onboarding.next') }}
-      </button>
-    </div>
+    <!-- `next` only so the existing capture scripts still find it. -->
+    <AppButton variant="primary" size="lg" block class="next" @click="finish">
+      {{ t('onboarding.getStarted') }}
+    </AppButton>
   </div>
 </template>
 
@@ -59,93 +62,82 @@ function next() {
   flex-direction: column;
   height: 100%;
   min-height: 100%;
-  padding: 24px;
+  padding: var(--space-6) var(--space-5);
   background: var(--color-background);
-}
-
-.skip {
-  align-self: flex-end;
-  border: none;
-  background: none;
-  padding: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-heading);
-  opacity: 0.7;
-  cursor: pointer;
 }
 
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: 16px;
-  padding: 0 8px;
+  gap: var(--space-3);
 }
 
-.icon {
-  display: grid;
-  place-items: center;
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-background-soft));
-}
-
-.title {
-  font-size: 22px;
-  font-weight: 800;
+.headline {
+  font-size: 34px;
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   color: var(--color-heading);
+  animation: onboarding-rise var(--motion-base) var(--ease-out) both;
 }
 
-.body {
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--color-heading);
-  opacity: 0.75;
-  max-width: 320px;
+.lead {
+  font-size: var(--text-body);
+  line-height: 1.45;
+  animation: onboarding-rise var(--motion-base) var(--ease-out) var(--motion-stagger) both;
 }
 
-.footer {
+.points {
+  list-style: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding-bottom: 16px;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding: 0;
 }
 
-.dots {
+.point {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 14px;
+  animation: onboarding-rise var(--motion-base) var(--ease-out) both;
+  animation-delay: calc(var(--motion-stagger) * (var(--i) + 2));
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
+.point__icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--size-touch);
+  height: var(--size-touch);
   border-radius: 50%;
-  background: var(--color-accent);
-  opacity: 0.25;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
 }
 
-.dot--active {
-  opacity: 1;
+.point__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.next {
-  width: 100%;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 14px 20px;
-  font-size: 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--label-tracking);
-  color: #fff;
-  background: var(--color-accent);
-  cursor: pointer;
+.point__title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--color-heading);
+}
+
+.point__text {
+  font-size: var(--text-small);
+  line-height: 1.4;
+}
+
+@keyframes onboarding-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 </style>

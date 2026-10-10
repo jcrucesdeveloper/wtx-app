@@ -2,11 +2,13 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, EllipsisVertical, Play, Share2, SquarePen, Users } from '@lucide/vue'
+import { EllipsisVertical, Play, Share2, SquarePen, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
-import StartRoutineButton from '@/components/routine/StartRoutineButton.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import QuietState from '@/components/ui/QuietState.vue'
+import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
@@ -44,11 +46,6 @@ function closeMenu() {
 onMounted(() => document.addEventListener('click', closeMenu))
 onBeforeUnmount(() => document.removeEventListener('click', closeMenu))
 
-function goBack() {
-  if (window.history.length > 1) router.back()
-  else router.replace('/')
-}
-
 function onPlay() {
   if (!routine.value) return
   startRoutine(routine.value.id)
@@ -84,37 +81,18 @@ function onDelete() {
 </script>
 
 <template>
-  <AppPage :title="result?.ok ? result.template.name : t('routineDetail.fallbackTitle')">
+  <AppPage sub fill :title="t('routineDetail.fallbackTitle')">
     <template #leading>
-      <button type="button" class="icon-btn" :aria-label="t('routineDetail.backAria')" @click="goBack">
-        <ArrowLeft :size="20" :stroke-width="2.25" />
-      </button>
+      <HeaderLink kind="back" />
     </template>
     <template v-if="routine && result" #actions>
-      <button
-        type="button"
-        class="icon-btn icon-btn--primary"
-        :aria-label="t('routineDetail.playAria')"
-        @click="onPlay"
-      >
-        <Play :size="18" :stroke-width="2.25" fill="currentColor" />
-      </button>
-      <button
-        type="button"
-        class="icon-btn"
-        :aria-label="t('routineDetail.playFriendsAria')"
-        :disabled="creatingRoom"
-        @click="onPlayWithFriends"
-      >
-        <Users :size="18" :stroke-width="2.25" />
-      </button>
       <button
         type="button"
         class="icon-btn"
         :aria-label="t('routineDetail.editAria')"
         @click="editOpen = true"
       >
-        <SquarePen :size="18" :stroke-width="2.25" />
+        <SquarePen :size="20" :stroke-width="2.25" />
       </button>
       <button
         type="button"
@@ -122,7 +100,7 @@ function onDelete() {
         :aria-label="t('routineDetail.shareAria')"
         @click="shareOpen = true"
       >
-        <Share2 :size="18" :stroke-width="2.25" />
+        <Share2 :size="20" :stroke-width="2.25" />
       </button>
       <div class="menu">
         <button
@@ -131,7 +109,7 @@ function onDelete() {
           :aria-label="t('routineDetail.optionsAria')"
           @click.stop="menuOpen = !menuOpen"
         >
-          <EllipsisVertical :size="18" :stroke-width="2.25" />
+          <EllipsisVertical :size="20" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
           <button type="button" class="menu__item menu__item--danger" @click="onDelete">
@@ -141,21 +119,48 @@ function onDelete() {
       </div>
     </template>
 
-    <p v-if="!routine" class="msg">{{ t('routineDetail.notFound') }}</p>
+    <QuietState
+      v-if="!routine"
+      :title="t('routineDetail.notFoundTitle')"
+      :hint="t('routineDetail.notFound')"
+    >
+      <AppButton @click="router.replace('/')">{{ t('routineDetail.backToTrain') }}</AppButton>
+    </QuietState>
 
     <template v-else-if="result">
       <div v-if="result.ok" class="stack">
-        <p v-if="result.template.notes" class="notes">{{ result.template.notes }}</p>
-        <RoutineSummary :template="result.template" />
+        <header class="head">
+          <h2 class="head__name">{{ result.template.name }}</h2>
+          <p v-if="result.template.notes" class="head__notes">{{ result.template.notes }}</p>
+          <RoutineSummary :template="result.template" />
+        </header>
 
         <ExerciseList :exercises="result.template.exercises" :unit="result.template.unit" />
 
-        <StartRoutineButton :routine-id="routine.id" />
+        <!-- The routine is a text file; this is it. -->
+        <section class="text">
+          <button type="button" class="text__toggle" @click="showSource = !showSource">
+            {{ showSource ? t('routineDetail.hideSource') : t('routineDetail.showSource') }}
+          </button>
+          <pre v-if="showSource" class="source">{{ routine.rawText }}</pre>
+        </section>
 
-        <button type="button" class="link" @click="showSource = !showSource">
-          {{ showSource ? t('routineDetail.hideSource') : t('routineDetail.showSource') }}
-        </button>
-        <pre v-if="showSource" class="source">{{ routine.rawText }}</pre>
+        <!-- Where the thumb is: start alone, or with someone. -->
+        <div class="dock">
+          <AppButton
+            size="lg"
+            :aria-label="t('routineDetail.playFriendsAria')"
+            :disabled="creatingRoom"
+            @click="onPlayWithFriends"
+          >
+            <Users :size="20" :stroke-width="2.25" />
+          </AppButton>
+          <!-- `start-btn` only so the existing capture scripts still find it. -->
+          <AppButton variant="primary" size="lg" block class="start-btn" @click="onPlay">
+            <Play :size="16" :stroke-width="2.5" fill="currentColor" />
+            {{ t('routine.startButton') }}
+          </AppButton>
+        </div>
       </div>
 
       <div v-else class="stack">
@@ -175,13 +180,13 @@ function onDelete() {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-touch);
+  height: var(--size-touch);
   flex-shrink: 0;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
+  border: none;
+  border-radius: 50%;
   color: var(--color-text);
+  background: transparent;
   cursor: pointer;
 }
 
@@ -189,104 +194,116 @@ function onDelete() {
   background: var(--color-background-mute);
 }
 
-/* Pull the back button to the visual edge so the tap target still feels inset. */
-.icon-btn:first-child {
-  margin-left: -4px;
-}
-
-.icon-btn--primary {
-  border-color: var(--color-accent);
-  background: var(--color-accent);
-  color: #fff;
-}
-
-.icon-btn--primary:active {
-  background: var(--color-accent);
-  opacity: 0.85;
-}
-
 .menu {
   position: relative;
+  margin-right: -10px;
 }
 
 .menu__panel {
   position: absolute;
   top: calc(100% + 4px);
-  right: 0;
+  right: 10px;
   z-index: 5;
   display: flex;
   flex-direction: column;
-  min-width: 160px;
-  padding: 4px;
-  border-radius: var(--radius-md);
+  min-width: 200px;
+  padding: var(--space-1);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-hover);
-  background: var(--color-background);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  background: var(--color-background-soft);
+  box-shadow: var(--elevation-overlay);
 }
 
 .menu__item {
+  min-height: var(--size-touch);
+  padding: 0 var(--space-3);
   border: none;
-  background: transparent;
-  color: var(--color-text);
-  font-size: 13px;
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: var(--weight-medium);
   text-align: left;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
+  color: var(--color-heading);
+  background: transparent;
   cursor: pointer;
 }
 
-.menu__item:hover,
-.menu__item:focus-visible {
-  background: var(--color-background-mute);
-}
-
 .menu__item--danger {
-  color: #e11d48;
+  color: var(--color-danger);
 }
 
 .stack {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-6);
 }
 
-.notes {
-  font-size: 14px;
-  opacity: 0.8;
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.msg {
-  font-size: 14px;
-  opacity: 0.7;
+.head__name {
+  font-size: var(--text-display);
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--color-heading);
 }
 
-.link {
-  align-self: flex-start;
+.head__notes {
+  margin-top: -6px;
+  font-size: var(--text-body);
+}
+
+.text__toggle {
+  min-height: var(--size-touch);
   border: none;
-  background: transparent;
-  color: var(--color-accent);
-  font-size: 13px;
-  font-weight: 600;
   padding: 0;
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 
 .source {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.5;
-  padding: 14px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-  overflow-x: auto;
-  white-space: pre;
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: var(--text-small);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.dock {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  margin: auto calc(var(--space-5) * -1) calc(var(--space-6) * -1);
+  padding: var(--space-3) var(--space-5) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.msg {
+  font-size: var(--text-body);
 }
 
 .error {
-  font-size: 13px;
-  color: #e11d48;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-small);
+  color: var(--color-danger);
 }
 </style>
