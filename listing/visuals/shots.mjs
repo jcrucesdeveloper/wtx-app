@@ -1,9 +1,8 @@
 // The store screenshot set, in order (the first two carry the most weight —
 // listing/research/01-aso-strategy.md). Each screen is a real frame of the
-// recorded app (listing/videos/build/clips*/, see capture-app.mjs), taken in
-// the same language as its headline.
+// recorded app (see clips.mjs), taken in the same language as its headline.
 //
-// clip/at: which take and moment (marker[+offset]), as in the video specs.
+// clip/at: which take and moment (marker[+offset]).
 // focus:   which part of the full-height capture the device frame shows.
 
 export const SHOTS = [

@@ -13,4 +13,4 @@ Specs: `research/04-asset-specs.md`. Shot list/content plan: `assets/checklist.m
       for es-419 and es-ES; 6 shots each.
 - [ ] (Optional) Tablet screenshots, same format rules
 - [x] (Optional) Short promo video URL (YouTube) — upload
-      `videos/out/youtube/wtx-promo-16x9.mp4` (English) per `videos/README.md`.
+      `videos/youtube/wtx-promo-16x9.mp4` (English) per `videos/README.md`.

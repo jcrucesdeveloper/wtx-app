@@ -1,8 +1,0 @@
-node_modules/
-build/
-# Regenerable sound-design-only variants — see README "Uploading"
-out/social/no-music/
-# Daily reels are re-rendered from their composition; only the source is committed
-out/daily/
-# Same for slideshows: the spec in slideshows/ is the source
-out/slideshows/
