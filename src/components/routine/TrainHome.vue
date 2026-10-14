@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 import { VueDraggable } from 'vue-draggable-plus'
-import { Download, GripVertical, Play, Plus, Trash2 } from '@lucide/vue'
+import { Download, GripVertical, Play, Plus, Star, Trash2 } from '@lucide/vue'
 import WeekStrip from '@/components/session/WeekStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
@@ -12,6 +12,7 @@ import { useUiStore } from '@/stores/ui'
 import { useStartRoutine } from '@/composables/useStartRoutine'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { formatClock } from '@/lib/format'
+import { HapticsService } from '@/services/haptics'
 import { sessionDateStrs } from '@/lib/sessionDates'
 import { computeWeekStreak, sessionsThisWeek, streakRepair } from '@/lib/sessionStats'
 
@@ -20,10 +21,11 @@ import { computeWeekStreak, sessionsThisWeek, streakRepair } from '@/lib/session
  *   1. one line of status (your week), never a box of empty dots on its own;
  *   2. the one thing to do, above the fold: continue the workout in progress,
  *      or start the routine that is next in your rotation;
- *   3. every other routine, each still one tap from starting;
+ *   3. your favourite routines, then every other one, each still one tap
+ *      from starting;
  *   4. the two ways to add a routine, as labelled buttons where the list ends.
- * Managing the list (reorder, delete) is a mode you enter with "Edit", so the
- * everyday screen carries no handles or bins.
+ * Managing the list (reorder, favourite, delete) is a mode you enter with
+ * "Edit", so the everyday screen carries no handles, stars to hit or bins.
  */
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -83,6 +85,7 @@ const items = computed(() =>
       : t('train.notDoneYet')
     return {
       id: routine.id,
+      favorite: routines.isFavorite(routine.id),
       name: result.ok ? result.template.name : routine.filename,
       ok: result.ok,
       // When each routine was last done sits on its row, so the rotation is
@@ -99,9 +102,15 @@ const items = computed(() =>
   }),
 )
 
-/** The routine trained longest ago (or never): the likeliest one to be next in a rotation. */
+/**
+ * The routine trained longest ago (or never): the likeliest one to be next in
+ * a rotation. Favourites, when there are any, are the rotation — otherwise a
+ * routine you keep around but never do would be suggested every single day.
+ */
 const next = computed(() => {
-  const startable = items.value.filter((item) => item.ok)
+  const ok = items.value.filter((item) => item.ok)
+  const favorites = ok.filter((item) => item.favorite)
+  const startable = favorites.length ? favorites : ok
   if (!startable.length) return undefined
   return startable.reduce((oldest, item) => ((item.lastAt ?? 0) < (oldest.lastAt ?? 0) ? item : oldest))
 })
@@ -112,6 +121,27 @@ const running = computed(() => (activeSession.isActive ? activeSession.session :
 const rows = computed(() =>
   running.value ? items.value : items.value.filter((item) => item.id !== next.value?.id),
 )
+
+/**
+ * Favourites get their own group above the rest, each keeping the order you
+ * gave the list: the routines you train most are the first rows under the
+ * hero however long the library grows, and it is plain why they are there.
+ */
+const groups = computed(() => {
+  const favorites = rows.value.filter((item) => item.favorite)
+  const others = rows.value.filter((item) => !item.favorite)
+  // The whole section's heading and its Edit button sit on the first group.
+  if (!favorites.length) return [{ key: 'all', title: t('routines.title'), items: others }]
+  return [
+    { key: 'favorites', title: t('train.favorites'), items: favorites },
+    ...(others.length ? [{ key: 'others', title: t('train.otherRoutines'), items: others }] : []),
+  ]
+})
+
+function toggleFavorite(id: string) {
+  routines.toggleFavorite(id)
+  void HapticsService.selection()
+}
 
 /** Edit mode lists every routine, the suggested one included, in its stored order. */
 const editing = ref(false)
@@ -180,16 +210,15 @@ function removeRoutine(id: string) {
       </button>
     </RouterLink>
 
-    <section v-if="rows.length || editing">
+    <section v-if="editing">
       <div class="heading-row">
         <h2 class="heading">{{ t('routines.title') }}</h2>
-        <button type="button" class="edit-toggle" @click="editing = !editing">
-          {{ editing ? t('sessionComplete.done') : t('train.edit') }}
+        <button type="button" class="edit-toggle" @click="editing = false">
+          {{ t('sessionComplete.done') }}
         </button>
       </div>
 
       <VueDraggable
-        v-if="editing"
         v-model="ordered"
         tag="ul"
         class="list"
@@ -207,6 +236,16 @@ function removeRoutine(id: string) {
           </span>
           <button
             type="button"
+            class="row__star"
+            :class="{ 'row__star--on': item.favorite }"
+            :aria-label="`${t(item.favorite ? 'routineDetail.unfavoriteAria' : 'routineDetail.favoriteAria')}: ${item.name}`"
+            :aria-pressed="item.favorite"
+            @click="toggleFavorite(item.id)"
+          >
+            <Star :size="20" :stroke-width="2" :fill="item.favorite ? 'currentColor' : 'none'" />
+          </button>
+          <button
+            type="button"
             class="row__delete"
             :aria-label="`${t('routineDetail.deleteRoutine')}: ${item.name}`"
             @click="removeRoutine(item.id)"
@@ -215,9 +254,18 @@ function removeRoutine(id: string) {
           </button>
         </li>
       </VueDraggable>
+    </section>
 
-      <ul v-else class="list">
-        <li v-for="item in rows" :key="item.id" class="row">
+    <section v-for="(group, i) in rows.length ? groups : []" v-else :key="group.key">
+      <div class="heading-row">
+        <h2 class="heading">{{ group.title }}</h2>
+        <button v-if="i === 0" type="button" class="edit-toggle" @click="editing = true">
+          {{ t('train.edit') }}
+        </button>
+      </div>
+
+      <ul class="list">
+        <li v-for="item in group.items" :key="item.id" class="row">
           <RouterLink :to="`/routines/${item.id}`" class="row__body">
             <span class="row__name">{{ item.name }}</span>
             <span class="row__meta">{{ item.meta }}</span>
@@ -381,6 +429,8 @@ function removeRoutine(id: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* The same height with or without the Edit button beside the heading. */
+  min-height: 44px;
 }
 
 .heading {
@@ -413,6 +463,28 @@ function removeRoutine(id: string) {
   color: var(--color-text);
   cursor: grab;
   touch-action: none;
+}
+
+/* A favourite is marked or unmarked here, away from the row's Start. */
+.row__star {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  color: var(--color-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.row__star--on {
+  color: var(--color-heading);
+}
+
+.row__star:active {
+  background: var(--color-background-mute);
 }
 
 .row__delete {
