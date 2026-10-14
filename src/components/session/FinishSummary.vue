@@ -28,8 +28,6 @@ const props = defineProps<{
   recap: SessionRecap | null
   /** Set when this workout was part of a group one, which has its own recap. */
   roomId?: string
-  /** The share text went to the clipboard (where there is no share sheet). */
-  shareCopied?: boolean
 }>()
 
 const emit = defineEmits<{ done: []; share: []; recap: [] }>()
@@ -242,7 +240,7 @@ const lines = computed(() =>
     <div class="dock">
       <button type="button" class="dock__share share-btn" @click="emit('share')">
         <Share2 :size="18" :stroke-width="2.25" />
-        {{ shareCopied ? t('sessionComplete.shareCopied') : t('finish.share') }}
+        {{ t('finish.share') }}
       </button>
       <button type="button" class="dock__done done-btn" @click="emit('done')">
         {{ t('sessionComplete.done') }}

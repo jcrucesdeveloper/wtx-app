@@ -4,17 +4,15 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppPage from '@/components/AppPage.vue'
 import FinishSummary from '@/components/session/FinishSummary.vue'
+import ShareWorkoutSheet from '@/components/session/ShareWorkoutSheet.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useSessionRecapStore } from '@/stores/sessionRecap'
-import { formatClock, formatNumber } from '@/lib/format'
 import { HapticsService } from '@/services/haptics'
 import { celebrationTier } from '@/lib/celebration'
 import { AdService } from '@/services/ads'
 import { AppReviewService } from '@/services/appReview'
-import { canShare, shareImage, shareLink } from '@/services/nativeShare'
-import { track } from '@/services/analytics'
 import { publicOrigin, publicRouteUrl } from '@/lib/publicUrl'
-import { renderWorkoutCard, type WorkoutCardData } from '@/lib/workoutCard'
+import { workoutCardContent, type WorkoutCardData } from '@/lib/workoutCard'
 import { useThemeStore } from '@/stores/theme'
 import { useExerciseName } from '@/composables/useExerciseName'
 
@@ -95,84 +93,33 @@ const shareText = computed(() => {
   return lines.join('\n')
 })
 
-/** What goes on the shared image: the headline numbers plus the top record, or the streak. */
+/** What goes on the shared image: the numbers, the lifts, and the top record or the streak. */
 const cardData = computed<WorkoutCardData | null>(() => {
   if (!result.value?.ok) return null
   const session = result.value.session
-  const stats = [
-    ...(recap.value
-      ? [{ value: formatClock(recap.value.elapsedSeconds), label: t('sessionComplete.time') }]
-      : []),
-    { value: String(session.exerciseCount), label: t('sessionComplete.exercises') },
-    { value: String(session.totalWorkingSets), label: t('sessionComplete.sets') },
-    ...(session.totalVolume > 0
-      ? [
-          {
-            value: formatNumber(session.totalVolume),
-            label: t('sessionComplete.volumeUnit', { unit: session.unit }),
-          },
-        ]
-      : []),
-  ]
-  const topPr = recap.value?.personalRecords[0]
-  let highlight: WorkoutCardData['highlight']
-  if (topPr) {
-    highlight = {
-      label: t('sessionComplete.cardPr'),
-      text: `${exerciseName(topPr.exerciseName)} · ${topPr.weight} ${session.unit} × ${topPr.reps}`,
-    }
-  } else if (recap.value && recap.value.weekStreak >= 2) {
-    highlight = {
-      label: t('sessionComplete.cardStreakLabel'),
-      text: t('sessionComplete.cardStreak', { weeks: recap.value.weekStreak }),
-    }
-  }
-  return {
-    eyebrow: t('sessionComplete.workoutComplete'),
-    title: session.name,
-    stats,
-    highlight,
-    footer: t('sessionComplete.cardFooter'),
+  return workoutCardContent({
+    session,
+    recap: recap.value,
+    exerciseName,
     host: new URL(publicOrigin()).host,
     accent: theme.accent,
-  }
+    labels: {
+      eyebrow: t('sessionComplete.workoutComplete'),
+      time: t('sessionComplete.time'),
+      sets: t('sessionComplete.sets'),
+      exercises: t('sessionComplete.exercises'),
+      volume: t('sessionComplete.volumeUnit', { unit: session.unit }),
+      record: t('sessionComplete.cardPr'),
+      recordMark: t('sessionComplete.cardRecordMark'),
+      streakLabel: t('sessionComplete.cardStreakLabel'),
+      streak: (weeks) => t('sessionComplete.cardStreak', { weeks }),
+      more: (count) => t('sessionComplete.cardMore', { count }),
+    },
+  })
 })
 
-const canNativeShare = canShare()
-const shareCopied = ref(false)
-
-/** Shares the workout as an image. Resolves `false` where images can't be shared. */
-async function shareCard(): Promise<boolean> {
-  if (!cardData.value) return false
-  try {
-    const png = await renderWorkoutCard(cardData.value)
-    const shared = await shareImage(png, 'wtx-workout.png', 'image/png', shareText.value)
-    if (shared) track('workout_card_shared')
-    return shared
-  } catch (err) {
-    console.error('[share] workout card failed', err)
-    return false
-  }
-}
-
-async function share() {
-  if (await shareCard()) return
-  if (canNativeShare) {
-    try {
-      await shareLink({ text: shareText.value })
-    } catch {
-      /* user dismissed the share sheet, or it's unavailable */
-    }
-    return
-  }
-  try {
-    await navigator.clipboard.writeText(shareText.value)
-    shareCopied.value = true
-    setTimeout(() => (shareCopied.value = false), 1500)
-  } catch {
-    /* clipboard blocked */
-  }
-}
+/** Sharing opens a preview first: nothing leaves the phone that wasn't looked at. */
+const shareOpen = ref(false)
 </script>
 
 <template>
@@ -188,10 +135,16 @@ async function share() {
       :session="result.session"
       :recap="recap"
       :room-id="stored.roomId"
-      :share-copied="shareCopied"
       @done="onDone"
-      @share="share"
+      @share="shareOpen = true"
       @recap="router.push({ name: 'room-recap', params: { id: stored.roomId } })"
+    />
+
+    <ShareWorkoutSheet
+      :open="shareOpen"
+      :data="cardData"
+      :caption="shareText"
+      @close="shareOpen = false"
     />
   </AppPage>
 </template>

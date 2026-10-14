@@ -386,11 +386,28 @@
     "shareStats": "{sets} series · {exercises} ejercicios",
     "sharePr": "Nuevo récord en {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks} semanas de racha 🔥",
-    "shareCopied": "¡Copiado!",
-    "cardFooter": "Registrado con WTX",
+    "cardMore": "+{count} más",
+    "cardRecordMark": "PR",
     "cardPr": "Nuevo récord",
     "cardStreak": "{weeks} semanas de racha",
     "cardStreakLabel": "Racha"
+  },
+  "shareCard": {
+    "title": "Compartir entrenamiento",
+    "previewAria": "Vista previa de la imagen que vas a compartir",
+    "styleAria": "Estilo de la imagen",
+    "style": {
+      "card": "Ejercicios",
+      "photo": "Foto",
+      "sticker": "Sticker"
+    },
+    "hint": {
+      "card": "Una tarjeta para historias con tus números y tu mejor serie de cada ejercicio.",
+      "photo": "Tus números sobre una foto tuya. La foto no sale de tu teléfono hasta que la compartes.",
+      "sticker": "Solo los números, con fondo transparente. Guárdalo y añádelo sobre una foto o un video desde tu galería."
+    },
+    "choosePhoto": "Elegir una foto",
+    "changePhoto": "Cambiar foto"
   },
   "sessionDetail": {
     "title": "Entrenamiento",

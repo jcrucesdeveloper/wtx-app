@@ -386,11 +386,28 @@
     "shareStats": "{sets} sets · {exercises} exercises",
     "sharePr": "New PR on {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks}-week streak going 🔥",
-    "shareCopied": "Copied!",
-    "cardFooter": "Logged with WTX",
+    "cardMore": "+{count} more",
+    "cardRecordMark": "PR",
     "cardPr": "New PR",
     "cardStreak": "{weeks}-week streak",
     "cardStreakLabel": "Streak"
+  },
+  "shareCard": {
+    "title": "Share workout",
+    "previewAria": "Preview of the image you are about to share",
+    "styleAria": "Image style",
+    "style": {
+      "card": "Lifts",
+      "photo": "Photo",
+      "sticker": "Sticker"
+    },
+    "hint": {
+      "card": "A story card with your numbers and your best set of each exercise.",
+      "photo": "Your numbers over a photo of your own. The photo stays on your phone until you share it.",
+      "sticker": "Only the numbers, on a transparent background. Save it, then add it over a photo or video from your gallery."
+    },
+    "choosePhoto": "Choose a photo",
+    "changePhoto": "Change photo"
   },
   "sessionDetail": {
     "title": "Workout",
