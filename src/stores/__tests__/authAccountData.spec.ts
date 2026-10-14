@@ -19,7 +19,7 @@ vi.mock('@/services/supabase', () => {
   return {
     supabase: null,
     isSupabaseConfigured: true,
-    requireSupabase: () => ({ auth, from }),
+    requireSupabase: () => ({ auth, from, rpc: () => Promise.resolve({ data: null, error: null }) }),
   }
 })
 vi.mock('@/lib/exercises/imageCache', () => ({ warmExerciseImages: () => Promise.resolve() }))

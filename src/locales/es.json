@@ -34,20 +34,33 @@
     "restOver": "Descanso terminado. Vamos.",
     "exerciseOf": "Ejercicio {n} de {total}",
     "setOf": "Serie {n} de {total}",
-    "lastTimeSet": "la última vez {weight} × {reps}",
+    "typedSetOf": "{type} {n} de {total}",
     "less": "Menos",
     "more": "Más",
     "logSet": "Registrar serie {n}",
+    "logSetType": {
+      "W": "Registrar calentamiento",
+      "D": "Registrar serie descendente"
+    },
     "nextExercise": "Siguiente: {name}",
     "finishWorkout": "Terminar entrenamiento",
-    "upNext": "A continuación",
-    "planSet": "plan {weight} × {reps}",
     "setType": {
       "number": "Serie efectiva",
       "W": "Calentamiento",
       "D": "Serie descendente"
     },
-    "setTypeAria": "Cambiar el tipo de serie"
+    "setTypeAria": "Cambiar el tipo de serie",
+    "previousExercise": "Ejercicio anterior",
+    "followingExercise": "Ejercicio siguiente",
+    "overview": "Resumen del entrenamiento",
+    "overviewNow": "Ahora",
+    "setColumn": "Serie",
+    "previousColumn": "Anterior",
+    "noSets": "Aún no hay series. Añade una para empezar a registrar.",
+    "changeExercise": "Cambiar ejercicio",
+    "changeExerciseHint": "Cámbialo por otro. Sus series empiezan vacías.",
+    "removeExerciseHint": "Solo de este entrenamiento, no de la rutina.",
+    "changeConfirm": "¿Cambiar {from} por {to}? Se eliminará la {count} serie que registraste en {from}. | ¿Cambiar {from} por {to}? Se eliminarán las {count} series que registraste en {from}."
   },
   "finish": {
     "newPlate": "Nuevo disco",
@@ -338,7 +351,6 @@
   "activeSession": {
     "fallbackTitle": "Entrenamiento",
     "backAria": "Atrás",
-    "groupAria": "Iniciar entrenamiento en grupo",
     "optionsAria": "Opciones de entrenamiento",
     "addExercise": "Añadir ejercicio",
     "reorderExercises": "Reordenar ejercicios",
@@ -403,7 +415,6 @@
     "groupThisWeek": "Esta semana",
     "groupLastWeek": "La semana pasada",
     "groupEarlier": "Anteriores",
-    "done": "Listo",
     "partial": "Parcial",
     "error": "Error",
     "exercises": "{count} ejercicios",
@@ -684,6 +695,7 @@
     "cameraUnavailable": "Cámara no disponible. Escribe el código.",
     "codeLabel": "Código de sala",
     "progressTitle": "Tu grupo",
+    "openRoomAria": "Abrir la sala del grupo",
     "setsDone": "{count} series",
     "recapTitle": "Resumen del grupo",
     "sets": "Series",

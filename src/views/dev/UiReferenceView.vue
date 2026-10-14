@@ -29,6 +29,8 @@ const COLORS = [
   ['--color-accent', 'The one action, and progress'],
   ['--color-on-accent', 'Ink on the accent'],
   ['--color-danger', 'Destructive, as text'],
+  ['--color-set-warmup', 'A warm-up set, beside its letter'],
+  ['--color-set-drop', 'A drop set, beside its letter'],
 ] as const
 
 const TYPE = [

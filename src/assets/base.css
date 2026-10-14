@@ -32,6 +32,14 @@
 
   /* Destructive actions and errors. Always text or an outline, never a fill. */
   --color-danger: #e5484d;
+
+  /* What kind of set a row is. A working set needs no colour; a warm-up and a
+     drop set each get an ink and the tint it sits on. Always beside a letter
+     or a label, never the only signal. */
+  --color-set-warmup: #e9a13b;
+  --color-set-warmup-soft: rgba(233, 161, 59, 0.16);
+  --color-set-drop: #a995f5;
+  --color-set-drop-soft: rgba(169, 149, 245, 0.18);
 }
 
 @media (prefers-color-scheme: light) {
@@ -44,6 +52,10 @@
     --color-heading: #141416;
     --color-text: rgba(20, 20, 22, 0.62);
     --color-danger: #d5303a;
+    --color-set-warmup: #9a5a00;
+    --color-set-warmup-soft: rgba(196, 122, 10, 0.14);
+    --color-set-drop: #5f3fc4;
+    --color-set-drop-soft: rgba(95, 63, 196, 0.11);
   }
 }
 
@@ -56,6 +68,10 @@
   --color-heading: #141416;
   --color-text: rgba(20, 20, 22, 0.62);
   --color-danger: #d5303a;
+  --color-set-warmup: #9a5a00;
+  --color-set-warmup-soft: rgba(196, 122, 10, 0.14);
+  --color-set-drop: #5f3fc4;
+  --color-set-drop-soft: rgba(95, 63, 196, 0.11);
 }
 
 :root {
