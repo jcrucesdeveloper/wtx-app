@@ -40,6 +40,7 @@
     "less": "Menos",
     "more": "Más",
     "logSet": "Registrar serie {n}",
+    "doneEditing": "Listo",
     "logSetType": {
       "W": "Registrar calentamiento",
       "D": "Registrar serie descendente"
