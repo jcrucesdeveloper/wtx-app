@@ -1,4 +1,4 @@
-rdiv align="center">
+<div align="center">
   <img src="listing/visuals/png/icon.png" alt="wtx icon" width="96" height="96">
 
   # wtx
@@ -250,8 +250,10 @@ Both are optional and off by default.
   system sheet, from the third workout on and at most once every 90 days.
   Native only; needs `pnpm cap:sync` for `@capacitor-community/in-app-review`.
 - **Workout card** (`src/lib/workoutCard.ts`). The share button on the finish
-  screen shares a 1080×1920 image of the workout with the app's name and
-  address on it, and falls back to text where images can't be shared.
+  screen opens a preview and shares an image of the workout with the app's
+  name and address on it: a 1080×1920 story card, the same numbers over a
+  photo of your own, or a transparent sticker. Where images can't be shared
+  it is saved instead.
 
 ### Reminders
 
