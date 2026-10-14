@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, EllipsisVertical, Users } from '@lucide/vue'
+import { ArrowLeft, EllipsisVertical } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import FocusSession from '@/components/session/FocusSession.vue'
 import ReorderExercisesSheet from '@/components/session/ReorderExercisesSheet.vue'
@@ -106,12 +106,6 @@ function onFinishSheetChoice(options: FinishSessionOptions) {
 }
 
 const roomId = computed(() => activeSession.session?.roomId)
-
-/** In a group workout this opens its room; otherwise Friends, where group workouts start. */
-function onStartGroupWorkout() {
-  if (roomId.value) router.push({ name: 'room-lobby', params: { id: roomId.value } })
-  else router.push({ name: 'social' })
-}
 </script>
 
 <template>
@@ -127,14 +121,6 @@ function onStartGroupWorkout() {
       </button>
     </template>
     <template v-if="draft" #actions>
-      <button
-        type="button"
-        class="icon-btn"
-        :aria-label="t('activeSession.groupAria')"
-        @click="onStartGroupWorkout"
-      >
-        <Users :size="20" :stroke-width="2.25" />
-      </button>
       <div class="menu">
         <button
           type="button"
@@ -172,6 +158,7 @@ function onStartGroupWorkout() {
     </p>
 
     <template v-else-if="draft">
+      <!-- In a group workout, the strip is also the way into its room. -->
       <GroupProgressStrip v-if="roomId" :room-id="roomId" />
 
       <FocusSession :fresh="fresh" @finish="onFinish" />

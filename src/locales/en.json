@@ -34,20 +34,33 @@
     "restOver": "Rest over. Go.",
     "exerciseOf": "Exercise {n} of {total}",
     "setOf": "Set {n} of {total}",
-    "lastTimeSet": "last time {weight} × {reps}",
+    "typedSetOf": "{type} {n} of {total}",
     "less": "Less",
     "more": "More",
     "logSet": "Log set {n}",
+    "logSetType": {
+      "W": "Log warm-up",
+      "D": "Log drop set"
+    },
     "nextExercise": "Next: {name}",
     "finishWorkout": "Finish workout",
-    "upNext": "Up next",
-    "planSet": "plan {weight} × {reps}",
     "setType": {
       "number": "Working set",
       "W": "Warm-up",
       "D": "Drop set"
     },
-    "setTypeAria": "Change set type"
+    "setTypeAria": "Change set type",
+    "previousExercise": "Previous exercise",
+    "followingExercise": "Next exercise",
+    "overview": "Workout overview",
+    "overviewNow": "Now",
+    "setColumn": "Set",
+    "previousColumn": "Previous",
+    "noSets": "No sets yet. Add one to start logging.",
+    "changeExercise": "Change exercise",
+    "changeExerciseHint": "Swap it for another one. Its sets start empty.",
+    "removeExerciseHint": "From this workout only, not the routine.",
+    "changeConfirm": "Swap {from} for {to}? The {count} set you logged for {from} will be removed. | Swap {from} for {to}? The {count} sets you logged for {from} will be removed."
   },
   "finish": {
     "newPlate": "New plate",
@@ -338,7 +351,6 @@
   "activeSession": {
     "fallbackTitle": "Workout",
     "backAria": "Back",
-    "groupAria": "Start group workout",
     "optionsAria": "Workout options",
     "addExercise": "Add exercise",
     "reorderExercises": "Reorder exercises",
@@ -403,7 +415,6 @@
     "groupThisWeek": "This week",
     "groupLastWeek": "Last week",
     "groupEarlier": "Earlier",
-    "done": "Done",
     "partial": "Partial",
     "error": "Error",
     "exercises": "{count} exercises",
@@ -684,6 +695,7 @@
     "cameraUnavailable": "Camera unavailable. Type the code instead.",
     "codeLabel": "Room code",
     "progressTitle": "Your group",
+    "openRoomAria": "Open the group room",
     "setsDone": "{count} sets",
     "recapTitle": "Group recap",
     "sets": "Sets",
