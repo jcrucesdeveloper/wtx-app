@@ -1,7 +1,7 @@
 import type { StoredRoutine } from '@/stores/routines'
 import type { StoredSession } from '@/stores/sessions'
 import { parseSessionText } from '@/lib/parseSession'
-import type { WorkoutSession } from '@/lib/wtx'
+import type { WorkoutSession, WorkoutSessionExercise } from '@/lib/wtx'
 
 /**
  * Finds the most recent completed session for a routine, for "last time"
@@ -36,4 +36,24 @@ export function findLastSessionForRoutine(
     .sort((a, b) => b.addedAt - a.addedAt)[0]
 
   return byFilename?.parsed.session
+}
+
+/**
+ * The most recent time an exercise was logged, in any routine — matched by
+ * name the way "last time" prefill matches everywhere (trimmed, case-insensitive).
+ */
+export function findLastLoggedExercise(
+  sessions: StoredSession[],
+  name: string,
+): WorkoutSessionExercise | undefined {
+  const target = name.trim().toLowerCase()
+  for (const stored of [...sessions].sort((a, b) => b.addedAt - a.addedAt)) {
+    const parsed = parseSessionText(stored.rawText)
+    if (!parsed.ok) continue
+    const match = parsed.session.exercises.find(
+      (e) => e.name.trim().toLowerCase() === target && e.loggedSets.length > 0,
+    )
+    if (match) return match
+  }
+  return undefined
 }

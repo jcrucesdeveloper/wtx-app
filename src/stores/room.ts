@@ -57,7 +57,7 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K>
 const nameKey = (name: string) => name.trim().toLowerCase()
 
 /** Active-session actions that change a set the room should know about. */
-const SET_ACTIONS = new Set(['completeSet', 'uncompleteSet', 'updateSet', 'cycleSetType', 'removeSet', 'removeExercise'])
+const SET_ACTIONS = new Set(['completeSet', 'uncompleteSet', 'updateSet', 'cycleSetType', 'removeSet', 'removeExercise', 'replaceExercise'])
 
 const ROOM_ERROR_CODES = ['room_not_found', 'room_full', 'not_authenticated', 'rate_limited'] as const
 
@@ -551,7 +551,8 @@ export const useRoomStore = defineStore('room', () => {
     if (!roomId || !myId.value) return
     const exercises = activeSession.session?.draft.exercises ?? []
 
-    if (name === 'removeExercise') {
+    // Either way the sets logged under that exercise are gone from the workout.
+    if (name === 'removeExercise' || name === 'replaceExercise') {
       const doneIds = (exercises[args[0] as number]?.loggedSets ?? []).filter((s) => s.completed).map((s) => s.id)
       after(() => doneIds.forEach((id) => deleteSet(roomId, id)))
       return

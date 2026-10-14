@@ -11,6 +11,7 @@ import {
 } from '@/lib/serializeSession'
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import type { StoredRoutine } from '@/stores/routines'
+import { findLastLoggedExercise } from '@/lib/sessionMatch'
 import type { WorkoutTemplate } from '@/lib/wtx'
 import { HapticsService } from '@/services/haptics'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
@@ -237,6 +238,51 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   }
 
   /**
+   * Swaps the exercise at `index` for another one, in place — the machine is
+   * taken, so something else goes in its slot. The slot keeps its shape (how
+   * many sets, which are warm-ups or drop sets, the rest between them), but
+   * nothing logged carries over: a weight lifted on one movement is not a
+   * weight lifted on another, and would end up in the wrong exercise's
+   * history and records. Callers own the confirmation when sets are logged.
+   *
+   * Each set comes back empty, prefilled as a placeholder with the last time
+   * the new exercise was logged, if it ever was. Only this session is
+   * affected — the routine it was started from is untouched.
+   */
+  function replaceExercise(index: number, name: string) {
+    const exercise = session.value?.draft.exercises[index]
+    if (!session.value || !exercise) return
+    if (session.value.restExerciseIndex === index) skipRestTimer()
+
+    const last = findLastLoggedExercise(useSessionsStore().sessions, name)
+    const lastWorking = last?.workingSets ?? []
+    const lastWarmup = last?.warmupSets ?? []
+    let workingCursor = 0
+    let warmupCursor = 0
+
+    exercise.name = name
+    exercise.weight = last?.topSet?.weight ?? 0
+    exercise.note = ''
+    // New ids: these are new sets, not the old ones edited.
+    exercise.loggedSets = exercise.loggedSets.map((set) => {
+      const ghost =
+        set.type === 'W'
+          ? (lastWarmup[warmupCursor++] ?? lastWarmup[lastWarmup.length - 1])
+          : (lastWorking[workingCursor++] ?? lastWorking[lastWorking.length - 1])
+      return {
+        id: newSetId(),
+        type: set.type,
+        weight: null,
+        reps: null,
+        completed: false,
+        ...(ghost
+          ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true }
+          : {}),
+      }
+    })
+  }
+
+  /**
    * Reorders the in-progress session's exercises. Only this session is
    * affected — the routine/template it was started from is untouched.
    */
@@ -334,6 +380,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     updateNote,
     addExercise,
     removeExercise,
+    replaceExercise,
     reorderExercises,
     startRestTimer,
     skipRestTimer,
