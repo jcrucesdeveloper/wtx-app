@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { EllipsisVertical, Play, Share2, SquarePen, Users } from '@lucide/vue'
+import { EllipsisVertical, Play, Share2, SquarePen, Star, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
@@ -17,6 +17,7 @@ import { useAuthStore } from '@/stores/auth'
 import { RoomError, useRoomStore } from '@/stores/room'
 import { isSupabaseConfigured } from '@/services/supabase'
 import { parseTemplateText } from '@/lib/parseRoutine'
+import { HapticsService } from '@/services/haptics'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -34,6 +35,13 @@ const shareName = computed(() => {
   if (!routine.value) return ''
   return result.value?.ok ? result.value.template.name : routine.value.filename
 })
+
+const favorite = computed(() => routines.isFavorite(id.value))
+
+function toggleFavorite() {
+  routines.toggleFavorite(id.value)
+  void HapticsService.selection()
+}
 
 const showSource = ref(false)
 const shareOpen = ref(false)
@@ -86,6 +94,16 @@ function onDelete() {
       <HeaderLink kind="back" />
     </template>
     <template v-if="routine && result" #actions>
+      <button
+        type="button"
+        class="icon-btn"
+        :class="{ 'icon-btn--on': favorite }"
+        :aria-label="t(favorite ? 'routineDetail.unfavoriteAria' : 'routineDetail.favoriteAria')"
+        :aria-pressed="favorite"
+        @click="toggleFavorite"
+      >
+        <Star :size="20" :stroke-width="2.25" :fill="favorite ? 'currentColor' : 'none'" />
+      </button>
       <button
         type="button"
         class="icon-btn"
@@ -192,6 +210,11 @@ function onDelete() {
 
 .icon-btn:active {
   background: var(--color-background-mute);
+}
+
+/* A favourite: the star is filled, in the ink that leads. */
+.icon-btn--on {
+  color: var(--color-heading);
 }
 
 .menu {

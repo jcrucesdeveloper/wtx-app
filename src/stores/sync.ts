@@ -197,7 +197,10 @@ export const useSyncStore = defineStore('sync', () => {
     const routineMap: Record<string, string> = {}
     for (const r of routines.routines) if (!isUuid(r.id)) routineMap[r.id] = newUuid()
     if (Object.keys(routineMap).length) {
-      routines.applyRemote(routines.routines.map((r) => (routineMap[r.id] ? { ...r, id: routineMap[r.id]! } : r)))
+      routines.applyRemote(
+        routines.routines.map((r) => (routineMap[r.id] ? { ...r, id: routineMap[r.id]! } : r)),
+        routineMap,
+      )
       state.value.routinesDirty = true
     }
 

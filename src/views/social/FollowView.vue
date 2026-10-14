@@ -2,11 +2,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, UserMinus } from '@lucide/vue'
+import { ArrowLeft } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import BottomSheet from '@/components/ui/BottomSheet.vue'
+import UserAvatar from '@/components/social/UserAvatar.vue'
 import FollowMeCard from '@/components/social/FollowMeCard.vue'
 import { FollowError, useFeedStore } from '@/stores/feed'
 import { useAuthStore } from '@/stores/auth'
+import { HapticsService } from '@/services/haptics'
 import {
   FOLLOW_CODE_LENGTH,
   buildFollowUrl,
@@ -28,7 +32,12 @@ const followUrl = computed(() =>
 const code = ref('')
 const following = ref(false)
 const error = ref('')
-const followedName = ref('')
+/**
+ * Who was just followed. Following is one tap with no preview, so the answer
+ * has to be impossible to miss and has to say who: it opens over the screen
+ * and stays until it is dismissed.
+ */
+const followed = ref<{ id: string; name: string } | null>(null)
 
 const normalized = computed(() => normalizeFollowCode(code.value))
 const canFollow = computed(() => isValidFollowCode(normalized.value) && !following.value)
@@ -38,18 +47,17 @@ function onInput(event: Event) {
   code.value = normalizeFollowCode(input.value).slice(0, FOLLOW_CODE_LENGTH)
   input.value = code.value
   error.value = ''
-  followedName.value = ''
 }
 
 async function follow(value = normalized.value) {
   if (!isValidFollowCode(value) || following.value) return
   following.value = true
   error.value = ''
-  followedName.value = ''
   try {
     const profile = await feed.followByCode(value)
-    followedName.value = profile.display_name
+    followed.value = { id: profile.id, name: profile.display_name }
     code.value = ''
+    void HapticsService.success()
   } catch (e) {
     error.value = t(`social.follow.errors.${e instanceof FollowError ? e.code : 'unknown'}`)
   } finally {
@@ -58,13 +66,18 @@ async function follow(value = normalized.value) {
 }
 
 onMounted(() => {
-  void feed.loadFollowing()
   const fromLink = typeof route.query.follow === 'string' ? normalizeFollowCode(route.query.follow) : ''
   if (isValidFollowCode(fromLink)) {
     code.value = fromLink
     void follow(fromLink)
   }
 })
+
+function viewFollowed() {
+  const id = followed.value?.id
+  followed.value = null
+  if (id) void router.push({ name: 'profile', params: { id } })
+}
 
 function goBack() {
   if (window.history.length > 1) router.back()
@@ -101,34 +114,32 @@ function goBack() {
           />
         </label>
 
-        <p v-if="error" class="error">{{ error }}</p>
-        <p v-else-if="followedName" class="success">{{ t('social.follow.nowFollowing', { name: followedName }) }}</p>
+        <p v-if="error" class="error" role="alert">{{ error }}</p>
 
         <button type="submit" class="primary" :disabled="!canFollow">
           {{ following ? t('social.follow.following') : t('social.follow.follow') }}
         </button>
       </form>
 
-      <section class="list">
-        <h2 class="list__title">{{ t('social.follow.followingTitle') }}</h2>
-        <p v-if="!feed.followingLoading && feed.following.length === 0" class="list__empty">
-          {{ t('social.follow.followingEmpty') }}
-        </p>
-        <ul v-else class="list__items">
-          <li v-for="user in feed.following" :key="user.id" class="list__row">
-            <span class="list__name">{{ user.displayName }}</span>
-            <button
-              type="button"
-              class="unfollow"
-              :aria-label="t('social.follow.unfollowAria', { name: user.displayName })"
-              @click="feed.unfollow(user.id).catch(() => {})"
-            >
-              <UserMinus :size="16" :stroke-width="2.25" />
-            </button>
-          </li>
-        </ul>
-      </section>
     </div>
+
+    <!-- Unfollowing is deliberately not on this screen: it lives on the
+         person's profile and in your connections, behind a confirmation. -->
+    <BottomSheet
+      :open="followed !== null"
+      :title="t('social.follow.followedTitle')"
+      @close="followed = null"
+    >
+      <div v-if="followed" class="followed" role="status">
+        <UserAvatar :id="followed.id" :name="followed.name" :size="72" />
+        <p class="followed__name">{{ followed.name }}</p>
+        <p class="followed__hint">{{ t('social.follow.followedHint', { name: followed.name }) }}</p>
+      </div>
+      <AppButton variant="primary" size="lg" block @click="followed = null">
+        {{ t('social.follow.followedDone') }}
+      </AppButton>
+      <AppButton block @click="viewFollowed">{{ t('social.follow.viewProfile') }}</AppButton>
+    </BottomSheet>
   </AppPage>
 </template>
 
@@ -194,11 +205,27 @@ function goBack() {
   text-align: center;
 }
 
-.success {
-  font-size: 13px;
-  color: #16a34a;
+.followed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0 var(--space-3);
   text-align: center;
-  font-weight: 600;
+}
+
+.followed__name {
+  margin-top: var(--space-2);
+  font-size: var(--text-display);
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--color-heading);
+  overflow-wrap: anywhere;
+}
+
+.followed__hint {
+  font-size: var(--text-small);
 }
 
 .primary {
@@ -216,64 +243,6 @@ function goBack() {
 .primary:disabled {
   opacity: 0.5;
   cursor: default;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.list__title {
-  font-size: var(--text-body);
-  font-weight: 700;
-  color: var(--color-heading);
-}
-
-.list__empty {
-  font-size: 13px;
-  opacity: 0.6;
-}
-
-.list__items {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0;
-}
-
-.list__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-}
-
-.list__name {
-  font-weight: 600;
-  color: var(--color-heading);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.unfollow {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--color-background-mute);
-  color: var(--color-text);
-  opacity: 0.7;
-  cursor: pointer;
 }
 
 .sr-only {
