@@ -93,12 +93,15 @@ const currentSetLine = computed(() => {
   return sameType.length > 1 ? t('workout.typedSetOf', { type, n, total: sameType.length }) : type
 })
 
-/** Set when the user taps a later set to do it out of order. */
+/**
+ * Set when the user taps a row: a later set to do it out of order, or one
+ * already logged to correct its numbers.
+ */
 const pickedSetId = ref<string | null>(null)
 
 const currentSet = computed(() => {
-  const open = labeledSets.value.filter(({ set }) => !set.completed)
-  return open.find(({ set }) => set.id === pickedSetId.value) ?? open[0]
+  const picked = labeledSets.value.find(({ set }) => set.id === pickedSetId.value)
+  return picked ?? labeledSets.value.find(({ set }) => !set.completed)
 })
 
 /** What the set will be logged as: typed value, else last time's, else the plan. */
@@ -223,9 +226,14 @@ function toggleSet(row: (typeof labeledSets.value)[number]) {
   void HapticsService.selection()
 }
 
-/** Tapping an open row makes it the set you're on. */
+/**
+ * Tapping a row, anywhere on it, makes it the set you're on. A logged set
+ * stays logged: its numbers can be corrected in place.
+ */
 function pickSet(set: SessionSetDraft) {
-  if (!set.completed) pickedSetId.value = set.id
+  if (pickedSetId.value === set.id) return
+  pickedSetId.value = set.id
+  void HapticsService.selection()
 }
 
 /** Working set, warm-up or drop set — tapping the label steps through them. */
@@ -300,14 +308,16 @@ function focusExercise(index: number) {
  * The one button: log the set, move on once an exercise is done, finish at
  * the end. An exercise left with no sets can only be given one.
  */
-const primary = computed<'log' | 'add' | 'next' | 'finish'>(() => {
-  if (currentSet.value) return 'log'
+const primary = computed<'log' | 'edited' | 'add' | 'next' | 'finish'>(() => {
+  // A logged set opened to correct it: the button closes it again.
+  if (currentSet.value) return currentSet.value.set.completed ? 'edited' : 'log'
   if (current.value?.loggedSets.length === 0) return 'add'
   return allDone.value ? 'finish' : 'next'
 })
 
 function onPrimary() {
   if (primary.value === 'log') logSet()
+  else if (primary.value === 'edited') pickedSetId.value = null
   else if (primary.value === 'add') activeSession.addSet(currentIndex.value)
   else if (primary.value === 'next') pickedIndex.value = null
   else emit('finish')
@@ -550,13 +560,13 @@ function onNoteInput(event: Event) {
               'set--current': row.set.id === currentSet?.set.id,
               'set--just': row.set.id === justLoggedId,
             }"
+            @click="pickSet(row.set)"
           >
+            <!-- The whole row picks the set; the button is what a keyboard or screen reader uses. -->
             <button
               type="button"
               class="set__main"
-              :disabled="row.set.completed"
               :aria-current="row.set.id === currentSet?.set.id ? 'true' : undefined"
-              @click="pickSet(row.set)"
             >
               <span
                 class="set__tag"
@@ -588,7 +598,7 @@ function onNoteInput(event: Event) {
               class="set__done"
               :aria-label="t('session.activeSetRow.markCompleteAria')"
               :aria-pressed="row.set.completed"
-              @click="toggleSet(row)"
+              @click.stop="toggleSet(row)"
             >
               <span class="set__mark">
                 <Check v-if="row.set.completed" :size="16" :stroke-width="3" />
@@ -636,7 +646,7 @@ function onNoteInput(event: Event) {
       </div>
       <!-- `row__check` only so the existing capture scripts still find it. -->
       <AppButton
-        :variant="primary === 'next' || primary === 'add' ? 'quiet' : 'primary'"
+        :variant="primary === 'log' || primary === 'finish' ? 'primary' : 'quiet'"
         size="lg"
         block
         class="primary-action"
@@ -650,6 +660,10 @@ function onNoteInput(event: Event) {
               ? t('workout.logSet', { n: currentSet.label })
               : t(`workout.logSetType.${currentSet?.set.type}`)
           }}
+        </template>
+        <template v-else-if="primary === 'edited'">
+          <Check :size="20" :stroke-width="3" />
+          {{ t('workout.doneEditing') }}
         </template>
         <template v-else-if="primary === 'add'">
           <Plus :size="20" :stroke-width="2.5" />
@@ -990,7 +1004,8 @@ button.where__now:active {
 /* Every set of this exercise: where you are in it, and a way to fix one. The
    head and each row share one set of columns, so the numbers line up. */
 .sets {
-  --set-columns: 36px minmax(0, 1fr) 72px 60px;
+  /* Previous is only as wide as its text; the two numbers share the rest. */
+  --set-columns: 36px 80px minmax(0, 1.4fr) minmax(0, 1fr);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -1012,9 +1027,8 @@ button.where__now:active {
   font-weight: var(--weight-medium);
 }
 
-.sets__num,
-.set__num {
-  text-align: right;
+.sets__num {
+  text-align: center;
 }
 
 .sets__empty {
@@ -1031,6 +1045,7 @@ button.where__now:active {
 }
 
 .set {
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: var(--space-1);
@@ -1057,10 +1072,6 @@ button.where__now:active {
   color: var(--color-text);
   background: transparent;
   cursor: pointer;
-}
-
-.set__main:disabled {
-  cursor: default;
 }
 
 .set__tag {
@@ -1098,7 +1109,7 @@ button.where__now:active {
 .set__num {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 6px;
   font-weight: var(--weight-medium);
 }
