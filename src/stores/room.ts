@@ -21,6 +21,7 @@ import {
   type RoomEvent,
 } from '@/lib/roomEvents'
 import { newUuid } from '@/lib/uuid'
+import { isConflict, startVerdict, type WorkoutConflict } from '@/lib/workoutConflict'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
 import type { SessionSetDraft } from '@/lib/serializeSession'
@@ -38,7 +39,13 @@ export interface RoomMember {
 /** A room error the UI can translate: `room.errors.<code>`. */
 export class RoomError extends Error {
   constructor(
-    public code: 'room_not_found' | 'room_full' | 'not_authenticated' | 'rate_limited' | 'unknown',
+    public code:
+      | 'room_not_found'
+      | 'room_full'
+      | 'not_authenticated'
+      | 'rate_limited'
+      | 'unknown'
+      | WorkoutConflict,
     message?: string,
   ) {
     super(message ?? code)
@@ -57,7 +64,7 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K>
 const nameKey = (name: string) => name.trim().toLowerCase()
 
 /** Active-session actions that change a set the room should know about. */
-const SET_ACTIONS = new Set(['completeSet', 'uncompleteSet', 'updateSet', 'cycleSetType', 'removeSet', 'removeExercise'])
+const SET_ACTIONS = new Set(['completeSet', 'uncompleteSet', 'updateSet', 'cycleSetType', 'removeSet', 'removeExercise', 'replaceExercise'])
 
 const ROOM_ERROR_CODES = ['room_not_found', 'room_full', 'not_authenticated', 'rate_limited'] as const
 
@@ -125,6 +132,7 @@ export const useRoomStore = defineStore('room', () => {
     },
   )
 
+  const activeSession = useActiveSessionStore()
   const myId = computed(() => useAuthStore().user?.id ?? null)
   const isHost = computed(() => !!room.value && room.value.host_id === myId.value)
 
@@ -348,8 +356,37 @@ export const useRoomStore = defineStore('room', () => {
     if (data.status !== 'finished') subscribe(roomId)
   }
 
+  /**
+   * The room this device is in and still has a workout to do in: one that
+   * hasn't finished, and that this user hasn't finished their part of. Only
+   * what is known here and now counts — a room id left in storage from another
+   * day never stops a workout from starting.
+   */
+  const openRoomId = computed(() => {
+    const current = room.value
+    if (!current || current.status === 'finished') return null
+    const mine = members.value.find((m) => m.userId === myId.value)
+    const logged = useSessionsStore().sessions.some((s) => s.roomId === current.id)
+    return mine?.finishedAt || logged ? null : current.id
+  })
+
+  /**
+   * One workout at a time: a room can't be created or joined while a workout
+   * is running, or from inside another room.
+   *
+   * @throws A {@link RoomError} the UI translates, before anything is sent.
+   */
+  function assertFreeForNewRoom() {
+    const verdict = startVerdict(
+      { session: activeSession.session, openRoomId: openRoomId.value },
+      { kind: 'new-room' },
+    )
+    if (isConflict(verdict)) throw new RoomError(verdict)
+  }
+
   /** Creates a room from a library routine, with this user as host. */
   async function create(routineId: string): Promise<RoomRow> {
+    assertFreeForNewRoom()
     const routines = useRoutinesStore()
     const routine = routines.getById(routineId)
     const parsed = routines.parsed(routineId)
@@ -368,6 +405,7 @@ export const useRoomStore = defineStore('room', () => {
 
   /** Joins a room by its 6-character code. */
   async function join(code: string): Promise<RoomRow> {
+    assertFreeForNewRoom()
     const { data, error } = await requireSupabase().rpc('join_room', { p_code: code })
     if (error) throw toRoomError(error)
     // An unknown code comes back as an empty row, not an error, so the server
@@ -544,14 +582,14 @@ export const useRoomStore = defineStore('room', () => {
     })
   }
 
-  const activeSession = useActiveSessionStore()
   activeSession.$onAction(({ name, args, after }) => {
     if (!SET_ACTIONS.has(name)) return
     const roomId = activeSession.session?.roomId
     if (!roomId || !myId.value) return
     const exercises = activeSession.session?.draft.exercises ?? []
 
-    if (name === 'removeExercise') {
+    // Either way the sets logged under that exercise are gone from the workout.
+    if (name === 'removeExercise' || name === 'replaceExercise') {
       const doneIds = (exercises[args[0] as number]?.loggedSets ?? []).filter((s) => s.completed).map((s) => s.id)
       after(() => doneIds.forEach((id) => deleteSet(roomId, id)))
       return
@@ -575,6 +613,7 @@ export const useRoomStore = defineStore('room', () => {
     setLogs,
     onlineIds,
     currentRoomId,
+    openRoomId,
     isHost,
     progress,
     team,

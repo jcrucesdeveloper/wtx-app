@@ -77,3 +77,35 @@ export function detectPersonalRecords(
 
   return records
 }
+
+/** The part of a live set a record is judged on. */
+interface LiveSet {
+  id: string
+  type: string
+  weight: number | null
+  completed: boolean
+}
+
+/**
+ * The sets of an exercise still being logged that are records: heavier than
+ * the all-time best, and heavier than every set before them in the list — a
+ * second set at the same new weight is not news. Warm-ups never count.
+ *
+ * Derived from the sets alone, so the marks are the same after the workout
+ * is resumed as they were when the sets were logged. Same single-axis rule
+ * as {@link detectPersonalRecords}: no history, no record.
+ */
+export function liveRecordSetIds(sets: LiveSet[], prior: ExerciseBest | undefined): Set<string> {
+  const ids = new Set<string>()
+  if (!prior) return ids
+
+  let best = prior.weight
+  for (const set of sets) {
+    if (!set.completed || set.type === 'W' || set.weight === null) continue
+    if (set.weight > best) {
+      ids.add(set.id)
+      best = set.weight
+    }
+  }
+  return ids
+}

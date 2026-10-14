@@ -6,6 +6,39 @@ All notable changes to WTX are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-10-14
+
+### Added
+
+- Favourite routines: mark the ones you train most and they are grouped first on Train. Favourites stay on
+  the device and are never synced, exported or shared.
+- Swap an exercise for another in the middle of a workout, from a new menu next to the exercise name.
+- Sharing a finished workout now shows a preview first, with three styles: a story card listing your best
+  set of each exercise, your numbers over a photo of your own, or a transparent sticker.
+- A plate on your profile that levels up with the workouts you share.
+
+### Changed
+
+- A new design across the whole app: calmer screens, larger targets, a one-screen
+  introduction and first steps for new users.
+- The workout screen shows every set as a row with last time's numbers, colours for warm-up and drop sets,
+  and buttons to move to the previous and next exercise. Tap a row to pick or correct that set.
+- Train suggests the routine that is next in your rotation, and shows when each one was last done.
+- Following someone confirms who you now follow. Unfollowing moved to their profile and your connections,
+  where it asks first.
+- Removing an exercise from a workout moved into the exercise menu, away from the scroll path.
+
+### Removed
+
+- The group button on the workout screen. In a group workout, the group strip opens the room.
+
+### Fixed
+
+- Only one workout can run at a time: a group room can no longer be created or joined while a workout is in
+  progress, and a workout of your own can no longer be started from inside a group workout.
+- Personal-record marks on logged sets are kept when a workout is resumed.
+- Store installs on Android open shared links in the app.
+
 ## [1.0.0] - 2026-09-30
 
 The first public release of WTX for iOS, Android and the web.
@@ -59,5 +92,6 @@ The first public release of WTX for iOS, Android and the web.
 - Row-level security on every table; rate limits on room codes, invite codes, follows, blocks and reports;
   size limits on stored data; invite codes readable only by their owner.
 
-[Unreleased]: https://github.com/jcrucesdeveloper/wtx-app/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jcrucesdeveloper/wtx-app/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/jcrucesdeveloper/wtx-app/compare/v1.0.0...v1.0.2
 [1.0.0]: https://github.com/jcrucesdeveloper/wtx-app/releases/tag/v1.0.0

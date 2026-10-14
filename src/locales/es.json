@@ -26,28 +26,45 @@
     "nextUp": "Siguiente",
     "start": "Empezar",
     "notDoneYet": "Aún sin hacer",
-    "edit": "Editar"
+    "edit": "Editar",
+    "favorites": "Favoritas",
+    "otherRoutines": "Otras rutinas"
   },
   "workout": {
     "removeConfirm": "¿Quitar {name} de este entrenamiento?",
+    "replaceConfirm": "Tienes un entrenamiento en curso. ¿Descartarlo y empezar este?",
     "newRecord": "Nuevo récord: {weight} {unit}",
     "restOver": "Descanso terminado. Vamos.",
     "exerciseOf": "Ejercicio {n} de {total}",
     "setOf": "Serie {n} de {total}",
-    "lastTimeSet": "la última vez {weight} × {reps}",
+    "typedSetOf": "{type} {n} de {total}",
     "less": "Menos",
     "more": "Más",
     "logSet": "Registrar serie {n}",
+    "doneEditing": "Listo",
+    "logSetType": {
+      "W": "Registrar calentamiento",
+      "D": "Registrar serie descendente"
+    },
     "nextExercise": "Siguiente: {name}",
     "finishWorkout": "Terminar entrenamiento",
-    "upNext": "A continuación",
-    "planSet": "plan {weight} × {reps}",
     "setType": {
       "number": "Serie efectiva",
       "W": "Calentamiento",
       "D": "Serie descendente"
     },
-    "setTypeAria": "Cambiar el tipo de serie"
+    "setTypeAria": "Cambiar el tipo de serie",
+    "previousExercise": "Ejercicio anterior",
+    "followingExercise": "Ejercicio siguiente",
+    "overview": "Resumen del entrenamiento",
+    "overviewNow": "Ahora",
+    "setColumn": "Serie",
+    "previousColumn": "Anterior",
+    "noSets": "Aún no hay series. Añade una para empezar a registrar.",
+    "changeExercise": "Cambiar ejercicio",
+    "changeExerciseHint": "Cámbialo por otro. Sus series empiezan vacías.",
+    "removeExerciseHint": "Solo de este entrenamiento, no de la rutina.",
+    "changeConfirm": "¿Cambiar {from} por {to}? Se eliminará la {count} serie que registraste en {from}. | ¿Cambiar {from} por {to}? Se eliminarán las {count} series que registraste en {from}."
   },
   "finish": {
     "newPlate": "Nuevo disco",
@@ -185,6 +202,8 @@
     "editAria": "Editar rutina",
     "shareAria": "Compartir rutina",
     "optionsAria": "Opciones de rutina",
+    "favoriteAria": "Añadir a favoritas",
+    "unfavoriteAria": "Quitar de favoritas",
     "deleteRoutine": "Eliminar rutina",
     "deleteConfirm": "¿Quitar esta rutina de tu biblioteca?",
     "notFound": "Esta rutina ya no está en tu biblioteca.",
@@ -338,7 +357,6 @@
   "activeSession": {
     "fallbackTitle": "Entrenamiento",
     "backAria": "Atrás",
-    "groupAria": "Iniciar entrenamiento en grupo",
     "optionsAria": "Opciones de entrenamiento",
     "addExercise": "Añadir ejercicio",
     "reorderExercises": "Reordenar ejercicios",
@@ -370,11 +388,28 @@
     "shareStats": "{sets} series · {exercises} ejercicios",
     "sharePr": "Nuevo récord en {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks} semanas de racha 🔥",
-    "shareCopied": "¡Copiado!",
-    "cardFooter": "Registrado con WTX",
+    "cardMore": "+{count} más",
+    "cardRecordMark": "PR",
     "cardPr": "Nuevo récord",
     "cardStreak": "{weeks} semanas de racha",
     "cardStreakLabel": "Racha"
+  },
+  "shareCard": {
+    "title": "Compartir entrenamiento",
+    "previewAria": "Vista previa de la imagen que vas a compartir",
+    "styleAria": "Estilo de la imagen",
+    "style": {
+      "card": "Ejercicios",
+      "photo": "Foto",
+      "sticker": "Sticker"
+    },
+    "hint": {
+      "card": "Una tarjeta para historias con tus números y tu mejor serie de cada ejercicio.",
+      "photo": "Tus números sobre una foto tuya. La foto no sale de tu teléfono hasta que la compartes.",
+      "sticker": "Solo los números, con fondo transparente. Guárdalo y añádelo sobre una foto o un video desde tu galería."
+    },
+    "choosePhoto": "Elegir una foto",
+    "changePhoto": "Cambiar foto"
   },
   "sessionDetail": {
     "title": "Entrenamiento",
@@ -403,7 +438,6 @@
     "groupThisWeek": "Esta semana",
     "groupLastWeek": "La semana pasada",
     "groupEarlier": "Anteriores",
-    "done": "Listo",
     "partial": "Parcial",
     "error": "Error",
     "exercises": "{count} ejercicios",
@@ -525,11 +559,12 @@
       "codeLabel": "Código para seguir",
       "follow": "Seguir",
       "following": "Siguiendo…",
-      "nowFollowing": "Ahora sigues a {name}.",
+      "followedTitle": "Ahora sigues a",
+      "followedHint": "Los entrenamientos que comparta {name} aparecerán en Amigos.",
+      "followedDone": "Listo",
+      "viewProfile": "Ver perfil",
       "followingTitle": "Siguiendo",
-      "followingEmpty": "Aún no sigues a nadie.",
       "followingEmptyCta": "Sigue a tus compañeros de entrenamiento",
-      "unfollowAria": "Dejar de seguir a {name}",
       "resetCode": "Restablecer mi código",
       "resetTitle": "¿Restablecer tu código?",
       "resetHint": "Recibirás un código, enlace y código QR nuevos. Los anteriores dejarán de funcionar, así que quien los tenga no podrá seguirte con ellos. Quienes ya te siguen se mantienen: quítalos de tus seguidores si no quieres que vuelvan.",
@@ -684,6 +719,7 @@
     "cameraUnavailable": "Cámara no disponible. Escribe el código.",
     "codeLabel": "Código de sala",
     "progressTitle": "Tu grupo",
+    "openRoomAria": "Abrir la sala del grupo",
     "setsDone": "{count} series",
     "recapTitle": "Resumen del grupo",
     "sets": "Series",
@@ -732,6 +768,9 @@
     "errors": {
       "room_not_found": "No hay una sala abierta con ese código.",
       "room_full": "Esa sala está llena (máximo 8 personas).",
+      "workout_in_progress": "Tienes un entrenamiento en curso. Termínalo o descártalo antes de empezar uno en grupo.",
+      "group_workout_in_progress": "Tienes un entrenamiento en grupo en curso. Termínalo o descártalo antes de empezar otro.",
+      "in_room": "Estás en una sala de entrenamiento en grupo. Sal de la sala antes de empezar otro entrenamiento.",
       "not_authenticated": "Inicia sesión primero.",
       "rate_limited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
       "unknown": "Algo salió mal. Inténtalo de nuevo."

@@ -1,23 +1,38 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, Minus, Plus, Trophy } from '@lucide/vue'
+import {
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  EllipsisVertical,
+  Minus,
+  Plus,
+  Trophy,
+} from '@lucide/vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import BottomSheet from '@/components/ui/BottomSheet.vue'
+import SettingsRow from '@/components/settings/SettingsRow.vue'
+import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
+import WorkoutOverviewSheet from '@/components/session/WorkoutOverviewSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useSessionsStore } from '@/stores/sessions'
 import { useExerciseName } from '@/composables/useExerciseName'
-import { formatClock, formatCompactDuration } from '@/lib/format'
+import { formatClock } from '@/lib/format'
 import { HapticsService } from '@/services/haptics'
-import { allTimeBestsByExercise } from '@/lib/sessionRecords'
+import { allTimeBestsByExercise, liveRecordSetIds } from '@/lib/sessionRecords'
 import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSession'
 
 /**
- * The active session as one focused step at a
- * time: the set you're on is the only large thing on screen, logging it is
- * the one big button under your thumb, and every other exercise is a single
- * line you can tap to jump to. Same store, same data, one tap per set.
+ * The active session as one focused step at a time: the set you're on is the
+ * only large thing on screen and logging it is the one big button under your
+ * thumb. Under it, every set of the exercise is a row; above it, where you
+ * are in the workout and a way to the exercise before and after. Nothing
+ * that removes work sits in the scroll path — it is behind the exercise's
+ * menu, and asks first.
  *
  * Nothing here waits on an animation: every tap changes state at once, and
  * motion only follows it. Celebration mid-workout is a line and a buzz, never
@@ -63,12 +78,30 @@ const labeledSets = computed(() => {
   }))
 })
 
-/** Set when the user taps a later set to do it out of order. */
+/**
+ * Where the set you're on sits among its own kind: "Set 2 of 3" counts
+ * working sets only, the way the rows are numbered, and a warm-up or drop set
+ * is counted among the warm-ups or drop sets.
+ */
+const currentSetLine = computed(() => {
+  const target = currentSet.value
+  if (!target) return ''
+  const sameType = labeledSets.value.filter(({ set }) => set.type === target.set.type)
+  const n = sameType.findIndex(({ set }) => set.id === target.set.id) + 1
+  if (target.set.type === 'number') return t('workout.setOf', { n, total: sameType.length })
+  const type = t(`workout.setType.${target.set.type}`)
+  return sameType.length > 1 ? t('workout.typedSetOf', { type, n, total: sameType.length }) : type
+})
+
+/**
+ * Set when the user taps a row: a later set to do it out of order, or one
+ * already logged to correct its numbers.
+ */
 const pickedSetId = ref<string | null>(null)
 
 const currentSet = computed(() => {
-  const open = labeledSets.value.filter(({ set }) => !set.completed)
-  return open.find(({ set }) => set.id === pickedSetId.value) ?? open[0]
+  const picked = labeledSets.value.find(({ set }) => set.id === pickedSetId.value)
+  return picked ?? labeledSets.value.find(({ set }) => !set.completed)
 })
 
 /** What the set will be logged as: typed value, else last time's, else the plan. */
@@ -136,40 +169,38 @@ const priorBests = allTimeBestsByExercise(
   }),
 )
 
-/** Sets logged today that beat the all-time best, so their chips can say so. */
-const recordSetIds = ref(new Set<string>())
+/**
+ * Sets of this exercise that beat the all-time best, so their rows can say
+ * so. Derived from the sets, so the marks are still there after a resume.
+ */
+const recordSetIds = computed(() => {
+  const exercise = current.value
+  if (!exercise) return new Set<string>()
+  return liveRecordSetIds(
+    exercise.loggedSets,
+    priorBests.get(exercise.name.trim().toLowerCase()),
+  )
+})
 const recordFlash = ref<number | null>(null)
 let recordTimer: ReturnType<typeof setTimeout> | undefined
 
-/**
- * Heavier than the all-time best, and heavier than anything already logged
- * for this exercise today — a second set at the same new weight is not news.
- * Same rule as the finish screen: only a strictly heavier weight counts, and
- * an exercise with no history has no record to beat.
- */
-function isRecord(exercise: SessionExerciseDraft, weight: number): boolean {
-  const prior = priorBests.get(exercise.name.trim().toLowerCase())
-  if (!prior || weight <= prior.weight) return false
-  return !exercise.loggedSets.some(
-    (s) => s.completed && s.type !== 'W' && (s.weight ?? 0) >= weight,
-  )
-}
-
-function logSet() {
-  const target = currentSet.value
+/** Logs the set you're on — or, from its own row, any other open set. */
+function logSet(target = currentSet.value) {
   if (!target) return
   const { set } = target
   const exercise = current.value
   // Logging commits whatever is on screen, so a set that needs no edits is one tap.
   if (set.weight === null || set.reps === null) {
-    update({ weight: shownWeight(set), reps: shownReps(set) })
+    activeSession.updateSet(currentIndex.value, set.id, {
+      weight: shownWeight(set),
+      reps: shownReps(set),
+    })
   }
-  const record = !!exercise && set.type !== 'W' && isRecord(exercise, shownWeight(set))
   activeSession.completeSet(currentIndex.value, set.id)
+  const record = recordSetIds.value.has(set.id)
 
   // One buzz per set, scaled to what just happened.
   if (record) {
-    recordSetIds.value.add(set.id)
     recordFlash.value = shownWeight(set)
     clearTimeout(recordTimer)
     recordTimer = setTimeout(() => (recordFlash.value = null), 2800)
@@ -187,9 +218,22 @@ function logSet() {
   }, 450)
 }
 
-function onSetTap(set: SessionSetDraft) {
-  if (set.completed) activeSession.uncompleteSet(currentIndex.value, set.id)
-  else pickedSetId.value = set.id
+/** A row's check: logs that set, or takes a logged one back to fix it. */
+function toggleSet(row: (typeof labeledSets.value)[number]) {
+  if (!row.set.completed) return logSet(row)
+  activeSession.uncompleteSet(currentIndex.value, row.set.id)
+  pickedSetId.value = row.set.id
+  void HapticsService.selection()
+}
+
+/**
+ * Tapping a row, anywhere on it, makes it the set you're on. A logged set
+ * stays logged: its numbers can be corrected in place.
+ */
+function pickSet(set: SessionSetDraft) {
+  if (pickedSetId.value === set.id) return
+  pickedSetId.value = set.id
+  void HapticsService.selection()
 }
 
 /** Working set, warm-up or drop set — tapping the label steps through them. */
@@ -199,12 +243,21 @@ function cycleType() {
   void HapticsService.selection()
 }
 
+// ----- the exercise's own menu: swap it, or take it out -----
+const actionsOpen = ref(false)
+const swapOpen = ref(false)
+
+function loggedCount(exercise: SessionExerciseDraft): number {
+  return exercise.loggedSets.filter((s) => s.completed).length
+}
+
 function removeExercise() {
+  actionsOpen.value = false
   const exercise = current.value
   if (!exercise) return
   const name = exerciseName(exercise.name)
-  const logged = exercise.loggedSets.filter((s) => s.completed).length
-  // One tap from the workout screen, so it always asks — and says what would be lost.
+  const logged = loggedCount(exercise)
+  // It always asks — and says what would be lost.
   const message =
     logged > 0
       ? t('session.activeExerciseCard.removeConfirm', { name, count: logged }, logged)
@@ -215,19 +268,57 @@ function removeExercise() {
   pickedSetId.value = null
 }
 
+function startSwap() {
+  actionsOpen.value = false
+  swapOpen.value = true
+}
+
+/**
+ * Swaps the exercise in place. Sets already logged belong to the old
+ * exercise and can't follow, so with any logged it asks first; with none
+ * there is nothing to lose and it just happens.
+ */
+function onSwapPicked(name: string) {
+  const exercise = current.value
+  const index = currentIndex.value
+  if (!exercise || name.trim().toLowerCase() === exercise.name.trim().toLowerCase()) return
+  const logged = loggedCount(exercise)
+  if (logged > 0) {
+    const message = t(
+      'workout.changeConfirm',
+      { from: exerciseName(exercise.name), to: exerciseName(name), count: logged },
+      logged,
+    )
+    if (!confirm(message)) return
+  }
+  activeSession.replaceExercise(index, name)
+  // Stay on the slot that was swapped, wherever the workout would otherwise go next.
+  pickedIndex.value = index
+  pickedSetId.value = null
+}
+
+const overviewOpen = ref(false)
+
 function focusExercise(index: number) {
   pickedIndex.value = index
   pickedSetId.value = null
 }
 
-/** The one button: log the set, move on once an exercise is done, finish at the end. */
-const primary = computed<'log' | 'next' | 'finish'>(() => {
-  if (currentSet.value) return 'log'
+/**
+ * The one button: log the set, move on once an exercise is done, finish at
+ * the end. An exercise left with no sets can only be given one.
+ */
+const primary = computed<'log' | 'edited' | 'add' | 'next' | 'finish'>(() => {
+  // A logged set opened to correct it: the button closes it again.
+  if (currentSet.value) return currentSet.value.set.completed ? 'edited' : 'log'
+  if (current.value?.loggedSets.length === 0) return 'add'
   return allDone.value ? 'finish' : 'next'
 })
 
 function onPrimary() {
   if (primary.value === 'log') logSet()
+  else if (primary.value === 'edited') pickedSetId.value = null
+  else if (primary.value === 'add') activeSession.addSet(currentIndex.value)
   else if (primary.value === 'next') pickedIndex.value = null
   else emit('finish')
 }
@@ -236,30 +327,6 @@ const nextName = computed(() => {
   const next = exercises.value[firstOpenIndex.value]
   return next ? exerciseName(next.name) : ''
 })
-
-function summary(exercise: SessionExerciseDraft): string {
-  const done = exercise.loggedSets.filter((s) => s.completed)
-  if (done.length === exercise.loggedSets.length && done.length > 0) {
-    const top = done.reduce((best, s) => ((s.weight ?? 0) > (best.weight ?? 0) ? s : best))
-    return `${done.length} × ${top.reps} · ${top.weight} ${unit.value}`.trim()
-  }
-  if (done.length > 0) {
-    return t('activeSession.setsChip', { done: done.length, total: exercise.loggedSets.length })
-  }
-  const plan =
-    exercise.kind === 'time'
-      ? formatCompactDuration(exercise.reps) || '0s'
-      : `${exercise.sets} × ${exercise.reps}`
-  return exercise.weight ? `${plan} · ${exercise.weight} ${unit.value}`.trim() : plan
-}
-
-const others = computed(() =>
-  exercises.value
-    .map((exercise, index) => ({ exercise, index, done: isDone(exercise) }))
-    .filter((item) => item.index !== currentIndex.value),
-)
-const upcoming = computed(() => others.value.filter((item) => !item.done))
-const finished = computed(() => others.value.filter((item) => item.done))
 
 /** One segment per exercise, filled by the share of its sets that are logged. */
 const segments = computed(() =>
@@ -318,42 +385,80 @@ function onNoteInput(event: Event) {
 
 <template>
   <div v-if="current" class="session" :class="{ 'session--fresh': fresh }">
-    <div class="progress">
-      <div class="progress__segments" aria-hidden="true">
-        <span v-for="(fraction, i) in segments" :key="i" class="progress__segment">
+    <!-- Where you are in the workout, and the way to the exercise before and after. -->
+    <nav class="where" :aria-label="t('workout.overview')">
+      <div class="where__row">
+        <button
+          v-if="exercises.length > 1"
+          type="button"
+          class="where__step"
+          :aria-label="t('workout.previousExercise')"
+          :disabled="currentIndex === 0"
+          @click="focusExercise(currentIndex - 1)"
+        >
+          <ChevronLeft :size="24" :stroke-width="2.25" />
+        </button>
+        <component
+          :is="exercises.length > 1 ? 'button' : 'div'"
+          :type="exercises.length > 1 ? 'button' : undefined"
+          class="where__now"
+          @click="exercises.length > 1 && (overviewOpen = true)"
+        >
+          <span class="where__label">
+            {{ t('workout.exerciseOf', { n: currentIndex + 1, total: exercises.length }) }}
+            <ChevronDown v-if="exercises.length > 1" :size="16" :stroke-width="2.5" />
+          </span>
+          <span class="where__clock">{{ formatClock(activeSession.elapsedSeconds) }}</span>
+        </component>
+        <button
+          v-if="exercises.length > 1"
+          type="button"
+          class="where__step"
+          :aria-label="t('workout.followingExercise')"
+          :disabled="currentIndex === exercises.length - 1"
+          @click="focusExercise(currentIndex + 1)"
+        >
+          <ChevronRight :size="24" :stroke-width="2.25" />
+        </button>
+      </div>
+      <div class="progress" aria-hidden="true">
+        <span
+          v-for="(fraction, i) in segments"
+          :key="i"
+          class="progress__segment"
+          :class="{ 'progress__segment--current': i === currentIndex }"
+        >
           <i :style="{ transform: `scaleX(${fraction})` }" />
         </span>
       </div>
-      <div class="progress__row">
-        <span>{{ t('workout.exerciseOf', { n: currentIndex + 1, total: exercises.length }) }}</span>
-        <span class="progress__clock">{{ formatClock(activeSession.elapsedSeconds) }}</span>
-      </div>
-    </div>
+    </nav>
 
     <!-- Keyed, so moving to another exercise arrives as a new thing. -->
     <section :key="currentIndex" class="now">
-      <button type="button" class="now__exercise" @click="showImage = true">
-        <ExerciseThumb :name="current.name" />
-        <span class="now__name">{{ exerciseName(current.name) }}</span>
-      </button>
+      <header class="now__head">
+        <button type="button" class="now__exercise" @click="showImage = true">
+          <ExerciseThumb :name="current.name" />
+          <span class="now__name">{{ exerciseName(current.name) }}</span>
+        </button>
+        <button
+          type="button"
+          class="now__more"
+          :aria-label="t('session.activeExerciseCard.optionsAria')"
+          @click="actionsOpen = true"
+        >
+          <EllipsisVertical :size="22" :stroke-width="2.25" />
+        </button>
+      </header>
 
       <template v-if="currentSet">
         <div class="now__meta">
           <p class="now__set">
-            {{ t('workout.setOf', { n: currentSet.label, total: labeledSets.length }) }}
-            <span v-if="currentSet.set.ghostWeight != null" class="now__last">
-              ·
-              {{
-                t(currentSet.set.ghostFromLast ? 'workout.lastTimeSet' : 'workout.planSet', {
-                  weight: currentSet.set.ghostWeight,
-                  reps: currentSet.set.ghostReps,
-                })
-              }}
-            </span>
+            {{ currentSetLine }}
           </p>
           <button
             type="button"
             class="now__type"
+            :class="`now__type--${currentSet.set.type}`"
             :aria-label="t('workout.setTypeAria')"
             @click="cycleType"
           >
@@ -432,33 +537,81 @@ function onNoteInput(event: Event) {
         </div>
       </template>
 
-      <ul class="sets">
-        <li v-for="{ set, label } in labeledSets" :key="set.id">
-          <button
-            type="button"
+      <!-- Every set of this exercise, a row each: what it is, what you did last
+           time, what it is logged as, and whether it is done. -->
+      <div class="sets">
+        <div v-if="labeledSets.length" class="sets__head" aria-hidden="true">
+          <span>{{ t('workout.setColumn') }}</span>
+          <span>{{ t('workout.previousColumn') }}</span>
+          <span class="sets__num">{{ unit || t('session.activeExerciseCard.weight') }}</span>
+          <span class="sets__num">{{
+            isTime ? t('session.activeExerciseCard.seconds') : t('session.activeExerciseCard.reps')
+          }}</span>
+        </div>
+        <p v-else class="sets__empty">{{ t('workout.noSets') }}</p>
+
+        <ul class="sets__rows">
+          <li
+            v-for="row in labeledSets"
+            :key="row.set.id"
             class="set"
             :class="{
-              'set--done': set.completed,
-              'set--current': set.id === currentSet?.set.id,
-              'set--just': set.id === justLoggedId,
+              'set--done': row.set.completed,
+              'set--current': row.set.id === currentSet?.set.id,
+              'set--just': row.set.id === justLoggedId,
             }"
-            @click="onSetTap(set)"
+            @click="pickSet(row.set)"
           >
-            <span class="set__mark">
-              <Check v-if="set.completed" :size="14" :stroke-width="3" />
-              <template v-else>{{ label }}</template>
-            </span>
-            <span class="set__value">{{ shownWeight(set) }} {{ unit }} × {{ shownReps(set) }}</span>
-            <span v-if="recordSetIds.has(set.id)" class="set__pr">PR</span>
-          </button>
-        </li>
-        <li>
-          <button type="button" class="set set--add" @click="activeSession.addSet(currentIndex)">
-            <span class="set__mark"><Plus :size="14" :stroke-width="2.5" /></span>
-            <span class="set__value">{{ t('session.activeExerciseCard.addSet') }}</span>
-          </button>
-        </li>
-      </ul>
+            <!-- The whole row picks the set; the button is what a keyboard or screen reader uses. -->
+            <button
+              type="button"
+              class="set__main"
+              :aria-current="row.set.id === currentSet?.set.id ? 'true' : undefined"
+            >
+              <span
+                class="set__tag"
+                :class="`set__tag--${row.set.type}`"
+                :title="t(`workout.setType.${row.set.type}`)"
+              >
+                {{ row.label }}
+              </span>
+              <span class="set__prev">
+                <template v-if="row.set.ghostFromLast && row.set.ghostWeight != null">
+                  {{ row.set.ghostWeight }} × {{ row.set.ghostReps }}
+                </template>
+                <template v-else>–</template>
+              </span>
+              <span class="set__num">
+                <span
+                  v-if="recordSetIds.has(row.set.id)"
+                  class="set__pr"
+                  :aria-label="t('session.personalRecordBanner.title')"
+                >
+                  PR
+                </span>
+                {{ shownWeight(row.set) }}
+              </span>
+              <span class="set__num">{{ shownReps(row.set) }}</span>
+            </button>
+            <button
+              type="button"
+              class="set__done"
+              :aria-label="t('session.activeSetRow.markCompleteAria')"
+              :aria-pressed="row.set.completed"
+              @click.stop="toggleSet(row)"
+            >
+              <span class="set__mark">
+                <Check v-if="row.set.completed" :size="16" :stroke-width="3" />
+              </span>
+            </button>
+          </li>
+        </ul>
+
+        <button type="button" class="sets__add" @click="activeSession.addSet(currentIndex)">
+          <Plus :size="16" :stroke-width="2.5" />
+          {{ t('session.activeExerciseCard.addSet') }}
+        </button>
+      </div>
 
       <input
         class="note"
@@ -467,40 +620,6 @@ function onNoteInput(event: Event) {
         :value="current.note"
         @input="onNoteInput"
       />
-
-      <button v-if="exercises.length > 1" type="button" class="remove" @click="removeExercise">
-        {{ t('session.activeExerciseCard.removeExercise') }}
-      </button>
-    </section>
-
-    <section v-if="upcoming.length">
-      <h2 class="label">{{ t('workout.upNext') }}</h2>
-      <ul class="list">
-        <li v-for="item in upcoming" :key="item.index">
-          <button type="button" class="item" @click="focusExercise(item.index)">
-            <ExerciseThumb :name="item.exercise.name" />
-            <span class="item__body">
-              <span class="item__name">{{ exerciseName(item.exercise.name) }}</span>
-              <span class="item__meta">{{ summary(item.exercise) }}</span>
-            </span>
-          </button>
-        </li>
-      </ul>
-    </section>
-
-    <section v-if="finished.length">
-      <h2 class="label">{{ t('sessions.done') }}</h2>
-      <ul class="list">
-        <li v-for="item in finished" :key="item.index">
-          <button type="button" class="item item--done" @click="focusExercise(item.index)">
-            <span class="item__check"><Check :size="16" :stroke-width="3" /></span>
-            <span class="item__body">
-              <span class="item__name">{{ exerciseName(item.exercise.name) }}</span>
-              <span class="item__meta">{{ summary(item.exercise) }}</span>
-            </span>
-          </button>
-        </li>
-      </ul>
     </section>
 
     <div class="dock">
@@ -527,7 +646,7 @@ function onNoteInput(event: Event) {
       </div>
       <!-- `row__check` only so the existing capture scripts still find it. -->
       <AppButton
-        :variant="primary === 'next' ? 'quiet' : 'primary'"
+        :variant="primary === 'log' || primary === 'finish' ? 'primary' : 'quiet'"
         size="lg"
         block
         class="primary-action"
@@ -536,7 +655,19 @@ function onNoteInput(event: Event) {
       >
         <template v-if="primary === 'log'">
           <Check :size="20" :stroke-width="3" />
-          {{ t('workout.logSet', { n: currentSet?.label }) }}
+          {{
+            currentSet?.set.type === 'number'
+              ? t('workout.logSet', { n: currentSet.label })
+              : t(`workout.logSetType.${currentSet?.set.type}`)
+          }}
+        </template>
+        <template v-else-if="primary === 'edited'">
+          <Check :size="20" :stroke-width="3" />
+          {{ t('workout.doneEditing') }}
+        </template>
+        <template v-else-if="primary === 'add'">
+          <Plus :size="20" :stroke-width="2.5" />
+          {{ t('session.activeExerciseCard.addSet') }}
         </template>
         <template v-else-if="primary === 'next'">{{
           t('workout.nextExercise', { name: nextName })
@@ -548,6 +679,39 @@ function onNoteInput(event: Event) {
       </AppButton>
     </div>
 
+    <WorkoutOverviewSheet
+      :open="overviewOpen"
+      :current-index="currentIndex"
+      @close="overviewOpen = false"
+      @select="focusExercise"
+    />
+
+    <!-- The exercise's menu. Removing lives here, two taps and a question away
+         from the thumb that is logging sets. -->
+    <BottomSheet
+      :open="actionsOpen"
+      :title="exerciseName(current.name)"
+      @close="actionsOpen = false"
+    >
+      <div class="actions">
+        <SettingsRow
+          action
+          :label="t('workout.changeExercise')"
+          :hint="t('workout.changeExerciseHint')"
+          @click="startSwap"
+        />
+        <SettingsRow
+          v-if="exercises.length > 1"
+          action
+          danger
+          :label="t('session.activeExerciseCard.removeExercise')"
+          :hint="t('workout.removeExerciseHint')"
+          @click="removeExercise"
+        />
+      </div>
+    </BottomSheet>
+
+    <ExerciseListSheet :open="swapOpen" @close="swapOpen = false" @select="onSwapPicked" />
     <ExerciseImageSheet :open="showImage" :name="current.name" @close="showImage = false" />
   </div>
 </template>
@@ -556,27 +720,92 @@ function onNoteInput(event: Event) {
 .session {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: var(--space-6);
   flex: 1;
 }
 
-.label {
-  margin-bottom: 10px;
-  font-size: var(--text-body);
+/* Where you are: shown once, at the top, with a step either way. */
+.where {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.where__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.where__step {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
+  cursor: pointer;
+}
+
+.where__step:active:not(:disabled) {
+  background: var(--color-background-mute);
+  transform: scale(0.94);
+}
+
+.where__step:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.where__now {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  min-height: 48px;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+button.where__now {
+  cursor: pointer;
+}
+
+button.where__now:active {
+  background: var(--color-background-soft);
+}
+
+.where__label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 15px;
   font-weight: var(--weight-bold);
+  line-height: 1.3;
   color: var(--color-heading);
 }
 
-/* Progress: shown once, at the top. */
-.progress {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.where__clock {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  line-height: 1.3;
 }
 
-.progress__segments {
+.progress {
   display: flex;
+  align-items: center;
   gap: 4px;
+  height: 8px;
 }
 
 .progress__segment {
@@ -587,24 +816,19 @@ function onNoteInput(event: Event) {
   overflow: hidden;
 }
 
+/* The exercise on screen: a taller segment, so it is found without colour. */
+.progress__segment--current {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-border-hover);
+}
+
 .progress__segment i {
   display: block;
   height: 100%;
-  border-radius: 2px;
+  border-radius: inherit;
   background: var(--color-accent);
   transform-origin: left;
-}
-
-.progress__row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.progress__clock {
-  color: var(--color-heading);
 }
 
 /* The set you're on. */
@@ -612,12 +836,22 @@ function onNoteInput(event: Event) {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  animation: now-in var(--motion-base) var(--ease-out);
+}
+
+.now__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
 .now__exercise {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--size-touch);
   border: none;
   padding: 0;
   text-align: left;
@@ -628,25 +862,57 @@ function onNoteInput(event: Event) {
 }
 
 .now__name {
+  min-width: 0;
   font-size: 24px;
-  font-weight: 800;
+  font-weight: var(--weight-heavy);
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--color-heading);
+  overflow-wrap: anywhere;
+  /* A very long name wraps, then stops: the sets stay on the first screen. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.now__more {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--size-touch);
+  height: var(--size-touch);
+  margin-right: -10px;
+  border: none;
+  border-radius: 50%;
+  color: var(--color-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.now__more:active {
+  background: var(--color-background-mute);
 }
 
 .now__meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-2);
   margin-top: 6px;
+}
+
+.now__set {
+  font-size: 14px;
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
 }
 
 .now__type {
   flex-shrink: 0;
-  min-height: 32px;
-  padding: 0 12px;
+  min-height: 36px;
+  padding: 0 14px;
   border: none;
   border-radius: var(--radius-pill);
   font: inherit;
@@ -657,36 +923,19 @@ function onNoteInput(event: Event) {
   cursor: pointer;
 }
 
-.remove {
-  align-self: flex-start;
-  min-height: var(--size-touch);
-  border: none;
-  padding: 0;
-  font: inherit;
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-  color: var(--color-danger);
-  background: transparent;
-  cursor: pointer;
-}
-
-.now__set {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--color-heading);
-}
-
-.now__last {
-  font-weight: 400;
-  color: var(--color-text);
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fields-in var(--motion-quick) var(--ease-out);
 }
 
 .field {
   display: grid;
-  grid-template-columns: 56px 1fr 56px;
+  grid-template-columns: 64px 1fr 64px;
   align-items: center;
   height: 76px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   background: var(--color-background-soft);
 }
 
@@ -724,7 +973,7 @@ function onNoteInput(event: Event) {
   padding: 0;
   font: inherit;
   font-size: 40px;
-  font-weight: 800;
+  font-weight: var(--weight-heavy);
   letter-spacing: -0.02em;
   text-align: center;
   color: var(--color-heading);
@@ -749,70 +998,195 @@ function onNoteInput(event: Event) {
 
 .field__unit {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: var(--weight-medium);
 }
 
-/* Every set of this exercise, small: where you are in it, and a way to fix one. */
+/* Every set of this exercise: where you are in it, and a way to fix one. The
+   head and each row share one set of columns, so the numbers line up. */
 .sets {
+  /* Previous is only as wide as its text; the two numbers share the rest. */
+  --set-columns: 36px 80px minmax(0, 1.4fr) minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.sets__head,
+.set__main {
+  display: grid;
+  grid-template-columns: var(--set-columns);
+  align-items: center;
+  column-gap: var(--space-3);
+}
+
+.sets__head {
+  /* Lines up with the rows: their inset on the left, their check on the right. */
+  padding: 0 calc(var(--size-touch) + var(--space-1)) 0 var(--space-2);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-medium);
+}
+
+.sets__num {
+  text-align: center;
+}
+
+.sets__empty {
+  padding: var(--space-3) 0;
+  font-size: var(--text-small);
+}
+
+.sets__rows {
   list-style: none;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
+  flex-direction: column;
+  gap: 2px;
   padding: 0;
 }
 
 .set {
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 14px 0 8px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
+  gap: var(--space-1);
+  min-height: var(--size-control);
+  padding-left: var(--space-2);
+  border-radius: var(--radius-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.set--current {
+  background: var(--color-background-soft);
+  box-shadow: inset 0 0 0 1px var(--color-border-hover);
+}
+
+.set__main {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--size-control);
+  border: none;
+  padding: 0;
+  text-align: left;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-body);
   color: var(--color-text);
   background: transparent;
-  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.set__tag {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-small);
+  font-weight: var(--weight-heavy);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+}
+
+/* A warm-up and a drop set carry their colour wherever the type is named. */
+.now__type--W,
+.set__tag--W {
+  color: var(--color-set-warmup);
+  background: var(--color-set-warmup-soft);
+}
+
+.now__type--D,
+.set__tag--D {
+  color: var(--color-set-drop);
+  background: var(--color-set-drop-soft);
+}
+
+.set__prev {
+  font-size: var(--text-small);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.set__num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: var(--weight-medium);
+}
+
+/* What is logged, and what you are about to log, reads as fact; the rest waits. */
+.set--done .set__num,
+.set--current .set__num {
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+}
+
+.set__pr {
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-heavy);
+  line-height: 1.3;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+}
+
+.set__done {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--size-touch);
+  height: var(--size-control);
+  border: none;
+  padding: 0;
+  background: transparent;
   cursor: pointer;
 }
 
 .set__mark {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  font-size: 12px;
-  font-weight: 700;
-  background: var(--color-background-mute);
+  box-shadow: inset 0 0 0 2px var(--color-border-hover);
 }
 
-.set--current {
-  border-color: var(--color-heading);
-  color: var(--color-heading);
-}
-
-.set--done {
-  border-color: transparent;
-  color: var(--color-heading);
-  background: var(--color-background-soft);
+.set__done:active .set__mark {
+  transform: scale(0.9);
 }
 
 .set--done .set__mark {
   color: var(--color-on-accent);
   background: var(--color-accent);
+  box-shadow: none;
 }
 
-.set--add {
-  border-style: dashed;
+.sets__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--size-touch);
+  margin-top: var(--space-1);
+  border: 1px dashed var(--color-border-hover);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.sets__add:active {
+  color: var(--color-heading);
+  background: var(--color-background-soft);
 }
 
 .note {
-  height: 44px;
-  margin-top: 4px;
+  height: var(--size-touch);
+  margin-top: var(--space-1);
   border: none;
   border-bottom: 1px solid var(--color-border);
   padding: 0;
@@ -823,59 +1197,15 @@ function onNoteInput(event: Event) {
   outline: none;
 }
 
-/* Everything else in the workout: one line each. */
-.list {
-  list-style: none;
-  padding: 0;
-  border-radius: 16px;
+/* The exercise's menu, in its sheet. */
+.actions {
+  border-radius: var(--radius-lg);
   background: var(--color-background-soft);
+  overflow: hidden;
 }
 
-.list li + li {
+.actions > :deep(* + *) {
   border-top: 1px solid var(--color-border);
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 64px;
-  padding: 12px 16px;
-  border: none;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  background: transparent;
-  cursor: pointer;
-}
-
-.item__body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.item__name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-heading);
-}
-
-.item__meta {
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.item__check {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  color: var(--color-on-accent);
-  background: var(--color-accent);
 }
 
 /* The dock: rest, and the one button, where the thumb already is. */
@@ -918,13 +1248,13 @@ function onNoteInput(event: Event) {
 }
 
 .rest__label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
 }
 
 .rest__time {
   font-size: 20px;
-  font-weight: 800;
+  font-weight: var(--weight-heavy);
   color: var(--color-heading);
   font-variant-numeric: tabular-nums;
 }
@@ -933,27 +1263,6 @@ function onNoteInput(event: Event) {
   display: flex;
   gap: 6px;
   margin-left: auto;
-}
-
-.fields {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: fields-in var(--motion-quick) var(--ease-out);
-}
-
-.now {
-  animation: now-in var(--motion-base) var(--ease-out);
-}
-
-.set__pr {
-  margin-left: 2px;
-  padding: 2px 6px;
-  border-radius: var(--radius-pill);
-  font-size: var(--text-micro);
-  font-weight: var(--weight-heavy);
-  color: var(--color-on-accent);
-  background: var(--color-accent);
 }
 
 /* A record mid-workout: one line above the button, gone on its own. */
@@ -973,14 +1282,14 @@ function onNoteInput(event: Event) {
 }
 
 /* The start of a workout: the screen arrives in order, and is usable throughout. */
-.session--fresh .progress,
-.session--fresh .now__exercise,
+.session--fresh .where,
+.session--fresh .now__head,
 .session--fresh .now__meta,
 .session--fresh .sets {
   animation: session-rise var(--motion-base) var(--ease-out) both;
 }
 
-.session--fresh .now__exercise {
+.session--fresh .now__head {
   animation-delay: calc(var(--motion-stagger) * 1);
 }
 

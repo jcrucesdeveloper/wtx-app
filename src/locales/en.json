@@ -26,28 +26,45 @@
     "nextUp": "Next up",
     "start": "Start",
     "notDoneYet": "Not done yet",
-    "edit": "Edit"
+    "edit": "Edit",
+    "favorites": "Favourites",
+    "otherRoutines": "Other routines"
   },
   "workout": {
     "removeConfirm": "Remove {name} from this workout?",
+    "replaceConfirm": "You have a workout in progress. Discard it and start this one?",
     "newRecord": "New record: {weight} {unit}",
     "restOver": "Rest over. Go.",
     "exerciseOf": "Exercise {n} of {total}",
     "setOf": "Set {n} of {total}",
-    "lastTimeSet": "last time {weight} × {reps}",
+    "typedSetOf": "{type} {n} of {total}",
     "less": "Less",
     "more": "More",
     "logSet": "Log set {n}",
+    "doneEditing": "Done editing",
+    "logSetType": {
+      "W": "Log warm-up",
+      "D": "Log drop set"
+    },
     "nextExercise": "Next: {name}",
     "finishWorkout": "Finish workout",
-    "upNext": "Up next",
-    "planSet": "plan {weight} × {reps}",
     "setType": {
       "number": "Working set",
       "W": "Warm-up",
       "D": "Drop set"
     },
-    "setTypeAria": "Change set type"
+    "setTypeAria": "Change set type",
+    "previousExercise": "Previous exercise",
+    "followingExercise": "Next exercise",
+    "overview": "Workout overview",
+    "overviewNow": "Now",
+    "setColumn": "Set",
+    "previousColumn": "Previous",
+    "noSets": "No sets yet. Add one to start logging.",
+    "changeExercise": "Change exercise",
+    "changeExerciseHint": "Swap it for another one. Its sets start empty.",
+    "removeExerciseHint": "From this workout only, not the routine.",
+    "changeConfirm": "Swap {from} for {to}? The {count} set you logged for {from} will be removed. | Swap {from} for {to}? The {count} sets you logged for {from} will be removed."
   },
   "finish": {
     "newPlate": "New plate",
@@ -185,6 +202,8 @@
     "editAria": "Edit routine",
     "shareAria": "Share routine",
     "optionsAria": "Routine options",
+    "favoriteAria": "Add to favourites",
+    "unfavoriteAria": "Remove from favourites",
     "deleteRoutine": "Delete routine",
     "deleteConfirm": "Remove this routine from your library?",
     "notFound": "This routine is no longer in your library.",
@@ -338,7 +357,6 @@
   "activeSession": {
     "fallbackTitle": "Workout",
     "backAria": "Back",
-    "groupAria": "Start group workout",
     "optionsAria": "Workout options",
     "addExercise": "Add exercise",
     "reorderExercises": "Reorder exercises",
@@ -370,11 +388,28 @@
     "shareStats": "{sets} sets · {exercises} exercises",
     "sharePr": "New PR on {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks}-week streak going 🔥",
-    "shareCopied": "Copied!",
-    "cardFooter": "Logged with WTX",
+    "cardMore": "+{count} more",
+    "cardRecordMark": "PR",
     "cardPr": "New PR",
     "cardStreak": "{weeks}-week streak",
     "cardStreakLabel": "Streak"
+  },
+  "shareCard": {
+    "title": "Share workout",
+    "previewAria": "Preview of the image you are about to share",
+    "styleAria": "Image style",
+    "style": {
+      "card": "Lifts",
+      "photo": "Photo",
+      "sticker": "Sticker"
+    },
+    "hint": {
+      "card": "A story card with your numbers and your best set of each exercise.",
+      "photo": "Your numbers over a photo of your own. The photo stays on your phone until you share it.",
+      "sticker": "Only the numbers, on a transparent background. Save it, then add it over a photo or video from your gallery."
+    },
+    "choosePhoto": "Choose a photo",
+    "changePhoto": "Change photo"
   },
   "sessionDetail": {
     "title": "Workout",
@@ -403,7 +438,6 @@
     "groupThisWeek": "This week",
     "groupLastWeek": "Last week",
     "groupEarlier": "Earlier",
-    "done": "Done",
     "partial": "Partial",
     "error": "Error",
     "exercises": "{count} exercises",
@@ -525,11 +559,12 @@
       "codeLabel": "Follow code",
       "follow": "Follow",
       "following": "Following…",
-      "nowFollowing": "You're now following {name}.",
+      "followedTitle": "You're now following",
+      "followedHint": "Workouts {name} shares will show up in Friends.",
+      "followedDone": "Done",
+      "viewProfile": "View profile",
       "followingTitle": "Following",
-      "followingEmpty": "You're not following anyone yet.",
       "followingEmptyCta": "Follow your training partners",
-      "unfollowAria": "Unfollow {name}",
       "resetCode": "Reset my code",
       "resetTitle": "Reset your code?",
       "resetHint": "You'll get a new code, link and QR code. The old ones stop working, so anyone who has them won't be able to follow you with them. People already following you stay — remove them from your followers if you don't want them back.",
@@ -684,6 +719,7 @@
     "cameraUnavailable": "Camera unavailable. Type the code instead.",
     "codeLabel": "Room code",
     "progressTitle": "Your group",
+    "openRoomAria": "Open the group room",
     "setsDone": "{count} sets",
     "recapTitle": "Group recap",
     "sets": "Sets",
@@ -732,6 +768,9 @@
     "errors": {
       "room_not_found": "No open room with that code.",
       "room_full": "That room is full (8 people max).",
+      "workout_in_progress": "You have a workout in progress. Finish or discard it before starting a group workout.",
+      "group_workout_in_progress": "You have a group workout in progress. Finish or discard it before starting another workout.",
+      "in_room": "You're in a group workout room. Leave the room before starting another workout.",
       "not_authenticated": "Log in first.",
       "rate_limited": "Too many attempts. Wait a few minutes and try again.",
       "unknown": "Something went wrong. Try again."

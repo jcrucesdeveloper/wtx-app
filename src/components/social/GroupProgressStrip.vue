@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { Bell, BellOff } from '@lucide/vue'
+import { Bell, BellOff, ChevronRight } from '@lucide/vue'
 import { useRoomStore } from '@/stores/room'
 import { useAuthStore } from '@/stores/auth'
 import { initials, memberColor } from '@/lib/memberColors'
@@ -63,7 +63,11 @@ function onTeamLine() {
 <template>
   <div class="strip">
     <div class="strip__row">
-      <button type="button" class="strip__label" @click="openRoom">{{ t('room.progressTitle') }}</button>
+      <!-- The way into the room from a workout: it has to look like one. -->
+      <button type="button" class="strip__label" :aria-label="t('room.openRoomAria')" @click="openRoom">
+        {{ t('room.progressTitle') }}
+        <ChevronRight :size="14" :stroke-width="2.5" />
+      </button>
       <span class="strip__members">
         <button
           v-for="(m, i) in room.progress"
@@ -207,14 +211,17 @@ function onTeamLine() {
 
 .strip__label {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 32px;
   border: none;
   background: transparent;
-  color: inherit;
+  color: var(--color-heading);
   padding: 4px 0;
   cursor: pointer;
   font-size: var(--text-small);
   font-weight: 700;
-  opacity: 0.6;
 }
 
 .strip__members {
