@@ -32,6 +32,7 @@
   },
   "workout": {
     "removeConfirm": "Remove {name} from this workout?",
+    "replaceConfirm": "You have a workout in progress. Discard it and start this one?",
     "newRecord": "New record: {weight} {unit}",
     "restOver": "Rest over. Go.",
     "exerciseOf": "Exercise {n} of {total}",
@@ -767,6 +768,9 @@
     "errors": {
       "room_not_found": "No open room with that code.",
       "room_full": "That room is full (8 people max).",
+      "workout_in_progress": "You have a workout in progress. Finish or discard it before starting a group workout.",
+      "group_workout_in_progress": "You have a group workout in progress. Finish or discard it before starting another workout.",
+      "in_room": "You're in a group workout room. Leave the room before starting another workout.",
       "not_authenticated": "Log in first.",
       "rate_limited": "Too many attempts. Wait a few minutes and try again.",
       "unknown": "Something went wrong. Try again."

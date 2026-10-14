@@ -32,6 +32,7 @@
   },
   "workout": {
     "removeConfirm": "¿Quitar {name} de este entrenamiento?",
+    "replaceConfirm": "Tienes un entrenamiento en curso. ¿Descartarlo y empezar este?",
     "newRecord": "Nuevo récord: {weight} {unit}",
     "restOver": "Descanso terminado. Vamos.",
     "exerciseOf": "Ejercicio {n} de {total}",
@@ -767,6 +768,9 @@
     "errors": {
       "room_not_found": "No hay una sala abierta con ese código.",
       "room_full": "Esa sala está llena (máximo 8 personas).",
+      "workout_in_progress": "Tienes un entrenamiento en curso. Termínalo o descártalo antes de empezar uno en grupo.",
+      "group_workout_in_progress": "Tienes un entrenamiento en grupo en curso. Termínalo o descártalo antes de empezar otro.",
+      "in_room": "Estás en una sala de entrenamiento en grupo. Sal de la sala antes de empezar otro entrenamiento.",
       "not_authenticated": "Inicia sesión primero.",
       "rate_limited": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
       "unknown": "Algo salió mal. Inténtalo de nuevo."

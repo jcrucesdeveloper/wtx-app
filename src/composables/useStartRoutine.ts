@@ -1,28 +1,40 @@
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useRoutinesStore } from '@/stores/routines'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useRoomStore } from '@/stores/room'
+import { isConflict, startVerdict } from '@/lib/workoutConflict'
 import { HapticsService } from '@/services/haptics'
 
 /** Starts (or resumes) a routine's workout session, navigating to the active session. */
 export function useStartRoutine() {
+  const { t } = useI18n()
   const router = useRouter()
   const routines = useRoutinesStore()
   const activeSession = useActiveSessionStore()
+  const room = useRoomStore()
 
   /**
+   * One workout at a time, whether on your own or in a group: this is the one
+   * place a workout starts, so it is where that is decided.
+   *
    * @param opts.roomId - Logs the session in a group workout room.
    */
   function startRoutine(routineId: string, opts?: { roomId?: string }) {
-    if (activeSession.isActive) {
-      const current = activeSession.session
-      const sameWorkout = opts?.roomId
-        ? current?.roomId === opts.roomId
-        : current?.routineId === routineId && !current?.roomId
-      if (sameWorkout) {
-        router.push({ name: 'active-session' })
-        return
-      }
-      if (!confirm('You have a workout in progress. Discard it and start this one?')) return
+    const verdict = startVerdict(
+      { session: activeSession.session, openRoomId: room.openRoomId },
+      opts?.roomId ? { kind: 'group', roomId: opts.roomId } : { kind: 'solo', routineId },
+    )
+    if (verdict === 'resume') {
+      router.push({ name: 'active-session' })
+      return
+    }
+    if (isConflict(verdict)) {
+      alert(t(`room.errors.${verdict}`))
+      return
+    }
+    if (verdict === 'replace') {
+      if (!confirm(t('workout.replaceConfirm'))) return
       activeSession.discard()
     }
 
