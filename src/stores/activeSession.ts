@@ -317,10 +317,45 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     session.value.restSetId = null
   }
 
-  /** Nudges the running rest timer; clamped so it never goes negative. */
+  /**
+   * Nudges the running rest timer; clamped so it never goes negative. The
+   * rest's length moves with it, so its progress stays a share of the whole.
+   */
   function adjustRestTimer(deltaSeconds: number) {
     if (!session.value?.restEndsAt) return
-    session.value.restEndsAt = Math.max(Date.now(), session.value.restEndsAt + deltaSeconds * 1000)
+    const before = session.value.restEndsAt
+    session.value.restEndsAt = Math.max(Date.now(), before + deltaSeconds * 1000)
+    const duration = session.value.restDurationSeconds
+    if (duration !== null) {
+      session.value.restDurationSeconds = Math.max(
+        0,
+        duration + (session.value.restEndsAt - before) / 1000,
+      )
+    }
+  }
+
+  /**
+   * Sets how long to rest after this exercise's sets, for the rest of this
+   * session; `0` or `undefined` turns its rest off. The routine is untouched.
+   *
+   * A rest already running after this exercise is re-timed to the new length,
+   * counted from when it started (a rest past the new length ends now); with
+   * the rest turned off, it stops.
+   */
+  function setRestSeconds(exerciseIndex: number, seconds: number | undefined) {
+    const exercise = session.value?.draft.exercises[exerciseIndex]
+    if (!session.value || !exercise) return
+    const next = seconds && seconds > 0 ? Math.round(seconds) : undefined
+    const previous = exercise.restSeconds
+    exercise.restSeconds = next
+
+    const endsAt = session.value.restEndsAt
+    if (session.value.restExerciseIndex !== exerciseIndex || endsAt === null) return
+    if (next === undefined) return skipRestTimer()
+    const startedAt = endsAt - (session.value.restDurationSeconds ?? previous ?? next) * 1000
+    session.value.restEndsAt = Math.max(Date.now(), startedAt + next * 1000)
+    session.value.restDurationSeconds = (session.value.restEndsAt - startedAt) / 1000
+    now.value = Date.now()
   }
 
   /**
@@ -334,7 +369,12 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    * @param opts.shareToFeed Posts the finished session to the Social feed for followers.
    */
   function finish(
-    opts: { routineIdOverride?: string; name?: string; localOnly?: boolean; shareToFeed?: boolean } = {},
+    opts: {
+      routineIdOverride?: string
+      name?: string
+      localOnly?: boolean
+      shareToFeed?: boolean
+    } = {},
   ): StoredSession {
     if (!session.value) throw new Error('No active session to finish.')
 
@@ -385,6 +425,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     startRestTimer,
     skipRestTimer,
     adjustRestTimer,
+    setRestSeconds,
     finish,
     discard,
   }
