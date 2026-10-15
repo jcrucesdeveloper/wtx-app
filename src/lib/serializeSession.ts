@@ -1,5 +1,5 @@
 import type { WorkoutSession, WorkoutTemplate } from '@/lib/wtx'
-import { withTimeMarker } from '@/lib/sessionTime'
+import { isTimeExercise, withTimeMarker } from '@/lib/sessionTime'
 import { newUuid } from '@/lib/uuid'
 
 /**
@@ -29,7 +29,7 @@ export interface SessionSetDraft {
 /** One exercise being logged in an {@link ActiveSession} draft. */
 export interface SessionExerciseDraft {
   name: string
-  /** From the source template's exercise kind; not user-editable in v1. */
+  /** From the source template's exercise kind; switchable mid-session (`setExerciseKind`). */
   kind: 'reps' | 'time'
   /** Planned header set count. */
   sets: number
@@ -86,7 +86,10 @@ export function draftFromTemplate(
   lastSession?: WorkoutSession,
 ): SessionDraft {
   const exercises: SessionExerciseDraft[] = template.exercises.map((exercise) => {
-    const last = findLastExercise(lastSession, exercise.name)
+    const found = findLastExercise(lastSession, exercise.name)
+    // Last time it was switched to the other kind: 8 reps are not 8 seconds, so no prefill.
+    const last =
+      found && isTimeExercise(found.note) === (exercise.kind === 'time') ? found : undefined
     const lastWorking = last?.workingSets ?? []
     const lastWarmup = last?.warmupSets ?? []
 
@@ -169,7 +172,8 @@ export function serializeSession(draft: SessionDraft): string {
     for (const set of exercise.loggedSets) {
       if (!set.completed || set.weight === null || set.reps === null) continue
       const label = set.type === 'number' ? String(++workingIndex) : set.type
-      const setWeight = Number.isFinite(set.weight) ? set.weight : 0
+      // A timed set has no weight: zero keeps it out of volume and weight records.
+      const setWeight = exercise.kind === 'time' || !Number.isFinite(set.weight) ? 0 : set.weight
       lines.push(`${label} | ${setWeight} | ${set.reps}`)
     }
   }

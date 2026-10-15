@@ -6,7 +6,7 @@ import BottomSheet from '@/components/ui/BottomSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useExerciseName } from '@/composables/useExerciseName'
-import { formatCompactDuration } from '@/lib/format'
+import { formatDurationInput } from '@/lib/durationInput'
 import type { SessionExerciseDraft } from '@/lib/serializeSession'
 
 /**
@@ -34,6 +34,10 @@ const unit = computed(() => activeSession.session?.draft.unit ?? '')
 function summary(exercise: SessionExerciseDraft): string {
   const done = exercise.loggedSets.filter((s) => s.completed)
   if (done.length === exercise.loggedSets.length && done.length > 0) {
+    if (exercise.kind === 'time') {
+      const longest = Math.max(...done.map((s) => s.reps ?? 0))
+      return `${done.length} × ${formatDurationInput(longest)}`
+    }
     const top = done.reduce((best, s) => ((s.weight ?? 0) > (best.weight ?? 0) ? s : best))
     return `${done.length} × ${top.reps} · ${top.weight} ${unit.value}`.trim()
   }
@@ -42,9 +46,11 @@ function summary(exercise: SessionExerciseDraft): string {
   }
   const plan =
     exercise.kind === 'time'
-      ? formatCompactDuration(exercise.reps) || '0s'
+      ? `${exercise.loggedSets.length} × ${formatDurationInput(exercise.reps)}`
       : `${exercise.loggedSets.length} × ${exercise.reps}`
-  return exercise.weight ? `${plan} · ${exercise.weight} ${unit.value}`.trim() : plan
+  return exercise.weight && exercise.kind === 'reps'
+    ? `${plan} · ${exercise.weight} ${unit.value}`.trim()
+    : plan
 }
 
 const items = computed(() =>

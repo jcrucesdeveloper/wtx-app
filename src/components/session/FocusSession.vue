@@ -18,6 +18,9 @@ import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import WorkoutOverviewSheet from '@/components/session/WorkoutOverviewSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
+import TimedSetField from '@/components/session/TimedSetField.vue'
+import ExerciseKindRow from '@/components/session/ExerciseKindRow.vue'
+import { formatDurationInput } from '@/lib/durationInput'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useSessionsStore } from '@/stores/sessions'
 import { useExerciseName } from '@/composables/useExerciseName'
@@ -467,7 +470,7 @@ function onNoteInput(event: Event) {
         </div>
 
         <!-- Keyed by set: the next set's numbers arrive, they don't just change. -->
-        <div :key="currentSet.set.id" class="fields">
+        <div v-if="!isTime" :key="currentSet.set.id" class="fields">
           <div class="field">
             <button
               type="button"
@@ -535,6 +538,12 @@ function onNoteInput(event: Event) {
             </button>
           </div>
         </div>
+        <TimedSetField
+          v-else
+          :key="`time-${currentSet.set.id}`"
+          :seconds="shownReps(currentSet.set)"
+          @update="update({ reps: $event })"
+        />
       </template>
 
       <!-- Every set of this exercise, a row each: what it is, what you did last
@@ -543,9 +552,11 @@ function onNoteInput(event: Event) {
         <div v-if="labeledSets.length" class="sets__head" aria-hidden="true">
           <span>{{ t('workout.setColumn') }}</span>
           <span>{{ t('workout.previousColumn') }}</span>
-          <span class="sets__num">{{ unit || t('session.activeExerciseCard.weight') }}</span>
           <span class="sets__num">{{
-            isTime ? t('session.activeExerciseCard.seconds') : t('session.activeExerciseCard.reps')
+            isTime ? '' : unit || t('session.activeExerciseCard.weight')
+          }}</span>
+          <span class="sets__num">{{
+            isTime ? t('timedExercise.time') : t('session.activeExerciseCard.reps')
           }}</span>
         </div>
         <p v-else class="sets__empty">{{ t('workout.noSets') }}</p>
@@ -577,7 +588,10 @@ function onNoteInput(event: Event) {
               </span>
               <span class="set__prev">
                 <template v-if="row.set.ghostFromLast && row.set.ghostWeight != null">
-                  {{ row.set.ghostWeight }} × {{ row.set.ghostReps }}
+                  <template v-if="isTime">{{
+                    formatDurationInput(row.set.ghostReps ?? 0)
+                  }}</template>
+                  <template v-else>{{ row.set.ghostWeight }} × {{ row.set.ghostReps }}</template>
                 </template>
                 <template v-else>–</template>
               </span>
@@ -589,9 +603,11 @@ function onNoteInput(event: Event) {
                 >
                   PR
                 </span>
-                {{ shownWeight(row.set) }}
+                {{ isTime ? '–' : shownWeight(row.set) }}
               </span>
-              <span class="set__num">{{ shownReps(row.set) }}</span>
+              <span class="set__num">{{
+                isTime ? formatDurationInput(shownReps(row.set)) : shownReps(row.set)
+              }}</span>
             </button>
             <button
               type="button"
@@ -699,6 +715,10 @@ function onNoteInput(event: Event) {
           :label="t('workout.changeExercise')"
           :hint="t('workout.changeExerciseHint')"
           @click="startSwap"
+        />
+        <ExerciseKindRow
+          :index="currentIndex"
+          @switched="((actionsOpen = false), (pickedSetId = null))"
         />
         <SettingsRow
           v-if="exercises.length > 1"

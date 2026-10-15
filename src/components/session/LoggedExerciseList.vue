@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { WorkoutSessionExercise } from '@/lib/wtx'
-import { displayNote, isTimeExercise } from '@/lib/sessionTime'
+import { displayNote, formatSetValue, isTimeExercise } from '@/lib/sessionTime'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { useExerciseName } from '@/composables/useExerciseName'
 
@@ -41,8 +41,7 @@ const { exerciseName } = useExerciseName()
         >
           <span class="set__label">{{ set.label }}</span>
           <span class="set__value">
-            {{ set.weight }} {{ unit }} × {{ set.reps
-            }}{{ isTimeExercise(exercise.note) ? 's' : '' }}
+            {{ formatSetValue(set, unit, isTimeExercise(exercise.note)) }}
           </span>
         </li>
       </ul>
