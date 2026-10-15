@@ -1162,5 +1162,15 @@
       "time": "¿Registrar por tiempo? Se borrará la {count} serie que registraste. | ¿Registrar por tiempo? Se borrarán las {count} series que registraste.",
       "reps": "¿Registrar por peso y repeticiones? Se borrará la {count} serie que registraste. | ¿Registrar por peso y repeticiones? Se borrarán las {count} series que registraste."
     }
+  },
+  "sessionNotification": {
+    "channelName": "Entrenamiento en curso",
+    "channelDescription": "Muestra el ejercicio actual y el descanso durante un entrenamiento.",
+    "load": "{weight} × {amount}",
+    "setLine": "{position} · {load}",
+    "allDone": "Todas las series registradas. Termina cuando quieras.",
+    "rest": "Descansando",
+    "restThen": "Descansando · luego {next}",
+    "restNextExercise": "Descansando · siguiente: {name}"
   }
 }

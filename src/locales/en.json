@@ -1162,5 +1162,15 @@
       "time": "Track by time? The {count} set you logged will be cleared. | Track by time? The {count} sets you logged will be cleared.",
       "reps": "Track by weight and reps? The {count} set you logged will be cleared. | Track by weight and reps? The {count} sets you logged will be cleared."
     }
+  },
+  "sessionNotification": {
+    "channelName": "Workout in progress",
+    "channelDescription": "Shows the current exercise and the rest timer during a workout.",
+    "load": "{weight} × {amount}",
+    "setLine": "{position} · {load}",
+    "allDone": "All sets logged. Finish when you are ready.",
+    "rest": "Resting",
+    "restThen": "Resting · then {next}",
+    "restNextExercise": "Resting · next: {name}"
   }
 }
