@@ -1128,5 +1128,20 @@
     "body": "Con recordatorios y enlaces que se abren en la app.",
     "cta": "Obtener",
     "dismissAria": "Cerrar"
+  },
+  "restTimer": {
+    "title": "Temporizador de descanso",
+    "hint": "Cuánto descansar tras cada serie de {name}, sin contar el calentamiento, en este entrenamiento.",
+    "off": "Apagado",
+    "presets": "Duraciones de descanso",
+    "lessAria": "{n} segundos menos",
+    "moreAria": "{n} segundos más",
+    "saveToRoutine": "Cambiarlo también en {routine}",
+    "saveToRoutineDesc": "La próxima vez que empieces esta rutina, descansará esto también.",
+    "save": "Guardar",
+    "buttonAria": "Descanso {time}. Cambiar el temporizador",
+    "offAria": "Sin temporizador de descanso. Poner uno",
+    "panelAria": "Descansando, quedan {time}",
+    "after": "Descanso tras {name}"
   }
 }

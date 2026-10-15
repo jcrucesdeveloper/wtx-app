@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Check,
@@ -16,6 +16,8 @@ import BottomSheet from '@/components/ui/BottomSheet.vue'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import WorkoutOverviewSheet from '@/components/session/WorkoutOverviewSheet.vue'
+import RestTimer from '@/components/session/RestTimer.vue'
+import RestTimeButton from '@/components/session/RestTimeButton.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
@@ -337,44 +339,7 @@ const segments = computed(() =>
   ),
 )
 
-const resting = computed(() => activeSession.session?.restEndsAt != null)
-const restFraction = computed(() => {
-  const duration = activeSession.session?.restDurationSeconds
-  if (!duration) return 0
-  return Math.min(1, Math.max(0, activeSession.restRemainingSeconds / duration))
-})
-
-// ----- rest -----
-/** The timer ran out on its own (not skipped): said once, briefly. */
-const restOver = ref(false)
-let restOverTimer: ReturnType<typeof setTimeout> | undefined
-let restEndedByHand = false
-
-watch(resting, (now, before) => {
-  if (!before || now) return
-  if (!restEndedByHand) {
-    restOver.value = true
-    clearTimeout(restOverTimer)
-    restOverTimer = setTimeout(() => (restOver.value = false), 2600)
-  }
-  restEndedByHand = false
-})
-
-function adjustRest(seconds: number) {
-  activeSession.adjustRestTimer(seconds)
-  void HapticsService.selection()
-}
-
-function skipRest() {
-  restEndedByHand = true
-  activeSession.skipRestTimer()
-  void HapticsService.selection()
-}
-
-onBeforeUnmount(() => {
-  clearTimeout(recordTimer)
-  clearTimeout(restOverTimer)
-})
+onBeforeUnmount(() => clearTimeout(recordTimer))
 
 const showImage = ref(false)
 
@@ -593,6 +558,7 @@ function onNoteInput(event: Event) {
               </span>
               <span class="set__num">{{ shownReps(row.set) }}</span>
             </button>
+            <RestTimeButton :exercise-index="currentIndex" :set="row.set" />
             <button
               type="button"
               class="set__done"
@@ -628,22 +594,7 @@ function onNoteInput(event: Event) {
         {{ t('workout.newRecord', { weight: recordFlash, unit }) }}
       </p>
 
-      <p v-if="restOver && !resting" class="rest-over" role="status">{{ t('workout.restOver') }}</p>
-
-      <div v-if="resting" class="rest">
-        <span class="rest__track" aria-hidden="true">
-          <i :style="{ transform: `scaleX(${restFraction})` }" />
-        </span>
-        <span class="rest__label">{{ t('session.restTimer.rest') }}</span>
-        <span class="rest__time">{{ formatClock(activeSession.restRemainingSeconds) }}</span>
-        <span class="rest__actions">
-          <AppButton variant="quiet" size="sm" @click="adjustRest(-15)">−15</AppButton>
-          <AppButton variant="quiet" size="sm" @click="adjustRest(15)">+15</AppButton>
-          <AppButton variant="quiet" size="sm" @click="skipRest">
-            {{ t('session.restTimer.skip') }}
-          </AppButton>
-        </span>
-      </div>
+      <RestTimer />
       <!-- `row__check` only so the existing capture scripts still find it. -->
       <AppButton
         :variant="primary === 'log' || primary === 'finish' ? 'primary' : 'quiet'"
@@ -1006,6 +957,7 @@ button.where__now:active {
 .sets {
   /* Previous is only as wide as its text; the two numbers share the rest. */
   --set-columns: 36px 80px minmax(0, 1.4fr) minmax(0, 1fr);
+  --rest-time-width: 60px;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -1021,8 +973,8 @@ button.where__now:active {
 }
 
 .sets__head {
-  /* Lines up with the rows: their inset on the left, their check on the right. */
-  padding: 0 calc(var(--size-touch) + var(--space-1)) 0 var(--space-2);
+  /* Lines up with the rows: their inset on the left, their rest and check on the right. */
+  padding: 0 calc(var(--rest-time-width) + var(--size-touch) + 2 * var(--space-1)) 0 var(--space-2);
   font-size: var(--text-micro);
   font-weight: var(--weight-medium);
 }
@@ -1221,53 +1173,8 @@ button.where__now:active {
   background: var(--color-background);
 }
 
-.rest {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 10px;
-}
-
-.rest__track {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--color-background-mute);
-  overflow: hidden;
-}
-
-.rest__track i {
-  display: block;
-  height: 100%;
-  background: var(--color-heading);
-  transform-origin: left;
-}
-
-.rest__label {
-  font-size: var(--text-small);
-  font-weight: var(--weight-medium);
-}
-
-.rest__time {
-  font-size: 20px;
-  font-weight: var(--weight-heavy);
-  color: var(--color-heading);
-  font-variant-numeric: tabular-nums;
-}
-
-.rest__actions {
-  display: flex;
-  gap: 6px;
-  margin-left: auto;
-}
-
 /* A record mid-workout: one line above the button, gone on its own. */
-.record,
-.rest-over {
+.record {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -1337,10 +1244,6 @@ button.where__now:active {
 @media (prefers-reduced-motion: no-preference) {
   .progress__segment i {
     transition: transform 0.3s var(--ease-out);
-  }
-
-  .rest__track i {
-    transition: transform 1s linear;
   }
 
   .set--just .set__mark {

@@ -1128,5 +1128,20 @@
     "body": "Workout reminders, and shared links open right in it.",
     "cta": "Get",
     "dismissAria": "Dismiss"
+  },
+  "restTimer": {
+    "title": "Rest timer",
+    "hint": "How long to rest after each set of {name}, warm-ups aside, in this workout.",
+    "off": "Off",
+    "presets": "Rest lengths",
+    "lessAria": "{n} seconds less",
+    "moreAria": "{n} seconds more",
+    "saveToRoutine": "Also change it in {routine}",
+    "saveToRoutineDesc": "Next time you start this routine, it rests this long too.",
+    "save": "Save",
+    "buttonAria": "Rest {time}. Change the rest timer",
+    "offAria": "No rest timer. Set one",
+    "panelAria": "Resting, {time} left",
+    "after": "Rest after {name}"
   }
 }
