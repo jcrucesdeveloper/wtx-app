@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Check,
@@ -22,6 +23,8 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 import { useSessionsStore } from '@/stores/sessions'
 import { useExerciseName } from '@/composables/useExerciseName'
 import { formatClock } from '@/lib/format'
+import { focusAndSelect, holdKeyboard, selectAll } from '@/lib/focusField'
+import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import { HapticsService } from '@/services/haptics'
 import { allTimeBestsByExercise, liveRecordSetIds } from '@/lib/sessionRecords'
 import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSession'
@@ -138,7 +141,8 @@ function onFocus(field: 'weight' | 'reps', event: Event) {
   typed.value = input.value
   editing.value = field
   // Selected, so typing replaces the number instead of adding to it.
-  input.select()
+  selectAll(input)
+  scrollFocusedIntoView(event as FocusEvent)
 }
 
 function onInput(field: 'weight' | 'reps', event: Event) {
@@ -234,6 +238,24 @@ function pickSet(set: SessionSetDraft) {
   if (pickedSetId.value === set.id) return
   pickedSetId.value = set.id
   void HapticsService.selection()
+}
+
+const weightInput = useTemplateRef<HTMLInputElement>('weightInput')
+const repsInput = useTemplateRef<HTMLInputElement>('repsInput')
+
+/** Tapping a row's weight or reps: that set, with the number ready to type over. */
+function editField(set: SessionSetDraft, field: 'weight' | 'reps') {
+  const input = () => (field === 'weight' ? weightInput.value : repsInput.value)
+  // Its fields are already on screen: focus them inside the tap.
+  const onScreen = currentSet.value?.set.id === set.id
+  // Otherwise they re-render for the new set; hold the keyboard open until they have.
+  const release = onScreen ? null : holdKeyboard(field === 'weight' ? 'decimal' : 'numeric')
+  pickSet(set)
+  if (!release) return void focusAndSelect(input())
+  void nextTick(() => {
+    focusAndSelect(input())
+    release()
+  })
 }
 
 /** Working set, warm-up or drop set — tapping the label steps through them. */
@@ -480,6 +502,7 @@ function onNoteInput(event: Event) {
             <label class="field__value">
               <!-- `row__input` only so the existing capture scripts still find it. -->
               <input
+                ref="weightInput"
                 class="field__input row__input"
                 type="number"
                 inputmode="decimal"
@@ -511,6 +534,7 @@ function onNoteInput(event: Event) {
             </button>
             <label class="field__value">
               <input
+                ref="repsInput"
                 class="field__input"
                 type="number"
                 inputmode="numeric"
@@ -581,7 +605,7 @@ function onNoteInput(event: Event) {
                 </template>
                 <template v-else>–</template>
               </span>
-              <span class="set__num">
+              <span class="set__num" @click.stop="editField(row.set, 'weight')">
                 <span
                   v-if="recordSetIds.has(row.set.id)"
                   class="set__pr"
@@ -591,7 +615,9 @@ function onNoteInput(event: Event) {
                 </span>
                 {{ shownWeight(row.set) }}
               </span>
-              <span class="set__num">{{ shownReps(row.set) }}</span>
+              <span class="set__num" @click.stop="editField(row.set, 'reps')">{{
+                shownReps(row.set)
+              }}</span>
             </button>
             <button
               type="button"
@@ -1107,6 +1133,8 @@ button.where__now:active {
 }
 
 .set__num {
+  /* The full row height, so the whole cell is the tap that edits the number. */
+  align-self: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
