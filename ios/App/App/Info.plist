@@ -17,7 +17,11 @@
 	<key>GADApplicationIdentifier</key>
 	<string>$(ADMOB_APP_ID)</string>
 	<key>NSCameraUsageDescription</key>
-	<string>WTX uses the camera to scan QR codes for shared routines and workout rooms.</string>
+	<string>WTX uses the camera to scan QR codes for shared routines and workout rooms, and to take a photo for your workout card. Photos stay on your phone.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>WTX lets you pick a photo for your workout card. The photo stays on your phone.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>WTX saves your workout card to your photos when you choose Save Image.</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>WTX is free thanks to ads. Allowing tracking lets our ad partner (Google AdMob) use your device's advertising identifier to show ads that are more relevant to you. Your workouts are never shared with advertisers, and you'll still see ads if you decline.</string>
 	<!-- Google's recommended SKAdNetwork IDs for AdMob (Google first, then its

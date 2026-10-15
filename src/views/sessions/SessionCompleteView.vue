@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppPage from '@/components/AppPage.vue'
 import FinishSummary from '@/components/session/FinishSummary.vue'
-import ShareWorkoutSheet from '@/components/session/ShareWorkoutSheet.vue'
+import FinishSharePrompt from '@/components/session/FinishSharePrompt.vue'
 import { useSessionsStore } from '@/stores/sessions'
 import { useSessionRecapStore } from '@/stores/sessionRecap'
 import { HapticsService } from '@/services/haptics'
@@ -119,15 +119,11 @@ const cardData = computed<WorkoutCardData | null>(() => {
 })
 
 /** Sharing opens a preview first: nothing leaves the phone that wasn't looked at. */
-const shareOpen = ref(false)
+const sharePrompt = ref<InstanceType<typeof FinishSharePrompt> | null>(null)
 </script>
 
 <template>
-  <AppPage
-    sub
-    fill
-    :title="result?.ok ? result.session.name : t('sessionComplete.fallbackTitle')"
-  >
+  <AppPage sub fill :title="result?.ok ? result.session.name : t('sessionComplete.fallbackTitle')">
     <p v-if="!stored || !result?.ok" class="msg">{{ t('sessionDetail.notFound') }}</p>
 
     <FinishSummary
@@ -136,16 +132,13 @@ const shareOpen = ref(false)
       :recap="recap"
       :room-id="stored.roomId"
       @done="onDone"
-      @share="shareOpen = true"
+      @share="sharePrompt?.open()"
       @recap="router.push({ name: 'room-recap', params: { id: stored.roomId } })"
-    />
-
-    <ShareWorkoutSheet
-      :open="shareOpen"
-      :data="cardData"
-      :caption="shareText"
-      @close="shareOpen = false"
-    />
+    >
+      <template #share>
+        <FinishSharePrompt ref="sharePrompt" :data="cardData" :caption="shareText" />
+      </template>
+    </FinishSummary>
   </AppPage>
 </template>
 

@@ -4,12 +4,16 @@ import {
   CARD_WIDTH,
   SAFE_BOTTOM,
   SAFE_TOP,
+  SQUARE_MARGIN,
   coverCrop,
   drawWorkoutCard,
   fitLifts,
+  liftRowsFor,
   workoutCardContent,
+  workoutCardFrame,
   workoutCardSize,
   type WorkoutCardData,
+  type WorkoutCardFormat,
   type WorkoutCardLabels,
   type WorkoutCardLift,
   type WorkoutCardStyle,
@@ -63,7 +67,13 @@ function content(
   recap: Parameters<typeof workoutCardContent>[0]['recap'] = null,
   labels = EN,
 ): WorkoutCardData {
-  return workoutCardContent({ session: s, recap, labels, host: 'wtxworkout.com', accent: '#e0263a' })
+  return workoutCardContent({
+    session: s,
+    recap,
+    labels,
+    host: 'wtxworkout.com',
+    accent: '#e0263a',
+  })
 }
 
 const pr = (exerciseName: string, weight: number, reps: number) => ({
@@ -82,7 +92,9 @@ const TYPICAL = session('Push Day', [
 ])
 const HUGE = session(
   'Saturday Full Lower Body Volume Session With Accessories And Core Work To Finish',
-  Array.from({ length: 16 }, (_, i) => lift(`Exercise Number ${i + 1} With A Long Name`, 200 - i * 7.5, 8, 5)).flat(),
+  Array.from({ length: 16 }, (_, i) =>
+    lift(`Exercise Number ${i + 1} With A Long Name`, 200 - i * 7.5, 8, 5),
+  ).flat(),
 )
 
 describe('workoutCardContent', () => {
@@ -131,15 +143,22 @@ describe('workoutCardContent', () => {
       personalRecords: [pr('bench press', 72.5, 5), pr('Lateral Raise', 10, 15)],
     })
     expect(data.highlight).toEqual({ label: 'New PR', text: 'bench press · 72.5 kg × 5' })
-    expect(data.lifts.filter((l) => l.record).map((l) => l.name)).toEqual(['Bench Press', 'Lateral Raise'])
+    expect(data.lifts.filter((l) => l.record).map((l) => l.name)).toEqual([
+      'Bench Press',
+      'Lateral Raise',
+    ])
   })
 
   it('falls back to the streak, and to nothing for a streak of one', () => {
-    expect(content(TYPICAL, { elapsedSeconds: 60, weekStreak: 4, personalRecords: [] }).highlight).toEqual({
+    expect(
+      content(TYPICAL, { elapsedSeconds: 60, weekStreak: 4, personalRecords: [] }).highlight,
+    ).toEqual({
       label: 'Streak',
       text: '4-week streak',
     })
-    expect(content(TYPICAL, { elapsedSeconds: 60, weekStreak: 1, personalRecords: [] }).highlight).toBeUndefined()
+    expect(
+      content(TYPICAL, { elapsedSeconds: 60, weekStreak: 1, personalRecords: [] }).highlight,
+    ).toBeUndefined()
   })
 
   it('uses the translated exercise names and labels', () => {
@@ -152,18 +171,27 @@ describe('workoutCardContent', () => {
       accent: '#e0263a',
     })
     expect(data.lifts[0]).toEqual({ name: 'Press de banca', detail: '72.5 kg × 5', record: true })
-    expect(data.highlight).toEqual({ label: 'Nuevo récord personal', text: 'Press de banca · 72.5 kg × 5' })
+    expect(data.highlight).toEqual({
+      label: 'Nuevo récord personal',
+      text: 'Press de banca · 72.5 kg × 5',
+    })
     expect(data.stats.map((s) => s.label)).toEqual(['tiempo', 'series', 'kg de volumen'])
   })
 
   it('carries nothing but the workout: no account, no date, no notes', () => {
-    const noted = session('Push Day', ['Bench Press | 1x5 | 100 | felt a twinge in my shoulder', '1 | 100 | 5'])
+    const noted = session('Push Day', [
+      'Bench Press | 1x5 | 100 | felt a twinge in my shoulder',
+      '1 | 100 | 5',
+    ])
     expect(JSON.stringify(content(noted))).not.toMatch(/twinge|2026/)
   })
 })
 
 describe('fitLifts', () => {
-  const lifts: WorkoutCardLift[] = ['a', 'b', 'c', 'd', 'e', 'f'].map((name) => ({ name, detail: '1' }))
+  const lifts: WorkoutCardLift[] = ['a', 'b', 'c', 'd', 'e', 'f'].map((name) => ({
+    name,
+    detail: '1',
+  }))
 
   it('shows them all when they fit', () => {
     expect(fitLifts(lifts, 6)).toEqual({ rows: lifts, more: 0 })
@@ -220,7 +248,13 @@ function recordingContext() {
   const target: Record<string, unknown> = {
     measureText: (text: string) => ({ width: width(text) }),
     fillText: (text: string, x: number, y: number) =>
-      texts.push({ text, left: x, right: x + width(text), top: y - size(), bottom: y + size() * 0.25 }),
+      texts.push({
+        text,
+        left: x,
+        right: x + width(text),
+        top: y - size(),
+        bottom: y + size() * 0.25,
+      }),
     createLinearGradient: () => gradient,
   }
   const ctx = new Proxy(target, {
@@ -237,7 +271,11 @@ const CASES: [string, WorkoutCardData][] = [
   ['a small workout with no record or streak', content(SMALL)],
   [
     'a typical workout with a record',
-    content(TYPICAL, { elapsedSeconds: 3125, weekStreak: 6, personalRecords: [pr('Bench Press', 72.5, 5)] }),
+    content(TYPICAL, {
+      elapsedSeconds: 3125,
+      weekStreak: 6,
+      personalRecords: [pr('Bench Press', 72.5, 5)],
+    }),
   ],
   [
     'a huge workout with a very long name',
@@ -247,10 +285,17 @@ const CASES: [string, WorkoutCardData][] = [
       personalRecords: [pr('Exercise Number 14 With A Long Name', 102.5, 8)],
     }),
   ],
-  ['a workout in Spanish with a streak', content(HUGE, { elapsedSeconds: 2890, weekStreak: 14, personalRecords: [] }, ES)],
+  [
+    'a workout in Spanish with a streak',
+    content(HUGE, { elapsedSeconds: 2890, weekStreak: 14, personalRecords: [] }, ES),
+  ],
   [
     'a workout in Spanish with a record',
-    content(TYPICAL, { elapsedSeconds: 2890, weekStreak: 2, personalRecords: [pr('Overhead Press', 55, 8)] }, ES),
+    content(
+      TYPICAL,
+      { elapsedSeconds: 2890, weekStreak: 2, personalRecords: [pr('Overhead Press', 55, 8)] },
+      ES,
+    ),
   ],
 ]
 
@@ -286,19 +331,22 @@ describe('drawWorkoutCard', () => {
     }
   })
 
-  it.each(['card', 'photo', 'sticker'] as WorkoutCardStyle[])('names the app and its address on the %s, small', (style) => {
-    const { ctx, texts } = recordingContext()
-    const data = CASES[1]![1]
-    drawWorkoutCard(ctx, data, style)
+  it.each(['card', 'photo', 'sticker'] as WorkoutCardStyle[])(
+    'names the app and its address on the %s, small',
+    (style) => {
+      const { ctx, texts } = recordingContext()
+      const data = CASES[1]![1]
+      drawWorkoutCard(ctx, data, style)
 
-    const brand = texts.find((t) => t.text === 'WTX')!
-    const host = texts.find((t) => t.text === 'wtxworkout.com')!
-    const title = texts.find((t) => t.text === 'Push Day')!
-    expect(brand).toBeDefined()
-    expect(host).toBeDefined()
-    // Present, but never the largest thing on the image.
-    expect(brand.bottom - brand.top).toBeLessThan((title.bottom - title.top) / 1.5)
-  })
+      const brand = texts.find((t) => t.text === 'WTX')!
+      const host = texts.find((t) => t.text === 'wtxworkout.com')!
+      const title = texts.find((t) => t.text === 'Push Day')!
+      expect(brand).toBeDefined()
+      expect(host).toBeDefined()
+      // Present, but never the largest thing on the image.
+      expect(brand.bottom - brand.top).toBeLessThan((title.bottom - title.top) / 1.5)
+    },
+  )
 
   it('lists lifts on the card only, and says how many did not fit', () => {
     const data = CASES[2]![1]
@@ -322,5 +370,83 @@ describe('drawWorkoutCard', () => {
     drawWorkoutCard(ctx, CASES[2]![1], 'card')
     const titleLines = texts.filter((t) => t.text.startsWith('Saturday') || t.text.endsWith('…'))
     expect(titleLines.filter((t) => t.bottom - t.top > 80)).toHaveLength(2)
+  })
+})
+
+describe('the square format', () => {
+  it('is 1080 square with an even margin, and the story keeps its safe zones', () => {
+    expect(workoutCardFrame('square')).toEqual({
+      width: CARD_WIDTH,
+      height: CARD_WIDTH,
+      safeTop: SQUARE_MARGIN,
+      safeBottom: SQUARE_MARGIN,
+    })
+    expect(workoutCardFrame()).toEqual({
+      width: CARD_WIDTH,
+      height: CARD_HEIGHT,
+      safeTop: SAFE_TOP,
+      safeBottom: SAFE_BOTTOM,
+    })
+  })
+
+  it.each(['card', 'photo'] as WorkoutCardStyle[])(
+    'sizes the %s by its format, and the sticker by its content',
+    (style) => {
+      const { ctx } = recordingContext()
+      const data = CASES[1]![1]
+      expect(workoutCardSize(ctx, data, style, 'square')).toEqual({ width: 1080, height: 1080 })
+      expect(workoutCardSize(ctx, data, style, 'story')).toEqual({ width: 1080, height: 1920 })
+      expect(workoutCardSize(ctx, data, 'sticker', 'square')).toEqual(
+        workoutCardSize(ctx, data, 'sticker'),
+      )
+    },
+  )
+
+  for (const style of ['card', 'photo'] as WorkoutCardStyle[]) {
+    it.each(CASES)(`keeps %s inside the margin of a square ${style}`, (_, data) => {
+      const { ctx, texts } = recordingContext()
+      drawWorkoutCard(ctx, data, style, undefined, 'square')
+
+      expect(texts.some((t) => t.text === 'WTX')).toBe(true)
+      for (const t of texts) {
+        expect(t.top).toBeGreaterThanOrEqual(SQUARE_MARGIN)
+        expect(t.bottom).toBeLessThanOrEqual(CARD_WIDTH - SQUARE_MARGIN)
+        expect(t.left).toBeGreaterThanOrEqual(0)
+        expect(t.right).toBeLessThanOrEqual(CARD_WIDTH)
+      }
+    })
+  }
+
+  it('fits some lifts on a square card when there is room, and never a lone "+N more"', () => {
+    for (const [, data] of CASES) {
+      const { ctx, texts } = recordingContext()
+      drawWorkoutCard(ctx, data, 'card', undefined, 'square')
+      const shown = data.lifts.filter((lift) => texts.some((t) => t.text === lift.detail))
+      const more = texts.some((t) => t.text.endsWith(' more') || t.text.endsWith(' más'))
+      // A "+N more" line only ever follows at least one lift.
+      expect(!more || shown.length > 0).toBe(true)
+    }
+    // A small workout with no highlight has room for its one lift.
+    const small = recordingContext()
+    drawWorkoutCard(small.ctx, CASES[0]![1], 'card', undefined, 'square')
+    expect(small.texts.some((t) => t.text === '× 8')).toBe(true)
+  })
+
+  it('draws the story exactly as before when no format is given', () => {
+    const a = recordingContext()
+    const b = recordingContext()
+    const format: WorkoutCardFormat = 'story'
+    drawWorkoutCard(a.ctx, CASES[2]![1], 'card')
+    drawWorkoutCard(b.ctx, CASES[2]![1], 'card', undefined, format)
+    expect(b.texts).toEqual(a.texts)
+  })
+})
+
+describe('liftRowsFor', () => {
+  it('gives no rows when fewer than two would fit', () => {
+    expect(liftRowsFor(-10)).toBe(0)
+    expect(liftRowsFor(100)).toBe(0)
+    expect(liftRowsFor(176)).toBe(2)
+    expect(liftRowsFor(900)).toBe(10)
   })
 })

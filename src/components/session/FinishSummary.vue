@@ -221,6 +221,9 @@ const lines = computed(() =>
       </p>
     </section>
 
+    <!-- Sharing, offered once the numbers have landed (filled by the view). -->
+    <div v-if="$slots.share" class="rise" style="--i: 6"><slot name="share" /></div>
+
     <section class="rise" style="--i: 6">
       <h2 class="label">{{ t('finish.whatYouDid') }}</h2>
       <ul class="list">
