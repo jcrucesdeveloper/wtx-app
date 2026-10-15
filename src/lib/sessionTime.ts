@@ -1,3 +1,5 @@
+import { formatDurationInput } from '@/lib/durationInput'
+
 /**
  * Convention for logging time-based exercises into `.wts`, whose
  * `SessionExercise` schema has no distinct time kind (always sets/reps/weight).
@@ -26,4 +28,21 @@ export function displayNote(note: string | undefined): string {
   if (note === TIME_MARKER) return ''
   if (note.startsWith(`${TIME_MARKER}; `)) return note.slice(TIME_MARKER.length + 2)
   return note
+}
+
+/**
+ * One logged set as text: `80 kg × 8`, or for a time-based exercise its
+ * duration as `m:ss` (`1:30`). A timed set logged with a weight (a weighted
+ * plank written by hand) keeps it in front: `20 kg · 1:30`. Raw weight, not
+ * `formatNumber` — that would round 47.5 to 48.
+ */
+export function formatSetValue(
+  set: { weight: number; reps: number },
+  unit: string | undefined,
+  timed: boolean,
+): string {
+  const weight = `${set.weight} ${unit ?? ''}`.trim()
+  if (!timed) return `${weight} × ${set.reps}`
+  const duration = formatDurationInput(set.reps)
+  return set.weight > 0 ? `${weight} · ${duration}` : duration
 }

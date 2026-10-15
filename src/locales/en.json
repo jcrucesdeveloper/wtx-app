@@ -1143,5 +1143,24 @@
     "offAria": "No rest timer. Set one",
     "panelAria": "Resting, {time} left",
     "after": "Rest after {name}"
+  },
+  "timedExercise": {
+    "duration": "Duration",
+    "time": "Time",
+    "minSec": "min:sec",
+    "less": "{seconds} seconds less",
+    "more": "{seconds} seconds more",
+    "switchTo": {
+      "time": "Track by time",
+      "reps": "Track by weight and reps"
+    },
+    "switchHint": {
+      "time": "For a treadmill, a plank or a hold. Log how long each set lasted.",
+      "reps": "Log weight and reps for each set."
+    },
+    "confirm": {
+      "time": "Track by time? The {count} set you logged will be cleared. | Track by time? The {count} sets you logged will be cleared.",
+      "reps": "Track by weight and reps? The {count} set you logged will be cleared. | Track by weight and reps? The {count} sets you logged will be cleared."
+    }
   }
 }

@@ -1143,5 +1143,24 @@
     "offAria": "Sin temporizador de descanso. Poner uno",
     "panelAria": "Descansando, quedan {time}",
     "after": "Descanso tras {name}"
+  },
+  "timedExercise": {
+    "duration": "Duración",
+    "time": "Tiempo",
+    "minSec": "min:seg",
+    "less": "{seconds} segundos menos",
+    "more": "{seconds} segundos más",
+    "switchTo": {
+      "time": "Registrar por tiempo",
+      "reps": "Registrar por peso y repeticiones"
+    },
+    "switchHint": {
+      "time": "Para una cinta, una plancha o un isométrico. Registra cuánto duró cada serie.",
+      "reps": "Registra peso y repeticiones en cada serie."
+    },
+    "confirm": {
+      "time": "¿Registrar por tiempo? Se borrará la {count} serie que registraste. | ¿Registrar por tiempo? Se borrarán las {count} series que registraste.",
+      "reps": "¿Registrar por peso y repeticiones? Se borrará la {count} serie que registraste. | ¿Registrar por peso y repeticiones? Se borrarán las {count} series que registraste."
+    }
   }
 }

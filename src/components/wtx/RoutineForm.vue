@@ -13,6 +13,7 @@ import { formatCompactDuration } from '@/lib/format'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import DurationInput from '@/components/session/DurationInput.vue'
 import { useExerciseName } from '@/composables/useExerciseName'
 
 const draft = defineModel<RoutineDraft>({ required: true })
@@ -31,20 +32,6 @@ const tagsText = computed({
       .filter(Boolean)
   },
 })
-
-/** Parses `1m30s`, `90s`, `2m`, `1:30` or a bare number of seconds. */
-function parseDuration(input: string): number {
-  const value = input.trim()
-  if (!value) return 0
-  if (/^\d+$/.test(value)) return Number(value)
-  const clock = /^(\d+):([0-5]?\d)$/.exec(value)
-  if (clock) return Number(clock[1]) * 60 + Number(clock[2])
-  const compact = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(value)
-  if (compact && (compact[1] || compact[2] || compact[3])) {
-    return Number(compact[1] ?? 0) * 3600 + Number(compact[2] ?? 0) * 60 + Number(compact[3] ?? 0)
-  }
-  return 0
-}
 
 /** Stable keys for draggable exercises, since drafts carry no id. */
 const exerciseKeys = new WeakMap<RoutineDraftExercise, number>()
@@ -329,15 +316,9 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
 
             <label v-if="exercise.kind == 'time'" class="field">
               <span class="field__label">{{ t('wtx.routineForm.duration') }}</span>
-              <input
-                :value="formatCompactDuration(exercise.durationSeconds)"
-                type="text"
-                :placeholder="t('wtx.routineForm.durationPlaceholder')"
-                @change="
-                  exercise.durationSeconds = parseDuration(
-                    ($event.target as HTMLInputElement).value,
-                  )
-                "
+              <DurationInput
+                :model-value="exercise.durationSeconds || null"
+                @update:model-value="exercise.durationSeconds = $event ?? 0"
                 @focus="scrollFocusedIntoView"
               />
             </label>
@@ -345,14 +326,9 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
             <div v-if="exercise.kind === 'reps'" class="row">
               <label class="field">
                 <span class="field__label">{{ t('wtx.routineForm.rest') }}</span>
-                <input
-                  :value="formatCompactDuration(exercise.restSeconds ?? 0)"
-                  type="text"
-                  :placeholder="t('wtx.routineForm.durationPlaceholder')"
-                  @change="
-                    exercise.restSeconds =
-                      parseDuration(($event.target as HTMLInputElement).value) || undefined
-                  "
+                <DurationInput
+                  :model-value="exercise.restSeconds || null"
+                  @update:model-value="exercise.restSeconds = $event || undefined"
                   @focus="scrollFocusedIntoView"
                 />
               </label>

@@ -1,4 +1,5 @@
 import type { WorkoutSession } from '@/lib/wtx'
+import { isTimeExercise } from '@/lib/sessionTime'
 
 /** The heaviest working set ever logged for one exercise. */
 export interface ExerciseBest {
@@ -29,6 +30,9 @@ export function allTimeBestsByExercise(pastSessions: WorkoutSession[]): Map<stri
 
   for (const session of pastSessions) {
     for (const exercise of session.exercises) {
+      // Weight records only: a timed exercise's seconds are not reps, and its
+      // weight (if any) was never the point.
+      if (isTimeExercise(exercise.note)) continue
       const top = exercise.topSet
       if (!top) continue
 
@@ -59,6 +63,7 @@ export function detectPersonalRecords(
   const records: PersonalRecord[] = []
 
   for (const exercise of finished.exercises) {
+    if (isTimeExercise(exercise.note)) continue
     const top = exercise.topSet
     if (!top) continue
 

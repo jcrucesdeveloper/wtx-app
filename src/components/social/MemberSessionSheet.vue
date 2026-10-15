@@ -11,6 +11,7 @@ import { buildMemberSession, type PlannedExercise } from '@/lib/memberSession'
 import { initials, memberColor } from '@/lib/memberColors'
 import { REACTION_EMOJIS, type ReactionEmoji } from '@/lib/roomEvents'
 import { HapticsService } from '@/services/haptics'
+import { formatSetValue } from '@/lib/sessionTime'
 
 const props = defineProps<{
   /** The member to show; `null` keeps the sheet closed. */
@@ -65,7 +66,7 @@ function cheer(emoji: ReactionEmoji) {
 
 /** Raw weight, like LoggedExerciseList — `formatNumber` would round 47.5 to 48. */
 function formatSet(weight: number, reps: number, kind: 'reps' | 'time'): string {
-  return `${weight} ${unit.value} × ${reps}${kind === 'time' ? 's' : ''}`
+  return formatSetValue({ weight, reps }, unit.value, kind === 'time')
 }
 </script>
 

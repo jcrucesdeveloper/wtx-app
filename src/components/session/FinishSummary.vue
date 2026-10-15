@@ -12,6 +12,7 @@ import { sessionDateStrs } from '@/lib/sessionDates'
 import { celebrationTier } from '@/lib/celebration'
 import { PLATE_COLORS } from '@/lib/plateLevel'
 import { usePlateLabels } from '@/composables/usePlateLabels'
+import { formatSetValue, isTimeExercise } from '@/lib/sessionTime'
 
 /**
  * The finish screen as one statement and then
@@ -115,12 +116,13 @@ const prNames = computed(
     new Set((props.recap?.personalRecords ?? []).map((pr) => pr.exerciseName.trim().toLowerCase())),
 )
 
-/** One line per exercise: its heaviest set. */
+/** One line per exercise: its heaviest set, or for a timed one its longest. */
 const lines = computed(() =>
   props.session.exercises.map((exercise) => {
+    const timed = isTimeExercise(exercise.note)
     const best = exercise.loggedSets.reduce<{ weight: number; reps: number } | null>(
       (top, set) =>
-        !top || Number(set.weight) > top.weight
+        !top || (timed ? Number(set.reps) > top.reps : Number(set.weight) > top.weight)
           ? { weight: Number(set.weight), reps: Number(set.reps) }
           : top,
       null,
@@ -128,7 +130,7 @@ const lines = computed(() =>
     return {
       name: exerciseName(exercise.name),
       sets: exercise.workingSets.length,
-      best: best ? `${best.weight} ${unit.value} × ${best.reps}` : '',
+      best: best ? formatSetValue(best, unit.value, timed) : '',
       isPr: prNames.value.has(exercise.name.trim().toLowerCase()),
     }
   }),

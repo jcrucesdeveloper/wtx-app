@@ -107,6 +107,22 @@ describe('FocusSession: tapping a number to edit it', () => {
     expect(document.activeElement).toBe(fields()[1]!.element)
   })
 
+  it("focuses a timed exercise's time field when its time is tapped", async () => {
+    const activeSession = startSession(pinia)
+    activeSession.setExerciseKind(0, 'time')
+    mountSession()
+
+    await rows()[1]!.findAll('.set__num')[1]!.trigger('click')
+    await nextTick()
+
+    expect(rows()[1]!.classes()).toContain('set--current')
+    // One field, the mm:ss time, in place of weight and reps.
+    expect(fields()).toHaveLength(1)
+    expect(document.activeElement).toBe(fields()[0]!.element)
+    expect(fields()[0]!.attributes('inputmode')).toBe('numeric')
+    expect(document.querySelectorAll('input[aria-hidden="true"]')).toHaveLength(0)
+  })
+
   it('only picks the set when the rest of the row is tapped', async () => {
     startSession(pinia)
     mountSession()
