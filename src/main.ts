@@ -13,6 +13,7 @@ import { setAnalyticsProvider, track } from './services/analytics'
 import { supabaseAnalytics } from './services/supabaseAnalytics'
 import { NotificationService } from './services/notifications'
 import { initDeepLinks } from './services/deepLinks'
+import { initSessionNotification } from './services/sessionNotification'
 import { useAuthStore } from './stores/auth'
 import { useRoomStore } from './stores/room'
 import { useSyncStore } from './stores/sync'
@@ -45,6 +46,8 @@ const auth = useAuthStore()
 void auth.init()
 // Created up front so it can follow the active session's sets during a group workout.
 useRoomStore()
+// The ongoing "workout in progress" notification (Android), kept in step with the active session.
+initSessionNotification(router)
 
 setAnalyticsProvider(supabaseAnalytics)
 track('app_opened')

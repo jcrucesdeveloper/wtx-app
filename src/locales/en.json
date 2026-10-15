@@ -1128,5 +1128,15 @@
     "body": "Workout reminders, and shared links open right in it.",
     "cta": "Get",
     "dismissAria": "Dismiss"
+  },
+  "sessionNotification": {
+    "channelName": "Workout in progress",
+    "channelDescription": "Shows the current exercise and the rest timer during a workout.",
+    "load": "{weight} × {amount}",
+    "setLine": "{position} · {load}",
+    "allDone": "All sets logged. Finish when you are ready.",
+    "rest": "Resting",
+    "restThen": "Resting · then {next}",
+    "restNextExercise": "Resting · next: {name}"
   }
 }

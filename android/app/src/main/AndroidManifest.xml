@@ -40,6 +40,17 @@
 
         </activity>
 
+        <!-- Holds the ongoing workout notification while a session runs, so its
+             rest countdown keeps going with the app in the background. -->
+        <service
+            android:name=".SessionNotificationService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Ongoing notification for a workout the user started: shows the current exercise and counts down the rest between sets until the user finishes the workout." />
+        </service>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -64,6 +75,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- The ongoing workout notification (SessionNotificationService). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!-- Ads are off (VITE_ADS_ENABLED), so drop the advertising ID permissions the
          AdMob SDK merges in: Play Console then needs no advertising ID declaration.
