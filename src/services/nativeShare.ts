@@ -112,3 +112,60 @@ export async function saveFile(
     /* dismissed */
   }
 }
+
+/**
+ * Where "save image" puts a picture on this platform:
+ * - `download`: the browser downloads it.
+ * - `gallery`: Android writes it to Pictures/WTX, where the gallery finds it.
+ * - `share-sheet`: iOS can't reach Photos without another plugin, so the
+ *   system sheet opens and its own "Save Image" does it.
+ */
+export type ImageSaveRoute = 'download' | 'gallery' | 'share-sheet'
+
+export function imageSaveRoute(): ImageSaveRoute {
+  if (!isNative()) return 'download'
+  return Capacitor.getPlatform() === 'android' ? 'gallery' : 'share-sheet'
+}
+
+/** The public folder an image is saved to on Android, relative to shared storage. */
+export const GALLERY_FOLDER = 'Pictures/WTX'
+
+/**
+ * Saves an image on the device; nothing is uploaded. On Android it goes
+ * straight into the gallery (the media folders of shared storage take an
+ * app's own images without a permission from Android 11). Where that fails —
+ * an older Android — it falls back to the share sheet, as on iOS.
+ *
+ * @returns where the image actually went.
+ */
+export async function saveImage(
+  bytes: Uint8Array,
+  filename: string,
+  mimeType: string,
+): Promise<ImageSaveRoute> {
+  const route = imageSaveRoute()
+  if (route === 'gallery') {
+    try {
+      await Filesystem.writeFile({
+        path: `${GALLERY_FOLDER}/${filename}`,
+        data: toBase64(bytes),
+        directory: Directory.ExternalStorage,
+        recursive: true,
+      })
+      return 'gallery'
+    } catch (err) {
+      console.warn('[save] gallery write failed, using the share sheet', err)
+    }
+  }
+  await saveFile(bytes, filename, mimeType)
+  return route === 'download' ? 'download' : 'share-sheet'
+}
+
+/** A file name that doesn't overwrite the last one saved, e.g. `wtx-workout-20261014-184205.png`. */
+export function timestampedName(base: string, extension: string, at = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const stamp =
+    `${at.getFullYear()}${pad(at.getMonth() + 1)}${pad(at.getDate())}` +
+    `-${pad(at.getHours())}${pad(at.getMinutes())}${pad(at.getSeconds())}`
+  return `${base}-${stamp}.${extension}`
+}

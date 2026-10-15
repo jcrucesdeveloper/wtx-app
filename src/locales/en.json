@@ -1128,5 +1128,34 @@
     "body": "Workout reminders, and shared links open right in it.",
     "cta": "Get",
     "dismissAria": "Dismiss"
+  },
+  "finishShare": {
+    "promptTitle": "Share your workout",
+    "promptBody": "Post it to your story or send it to a friend, with a photo from the gym if you like.",
+    "addPhoto": "Add a photo",
+    "share": "Share",
+    "previewAria": "Preview of your workout card. Opens the share options.",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "removePhoto": "Remove photo",
+    "photoNeeded": "Add a photo to put your numbers on it.",
+    "formatAria": "Image shape",
+    "format": {
+      "story": "Story 9:16",
+      "square": "Square 1:1"
+    },
+    "save": {
+      "download": "Download",
+      "gallery": "Save to gallery",
+      "share-sheet": "Save image"
+    },
+    "saved": {
+      "download": "Image downloaded.",
+      "gallery": "Saved to your gallery, in Pictures/WTX."
+    },
+    "saveHint": "Opens the share menu. Choose Save Image to keep it in Photos.",
+    "photoFailed": "That photo couldn't be opened. Try another one.",
+    "cameraFailed": "The camera couldn't be opened. Check that WTX may use the camera in your phone's settings.",
+    "imageFailed": "The image couldn't be made. Try again."
   }
 }

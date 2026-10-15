@@ -1128,5 +1128,34 @@
     "body": "Con recordatorios y enlaces que se abren en la app.",
     "cta": "Obtener",
     "dismissAria": "Cerrar"
+  },
+  "finishShare": {
+    "promptTitle": "Comparte tu entrenamiento",
+    "promptBody": "Súbelo a tu historia o mándaselo a un amigo, con una foto del gym si quieres.",
+    "addPhoto": "Añadir foto",
+    "share": "Compartir",
+    "previewAria": "Vista previa de tu tarjeta de entrenamiento. Abre las opciones para compartir.",
+    "camera": "Cámara",
+    "gallery": "Galería",
+    "removePhoto": "Quitar foto",
+    "photoNeeded": "Añade una foto para poner tus números encima.",
+    "formatAria": "Forma de la imagen",
+    "format": {
+      "story": "Historia 9:16",
+      "square": "Cuadrada 1:1"
+    },
+    "save": {
+      "download": "Descargar",
+      "gallery": "Guardar en galería",
+      "share-sheet": "Guardar imagen"
+    },
+    "saved": {
+      "download": "Imagen descargada.",
+      "gallery": "Guardada en tu galería, en Pictures/WTX."
+    },
+    "saveHint": "Abre el menú de compartir. Elige Guardar imagen para tenerla en Fotos.",
+    "photoFailed": "No se pudo abrir esa foto. Prueba con otra.",
+    "cameraFailed": "No se pudo abrir la cámara. Revisa que WTX tenga permiso de cámara en los ajustes del teléfono.",
+    "imageFailed": "No se pudo crear la imagen. Inténtalo de nuevo."
   }
 }

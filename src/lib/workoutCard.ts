@@ -8,6 +8,9 @@
  * - `sticker` just the numbers on a transparent background, to place over a
  *             photo or video in another app.
  *
+ * The card and the photo come as a 9:16 story or a 1:1 square (a feed post,
+ * a chat); the sticker is sized to what is on it.
+ *
  * Every style carries the app's name and address inside the block of numbers,
  * small: a share says where it came from, and cropping that out means
  * cropping the numbers.
@@ -28,6 +31,29 @@ export const SAFE_TOP = 250
 export const SAFE_BOTTOM = 340
 
 export type WorkoutCardStyle = 'card' | 'photo' | 'sticker'
+
+/**
+ * The shape of the image: a 9:16 `story` (Instagram / WhatsApp status), or a
+ * 1:1 `square` for a feed post or a chat. A sticker is always sized to its content.
+ */
+export type WorkoutCardFormat = 'story' | 'square'
+
+/** The edge of a square card that is kept clear, all round: a feed post has no interface over it. */
+export const SQUARE_MARGIN = 72
+
+/** The size of the image, and the bands at the top and bottom that nothing is drawn in. */
+export interface WorkoutCardFrame {
+  width: number
+  height: number
+  safeTop: number
+  safeBottom: number
+}
+
+export function workoutCardFrame(format: WorkoutCardFormat = 'story'): WorkoutCardFrame {
+  return format === 'square'
+    ? { width: CARD_WIDTH, height: CARD_WIDTH, safeTop: SQUARE_MARGIN, safeBottom: SQUARE_MARGIN }
+    : { width: CARD_WIDTH, height: CARD_HEIGHT, safeTop: SAFE_TOP, safeBottom: SAFE_BOTTOM }
+}
 
 export interface WorkoutCardStat {
   value: string
@@ -135,7 +161,8 @@ export function workoutCardContent(input: {
   if (topPr) {
     highlight = {
       label: labels.record,
-      text: `${displayName(topPr.exerciseName)} · ${topPr.weight} ${unit}`.trim() + ` × ${topPr.reps}`,
+      text:
+        `${displayName(topPr.exerciseName)} · ${topPr.weight} ${unit}`.trim() + ` × ${topPr.reps}`,
     }
   } else if (recap && recap.weekStreak >= 2) {
     highlight = { label: labels.streakLabel, text: labels.streak(recap.weekStreak) }
@@ -202,8 +229,10 @@ const FONT = '-apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-s
 const MARGIN_X = 96
 const CONTENT_WIDTH = CARD_WIDTH - MARGIN_X * 2
 /** The baseline of the brand row: the last thing above a story's reply bar. */
-const BRAND_BASELINE = CARD_HEIGHT - SAFE_BOTTOM - 44
+const brandBaseline = (frame: WorkoutCardFrame) => frame.height - frame.safeBottom - 44
 const LIFT_ROW = 88
+/** Fewer rows than this and the lifts are left off: one lift and a "+N more" says less than none. */
+const MIN_LIFT_ROWS = 2
 const STICKER_PADDING = 64
 
 type Ctx = CanvasRenderingContext2D
@@ -441,15 +470,26 @@ function summaryBands(ctx: Ctx, data: WorkoutCardData, width: number, titleMax: 
   ]
 }
 
-function drawCard(ctx: Ctx, data: WorkoutCardData) {
-  ctx.fillStyle = BACKGROUND
-  ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
+/** How many rows of lifts fit in `room` pixels, or 0 when too few would. */
+export function liftRowsFor(room: number): number {
+  const rows = Math.floor(room / LIFT_ROW)
+  return rows >= MIN_LIFT_ROWS ? rows : 0
+}
 
-  const top = SAFE_TOP + 30
-  const bottom = BRAND_BASELINE - 130
-  const fixed = [eyebrowBand(ctx, data, CONTENT_WIDTH), ...summaryBands(ctx, data, CONTENT_WIDTH, 120)]
+function drawCard(ctx: Ctx, data: WorkoutCardData, frame: WorkoutCardFrame) {
+  ctx.fillStyle = BACKGROUND
+  ctx.fillRect(0, 0, frame.width, frame.height)
+
+  const baseline = brandBaseline(frame)
+  const square = frame.height === frame.width
+  const top = frame.safeTop + (square ? 0 : 30)
+  const bottom = baseline - (square ? 116 : 130)
+  const fixed = [
+    eyebrowBand(ctx, data, CONTENT_WIDTH),
+    ...summaryBands(ctx, data, CONTENT_WIDTH, square ? 96 : 120),
+  ]
   // The lifts get whatever height the name and the numbers leave.
-  const maxRows = Math.floor((bottom - top - heightOf(fixed) - 40) / LIFT_ROW)
+  const maxRows = liftRowsFor(bottom - top - heightOf(fixed) - 40)
   const bands =
     data.lifts.length && maxRows > 0
       ? [...fixed, gap(40), liftsBand(ctx, data, CONTENT_WIDTH, maxRows)]
@@ -458,29 +498,41 @@ function drawCard(ctx: Ctx, data: WorkoutCardData) {
   drawBands(bands, MARGIN_X, top + Math.max(0, bottom - top - heightOf(bands)) * 0.36)
 
   ctx.fillStyle = HAIRLINE
-  ctx.fillRect(MARGIN_X, BRAND_BASELINE - 96, CONTENT_WIDTH, 3)
-  drawBrand(ctx, data, MARGIN_X, BRAND_BASELINE, CONTENT_WIDTH)
+  ctx.fillRect(MARGIN_X, baseline - 96, CONTENT_WIDTH, 3)
+  drawBrand(ctx, data, MARGIN_X, baseline, CONTENT_WIDTH)
 }
 
-function drawPhotoCard(ctx: Ctx, data: WorkoutCardData, photo?: CanvasImageSource & { width: number; height: number }) {
+function drawPhotoCard(
+  ctx: Ctx,
+  data: WorkoutCardData,
+  frame: WorkoutCardFrame,
+  photo?: CanvasImageSource & { width: number; height: number },
+) {
+  const { width, height } = frame
   ctx.fillStyle = BACKGROUND
-  ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT)
+  ctx.fillRect(0, 0, width, height)
   if (photo) {
-    const crop = coverCrop(photo.width, photo.height, CARD_WIDTH, CARD_HEIGHT)
-    ctx.drawImage(photo, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, CARD_WIDTH, CARD_HEIGHT)
+    const crop = coverCrop(photo.width, photo.height, width, height)
+    ctx.drawImage(photo, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, width, height)
   }
 
   // The numbers stay small and low, so the photo is still the photo.
-  const bands = [...summaryBands(ctx, data, CONTENT_WIDTH, 92), gap(28), brandBand(ctx, data, CONTENT_WIDTH)]
-  const blockTop = CARD_HEIGHT - SAFE_BOTTOM - 20 - heightOf(bands)
+  const square = height === width
+  const bands = [
+    ...summaryBands(ctx, data, CONTENT_WIDTH, square ? 80 : 92),
+    gap(28),
+    brandBand(ctx, data, CONTENT_WIDTH),
+  ]
+  const blockTop = height - frame.safeBottom - 20 - heightOf(bands)
 
   // A scrim only where the text is, deep enough to read white type on a bright photo.
-  const scrim = ctx.createLinearGradient(0, blockTop - 260, 0, CARD_HEIGHT)
+  const fade = square ? 180 : 260
+  const scrim = ctx.createLinearGradient(0, blockTop - fade, 0, height)
   scrim.addColorStop(0, 'rgba(0, 0, 0, 0)')
   scrim.addColorStop(0.3, 'rgba(0, 0, 0, 0.62)')
   scrim.addColorStop(1, 'rgba(0, 0, 0, 0.86)')
   ctx.fillStyle = scrim
-  ctx.fillRect(0, blockTop - 260, CARD_WIDTH, CARD_HEIGHT - blockTop + 260)
+  ctx.fillRect(0, blockTop - fade, width, height - blockTop + fade)
 
   drawBands(bands, MARGIN_X, blockTop)
 }
@@ -499,13 +551,17 @@ function drawSticker(ctx: Ctx, data: WorkoutCardData, height: number) {
   drawBands(stickerBands(ctx, data), STICKER_PADDING, STICKER_PADDING - 8)
 }
 
-/** The pixel size of the image for a style: a full story, or a sticker as tall as its content. */
+/** The pixel size of the image for a style: a full story or square, or a sticker as tall as its content. */
 export function workoutCardSize(
   ctx: Ctx,
   data: WorkoutCardData,
   style: WorkoutCardStyle,
+  format: WorkoutCardFormat = 'story',
 ): { width: number; height: number } {
-  if (style !== 'sticker') return { width: CARD_WIDTH, height: CARD_HEIGHT }
+  if (style !== 'sticker') {
+    const { width, height } = workoutCardFrame(format)
+    return { width, height }
+  }
   return {
     width: CARD_WIDTH,
     height: Math.ceil(heightOf(stickerBands(ctx, data)) + STICKER_PADDING * 2 - 8),
@@ -518,12 +574,13 @@ export function drawWorkoutCard(
   data: WorkoutCardData,
   style: WorkoutCardStyle = 'card',
   photo?: CanvasImageSource & { width: number; height: number },
+  format: WorkoutCardFormat = 'story',
 ): void {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
-  if (style === 'photo') drawPhotoCard(ctx, data, photo)
+  if (style === 'photo') drawPhotoCard(ctx, data, workoutCardFrame(format), photo)
   else if (style === 'sticker') drawSticker(ctx, data, workoutCardSize(ctx, data, style).height)
-  else drawCard(ctx, data)
+  else drawCard(ctx, data, workoutCardFrame(format))
 }
 
 /** Sizes a canvas for the style and draws the card on it — the preview and the export share this. */
@@ -532,13 +589,14 @@ export function paintWorkoutCard(
   data: WorkoutCardData,
   style: WorkoutCardStyle = 'card',
   photo?: CanvasImageSource & { width: number; height: number },
+  format: WorkoutCardFormat = 'story',
 ): void {
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('canvas 2d context unavailable')
-  const size = workoutCardSize(ctx, data, style)
+  const size = workoutCardSize(ctx, data, style, format)
   canvas.width = size.width
   canvas.height = size.height
-  drawWorkoutCard(ctx, data, style, photo)
+  drawWorkoutCard(ctx, data, style, photo, format)
 }
 
 /**
@@ -550,9 +608,10 @@ export async function renderWorkoutCard(
   data: WorkoutCardData,
   style: WorkoutCardStyle = 'card',
   photo?: CanvasImageSource & { width: number; height: number },
+  format: WorkoutCardFormat = 'story',
 ): Promise<{ bytes: Uint8Array; mimeType: string; extension: string }> {
   const canvas = document.createElement('canvas')
-  paintWorkoutCard(canvas, data, style, photo)
+  paintWorkoutCard(canvas, data, style, photo, format)
   const mimeType = style === 'photo' ? 'image/jpeg' : 'image/png'
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mimeType, 0.9))
   if (!blob) throw new Error('card could not be encoded')
