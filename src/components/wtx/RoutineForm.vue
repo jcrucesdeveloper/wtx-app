@@ -114,16 +114,31 @@ function setKind(exercise: RoutineDraftExercise, kind: 'reps' | 'time') {
   exercise.kind = kind
 }
 
-/** Short one-line stand-in for a collapsed exercise's prescription. */
+/**
+ * Short one-line stand-in for a collapsed exercise's prescription. Built from
+ * each set's effective values (its own override, else the exercise default),
+ * so edits made in the set rows show up here.
+ */
 function summaryFor(exercise: RoutineDraftExercise): string {
-  const parts: string[] = []
-  parts.push(
-    exercise.kind === 'time'
-      ? formatCompactDuration(exercise.durationSeconds) || '0s'
-      : `${exercise.sets || 0} × ${exercise.reps || 0}`,
-  )
-  if (exercise.kind === 'reps' && exercise.weight !== undefined)
-    parts.push(`${exercise.weight} ${draft.value.unit ?? ''}`.trim())
+  if (exercise.kind === 'time') return formatCompactDuration(exercise.durationSeconds) || '0s'
+
+  const rows = displayRows(exercise)
+  if (rows.length === 0) return `0 × ${exercise.reps || 0}`
+
+  const reps = rows.map((row) => row.reps ?? exercise.reps ?? 0)
+  const weights = rows
+    .map((row) => row.weight ?? exercise.weight)
+    .filter((w): w is number => w !== undefined)
+
+  const parts: string[] = [
+    reps.every((r) => r === reps[0]) ? `${rows.length} × ${reps[0]}` : reps.join(', '),
+  ]
+  if (weights.length) {
+    const min = Math.min(...weights)
+    const max = Math.max(...weights)
+    const range = min === max ? `${min}` : `${min}–${max}`
+    parts.push(`${range} ${draft.value.unit ?? ''}`.trim())
+  }
   return parts.join(' · ')
 }
 
