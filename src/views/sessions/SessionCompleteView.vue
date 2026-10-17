@@ -11,18 +11,13 @@ import { HapticsService } from '@/services/haptics'
 import { celebrationTier } from '@/lib/celebration'
 import { AdService } from '@/services/ads'
 import { AppReviewService } from '@/services/appReview'
-import { publicOrigin, publicRouteUrl } from '@/lib/publicUrl'
-import { workoutCardContent, type WorkoutCardData } from '@/lib/workoutCard'
-import { useThemeStore } from '@/stores/theme'
-import { useExerciseName } from '@/composables/useExerciseName'
+import { useWorkoutShare } from '@/composables/useWorkoutShare'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const sessions = useSessionsStore()
 const sessionRecap = useSessionRecapStore()
-const theme = useThemeStore()
-const { exerciseName } = useExerciseName()
 
 const id = computed(() => String(route.params.id))
 const stored = computed(() => sessions.getById(id.value))
@@ -63,60 +58,10 @@ async function onDone() {
   if (!(await AppReviewService.maybeAsk({ hadWin, totalSessions }))) AdService.showInterstitial()
 }
 
-// Leads with the most exciting fact — a fresh PR beats a plain streak count.
-const shareText = computed(() => {
-  if (!result.value?.ok) return ''
-  const session = result.value.session
-  const lines = [
-    t('sessionComplete.shareIntro', { name: session.name }),
-    t('sessionComplete.shareStats', {
-      sets: session.totalWorkingSets,
-      exercises: session.exerciseCount,
-    }),
-  ]
-  const topPr = recap.value?.personalRecords[0]
-  if (topPr) {
-    lines.push(
-      t('sessionComplete.sharePr', {
-        exercise: exerciseName(topPr.exerciseName),
-        // Not formatNumber: it rounds, and a 72.5 record must not read as 73.
-        weight: topPr.weight,
-        unit: session.unit,
-        reps: topPr.reps,
-      }),
-    )
-  } else if (recap.value && recap.value.weekStreak >= 2) {
-    lines.push(t('sessionComplete.shareStreak', { weeks: recap.value.weekStreak }))
-  }
-  // Tagged so installs that come from a shared workout can be told apart.
-  lines.push(publicRouteUrl('/?src=share-card'))
-  return lines.join('\n')
-})
-
-/** What goes on the shared image: the numbers, the lifts, and the top record or the streak. */
-const cardData = computed<WorkoutCardData | null>(() => {
-  if (!result.value?.ok) return null
-  const session = result.value.session
-  return workoutCardContent({
-    session,
-    recap: recap.value,
-    exerciseName,
-    host: new URL(publicOrigin()).host,
-    accent: theme.accent,
-    labels: {
-      eyebrow: t('sessionComplete.workoutComplete'),
-      time: t('sessionComplete.time'),
-      sets: t('sessionComplete.sets'),
-      exercises: t('sessionComplete.exercises'),
-      volume: t('sessionComplete.volumeUnit', { unit: session.unit }),
-      record: t('sessionComplete.cardPr'),
-      recordMark: t('sessionComplete.cardRecordMark'),
-      streakLabel: t('sessionComplete.cardStreakLabel'),
-      streak: (weeks) => t('sessionComplete.cardStreak', { weeks }),
-      more: (count) => t('sessionComplete.cardMore', { count }),
-    },
-  })
-})
+const { cardData, caption: shareText } = useWorkoutShare(
+  () => (result.value?.ok ? result.value.session : null),
+  recap,
+)
 
 /** Sharing opens a preview first: nothing leaves the phone that wasn't looked at. */
 const sharePrompt = ref<InstanceType<typeof FinishSharePrompt> | null>(null)

@@ -328,7 +328,6 @@
       "shareToFeedDesc": "Tus seguidores verán este entrenamiento, sus estadísticas y cualquier récord personal."
     },
     "loggedExerciseList": {
-      "incomplete": "Incompleto",
       "setsProgress": "{done}/{total} series"
     },
     "personalRecordBanner": {
@@ -423,14 +422,15 @@
     "deleteSession": "Eliminar sesión",
     "deleteConfirm": "¿Eliminar esta sesión de tu historial?",
     "notFound": "Esta sesión ya no está en tu historial.",
-    "exercises": "{count} ejercicios",
-    "sets": "{count} series",
-    "volume": "{amount} de volumen",
     "complete": "Completa",
     "incomplete": "Incompleta",
     "deviceOnly": "Solo en este dispositivo",
     "deviceOnlyHint": "Esta sesión no está sincronizada con tu perfil.",
-    "saveToProfile": "Guardar en mi perfil"
+    "saveToProfile": "Guardar en mi perfil",
+    "shareIntro": "Mi entrenamiento {name} en WTX 💪",
+    "records": "{count} récord personal | {count} récords personales",
+    "showSource": "Ver archivo del entrenamiento",
+    "hideSource": "Ocultar archivo del entrenamiento"
   },
   "sessions": {
     "title": "Sesiones",
