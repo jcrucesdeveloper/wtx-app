@@ -40,8 +40,9 @@ import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSessi
  * only large thing on screen and logging it is the one big button under your
  * thumb. Under it, every set of the exercise is a row; above it, where you
  * are in the workout and a way to the exercise before and after. Nothing
- * that removes work sits in the scroll path — it is behind the exercise's
- * menu, and asks first.
+ * that removes work sits in the scroll path: an exercise goes from its menu,
+ * and asks first; a single set slides aside to show its Delete (or goes from
+ * the same menu) and doesn't ask — it can be undone for a few seconds.
  *
  * Nothing here waits on an animation: every tap changes state at once, and
  * motion only follows it. Celebration mid-workout is a line and a buzz, never
