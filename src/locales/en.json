@@ -690,6 +690,13 @@
     "createTitle": "Train with friends",
     "createHint": "Pick a routine — friends join with a code.",
     "creating": "Creating room…",
+    "confirm": {
+      "title": "Start a group workout?",
+      "body": "You'll open a room for {name} and get a code to share. Friends join with it, and you start together once everyone's in.",
+      "signInHint": "Group workouts need an account. You'll sign in on Social first.",
+      "confirm": "Create room",
+      "signIn": "Sign in to continue"
+    },
     "lobbyTitle": "Group workout",
     "code": "Room code",
     "shareHint": "Friends scan this, or enter the code in Social → Join with code.",

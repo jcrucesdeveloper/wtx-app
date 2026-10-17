@@ -11,11 +11,9 @@ import QuietState from '@/components/ui/QuietState.vue'
 import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
+import GroupStartSheet from '@/components/routine/GroupStartSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { useStartRoutine } from '@/composables/useStartRoutine'
-import { useAuthStore } from '@/stores/auth'
-import { RoomError, useRoomStore } from '@/stores/room'
-import { isSupabaseConfigured } from '@/services/supabase'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { HapticsService } from '@/services/haptics'
 
@@ -24,8 +22,6 @@ const route = useRoute()
 const router = useRouter()
 const routines = useRoutinesStore()
 const { startRoutine } = useStartRoutine()
-const auth = useAuthStore()
-const room = useRoomStore()
 
 const id = computed(() => String(route.params.id))
 const routine = computed(() => routines.getById(id.value))
@@ -58,6 +54,7 @@ async function copySource() {
 }
 const shareOpen = ref(false)
 const editOpen = ref(false)
+const groupOpen = ref(false)
 const menuOpen = ref(false)
 
 function closeMenu() {
@@ -71,24 +68,10 @@ function onPlay() {
   startRoutine(routine.value.id)
 }
 
-const creatingRoom = ref(false)
-
-/** Creates a group workout room from this routine — or sends logged-out users to Social first. */
-async function onPlayWithFriends() {
-  if (!routine.value || creatingRoom.value) return
-  if (!isSupabaseConfigured || !auth.isLoggedIn) {
-    router.push({ name: 'social' })
-    return
-  }
-  creatingRoom.value = true
-  try {
-    const created = await room.create(routine.value.id)
-    router.push({ name: 'room-lobby', params: { id: created.id } })
-  } catch (e) {
-    alert(t(`room.errors.${e instanceof RoomError ? e.code : 'unknown'}`))
-  } finally {
-    creatingRoom.value = false
-  }
+/** Group starts a room, not a workout — so it asks first; the sheet does the rest. */
+function onPlayWithFriends() {
+  if (!routine.value) return
+  groupOpen.value = true
 }
 
 function onDelete() {
@@ -193,7 +176,6 @@ function onDelete() {
           <AppButton
             size="lg"
             :aria-label="t('routineDetail.playFriendsAria')"
-            :disabled="creatingRoom"
             @click="onPlayWithFriends"
           >
             <Users :size="20" :stroke-width="2.25" />
@@ -215,6 +197,7 @@ function onDelete() {
     <template v-if="routine">
       <ShareRoutineSheet v-model:open="shareOpen" :raw-text="routine.rawText" :name="shareName" />
       <EditRoutineSheet v-model:open="editOpen" :routine-id="routine.id" />
+      <GroupStartSheet v-model:open="groupOpen" :routine-id="routine.id" :name="shareName" />
     </template>
   </AppPage>
 </template>

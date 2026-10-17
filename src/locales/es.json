@@ -690,6 +690,13 @@
     "createTitle": "Entrenar con amigos",
     "createHint": "Elige una rutina — tus amigos se unen con un código.",
     "creating": "Creando sala…",
+    "confirm": {
+      "title": "¿Empezar un entrenamiento en grupo?",
+      "body": "Abrirás una sala para {name} y tendrás un código para compartir. Tus amigos se unen con él y empiezan juntos cuando estén todos.",
+      "signInHint": "Los entrenamientos en grupo necesitan una cuenta. Primero inicias sesión en Social.",
+      "confirm": "Crear sala",
+      "signIn": "Inicia sesión para continuar"
+    },
     "lobbyTitle": "Entrenamiento en grupo",
     "code": "Código de sala",
     "shareHint": "Tus amigos escanean esto o escriben el código en Social → Unirse con código.",
