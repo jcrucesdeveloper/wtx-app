@@ -27,6 +27,8 @@ interface ShowOptions extends NotificationFace {
   skipLabel: string
   /** Buzz when the rest runs out while the app is in the background (the setting). */
   vibrateOnRestEnd: boolean
+  /** Play the rest-end chime (res/raw/rest_end) when the countdown runs out (the setting). */
+  restSound: boolean
 }
 
 /** A rest action tapped in the notification; the native side has already redrawn it. */
@@ -61,7 +63,11 @@ function isSupported(): boolean {
   )
 }
 
-function toShowOptions(content: SessionNotificationContent, vibrateOnRestEnd: boolean): ShowOptions {
+function toShowOptions(
+  content: SessionNotificationContent,
+  vibrateOnRestEnd: boolean,
+  restSound: boolean,
+): ShowOptions {
   const t = i18n.global.t
   const face = (f: NotificationFace): NotificationFace => ({
     title: f.title,
@@ -80,6 +86,7 @@ function toShowOptions(content: SessionNotificationContent, vibrateOnRestEnd: bo
     moreLabel: t('sessionNotification.more', { n: REST_STEP_SECONDS }),
     skipLabel: t('sessionNotification.skip'),
     vibrateOnRestEnd,
+    restSound,
   }
 }
 
@@ -136,7 +143,7 @@ export function initSessionNotification(router: Router) {
       i18n.global.t(key, params ?? {}),
     )
     if (!content) return
-    const options = toShowOptions(content, settings.vibrateOnRestEnd)
+    const options = toShowOptions(content, settings.vibrateOnRestEnd, settings.restSoundEnabled)
     const key = JSON.stringify(options)
     if (key === lastSent) return
     lastSent = key
@@ -149,7 +156,12 @@ export function initSessionNotification(router: Router) {
   }
 
   watch(
-    [() => store.session, () => i18n.global.locale.value, () => settings.vibrateOnRestEnd],
+    [
+      () => store.session,
+      () => i18n.global.locale.value,
+      () => settings.vibrateOnRestEnd,
+      () => settings.restSoundEnabled,
+    ],
     () => {
       if (!store.session) {
         clearTimeout(timer)
