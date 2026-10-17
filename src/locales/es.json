@@ -208,7 +208,9 @@
     "deleteConfirm": "¿Quitar esta rutina de tu biblioteca?",
     "notFound": "Esta rutina ya no está en tu biblioteca.",
     "showSource": "Mostrar fuente",
-    "hideSource": "Ocultar fuente"
+    "hideSource": "Ocultar fuente",
+    "copySourceAria": "Copiar fuente",
+    "sourceCopied": "Copiado"
   },
   "share": {
     "title": "Compartir rutina",
