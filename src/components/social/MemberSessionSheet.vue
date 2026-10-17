@@ -163,7 +163,7 @@ function formatSet(weight: number, reps: number, kind: 'reps' | 'time'): string 
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--color-success);
   border: 2px solid var(--color-background);
 }
 
