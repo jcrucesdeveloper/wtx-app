@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
+import RoomRecapBody from '@/components/social/RoomRecapBody.vue'
+import MemberSessionSheet from '@/components/social/MemberSessionSheet.vue'
 import { RoomError, useRoomStore } from '@/stores/room'
 import { useAuthStore } from '@/stores/auth'
-import { buildRoomRecap, type BestSet } from '@/lib/roomRecap'
-import { initials, memberColor } from '@/lib/memberColors'
-import { formatNumber } from '@/lib/format'
+import { HapticsService } from '@/services/haptics'
+import { buildRoomSummary, groupCelebrationTier } from '@/lib/roomSummary'
+import { clearedExercises } from '@/lib/teamProgress'
+import { memberColor } from '@/lib/memberColors'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -19,6 +22,8 @@ const auth = useAuthStore()
 const id = computed(() => String(route.params.id))
 const loading = ref(true)
 const error = ref('')
+/** Whose workout is open in the sheet. */
+const watching = ref<string | null>(null)
 
 onMounted(async () => {
   try {
@@ -32,32 +37,78 @@ onMounted(async () => {
 
 const current = computed(() => (room.room?.id === id.value ? room.room : null))
 const unit = computed(() => current.value?.unit || 'kg')
-const recap = computed(() =>
-  buildRoomRecap(
-    room.members.map((m) => m.userId),
-    room.setLogs,
-  ),
+
+/** Live while the room is: it follows the room's set logs and the host's order. */
+const summary = computed(() =>
+  buildRoomSummary({
+    routine: room.routineExercises,
+    members: room.members,
+    logs: room.setLogs,
+    startedAt: current.value?.started_at ?? null,
+  }),
 )
-const memberIndex = computed(() => new Map(room.members.map((m, i) => [m.userId, i])))
 
-function nameOf(userId: string): string {
-  return room.members.find((m) => m.userId === userId)?.displayName ?? '—'
+const colors = computed(() => Object.fromEntries(room.members.map((m, i) => [m.userId, memberColor(i)])))
+
+const pips = computed(() => {
+  const cleared = new Set(
+    clearedExercises(
+      room.routineExercises,
+      room.members.map((m) => m.userId),
+      room.setLogs,
+    ),
+  )
+  return room.routineExercises.map((e) => ({ name: e.name, cleared: cleared.has(e.name) }))
+})
+
+const tier = computed(() => groupCelebrationTier(summary.value))
+const status = computed(() => (current.value?.status === 'finished' ? 'finished' : 'active'))
+
+/**
+ * The reveal and the celebration play once per room on this device, when
+ * the recap is final (everyone done, or the room over): a recap you come
+ * back to just shows itself. Only a local nicety, so storage errors are fine.
+ */
+const SEEN_PREFIX = 'wtx:roomRecapSeen:'
+const celebrate = ref(false)
+let decided = false
+
+function seen(roomId: string): boolean {
+  try {
+    return localStorage.getItem(SEEN_PREFIX + roomId) === '1'
+  } catch {
+    return false
+  }
 }
 
-function colorOf(userId: string): string {
-  return memberColor(memberIndex.value.get(userId) ?? 0)
+function markSeen(roomId: string) {
+  try {
+    localStorage.setItem(SEEN_PREFIX + roomId, '1')
+  } catch {
+    /* storage unavailable */
+  }
 }
 
-function formatBest(best: BestSet | null): string {
-  // Raw weight: formatNumber is for volume totals and would round 47.5 to 48.
-  return best ? `${best.weight} ${unit.value} × ${best.reps}` : t('room.noSets')
-}
-
-/** Team totals first — a shared result, not a podium (rankings discourage whoever's at the bottom). */
-const teamTotals = computed(() => ({
-  sets: recap.value.totals.reduce((sum, m) => sum + m.sets, 0),
-  volume: recap.value.totals.reduce((sum, m) => sum + m.volume, 0),
-}))
+watch(
+  [current, () => summary.value.team.allFinished, () => room.members.length],
+  () => {
+    const r = current.value
+    if (decided || !r || !room.members.length) return
+    const final = summary.value.team.allFinished || r.status === 'finished'
+    if (!final) return
+    decided = true
+    if (seen(r.id)) return
+    markSeen(r.id)
+    celebrate.value = true
+    if (tier.value === 'event') {
+      void HapticsService.heavy()
+      setTimeout(() => void HapticsService.success(), 220)
+    } else if (tier.value === 'win') {
+      void HapticsService.success()
+    }
+  },
+  { immediate: true },
+)
 
 function goBack() {
   if (window.history.length > 1) router.back()
@@ -66,7 +117,7 @@ function goBack() {
 </script>
 
 <template>
-  <AppPage sub :title="t('room.recapTitle')">
+  <AppPage sub fill :title="current?.routine_name ?? t('room.recapTitle')">
     <template #leading>
       <button type="button" class="icon-btn" :aria-label="t('legal.back')" @click="goBack">
         <ArrowLeft :size="20" :stroke-width="2.25" />
@@ -76,64 +127,26 @@ function goBack() {
     <p v-if="loading" class="msg">{{ t('room.loading') }}</p>
     <p v-else-if="!current" class="msg msg--error">{{ error || t('room.errors.room_not_found') }}</p>
 
-    <div v-else class="stack">
-      <p class="routine">{{ current.routine_name }}</p>
+    <div v-else class="page">
+      <RoomRecapBody
+        :summary="summary"
+        :colors="colors"
+        :unit="unit"
+        :my-id="auth.user?.id ?? null"
+        :host-id="current.host_id"
+        :status="status"
+        :pips="pips"
+        :tier="tier"
+        :celebrate="celebrate"
+        @select="watching = $event"
+      />
 
-      <section class="together">
-        <h2 class="together__title">{{ t('room.team.recapTitle') }}</h2>
-        <div class="together__stats">
-          <span class="together__stat">
-            <span class="together__value">{{ teamTotals.sets }}</span>
-            <span class="together__label">{{ t('room.sets') }}</span>
-          </span>
-          <span class="together__stat">
-            <span class="together__value">{{ formatNumber(teamTotals.volume) }}</span>
-            <span class="together__label">{{ t('room.volume', { unit }) }}</span>
-          </span>
-          <span class="together__stat">
-            <span class="together__value">{{ room.team.finished }}/{{ room.team.members }}</span>
-            <span class="together__label">{{ t('room.team.finishedLabel') }}</span>
-          </span>
-        </div>
-      </section>
-
-      <section class="section">
-        <h2 class="section__title">{{ t('room.team.contributions') }}</h2>
-        <ul class="totals">
-          <li
-            v-for="total in recap.totals"
-            :key="total.userId"
-            class="total"
-            :class="{ 'total--me': total.userId === auth.user?.id }"
-          >
-            <span class="avatar" :style="{ background: colorOf(total.userId) }">
-              {{ initials(nameOf(total.userId)) }}
-            </span>
-            <span class="total__name">{{ nameOf(total.userId) }}</span>
-            <span class="total__stat">
-              <span class="total__value">{{ total.sets }}</span>
-              <span class="total__label">{{ t('room.sets') }}</span>
-            </span>
-            <span class="total__stat">
-              <span class="total__value">{{ formatNumber(total.volume) }}</span>
-              <span class="total__label">{{ t('room.volume', { unit }) }}</span>
-            </span>
-          </li>
-        </ul>
-      </section>
-
-      <section v-for="exercise in recap.exercises" :key="exercise.exercise" class="section">
-        <h2 class="section__title">{{ exercise.exercise }}</h2>
-        <ul class="rows">
-          <li v-for="entry in exercise.entries" :key="entry.userId" class="row">
-            <span class="dot" :style="{ background: colorOf(entry.userId) }" />
-            <span class="row__name">{{ nameOf(entry.userId) }}</span>
-            <span class="row__best">{{ formatBest(entry.best) }}</span>
-            <span class="row__sets">{{ entry.sets ? t('room.setsDone', { count: entry.sets }) : '' }}</span>
-          </li>
-        </ul>
-      </section>
+      <div class="dock">
+        <button type="button" class="dock__done" @click="goBack">{{ t('sessionComplete.done') }}</button>
+      </div>
     </div>
+
+    <MemberSessionSheet :user-id="watching" @close="watching = null" />
   </AppPage>
 </template>
 
@@ -164,168 +177,37 @@ function goBack() {
   opacity: 1;
 }
 
-.stack {
+.page {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 28px;
+  flex: 1;
 }
 
-.routine {
+/* The same dock as the solo finish screen. */
+.dock {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  margin: auto -20px -24px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.dock__done {
+  height: 58px;
+  border: none;
+  border-radius: 16px;
+  font: inherit;
   font-size: 17px;
   font-weight: 700;
-  color: var(--color-heading);
-}
-
-.together {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border-radius: var(--radius-lg);
-  background: var(--color-accent);
   color: var(--color-on-accent);
+  background: var(--color-accent);
+  cursor: pointer;
 }
 
-.together__title {
-  font-size: var(--text-small);
-  font-weight: 700;
-  opacity: 0.9;
-}
-
-.together__stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.together__stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.together__value {
-  font-size: 24px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.together__label {
-  font-size: 11px;
-  opacity: 0.85;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.section__title {
-  font-size: var(--text-body);
-  font-weight: 700;
-  color: var(--color-heading);
-}
-
-.totals,
-.rows {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 0;
-}
-
-.total {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-background-soft);
-}
-
-.total--me {
-  border-left: 3px solid var(--color-accent);
-}
-
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.total__name {
-  flex: 1;
-  min-width: 0;
-  font-weight: 600;
-  color: var(--color-heading);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.total__stat {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  min-width: 54px;
-}
-
-.total__value {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-heading);
-  font-variant-numeric: tabular-nums;
-}
-
-.total__label {
-  font-size: 10px;
-  opacity: 0.6;
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
-  background: var(--color-background-soft);
-  font-size: 13px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  flex-shrink: 0;
-  border-radius: 50%;
-}
-
-.row__name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.row__best {
-  font-weight: 700;
-  color: var(--color-heading);
-  font-variant-numeric: tabular-nums;
-}
-
-.row__sets {
-  min-width: 52px;
-  text-align: right;
-  font-size: 12px;
-  opacity: 0.6;
+.dock__done:active {
+  transform: scale(0.97);
 }
 </style>

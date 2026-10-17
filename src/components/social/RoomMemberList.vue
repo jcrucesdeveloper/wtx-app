@@ -113,7 +113,7 @@ const { exerciseName } = useExerciseName()
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--color-success);
   border: 2px solid var(--color-background-soft);
 }
 
@@ -164,7 +164,7 @@ const { exerciseName } = useExerciseName()
 }
 
 .badge--done {
-  background: #22c55e;
+  background: var(--color-success);
   color: #fff;
 }
 </style>

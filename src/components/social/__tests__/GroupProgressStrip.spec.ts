@@ -81,8 +81,23 @@ describe('GroupProgressStrip', () => {
     expect(strip.text()).toContain('3/8 sets')
     expect(strip.text()).not.toMatch(/leading|behind/i)
     // One segment per member, sized by their part of the plan.
-    const widths = strip.findAll('.team__segment').map((s) => (s.element as HTMLElement).style.width)
+    const widths = strip.findAll('.team-bar__segment').map((s) => (s.element as HTMLElement).style.width)
     expect(widths).toEqual(['12.5%', '25%'])
+  })
+
+  it("rings each face with that member's share of the plan, and marks exercises cleared by everyone", async () => {
+    const room = useRoomStore()
+    room.setLogs = [set('jaco', 'Bench Press'), set('jaco', 'Bench Press'), set('ana', 'Bench Press'), set('ana', 'Bench Press')]
+    const strip = mountStrip()
+    await nextTick()
+
+    const rings = strip.findAll('.facepile__face').map((f) => (f.element as HTMLElement).style.background)
+    // Two of four planned sets each: half a turn.
+    expect(rings.every((r) => r.includes('180deg'))).toBe(true)
+    const pips = strip.findAll('.team-bar__pip')
+    expect(pips).toHaveLength(2)
+    expect(pips[0]!.classes()).toContain('team-bar__pip--cleared')
+    expect(pips[1]!.classes()).not.toContain('team-bar__pip--cleared')
   })
 
   it('rallies around the last one in, once everyone else is done', async () => {

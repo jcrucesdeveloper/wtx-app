@@ -12,6 +12,11 @@ import { celebrationTier } from '@/lib/celebration'
 import { AdService } from '@/services/ads'
 import { AppReviewService } from '@/services/appReview'
 import { useWorkoutShare } from '@/composables/useWorkoutShare'
+import TeamFinishCard from '@/components/social/TeamFinishCard.vue'
+import MemberSessionSheet from '@/components/social/MemberSessionSheet.vue'
+import { useRoomStore } from '@/stores/room'
+import { useAuthStore } from '@/stores/auth'
+import { useRoomTeam } from '@/composables/useRoomTeam'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -63,6 +68,35 @@ const { cardData, caption: shareText } = useWorkoutShare(
   recap,
 )
 
+// --- A group workout: the team, live until the last one finishes ----------
+
+const room = useRoomStore()
+const auth = useAuthStore()
+const roomTeam = useRoomTeam()
+const roomId = computed(() => stored.value?.roomId)
+/** The room this workout was part of, once it's loaded here (it usually already is). */
+const inRoom = computed(() => !!roomId.value && room.room?.id === roomId.value && room.members.length > 0)
+/** Whose workout is open in the sheet. */
+const watching = ref<string | null>(null)
+
+onMounted(async () => {
+  if (!roomId.value) return
+  await auth.whenReady()
+  if (auth.isLoggedIn) void room.open(roomId.value).catch(() => {})
+})
+
+/** From the room's start to the last Finish, once everyone has finished. */
+const teamSeconds = computed(() => {
+  const startedAt = Date.parse(room.room?.started_at ?? '')
+  if (!room.team.allFinished || !Number.isFinite(startedAt)) return null
+  const last = Math.max(...room.members.map((m) => Date.parse(m.finishedAt ?? '')))
+  return Number.isFinite(last) && last >= startedAt ? Math.round((last - startedAt) / 1000) : null
+})
+
+function openRecap() {
+  if (roomId.value) router.push({ name: 'room-recap', params: { id: roomId.value } })
+}
+
 /** Sharing opens a preview first: nothing leaves the phone that wasn't looked at. */
 const sharePrompt = ref<InstanceType<typeof FinishSharePrompt> | null>(null)
 </script>
@@ -75,20 +109,54 @@ const sharePrompt = ref<InstanceType<typeof FinishSharePrompt> | null>(null)
       v-else
       :session="result.session"
       :recap="recap"
-      :room-id="stored.roomId"
       @done="onDone"
       @share="sharePrompt?.open()"
-      @recap="router.push({ name: 'room-recap', params: { id: stored.roomId } })"
     >
+      <template v-if="inRoom" #team>
+        <TeamFinishCard
+          :faces="roomTeam.faces.value"
+          :segments="roomTeam.segments.value"
+          :done="room.team.done"
+          :total="room.team.total"
+          :finished="room.team.finished"
+          :members="room.team.members"
+          :all-finished="room.team.allFinished"
+          :line="roomTeam.line.value"
+          :line-tappable="!!roomTeam.lineMember.value"
+          :seconds="teamSeconds"
+          @select="watching = $event"
+          @line="watching = roomTeam.lineMember.value"
+          @recap="openRecap"
+        />
+      </template>
+      <!-- The room hasn't loaded here (offline, signed out): still a way to its recap. -->
+      <template v-else-if="roomId" #team>
+        <button type="button" class="group-recap" @click="openRecap">{{ t('room.summary.seeRecap') }}</button>
+      </template>
       <template #share>
         <FinishSharePrompt ref="sharePrompt" :data="cardData" :caption="shareText" />
       </template>
     </FinishSummary>
+
+    <MemberSessionSheet v-if="inRoom" :user-id="watching" @close="watching = null" />
   </AppPage>
 </template>
 
 <style scoped>
 .msg {
   font-size: var(--text-body);
+}
+
+.group-recap {
+  width: 100%;
+  min-height: var(--size-control);
+  border: 1px solid var(--color-border-hover);
+  border-radius: 14px;
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+  background: transparent;
+  cursor: pointer;
 }
 </style>

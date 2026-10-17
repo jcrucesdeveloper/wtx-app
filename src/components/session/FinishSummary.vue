@@ -27,11 +27,9 @@ import { formatSetValue, isTimeExercise } from '@/lib/sessionTime'
 const props = defineProps<{
   session: WorkoutSession
   recap: SessionRecap | null
-  /** Set when this workout was part of a group one, which has its own recap. */
-  roomId?: string
 }>()
 
-const emit = defineEmits<{ done: []; share: []; recap: [] }>()
+const emit = defineEmits<{ done: []; share: [] }>()
 
 const { t } = useI18n()
 const { exerciseName } = useExerciseName()
@@ -196,6 +194,9 @@ const lines = computed(() =>
       </span>
     </section>
 
+    <!-- A group workout: the group, right under your own headline (filled by the view). -->
+    <div v-if="$slots.team" class="rise" style="--i: 4"><slot name="team" /></div>
+
     <section class="rise" style="--i: 4">
       <div class="stats">
         <div v-for="stat in stats" :key="stat.label" class="stats__item">
@@ -237,10 +238,6 @@ const lines = computed(() =>
         </li>
       </ul>
     </section>
-
-    <button v-if="roomId" type="button" class="group-recap" @click="emit('recap')">
-      {{ t('room.viewRecap') }}
-    </button>
 
     <div class="dock">
       <button type="button" class="dock__share share-btn" @click="emit('share')">
@@ -458,18 +455,6 @@ const lines = computed(() =>
 
 .line__sets {
   font-size: 13px;
-}
-
-.group-recap {
-  min-height: var(--size-control);
-  border: 1px solid var(--color-border-hover);
-  border-radius: 14px;
-  font: inherit;
-  font-size: var(--text-small);
-  font-weight: var(--weight-bold);
-  color: var(--color-heading);
-  background: transparent;
-  cursor: pointer;
 }
 
 .dock {

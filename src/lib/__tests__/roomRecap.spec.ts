@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildRoomRecap, memberProgress, type RecapSetLog } from '../roomRecap'
+import type { PlannedExercise } from '../memberSession'
 
 const log = (
   user_id: string,
@@ -43,6 +44,36 @@ describe('buildRoomRecap', () => {
       { userId: 'ana', sets: 1, best: { weight: 45, reps: 10 } },
     ])
     expect(recap.exercises[1]!.entries[0]).toEqual({ userId: 'jaco', sets: 0, best: null })
+  })
+})
+
+describe('buildRoomRecap with the routine', () => {
+  const routine: PlannedExercise[] = [
+    { name: 'Squat', kind: 'reps', sets: 3 },
+    { name: 'Plank', kind: 'time', sets: 2 },
+    { name: 'Bench Press', kind: 'reps', sets: 3 },
+  ]
+
+  it("follows the routine's order, then exercises added mid-workout as first worked", () => {
+    const recap = buildRoomRecap(
+      ['jaco', 'ana'],
+      [log('ana', 'Curl', 10, 12, 1), log('jaco', 'bench press', 70, 8, 2), log('ana', 'Squat', 60, 5, 3)],
+      routine,
+    )
+    expect(recap.exercises.map((e) => e.exercise)).toEqual(['Squat', 'Bench Press', 'Curl'])
+    expect(recap.exercises.map((e) => e.kind)).toEqual(['reps', 'reps', 'reps'])
+  })
+
+  it('keeps timed sets out of volume and takes the longest hold as the best', () => {
+    const recap = buildRoomRecap(
+      ['jaco'],
+      [log('jaco', 'Plank', 20, 45, 1), log('jaco', 'Plank', 0, 90, 2), log('jaco', 'Squat', 100, 5, 3)],
+      routine,
+    )
+    expect(recap.totals).toEqual([{ userId: 'jaco', sets: 3, volume: 500 }])
+    const plank = recap.exercises.find((e) => e.exercise === 'Plank')!
+    expect(plank.kind).toBe('time')
+    expect(plank.entries[0]!.best).toEqual({ weight: 0, reps: 90 })
   })
 })
 
