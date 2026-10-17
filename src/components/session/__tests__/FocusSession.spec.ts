@@ -229,8 +229,8 @@ describe('FocusSession: deleting a set', () => {
 
     await rows()[2]!.find('.set__prev').trigger('click')
     await wrapper!.find('.now__more').trigger('click')
-    const item = [...document.querySelectorAll<HTMLButtonElement>('button')].find(
-      (b) => b.textContent?.includes('Delete set 3'),
+    const item = [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) =>
+      b.textContent?.includes('Delete set 3'),
     )
     expect(item).toBeDefined()
     item!.click()
@@ -286,7 +286,7 @@ Dips | reps 3x10
     const parsed = routines.parsed(routine.id)
     if (!parsed?.ok) throw new Error('routine should parse')
     activeSession.start(routine, parsed.template, { roomId: 'room-1' })
-    wrapper = mount(FocusSession, { global: { plugins: [pinia, i18n] } })
+    wrapper = mount(FocusSession, { attachTo: document.body, global: { plugins: [pinia, i18n] } })
     return activeSession
   }
 
@@ -312,6 +312,31 @@ Dips | reps 3x10
     activeSession.updateSet(0, bench.loggedSets[0]!.id, { weight: 62.5 })
     activeSession.followRoomOrder([1, 2, 0], 1)
     await nextTick()
+    expect(shown()).toBe('Bench Press')
+  })
+
+  it('still undoes a deleted set after the host moves its exercise', async () => {
+    const activeSession = start()
+    const bench = activeSession.session!.draft.exercises[0]!
+    const second = bench.loggedSets[1]!.id
+    activeSession.completeSet(0, bench.loggedSets[0]!.id)
+    await nextTick()
+
+    await wrapper!.findAll('li.set')[1]!.find('.set__prev').trigger('click')
+    await wrapper!.find('.now__more').trigger('click')
+    const item = [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) =>
+      b.textContent?.includes('Delete set 2'),
+    )
+    item!.click()
+    await nextTick()
+    expect(bench.loggedSets.map((s) => s.id)).not.toContain(second)
+
+    activeSession.followRoomOrder([2, 0, 1], 1)
+    await nextTick()
+    await wrapper!.find('.undo__btn').trigger('click')
+
+    expect(activeSession.session!.draft.exercises[1]).toBe(bench)
+    expect(bench.loggedSets[1]!.id).toBe(second)
     expect(shown()).toBe('Bench Press')
   })
 

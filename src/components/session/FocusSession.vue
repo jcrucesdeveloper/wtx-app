@@ -97,7 +97,13 @@ watch(
   () => activeSession.session?.draft.exercises,
   (next, previous) => {
     if (!next || !previous || next === previous) return
-    pickedExercise.value = focusAfterReorder(previous, next, pickedExercise.value, isDone, isStarted)
+    pickedExercise.value = focusAfterReorder(
+      previous,
+      next,
+      pickedExercise.value,
+      isDone,
+      isStarted,
+    )
   },
 )
 const current = computed(() => exercises.value[currentIndex.value])
@@ -210,10 +216,7 @@ const priorBests = allTimeBestsByExercise(
 const recordSetIds = computed(() => {
   const exercise = current.value
   if (!exercise) return new Set<string>()
-  return liveRecordSetIds(
-    exercise.loggedSets,
-    priorBests.get(exercise.name.trim().toLowerCase()),
-  )
+  return liveRecordSetIds(exercise.loggedSets, priorBests.get(exercise.name.trim().toLowerCase()))
 })
 const recordFlash = ref<number | null>(null)
 let recordTimer: ReturnType<typeof setTimeout> | undefined
@@ -370,16 +373,16 @@ const UNDO_MS = 8000
 /** The set just deleted, while it can still be put back. */
 const undo = ref<{
   exercise: SessionExerciseDraft
-  exerciseIndex: number
   setId: string
   text: string
 } | null>(null)
 let undoTimer: ReturnType<typeof setTimeout> | undefined
 
-/** The undo only stands while its exercise is still where it was. */
+/** The undo only stands while its exercise is still in the session — wherever a reorder put it. */
 const undoable = computed(() => {
   const pending = undo.value
-  return pending && exercises.value[pending.exerciseIndex] === pending.exercise ? pending : null
+  const index = pending ? exercises.value.indexOf(pending.exercise) : -1
+  return pending && index >= 0 ? { ...pending, index } : null
 })
 
 function deleteLabel(row: (typeof labeledSets.value)[number]): string {
@@ -403,9 +406,9 @@ function deleteSet(setId: string) {
   if (pickedSetId.value === setId) pickedSetId.value = null
   // Taking the last open set away finishes the exercise; stay on it rather
   // than jumping to the next one under the thumb that just deleted.
-  if (pickedIndex.value === null && isDone(exercise)) pickedIndex.value = index
+  if (pickedIndex.value < 0 && isDone(exercise)) pickedExercise.value = exercise
 
-  undo.value = { exercise, exerciseIndex: index, setId, text }
+  undo.value = { exercise, setId, text }
   clearTimeout(undoTimer)
   undoTimer = setTimeout(() => (undo.value = null), UNDO_MS)
   void HapticsService.medium()
@@ -416,9 +419,9 @@ function undoDelete() {
   undo.value = null
   clearTimeout(undoTimer)
   if (!pending) return
-  activeSession.restoreSet(pending.exerciseIndex, pending.setId)
+  activeSession.restoreSet(pending.index, pending.setId)
   // Back where it was deleted, so the set is seen coming back.
-  if (pending.exerciseIndex !== currentIndex.value) pickedIndex.value = pending.exerciseIndex
+  if (pending.index !== currentIndex.value) pickedExercise.value = pending.exercise
   void HapticsService.selection()
 }
 
@@ -697,7 +700,9 @@ function onNoteInput(event: Event) {
                       <template v-if="isTime">{{
                         formatDurationInput(row.set.ghostReps ?? 0)
                       }}</template>
-                      <template v-else>{{ row.set.ghostWeight }} × {{ row.set.ghostReps }}</template>
+                      <template v-else
+                        >{{ row.set.ghostWeight }} × {{ row.set.ghostReps }}</template
+                      >
                     </template>
                     <template v-else>–</template>
                   </span>
