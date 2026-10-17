@@ -324,3 +324,9 @@ See [`LICENSE`](./LICENSE).
 The one exception is the vendored parser in `src/lib/wtx/`, which is MIT-licensed
 by its upstream author ([`jcrucesdeveloper/wtx`](https://github.com/jcrucesdeveloper/wtx))
 and carries its own terms.
+
+The rest-end sound (`public/sounds/rest-end.mp3`, also
+`android/app/src/main/res/raw/rest_end.mp3`) is built from `confirmation_004` in
+[Interface Sounds by Kenney](https://kenney.nl/assets/interface-sounds), released under
+[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain, no attribution
+required). Thanks, Kenney.
