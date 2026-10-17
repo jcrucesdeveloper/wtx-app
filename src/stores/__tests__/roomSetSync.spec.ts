@@ -123,7 +123,8 @@ describe('room: a deleted set leaves the group workout', () => {
     const { room, session } = setup()
     const [first] = logBench(session)
     session.addSet(0)
-    const extra = session.session!.draft.exercises[0]!.loggedSets.at(-1)!.id
+    const sets = session.session!.draft.exercises[0]!.loggedSets
+    const extra = sets[sets.length - 1]!.id
     writes.length = 0
 
     session.removeSet(0, extra)

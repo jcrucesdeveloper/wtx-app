@@ -110,8 +110,8 @@ describe('activeSession: deleting a set', () => {
       const store = startWorkout()
       const ids = setIds(store, 1)
       for (const id of ids) store.removeSet(1, id)
-      store.restoreSet(1, ids.at(-1)!)
-      expect(setIds(store, 1)).toEqual([ids.at(-1)])
+      store.restoreSet(1, ids[ids.length - 1]!)
+      expect(setIds(store, 1)).toEqual([ids[ids.length - 1]])
     })
 
     it('only undoes the last delete', () => {
