@@ -23,6 +23,7 @@ import { useNotificationsStore } from '@/stores/notifications'
 import { useAdsStore } from '@/stores/ads'
 import { AdService } from '@/services/ads'
 import { NotificationService } from '@/services/notifications'
+import { RestSoundService } from '@/services/restSound'
 import { sessionDateStrs } from '@/lib/sessionDates'
 import { SUPPORT_EMAIL } from '@/config/legal'
 import { parseSessionText } from '@/lib/parseSession'
@@ -40,7 +41,14 @@ const theme = useThemeStore()
 const { accent, mode } = storeToRefs(theme)
 
 const settings = useSettingsStore()
-const { defaultUnit, vibrateOnRestEnd } = storeToRefs(settings)
+const { defaultUnit, vibrateOnRestEnd, restSoundEnabled } = storeToRefs(settings)
+
+/** Turning it on plays it once, so you know what you'll hear. */
+function toggleRestSound() {
+  const next = !restSoundEnabled.value
+  settings.setRestSoundEnabled(next)
+  if (next) void RestSoundService.play()
+}
 
 const localeStore = useLocaleStore()
 const { locale } = storeToRefs(localeStore)
@@ -255,6 +263,18 @@ async function toggleReminders() {
           <template v-if="remindersDenied" #below>
             <p class="msg msg--error">{{ t('settings.remindersDenied') }}</p>
           </template>
+        </SettingsRow>
+        <SettingsRow :label="t('settings.restSound')" :hint="t('settings.restSoundHint')">
+          <button
+            type="button"
+            class="switch"
+            role="switch"
+            :aria-checked="restSoundEnabled"
+            :aria-label="t('settings.restSound')"
+            @click="toggleRestSound"
+          >
+            <i />
+          </button>
         </SettingsRow>
         <SettingsRow :label="t('settings.vibrateRestEnd')" :hint="t('settings.vibrateRestEndHint')">
           <button
