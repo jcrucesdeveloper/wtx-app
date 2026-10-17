@@ -7,6 +7,7 @@ import {
   serializeSession,
   type SessionDraft,
   type SessionExerciseDraft,
+  type SessionSetDraft,
   type SessionSetType,
 } from '@/lib/serializeSession'
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
@@ -134,6 +135,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       restExerciseIndex: null,
       restSetId: null,
     }
+    removedSet = null
     now.value = Date.now()
     void warmExerciseImages(template.exercises.map((e) => e.name))
   }
@@ -191,10 +193,72 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     set.type = set.type === 'number' ? 'W' : set.type === 'W' ? 'D' : 'number'
   }
 
+  /**
+   * The set last taken out with {@link removeSet}, so it can be put back
+   * exactly where it was. Only the last one, and only in memory: it backs an
+   * undo that lasts seconds, not a history.
+   */
+  let removedSet: {
+    exercise: SessionExerciseDraft
+    set: SessionSetDraft
+    position: number
+    /** The rest that was running after this set, if one was. */
+    rest: { endsAt: number; durationSeconds: number | null } | null
+  } | null = null
+
+  /**
+   * Takes one set out of an exercise, logged or not. An exercise left with no
+   * sets stays in the workout, empty, until one is added or it is removed. A
+   * rest running after the removed set stops with it. The set can be put back
+   * with {@link restoreSet} until another set is removed.
+   */
   function removeSet(exerciseIndex: number, setId: string) {
     const exercise = session.value?.draft.exercises[exerciseIndex]
-    if (!exercise) return
-    exercise.loggedSets = exercise.loggedSets.filter((s) => s.id !== setId)
+    if (!session.value || !exercise) return
+    const position = exercise.loggedSets.findIndex((s) => s.id === setId)
+    if (position === -1) return
+    const set = exercise.loggedSets[position]!
+
+    const restingAfterIt =
+      session.value.restSetId === setId &&
+      session.value.restExerciseIndex === exerciseIndex &&
+      session.value.restEndsAt !== null
+    removedSet = {
+      exercise,
+      set,
+      position,
+      rest: restingAfterIt
+        ? { endsAt: session.value.restEndsAt!, durationSeconds: session.value.restDurationSeconds }
+        : null,
+    }
+    if (restingAfterIt) skipRestTimer()
+    exercise.loggedSets.splice(position, 1)
+  }
+
+  /**
+   * Puts the set last removed back where it was, with everything it had —
+   * logged or not, its numbers, its type. Its rest comes back too if it is
+   * still running and no other rest has started since. Does nothing when
+   * that set isn't the last one removed, or its exercise is no longer at
+   * `exerciseIndex`.
+   */
+  function restoreSet(exerciseIndex: number, setId: string) {
+    const exercise = session.value?.draft.exercises[exerciseIndex]
+    const removed = removedSet
+    if (!session.value || !exercise || removed?.set.id !== setId || removed.exercise !== exercise) {
+      return
+    }
+    removedSet = null
+    if (exercise.loggedSets.some((s) => s.id === setId)) return
+    exercise.loggedSets.splice(Math.min(removed.position, exercise.loggedSets.length), 0, removed.set)
+
+    if (removed.rest && session.value.restEndsAt === null && removed.rest.endsAt > Date.now()) {
+      session.value.restEndsAt = removed.rest.endsAt
+      session.value.restDurationSeconds = removed.rest.durationSeconds
+      session.value.restExerciseIndex = exerciseIndex
+      session.value.restSetId = setId
+      now.value = Date.now()
+    }
   }
 
   function updateNote(exerciseIndex: number, note: string) {
@@ -439,6 +503,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     )
 
     session.value = null
+    removedSet = null
     persist()
     return stored
   }
@@ -446,6 +511,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   /** Discards the in-progress session. Callers own any confirmation prompt. */
   function discard() {
     session.value = null
+    removedSet = null
     persist()
   }
 
@@ -460,6 +526,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     uncompleteSet,
     addSet,
     removeSet,
+    restoreSet,
     cycleSetType,
     updateNote,
     addExercise,
