@@ -328,7 +328,6 @@
       "shareToFeedDesc": "Followers will see this workout, its stats, and any personal records."
     },
     "loggedExerciseList": {
-      "incomplete": "Incomplete",
       "setsProgress": "{done}/{total} sets"
     },
     "personalRecordBanner": {
@@ -423,14 +422,15 @@
     "deleteSession": "Delete session",
     "deleteConfirm": "Delete this session from your history?",
     "notFound": "This session is no longer in your history.",
-    "exercises": "{count} exercises",
-    "sets": "{count} sets",
-    "volume": "{amount} volume",
     "complete": "Complete",
     "incomplete": "Incomplete",
     "deviceOnly": "Only on this device",
     "deviceOnlyHint": "This session isn't synced to your profile.",
-    "saveToProfile": "Save to profile"
+    "saveToProfile": "Save to profile",
+    "shareIntro": "My {name} workout on WTX 💪",
+    "records": "{count} personal record | {count} personal records",
+    "showSource": "Show workout file",
+    "hideSource": "Hide workout file"
   },
   "sessions": {
     "title": "Sessions",
