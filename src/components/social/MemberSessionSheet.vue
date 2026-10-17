@@ -6,8 +6,7 @@ import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import { useRoomStore } from '@/stores/room'
 import { useAuthStore } from '@/stores/auth'
 import { useExerciseName } from '@/composables/useExerciseName'
-import { parseTemplateText } from '@/lib/parseRoutine'
-import { buildMemberSession, type PlannedExercise } from '@/lib/memberSession'
+import { buildMemberSession } from '@/lib/memberSession'
 import { initials, memberColor } from '@/lib/memberColors'
 import { REACTION_EMOJIS, type ReactionEmoji } from '@/lib/roomEvents'
 import { HapticsService } from '@/services/haptics'
@@ -32,17 +31,9 @@ const member = computed(() => (memberIndex.value >= 0 ? room.progress[memberInde
 const isMe = computed(() => props.userId !== null && props.userId === auth.user?.id)
 const unit = computed(() => room.room?.unit || 'kg')
 
-/** The room's routine — everyone follows the same snapshot. */
-const routine = computed<PlannedExercise[]>(() => {
-  const wtt = room.room?.routine_wtt
-  if (!wtt) return []
-  const parsed = parseTemplateText(wtt)
-  return parsed.ok ? parsed.template.exercises : []
-})
-
-/** Rebuilt from the room's live set logs, so it updates as they tick sets. */
+/** Rebuilt from the room's live set logs (the routine in the host's order), so it updates as they tick sets. */
 const session = computed(() =>
-  props.userId ? buildMemberSession(routine.value, props.userId, room.setLogs) : null,
+  props.userId ? buildMemberSession(room.routineExercises, props.userId, room.setLogs) : null,
 )
 
 const status = computed(() => {
