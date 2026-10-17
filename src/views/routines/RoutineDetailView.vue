@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { EllipsisVertical, Play, Share2, SquarePen, Star, Users } from '@lucide/vue'
+import { Check, Copy, EllipsisVertical, Play, Share2, SquarePen, Star, Users } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import RoutineSummary from '@/components/routine/RoutineSummary.vue'
 import ExerciseList from '@/components/routine/ExerciseList.vue'
@@ -44,6 +44,18 @@ function toggleFavorite() {
 }
 
 const showSource = ref(false)
+const sourceCopied = ref(false)
+
+async function copySource() {
+  if (!routine.value) return
+  try {
+    await navigator.clipboard.writeText(routine.value.rawText)
+    sourceCopied.value = true
+    setTimeout(() => (sourceCopied.value = false), 1500)
+  } catch {
+    /* clipboard blocked — "Show source" leaves the text selectable */
+  }
+}
 const shareOpen = ref(false)
 const editOpen = ref(false)
 const menuOpen = ref(false)
@@ -157,9 +169,22 @@ function onDelete() {
 
         <!-- The routine is a text file; this is it. -->
         <section class="text">
-          <button type="button" class="text__toggle" @click="showSource = !showSource">
-            {{ showSource ? t('routineDetail.hideSource') : t('routineDetail.showSource') }}
-          </button>
+          <div class="text__row">
+            <button type="button" class="text__toggle" @click="showSource = !showSource">
+              {{ showSource ? t('routineDetail.hideSource') : t('routineDetail.showSource') }}
+            </button>
+            <button
+              type="button"
+              class="icon-btn"
+              :aria-label="t('routineDetail.copySourceAria')"
+              @click="copySource"
+            >
+              <component :is="sourceCopied ? Check : Copy" :size="18" :stroke-width="2.25" />
+            </button>
+            <span class="text__copied" role="status">
+              {{ sourceCopied ? t('routineDetail.sourceCopied') : '' }}
+            </span>
+          </div>
           <pre v-if="showSource" class="source">{{ routine.rawText }}</pre>
         </section>
 
@@ -278,6 +303,18 @@ function onDelete() {
 .head__notes {
   margin-top: -6px;
   font-size: var(--text-body);
+}
+
+.text__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.text__copied {
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-heading);
 }
 
 .text__toggle {

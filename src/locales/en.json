@@ -208,7 +208,9 @@
     "deleteConfirm": "Remove this routine from your library?",
     "notFound": "This routine is no longer in your library.",
     "showSource": "Show source",
-    "hideSource": "Hide source"
+    "hideSource": "Hide source",
+    "copySourceAria": "Copy source",
+    "sourceCopied": "Copied"
   },
   "share": {
     "title": "Share routine",
