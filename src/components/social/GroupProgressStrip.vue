@@ -5,7 +5,10 @@ import { useRouter } from 'vue-router'
 import { Bell, BellOff, ChevronRight } from '@lucide/vue'
 import { useRoomStore } from '@/stores/room'
 import { useAuthStore } from '@/stores/auth'
-import { initials, memberColor } from '@/lib/memberColors'
+import { useRoomTeam } from '@/composables/useRoomTeam'
+import { clearedExercises } from '@/lib/teamProgress'
+import MemberFacepile from '@/components/social/MemberFacepile.vue'
+import TeamBar from '@/components/social/TeamBar.vue'
 import MemberSessionSheet from '@/components/social/MemberSessionSheet.vue'
 
 const props = defineProps<{
@@ -16,6 +19,7 @@ const { t } = useI18n()
 const router = useRouter()
 const room = useRoomStore()
 const auth = useAuthStore()
+const { faces, segments, line, lineMember } = useRoomTeam()
 
 onMounted(async () => {
   await auth.whenReady()
@@ -29,34 +33,20 @@ function openRoom() {
 /** Whose workout is open in the sheet. */
 const watching = ref<string | null>(null)
 
-/** Each member's share of the team bar, in join order — contributions visible, never ranked. */
-const segments = computed(() => {
-  const total = room.team.total
-  return room.team.segments.map((s) => ({
-    userId: s.userId,
-    width: total > 0 ? (s.done / total) * 100 : 0,
-    color: memberColor(room.members.findIndex((m) => m.userId === s.userId)),
-  }))
-})
-
-/**
- * Support for whoever the team is waiting on. Supportive, never blaming —
- * controlling pressure backfires on motivation.
- */
-const teamLine = computed(() => {
-  if (room.room?.status !== 'active' && !room.team.allFinished) return ''
-  if (room.team.allFinished) return t('room.team.allDone')
-  const last = room.lastIn
-  if (!last) return ''
-  if (last.userId === auth.user?.id) return t('room.team.lastIsYou')
-  return last.setsLeft > 0
-    ? t('room.team.lastOne', { name: last.name, count: last.setsLeft }, last.setsLeft)
-    : t('room.team.lastOneFinishing', { name: last.name })
+/** The routine's exercises in the host's order, filled once everyone has cleared one. */
+const pips = computed(() => {
+  const cleared = new Set(
+    clearedExercises(
+      room.routineExercises,
+      room.members.map((m) => m.userId),
+      room.setLogs,
+    ),
+  )
+  return room.routineExercises.map((e) => ({ name: e.name, cleared: cleared.has(e.name) }))
 })
 
 function onTeamLine() {
-  const last = room.lastIn
-  if (last && last.userId !== auth.user?.id) watching.value = last.userId
+  if (lineMember.value) watching.value = lineMember.value
 }
 </script>
 
@@ -68,20 +58,7 @@ function onTeamLine() {
         {{ t('room.progressTitle') }}
         <ChevronRight :size="14" :stroke-width="2.5" />
       </button>
-      <span class="strip__members">
-        <button
-          v-for="(m, i) in room.progress"
-          :key="m.userId"
-          type="button"
-          class="chip"
-          :class="{ 'chip--me': m.userId === auth.user?.id, 'chip--done': m.finishedAt }"
-          :aria-label="t('room.memberSession.viewAria', { name: m.displayName })"
-          @click="watching = m.userId"
-        >
-          <span class="chip__avatar" :style="{ background: memberColor(i) }">{{ initials(m.displayName) }}</span>
-          <span class="chip__count">{{ m.sets }}</span>
-        </button>
-      </span>
+      <MemberFacepile class="strip__members" :faces="faces" :size="26" :max="6" selectable @select="watching = $event" />
       <button
         type="button"
         class="strip__mute"
@@ -99,24 +76,11 @@ function onTeamLine() {
         <span class="team__label">{{ t('room.team.title') }}</span>
         <span class="team__count">{{ t('room.team.sets', { done: room.team.done, total: room.team.total }) }}</span>
       </div>
-      <div
-        class="team__bar"
-        role="progressbar"
-        :aria-valuenow="room.team.done"
-        :aria-valuemax="room.team.total"
-        :aria-label="t('room.team.title')"
-      >
-        <span
-          v-for="s in segments"
-          :key="s.userId"
-          class="team__segment"
-          :style="{ width: `${s.width}%`, background: s.color }"
-        />
-      </div>
+      <TeamBar :segments="segments" :total="room.team.total" :exercises="pips" />
     </div>
 
-    <button v-if="teamLine" type="button" class="strip__line" @click="onTeamLine">
-      {{ teamLine }}
+    <button v-if="line" type="button" class="strip__line" @click="onTeamLine">
+      {{ line }}
     </button>
   </div>
 
@@ -125,6 +89,7 @@ function onTeamLine() {
 
 <style scoped>
 .strip {
+  --facepile-edge: var(--color-background-soft);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -183,18 +148,7 @@ function onTeamLine() {
   font-variant-numeric: tabular-nums;
 }
 
-.team__bar {
-  display: flex;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--color-background-mute);
-  overflow: hidden;
-}
 
-.team__segment {
-  height: 100%;
-  transition: width 0.3s ease;
-}
 
 .strip__line {
   align-self: flex-start;
@@ -225,48 +179,8 @@ function onTeamLine() {
 }
 
 .strip__members {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
   min-width: 0;
-}
-
-.chip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px 2px 2px;
-  border-radius: 999px;
-  background: var(--color-background-mute);
-  border: 1px solid transparent;
-  color: inherit;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.chip--me {
-  border-color: var(--color-accent);
-}
-
-.chip--done {
-  opacity: 0.6;
-}
-
-.chip__avatar {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.chip__count {
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-heading);
+  /* Room for the ring and the cut-out around each face. */
+  padding: 3px 0 3px 3px;
 }
 </style>
