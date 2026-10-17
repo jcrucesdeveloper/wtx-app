@@ -11,6 +11,7 @@ import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import PostSessionTransition from '@/components/session/PostSessionTransition.vue'
 import GroupProgressStrip from '@/components/social/GroupProgressStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useRoomStore } from '@/stores/room'
 import { useFinishSession, type FinishSessionOptions } from '@/composables/useFinishSession'
 import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { AdService } from '@/services/ads'
@@ -18,6 +19,7 @@ import { AdService } from '@/services/ads'
 const { t } = useI18n()
 const router = useRouter()
 const activeSession = useActiveSessionStore()
+const room = useRoomStore()
 const { finishSession } = useFinishSession()
 
 const draft = computed(() => activeSession.session?.draft)
@@ -106,6 +108,14 @@ function onFinishSheetChoice(options: FinishSessionOptions) {
 }
 
 const roomId = computed(() => activeSession.session?.roomId)
+
+/**
+ * In a group workout the host owns the order, so everyone stays on the same
+ * one; until the room has loaded it isn't known who the host is.
+ */
+const reorderLocked = computed(
+  () => !!roomId.value && !(room.room?.id === roomId.value && room.isHost),
+)
 </script>
 
 <template>
@@ -137,10 +147,12 @@ const roomId = computed(() => activeSession.session?.roomId)
           <button
             type="button"
             class="menu__item"
-            :disabled="draft.exercises.length < 2"
+            :class="{ 'menu__item--hinted': reorderLocked }"
+            :disabled="draft.exercises.length < 2 || reorderLocked"
             @click="onReorder"
           >
             {{ t('activeSession.reorderExercises') }}
+            <span v-if="reorderLocked" class="menu__hint">{{ t('activeSession.reorderHostOnly') }}</span>
           </button>
           <button type="button" class="menu__item menu__item--danger" @click="onDiscard">
             {{ t('activeSession.discardWorkout') }}
@@ -257,6 +269,24 @@ const roomId = computed(() => activeSession.session?.roomId)
   opacity: 0.35;
   cursor: default;
   background: transparent;
+}
+
+/* Locked for a reason worth reading: the line says why, so it stays legible. */
+.menu__item--hinted {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--space-2);
+}
+
+.menu__item--hinted:disabled {
+  opacity: 0.6;
+}
+
+.menu__hint {
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+  color: var(--color-text);
 }
 
 .msg {

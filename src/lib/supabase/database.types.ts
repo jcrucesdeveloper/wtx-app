@@ -38,6 +38,13 @@ export type RoomRow = {
   created_at: string
   started_at: string | null
   finished_at: string | null
+  /**
+   * The host's order: a permutation of the routine's exercise slots; `null` is
+   * the routine as written. Optional so a server without the column still reads.
+   */
+  exercise_order?: number[] | null
+  /** Goes up with every reorder; an older one is never applied over a newer one. */
+  order_version?: number
 }
 
 /** What follow_by_code / follow_user return about the person followed (`public.profile_card`). */
@@ -329,6 +336,10 @@ export type Database = {
     Functions: {
       create_room: {
         Args: { p_routine_wtt: string; p_routine_name: string; p_unit?: string | null }
+        Returns: RoomRow
+      }
+      set_room_exercise_order: {
+        Args: { p_room_id: string; p_order: number[] }
         Returns: RoomRow
       }
       join_room: {

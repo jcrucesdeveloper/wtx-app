@@ -39,6 +39,12 @@ export interface SessionExerciseDraft {
   weight: number
   /** Drives the rest timer; not part of the `.wts` grammar, never serialized. */
   restSeconds?: number
+  /**
+   * In a group workout, this exercise's position in the room's routine — how
+   * the host's order finds it (see `roomOrder`). Kept through a swap; unset
+   * for exercises added mid-workout. Never serialized.
+   */
+  slot?: number
   note: string
   loggedSets: SessionSetDraft[]
 }
