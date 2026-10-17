@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useRoomStore } from '@/stores/room'
 import GroupStartSheet from '../GroupStartSheet.vue'
 
+type CreateRoom = ReturnType<typeof useRoomStore>['create']
+
 // Accounts on; nothing here talks to a server — room creation is stubbed.
 vi.mock('@/services/supabase', () => ({
   supabase: null,
@@ -15,7 +17,7 @@ vi.mock('@/services/supabase', () => ({
   },
 }))
 
-const push = vi.fn()
+const push = vi.fn<(to: unknown) => void>()
 vi.mock('vue-router', () => ({ useRouter: () => ({ push }) }))
 
 function button(label: string): HTMLButtonElement {
@@ -65,7 +67,7 @@ describe('GroupStartSheet', () => {
   it('Cancel closes without creating a room', async () => {
     logIn()
     const room = useRoomStore()
-    const create = vi.fn()
+    const create = vi.fn<CreateRoom>()
     room.create = create
     const w = openSheet()
     button('Cancel').click()
@@ -78,7 +80,7 @@ describe('GroupStartSheet', () => {
   it('Confirm creates the room and opens its lobby', async () => {
     logIn()
     const room = useRoomStore()
-    const create = vi.fn().mockResolvedValue({ id: 'room-1' })
+    const create = vi.fn<CreateRoom>().mockResolvedValue({ id: 'room-1' } as Awaited<ReturnType<CreateRoom>>)
     room.create = create
     const w = openSheet()
     button('Create room').click()
@@ -90,7 +92,7 @@ describe('GroupStartSheet', () => {
 
   it('a failed create stays open with the reason', async () => {
     logIn()
-    useRoomStore().create = vi.fn().mockRejectedValue(new Error('offline'))
+    useRoomStore().create = vi.fn<CreateRoom>().mockRejectedValue(new Error('offline'))
     const w = openSheet()
     button('Create room').click()
     await flushPromises()
@@ -100,7 +102,7 @@ describe('GroupStartSheet', () => {
   })
 
   it('logged out, Confirm sends the user to Social to sign in', async () => {
-    const create = vi.fn()
+    const create = vi.fn<CreateRoom>()
     useRoomStore().create = create
     openSheet()
     expect(document.body.textContent).toContain('need an account')
