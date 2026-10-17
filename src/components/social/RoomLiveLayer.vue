@@ -139,6 +139,10 @@ function handle(event: RoomEvent) {
       if (event.from === me) return
       showToast({ ...base, icon: '👋', text: t('room.live.joined', { name: fromName }) })
       return
+    case 'order-changed':
+      if (event.from === me) return
+      showToast({ ...base, icon: '↕️', text: t('room.live.orderChanged', { name: fromName }) })
+      return
     case 'team-cleared':
       showToast({ ...base, team: true, icon: '✅', text: t('room.live.teamCleared', { exercise: exerciseName(event.exercise) }) })
       return
