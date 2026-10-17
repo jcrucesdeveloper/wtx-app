@@ -33,6 +33,10 @@
   /* Destructive actions and errors. Always text or an outline, never a fill. */
   --color-danger: #e5484d;
 
+  /* Done: a finished member, a completed goal. A small badge beside its
+     label or icon, never the only signal. */
+  --color-success: #22c55e;
+
   /* What kind of set a row is. A working set needs no colour; a warm-up and a
      drop set each get an ink and the tint it sits on. Always beside a letter
      or a label, never the only signal. */
@@ -52,6 +56,7 @@
     --color-heading: #141416;
     --color-text: rgba(20, 20, 22, 0.62);
     --color-danger: #d5303a;
+    --color-success: #15803d;
     --color-set-warmup: #9a5a00;
     --color-set-warmup-soft: rgba(196, 122, 10, 0.14);
     --color-set-drop: #5f3fc4;
@@ -68,6 +73,7 @@
   --color-heading: #141416;
   --color-text: rgba(20, 20, 22, 0.62);
   --color-danger: #d5303a;
+  --color-success: #15803d;
   --color-set-warmup: #9a5a00;
   --color-set-warmup-soft: rgba(196, 122, 10, 0.14);
   --color-set-drop: #5f3fc4;
