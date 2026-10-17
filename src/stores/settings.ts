@@ -5,6 +5,7 @@ const UNIT_STORAGE_KEY = 'wtx:default-unit'
 const SAVE_TARGET_STORAGE_KEY = 'wtx:session-save-target'
 const SHARE_TO_FEED_STORAGE_KEY = 'wtx:share-to-feed-default'
 const VIBRATE_REST_END_STORAGE_KEY = 'wtx:vibrate-rest-end'
+const REST_SOUND_STORAGE_KEY = 'wtx:rest-sound'
 
 export type WeightUnit = 'kg' | 'lb'
 
@@ -40,6 +41,15 @@ function readStoredShareToFeedDefault(): boolean {
 function readStoredVibrateOnRestEnd(): boolean {
   try {
     return localStorage.getItem(VIBRATE_REST_END_STORAGE_KEY) !== '0'
+  } catch {
+    return true
+  }
+}
+
+/** Defaults on: the rest ending is the one moment worth a sound, and it follows silent mode. */
+function readStoredRestSound(): boolean {
+  try {
+    return localStorage.getItem(REST_SOUND_STORAGE_KEY) !== '0'
   } catch {
     return true
   }
@@ -102,8 +112,23 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   })
 
+  /** A chime when the rest timer runs out, alongside the haptic. */
+  const restSoundEnabled = ref<boolean>(readStoredRestSound())
+
+  watch(restSoundEnabled, (value) => {
+    try {
+      localStorage.setItem(REST_SOUND_STORAGE_KEY, value ? '1' : '0')
+    } catch {
+      /* storage unavailable — keep the in-memory value */
+    }
+  })
+
   function setVibrateOnRestEnd(value: boolean) {
     vibrateOnRestEnd.value = value
+  }
+
+  function setRestSoundEnabled(value: boolean) {
+    restSoundEnabled.value = value
   }
 
   return {
@@ -115,5 +140,7 @@ export const useSettingsStore = defineStore('settings', () => {
     setShareToFeedDefault,
     vibrateOnRestEnd,
     setVibrateOnRestEnd,
+    restSoundEnabled,
+    setRestSoundEnabled,
   }
 })

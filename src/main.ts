@@ -14,6 +14,7 @@ import { supabaseAnalytics } from './services/supabaseAnalytics'
 import { NotificationService } from './services/notifications'
 import { initDeepLinks } from './services/deepLinks'
 import { initSessionNotification } from './services/sessionNotification'
+import { RestSoundService } from './services/restSound'
 import { useAuthStore } from './stores/auth'
 import { useRoomStore } from './stores/room'
 import { useSyncStore } from './stores/sync'
@@ -48,6 +49,8 @@ void auth.init()
 useRoomStore()
 // The ongoing "workout in progress" notification (Android), kept in step with the active session.
 initSessionNotification(router)
+// Keeps web audio unlocked so the rest-end chime can play (Android plays it natively instead).
+RestSoundService.init()
 
 setAnalyticsProvider(supabaseAnalytics)
 track('app_opened')
