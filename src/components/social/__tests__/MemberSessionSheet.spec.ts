@@ -102,6 +102,18 @@ describe('MemberSessionSheet', () => {
     expect(text).toContain('3/6 sets')
   })
 
+  it('offers cheers only while the workout is on', async () => {
+    const room = mountSheet('ana')
+    await nextTick()
+    expect(document.body.querySelector('.cheer')).not.toBeNull()
+
+    room.room = { ...room.room!, status: 'finished' }
+    await nextTick()
+    expect(document.body.querySelector('.cheer')).toBeNull()
+    // Their workout is still there to look at.
+    expect(document.body.textContent).toContain('47.5 kg × 8')
+  })
+
   it('stays closed without a member', async () => {
     mountSheet(null)
     await nextTick()

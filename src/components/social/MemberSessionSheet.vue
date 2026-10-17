@@ -81,7 +81,8 @@ function formatSet(weight: number, reps: number, kind: 'reps' | 'time'): string 
         </span>
       </div>
 
-      <div v-if="!isMe && room.room?.status !== 'lobby'" class="cheer">
+      <!-- Only while the workout is on: a finished room has no live connection to carry a cheer. -->
+      <div v-if="!isMe && room.room?.status === 'active'" class="cheer">
         <span class="cheer__label">{{ t('room.cheer.title', { name: member.displayName }) }}</span>
         <div class="cheer__row">
           <button
