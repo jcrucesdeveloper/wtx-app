@@ -64,7 +64,13 @@
     "changeExercise": "Cambiar ejercicio",
     "changeExerciseHint": "Cámbialo por otro. Sus series empiezan vacías.",
     "removeExerciseHint": "Solo de este entrenamiento, no de la rutina.",
-    "changeConfirm": "¿Cambiar {from} por {to}? Se eliminará la {count} serie que registraste en {from}. | ¿Cambiar {from} por {to}? Se eliminarán las {count} series que registraste en {from}."
+    "changeConfirm": "¿Cambiar {from} por {to}? Se eliminará la {count} serie que registraste en {from}. | ¿Cambiar {from} por {to}? Se eliminarán las {count} series que registraste en {from}.",
+    "deleteSet": "Eliminar",
+    "deleteSetAria": "Eliminar la serie {label}",
+    "deleteSetTyped": { "number": "Eliminar serie {n}", "W": "Eliminar calentamiento", "D": "Eliminar serie descendente" },
+    "deleteSetHint": "También puedes deslizar la serie a la izquierda. Se puede deshacer.",
+    "setDeleted": { "number": "Serie {n} eliminada", "W": "Calentamiento eliminado", "D": "Serie descendente eliminada" },
+    "undo": "Deshacer"
   },
   "finish": {
     "newPlate": "Nuevo disco",

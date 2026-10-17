@@ -64,7 +64,13 @@
     "changeExercise": "Change exercise",
     "changeExerciseHint": "Swap it for another one. Its sets start empty.",
     "removeExerciseHint": "From this workout only, not the routine.",
-    "changeConfirm": "Swap {from} for {to}? The {count} set you logged for {from} will be removed. | Swap {from} for {to}? The {count} sets you logged for {from} will be removed."
+    "changeConfirm": "Swap {from} for {to}? The {count} set you logged for {from} will be removed. | Swap {from} for {to}? The {count} sets you logged for {from} will be removed.",
+    "deleteSet": "Delete",
+    "deleteSetAria": "Delete set {label}",
+    "deleteSetTyped": { "number": "Delete set {n}", "W": "Delete warm-up", "D": "Delete drop set" },
+    "deleteSetHint": "Or swipe the set left. You can undo it.",
+    "setDeleted": { "number": "Set {n} deleted", "W": "Warm-up deleted", "D": "Drop set deleted" },
+    "undo": "Undo"
   },
   "finish": {
     "newPlate": "New plate",

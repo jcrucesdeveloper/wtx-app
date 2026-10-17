@@ -9,6 +9,7 @@ import {
   EllipsisVertical,
   Minus,
   Plus,
+  Trash2,
   Trophy,
 } from '@lucide/vue'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -22,6 +23,7 @@ import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import TimedSetField from '@/components/session/TimedSetField.vue'
 import ExerciseKindRow from '@/components/session/ExerciseKindRow.vue'
+import SwipeToDelete from '@/components/session/SwipeToDelete.vue'
 import { formatDurationInput } from '@/lib/durationInput'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useSessionsStore } from '@/stores/sessions'
@@ -38,8 +40,9 @@ import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSessi
  * only large thing on screen and logging it is the one big button under your
  * thumb. Under it, every set of the exercise is a row; above it, where you
  * are in the workout and a way to the exercise before and after. Nothing
- * that removes work sits in the scroll path — it is behind the exercise's
- * menu, and asks first.
+ * that removes work sits in the scroll path: an exercise goes from its menu,
+ * and asks first; a single set slides aside to show its Delete (or goes from
+ * the same menu) and doesn't ask — it can be undone for a few seconds.
  *
  * Nothing here waits on an animation: every tap changes state at once, and
  * motion only follows it. Celebration mid-workout is a line and a buzz, never
@@ -239,6 +242,7 @@ function toggleSet(row: (typeof labeledSets.value)[number]) {
  * stays logged: its numbers can be corrected in place.
  */
 function pickSet(set: SessionSetDraft) {
+  swipedSetId.value = null
   if (pickedSetId.value === set.id) return
   pickedSetId.value = set.id
   void HapticsService.selection()
@@ -332,11 +336,81 @@ function onSwapPicked(name: string) {
   pickedSetId.value = null
 }
 
+// ----- deleting one set: no question first, an undo after -----
+
+/** The row slid open to show its Delete — one at a time. */
+const swipedSetId = ref<string | null>(null)
+
+/** How long the undo stays offered after a set is deleted. */
+const UNDO_MS = 8000
+
+/** The set just deleted, while it can still be put back. */
+const undo = ref<{
+  exercise: SessionExerciseDraft
+  exerciseIndex: number
+  setId: string
+  text: string
+} | null>(null)
+let undoTimer: ReturnType<typeof setTimeout> | undefined
+
+/** The undo only stands while its exercise is still where it was. */
+const undoable = computed(() => {
+  const pending = undo.value
+  return pending && exercises.value[pending.exerciseIndex] === pending.exercise ? pending : null
+})
+
+function deleteLabel(row: (typeof labeledSets.value)[number]): string {
+  return t(`workout.deleteSetTyped.${row.set.type}`, { n: row.label })
+}
+
+/**
+ * Deletes one set of the exercise on screen, logged or not. It doesn't ask:
+ * it says what went, with an undo, for a few seconds. An exercise left with
+ * no sets stays, waiting for one to be added.
+ */
+function deleteSet(setId: string) {
+  const row = labeledSets.value.find(({ set }) => set.id === setId)
+  const exercise = current.value
+  const index = currentIndex.value
+  if (!row || !exercise) return
+  const text = t(`workout.setDeleted.${row.set.type}`, { n: row.label })
+
+  activeSession.removeSet(index, setId)
+  swipedSetId.value = null
+  if (pickedSetId.value === setId) pickedSetId.value = null
+  // Taking the last open set away finishes the exercise; stay on it rather
+  // than jumping to the next one under the thumb that just deleted.
+  if (pickedIndex.value === null && isDone(exercise)) pickedIndex.value = index
+
+  undo.value = { exercise, exerciseIndex: index, setId, text }
+  clearTimeout(undoTimer)
+  undoTimer = setTimeout(() => (undo.value = null), UNDO_MS)
+  void HapticsService.medium()
+}
+
+function undoDelete() {
+  const pending = undoable.value
+  undo.value = null
+  clearTimeout(undoTimer)
+  if (!pending) return
+  activeSession.restoreSet(pending.exerciseIndex, pending.setId)
+  // Back where it was deleted, so the set is seen coming back.
+  if (pending.exerciseIndex !== currentIndex.value) pickedIndex.value = pending.exerciseIndex
+  void HapticsService.selection()
+}
+
+/** The visible way to the same delete: the exercise's menu, for the set you're on. */
+function deleteFromMenu() {
+  actionsOpen.value = false
+  if (currentSet.value) deleteSet(currentSet.value.set.id)
+}
+
 const overviewOpen = ref(false)
 
 function focusExercise(index: number) {
   pickedIndex.value = index
   pickedSetId.value = null
+  swipedSetId.value = null
 }
 
 /**
@@ -372,7 +446,10 @@ const segments = computed(() =>
   ),
 )
 
-onBeforeUnmount(() => clearTimeout(recordTimer))
+onBeforeUnmount(() => {
+  clearTimeout(recordTimer)
+  clearTimeout(undoTimer)
+})
 
 const showImage = ref(false)
 
@@ -560,6 +637,7 @@ function onNoteInput(event: Event) {
         <p v-else class="sets__empty">{{ t('workout.noSets') }}</p>
 
         <ul class="sets__rows">
+          <!-- Swiping a row left shows its Delete; the menu has the same, for the set you're on. -->
           <li
             v-for="row in labeledSets"
             :key="row.set.id"
@@ -569,56 +647,65 @@ function onNoteInput(event: Event) {
               'set--current': row.set.id === currentSet?.set.id,
               'set--just': row.set.id === justLoggedId,
             }"
-            @click="pickSet(row.set)"
           >
-            <!-- The whole row picks the set; the button is what a keyboard or screen reader uses. -->
-            <button
-              type="button"
-              class="set__main"
-              :aria-current="row.set.id === currentSet?.set.id ? 'true' : undefined"
+            <SwipeToDelete
+              :open="swipedSetId === row.set.id"
+              :label="t('workout.deleteSet')"
+              :action-label="t('workout.deleteSetAria', { label: row.label })"
+              @update:open="swipedSetId = $event ? row.set.id : null"
+              @delete="deleteSet(row.set.id)"
             >
-              <span
-                class="set__tag"
-                :class="`set__tag--${row.set.type}`"
-                :title="t(`workout.setType.${row.set.type}`)"
-              >
-                {{ row.label }}
-              </span>
-              <span class="set__prev">
-                <template v-if="row.set.ghostFromLast && row.set.ghostWeight != null">
-                  <template v-if="isTime">{{
-                    formatDurationInput(row.set.ghostReps ?? 0)
-                  }}</template>
-                  <template v-else>{{ row.set.ghostWeight }} × {{ row.set.ghostReps }}</template>
-                </template>
-                <template v-else>–</template>
-              </span>
-              <span class="set__num" @click.stop="editField(row.set, 'weight')">
-                <span
-                  v-if="recordSetIds.has(row.set.id)"
-                  class="set__pr"
-                  :aria-label="t('session.personalRecordBanner.title')"
+              <div class="set__row" @click="pickSet(row.set)">
+                <!-- The whole row picks the set; the button is what a keyboard or screen reader uses. -->
+                <button
+                  type="button"
+                  class="set__main"
+                  :aria-current="row.set.id === currentSet?.set.id ? 'true' : undefined"
                 >
-                  PR
-                </span>
-                {{ isTime ? '–' : shownWeight(row.set) }}
-              </span>
-              <span class="set__num" @click.stop="editField(row.set, 'reps')">{{
-                isTime ? formatDurationInput(shownReps(row.set)) : shownReps(row.set)
-              }}</span>
-            </button>
-            <RestTimeButton :exercise-index="currentIndex" :set="row.set" />
-            <button
-              type="button"
-              class="set__done"
-              :aria-label="t('session.activeSetRow.markCompleteAria')"
-              :aria-pressed="row.set.completed"
-              @click.stop="toggleSet(row)"
-            >
-              <span class="set__mark">
-                <Check v-if="row.set.completed" :size="16" :stroke-width="3" />
-              </span>
-            </button>
+                  <span
+                    class="set__tag"
+                    :class="`set__tag--${row.set.type}`"
+                    :title="t(`workout.setType.${row.set.type}`)"
+                  >
+                    {{ row.label }}
+                  </span>
+                  <span class="set__prev">
+                    <template v-if="row.set.ghostFromLast && row.set.ghostWeight != null">
+                      <template v-if="isTime">{{
+                        formatDurationInput(row.set.ghostReps ?? 0)
+                      }}</template>
+                      <template v-else>{{ row.set.ghostWeight }} × {{ row.set.ghostReps }}</template>
+                    </template>
+                    <template v-else>–</template>
+                  </span>
+                  <span class="set__num" @click.stop="editField(row.set, 'weight')">
+                    <span
+                      v-if="recordSetIds.has(row.set.id)"
+                      class="set__pr"
+                      :aria-label="t('session.personalRecordBanner.title')"
+                    >
+                      PR
+                    </span>
+                    {{ isTime ? '–' : shownWeight(row.set) }}
+                  </span>
+                  <span class="set__num" @click.stop="editField(row.set, 'reps')">{{
+                    isTime ? formatDurationInput(shownReps(row.set)) : shownReps(row.set)
+                  }}</span>
+                </button>
+                <RestTimeButton :exercise-index="currentIndex" :set="row.set" />
+                <button
+                  type="button"
+                  class="set__done"
+                  :aria-label="t('session.activeSetRow.markCompleteAria')"
+                  :aria-pressed="row.set.completed"
+                  @click.stop="toggleSet(row)"
+                >
+                  <span class="set__mark">
+                    <Check v-if="row.set.completed" :size="16" :stroke-width="3" />
+                  </span>
+                </button>
+              </div>
+            </SwipeToDelete>
           </li>
         </ul>
 
@@ -641,6 +728,14 @@ function onNoteInput(event: Event) {
       <p v-if="recordFlash !== null" class="record" role="status">
         <Trophy :size="18" :stroke-width="2.25" />
         {{ t('workout.newRecord', { weight: recordFlash, unit }) }}
+      </p>
+
+      <p v-if="undoable" class="undo" role="status">
+        <Trash2 :size="18" :stroke-width="2.25" />
+        <span class="undo__text">{{ undoable.text }}</span>
+        <button type="button" class="undo__btn" @click="undoDelete">
+          {{ t('workout.undo') }}
+        </button>
       </p>
 
       <RestTimer />
@@ -703,6 +798,14 @@ function onNoteInput(event: Event) {
         <ExerciseKindRow
           :index="currentIndex"
           @switched="((actionsOpen = false), (pickedSetId = null))"
+        />
+        <SettingsRow
+          v-if="currentSet"
+          action
+          danger
+          :label="deleteLabel(currentSet)"
+          :hint="t('workout.deleteSetHint')"
+          @click="deleteFromMenu"
         />
         <SettingsRow
           v-if="exercises.length > 1"
@@ -1049,7 +1152,7 @@ button.where__now:active {
   padding: 0;
 }
 
-.set {
+.set__row {
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1060,7 +1163,7 @@ button.where__now:active {
   font-variant-numeric: tabular-nums;
 }
 
-.set--current {
+.set--current .set__row {
   background: var(--color-background-soft);
   box-shadow: inset 0 0 0 1px var(--color-border-hover);
 }
@@ -1226,6 +1329,49 @@ button.where__now:active {
   padding: 12px 20px 16px;
   border-top: 1px solid var(--color-border);
   background: var(--color-background);
+}
+
+/* A set just deleted: what went, and the way back, for a few seconds. Quiet,
+   like the record line, so it never reads as the button under it. */
+.undo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-touch);
+  padding-left: var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+  background: var(--color-background-soft);
+  box-shadow: inset 0 0 0 1px var(--color-border-hover);
+  animation: note-in var(--motion-base) var(--ease-spring);
+}
+
+.undo__text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The same pill as the rest timer's buttons, so it reads as part of the dock. */
+.undo__btn {
+  flex-shrink: 0;
+  min-width: var(--size-touch);
+  height: 36px;
+  margin-right: 4px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+  cursor: pointer;
+}
+
+.undo__btn:active {
+  transform: scale(0.94);
 }
 
 /* A record mid-workout: one line above the button, gone on its own. */

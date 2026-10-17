@@ -134,3 +134,126 @@ describe('FocusSession: tapping a number to edit it', () => {
     expect(document.activeElement?.tagName).not.toBe('INPUT')
   })
 })
+
+describe('FocusSession: deleting a set', () => {
+  let pinia: Pinia
+  let wrapper: VueWrapper | undefined
+
+  beforeEach(() => {
+    localStorage.clear()
+    i18n.global.locale.value = 'en'
+    pinia = createPinia()
+    Element.prototype.scrollIntoView = vi.fn<() => void>()
+  })
+
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  function mountSession() {
+    wrapper = mount(FocusSession, {
+      attachTo: document.body,
+      global: { plugins: [pinia, i18n] },
+    })
+    return wrapper
+  }
+
+  const rows = () => wrapper!.findAll('li.set')
+  const labels = () => rows().map((row) => row.find('.set__tag').text())
+
+  /** jsdom has no PointerEvent: a mouse event under a pointer event's name, as a touch. */
+  function pointer(el: Element, type: string, clientX: number, clientY: number) {
+    const event = new MouseEvent(type, { bubbles: true, cancelable: true, clientX, clientY })
+    Object.defineProperty(event, 'pointerType', { value: 'touch' })
+    Object.defineProperty(event, 'pointerId', { value: 1 })
+    el.dispatchEvent(event)
+  }
+
+  async function swipeLeft(index: number) {
+    const slide = rows()[index]!.find('.swipe__slide').element
+    pointer(slide, 'pointerdown', 300, 100)
+    pointer(slide, 'pointermove', 260, 101)
+    pointer(slide, 'pointermove', 180, 102)
+    pointer(slide, 'pointerup', 180, 102)
+    // The click the end of a drag produces.
+    await rows()[index]!.find('.set__prev').trigger('click')
+  }
+
+  it('slides a row open to its Delete without picking the set', async () => {
+    startSession(pinia)
+    mountSession()
+
+    await swipeLeft(1)
+
+    expect(rows()[1]!.find('.swipe__action').classes()).toContain('swipe__action--shown')
+    expect(rows()[0]!.classes()).toContain('set--current')
+  })
+
+  it('deletes the set from its Delete, and offers it back', async () => {
+    const activeSession = startSession(pinia)
+    mountSession()
+    const second = activeSession.session!.draft.exercises[0]!.loggedSets[1]!.id
+
+    await swipeLeft(1)
+    await rows()[1]!.find('.swipe__action').trigger('click')
+
+    expect(labels()).toEqual(['1', '2'])
+    expect(wrapper!.find('.undo').text()).toContain('Set 2 deleted')
+
+    await wrapper!.find('.undo__btn').trigger('click')
+
+    expect(activeSession.session!.draft.exercises[0]!.loggedSets[1]!.id).toBe(second)
+    expect(labels()).toEqual(['1', '2', '3'])
+    expect(wrapper!.find('.undo').exists()).toBe(false)
+  })
+
+  it('stops offering the undo after a few seconds', async () => {
+    vi.useFakeTimers()
+    startSession(pinia)
+    mountSession()
+
+    await swipeLeft(0)
+    await rows()[0]!.find('.swipe__action').trigger('click')
+    expect(wrapper!.find('.undo').exists()).toBe(true)
+
+    vi.advanceTimersByTime(8000)
+    await nextTick()
+    expect(wrapper!.find('.undo').exists()).toBe(false)
+  })
+
+  it("deletes the set you're on from the exercise's menu, too", async () => {
+    startSession(pinia)
+    mountSession()
+
+    await rows()[2]!.find('.set__prev').trigger('click')
+    await wrapper!.find('.now__more').trigger('click')
+    const item = [...document.querySelectorAll<HTMLButtonElement>('button')].find(
+      (b) => b.textContent?.includes('Delete set 3'),
+    )
+    expect(item).toBeDefined()
+    item!.click()
+    await nextTick()
+
+    expect(labels()).toEqual(['1', '2'])
+    expect(wrapper!.find('.undo').text()).toContain('Set 3 deleted')
+  })
+
+  it('stays on an exercise its last open set was deleted from', async () => {
+    const activeSession = startSession(pinia)
+    activeSession.addExercise('Squat')
+    mountSession()
+    const sets = activeSession.session!.draft.exercises[0]!.loggedSets
+    activeSession.completeSet(0, sets[0]!.id)
+    activeSession.completeSet(0, sets[1]!.id)
+    await nextTick()
+
+    await swipeLeft(2)
+    await rows()[2]!.find('.swipe__action').trigger('click')
+
+    expect(wrapper!.find('.now__name').text()).toBe('Bench Press')
+    expect(wrapper!.find('.primary-action').text()).toContain('Next')
+  })
+})
