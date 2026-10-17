@@ -21,6 +21,7 @@ import {
   type RoomEvent,
 } from '@/lib/roomEvents'
 import { newUuid } from '@/lib/uuid'
+import { hostOrder, mergeRoomRow, normalizeOrder, orderedRoutine, sameOrder } from '@/lib/roomOrder'
 import { isConflict, startVerdict, type WorkoutConflict } from '@/lib/workoutConflict'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
@@ -120,6 +121,8 @@ export const useRoomStore = defineStore('room', () => {
   })
 
   let channel: RealtimeChannel | null = null
+  /** Whether the current channel has joined before — a later join is a reconnect. */
+  let joinedOnce = false
 
   // A finished room is immutable (no transition leads out of 'finished', and
   // every write policy requires the room to be active) — once it flips, there's
@@ -146,11 +149,20 @@ export const useRoomStore = defineStore('room', () => {
 
   const isMember = (userId: string) => members.value.some((m) => m.userId === userId)
 
-  /** The room's routine — everyone follows the same snapshot. */
-  const routineExercises = computed<PlannedExercise[]>(() => {
+  /** The room's routine as written — everyone follows the same snapshot. */
+  const baseRoutine = computed<PlannedExercise[]>(() => {
     const parsed = room.value ? parseTemplateText(room.value.routine_wtt) : undefined
     return parsed?.ok ? parsed.template.exercises : []
   })
+
+  /** The host's order of the routine's slots — the one order everyone follows. */
+  const order = computed(() => normalizeOrder(room.value?.exercise_order, baseRoutine.value.length))
+  const orderVersion = computed(() => room.value?.order_version ?? 0)
+
+  /** The room's routine, in the host's order. */
+  const routineExercises = computed<PlannedExercise[]>(() =>
+    orderedRoutine(baseRoutine.value, room.value?.exercise_order),
+  )
 
   /** Planned working sets per exercise (by normalized name). */
   const plannedByName = computed(
@@ -280,7 +292,7 @@ export const useRoomStore = defineStore('room', () => {
         config: { presence: { key: myId.value ?? '' }, broadcast: { self: false } },
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` }, (p) => {
-        if (room.value?.id === roomId) room.value = p.new as RoomRow
+        if (room.value?.id === roomId) room.value = mergeRoomRow(room.value, p.new as RoomRow)
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'room_members', filter }, (p) => {
         const row = p.new as MemberRow
@@ -318,13 +330,26 @@ export const useRoomStore = defineStore('room', () => {
         onlineIds.value = channel ? Object.keys(channel.presenceState()) : []
       })
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') void channel?.track({ online_at: new Date().toISOString() })
+        if (status !== 'SUBSCRIBED') return
+        void channel?.track({ online_at: new Date().toISOString() })
+        // Back after a drop: whatever changed on the room meanwhile (its order, its
+        // status) never arrived, so read it again. The first join just read it.
+        if (joinedOnce) void refreshRoom(roomId)
+        joinedOnce = true
       })
+  }
+
+  /** Re-reads the room row, e.g. after reconnecting. Keeps a newer order held here. */
+  async function refreshRoom(roomId: string, opts?: { force?: boolean }) {
+    const { data } = await requireSupabase().from('rooms').select('*').eq('id', roomId).maybeSingle()
+    if (!data || room.value?.id !== roomId) return
+    room.value = opts?.force ? data : mergeRoomRow(room.value, data)
   }
 
   function close() {
     if (channel) void requireSupabase().removeChannel(channel)
     channel = null
+    joinedOnce = false
     onlineIds.value = []
   }
 
@@ -467,6 +492,8 @@ export const useRoomStore = defineStore('room', () => {
     currentRoomId.value = null
     bestsRoomId = null
     announcedRecords.clear()
+    clearTimeout(orderRetryTimer)
+    orderRetryTimer = undefined
   }
 
   // --- Cheers and live PRs (Realtime Broadcast) -----------------------------
@@ -519,6 +546,90 @@ export const useRoomStore = defineStore('room', () => {
     const pr = { from, exercise: exerciseName, weight: set.weight, reps: set.reps }
     if (room.value?.id === roomId) addEvent({ kind: 'pr', ...pr })
     if (channel && room.value?.id === roomId) void channel.send({ type: 'broadcast', event: 'pr', payload: pr })
+  }
+
+  // --- The host's exercise order --------------------------------------------
+  //
+  // The host's session is the one source of the order. When the host reorders,
+  // the new order goes to the room row (versioned); every guest's session
+  // follows that row as it arrives over Realtime, when the room loads (a late
+  // joiner) and when the channel rejoins (a reconnect). Guests can't reorder.
+
+  /**
+   * Puts a guest's session in the room's order. Idempotent: run whenever the
+   * order, the room or the session changes.
+   *
+   * @param announce Whether moving the guest's exercises gets a toast — not
+   *   when it just undoes a reorder the guest tried themselves.
+   */
+  function followOrder(announce = true) {
+    const session = activeSession.session
+    const current = room.value
+    if (!session || !current || session.roomId !== current.id || !myId.value || isHost.value) return
+    const followedBefore = session.orderVersion
+    const moved = activeSession.followRoomOrder(order.value, orderVersion.value)
+    // A session just started takes the order silently; only a change mid-workout is news.
+    if (moved && announce && followedBefore !== undefined && current.host_id) {
+      addEvent({ kind: 'order-changed', from: current.host_id })
+    }
+  }
+
+  watch(
+    [() => activeSession.session, () => room.value?.id, orderVersion, () => room.value?.exercise_order, isHost],
+    () => followOrder(),
+  )
+
+  /** Whether a write of the host's order is in flight, and whether a newer one is waiting behind it. */
+  let orderSending = false
+  let orderDirty = false
+  let orderRetryTimer: ReturnType<typeof setTimeout> | undefined
+
+  /** Host only: makes the order of the host's session the room's. */
+  function publishOrder(roomId: string) {
+    const current = room.value
+    const session = activeSession.session
+    if (!current || current.id !== roomId || !session || current.status === 'finished') return
+    const next = hostOrder(
+      current.exercise_order,
+      session.draft.exercises.map((e) => e.slot),
+      baseRoutine.value.length,
+    )
+    if (sameOrder(next, order.value)) return
+    // Shown here at once; the server's version for it comes back with the write.
+    room.value = { ...current, exercise_order: next, order_version: orderVersion.value + 1 }
+    void sendOrder(roomId)
+  }
+
+  /** One write in flight at a time, always carrying the latest order; retried while offline. */
+  async function sendOrder(roomId: string) {
+    if (orderSending) {
+      orderDirty = true
+      return
+    }
+    orderSending = true
+    clearTimeout(orderRetryTimer)
+    try {
+      do {
+        orderDirty = false
+        const latest = room.value?.id === roomId ? room.value.exercise_order : null
+        if (!latest) return
+        const { data, error } = await requireSupabase().rpc('set_room_exercise_order', {
+          p_room_id: roomId,
+          p_order: latest,
+        })
+        if (error) {
+          // No code: the request never got there (offline) — try again shortly.
+          if (!error.code) orderRetryTimer = setTimeout(() => void sendOrder(roomId), RETRY_MS)
+          // Refused (no longer the host, room closed): show the room's real order again.
+          else await refreshRoom(roomId, { force: true }).catch(() => {})
+          return
+        }
+        // The host is the only writer: with nothing newer queued, the server's row is the truth.
+        if (data?.id && !orderDirty && room.value?.id === roomId) room.value = data
+      } while (orderDirty)
+    } finally {
+      orderSending = false
+    }
   }
 
   // --- Pushing the active session's sets -----------------------------------
@@ -583,9 +694,16 @@ export const useRoomStore = defineStore('room', () => {
   }
 
   activeSession.$onAction(({ name, args, after }) => {
-    if (!SET_ACTIONS.has(name)) return
     const roomId = activeSession.session?.roomId
     if (!roomId || !myId.value) return
+
+    // The host's reorder becomes the room's; a guest's is undone (the UI doesn't offer one).
+    if (name === 'reorderExercises') {
+      after(() => (isHost.value ? publishOrder(roomId) : followOrder(false)))
+      return
+    }
+
+    if (!SET_ACTIONS.has(name)) return
     const exercises = activeSession.session?.draft.exercises ?? []
 
     // Either way the sets logged under that exercise are gone from the workout.
@@ -615,6 +733,9 @@ export const useRoomStore = defineStore('room', () => {
     currentRoomId,
     openRoomId,
     isHost,
+    routineExercises,
+    order,
+    orderVersion,
     progress,
     team,
     lastIn,

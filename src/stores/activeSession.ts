@@ -17,6 +17,7 @@ import { isTimeExercise } from '@/lib/sessionTime'
 import type { WorkoutTemplate } from '@/lib/wtx'
 import { HapticsService } from '@/services/haptics'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
+import { applyOrder, needsReorder } from '@/lib/roomOrder'
 
 /** The live, in-progress workout. Only one can be active at a time. */
 export interface ActiveSession {
@@ -25,6 +26,8 @@ export interface ActiveSession {
   routineId: string
   /** The group workout room this session is logged in, if any. */
   roomId?: string
+  /** The room order version (`rooms.order_version`) this session's exercises follow. */
+  orderVersion?: number
   /** Epoch millis — elapsed time is always derived from this, never incremented. */
   startedAt: number
   /** Absolute deadline for the current rest timer; `null` when none is running. */
@@ -125,8 +128,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   function start(routine: StoredRoutine, template: WorkoutTemplate, opts?: { roomId?: string }) {
     const sessions = useSessionsStore()
     const lastSession = sessions.lastForRoutine(routine)
+    const draft = draftFromTemplate(template, routine.filename, lastSession)
+    // In a room, each exercise remembers its routine slot so the host's order can find it.
+    if (opts?.roomId) draft.exercises.forEach((exercise, slot) => (exercise.slot = slot))
     session.value = {
-      draft: draftFromTemplate(template, routine.filename, lastSession),
+      draft,
       routineId: routine.id,
       ...(opts?.roomId ? { roomId: opts.roomId } : {}),
       startedAt: Date.now(),
@@ -408,6 +414,25 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     }
   }
 
+  /**
+   * Puts a group workout's exercises in the room's order — the host's call,
+   * applied here as it arrives. Idempotent, and an order older than the one
+   * already followed is ignored. The same exercise objects move, so the rest
+   * timer and whatever is on screen keep pointing at theirs.
+   *
+   * @returns Whether the exercises moved.
+   */
+  function followRoomOrder(order: readonly number[], version: number): boolean {
+    if (!session.value) return false
+    const followed = session.value.orderVersion
+    if (followed !== undefined && version < followed) return false
+    session.value.orderVersion = version
+    const exercises = session.value.draft.exercises
+    if (!needsReorder(exercises, order)) return false
+    reorderExercises(applyOrder(exercises, order))
+    return true
+  }
+
   function startRestTimer(exerciseIndex: number, setId: string, seconds: number) {
     if (!session.value) return
     session.value.restExerciseIndex = exerciseIndex
@@ -533,6 +558,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     removeExercise,
     replaceExercise,
     reorderExercises,
+    followRoomOrder,
     setExerciseKind,
     startRestTimer,
     skipRestTimer,
