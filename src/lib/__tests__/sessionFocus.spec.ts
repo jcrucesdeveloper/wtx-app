@@ -6,6 +6,8 @@ interface Ex {
   done: boolean
 }
 const isDone = (e: Ex) => e.done
+const started = () => true
+const untouched = () => false
 const a: Ex = { name: 'a', done: true }
 const b: Ex = { name: 'b', done: false }
 const c: Ex = { name: 'c', done: false }
@@ -21,20 +23,24 @@ describe('defaultFocus', () => {
 describe('focusAfterReorder', () => {
   it('pins the exercise on screen when the new order would move away from it (mid-set)', () => {
     // On b (half done); c is moved in front of it.
-    expect(focusAfterReorder([a, b, c], [a, c, b], null, isDone)).toBe(b)
+    expect(focusAfterReorder([a, b, c], [a, c, b], null, isDone, started)).toBe(b)
   })
 
   it('pins nothing when the exercise on screen stays the default', () => {
     // Still on b: a (done) moved behind it.
-    expect(focusAfterReorder([a, b, c], [b, a, c], null, isDone)).toBeNull()
-    expect(focusAfterReorder([a, b, c], [a, b, c], null, isDone)).toBeNull()
+    expect(focusAfterReorder([a, b, c], [b, a, c], null, isDone, started)).toBeNull()
+    expect(focusAfterReorder([a, b, c], [a, b, c], null, isDone, started)).toBeNull()
   })
 
   it('keeps a picked exercise picked', () => {
-    expect(focusAfterReorder([a, b, c], [c, b, a], c, isDone)).toBe(c)
+    expect(focusAfterReorder([a, b, c], [c, b, a], c, isDone, started)).toBe(c)
+  })
+
+  it('lets an exercise not touched yet give way to the new order', () => {
+    expect(focusAfterReorder([a, b, c], [a, c, b], null, isDone, untouched)).toBeNull()
   })
 
   it('pins nothing once the exercise on screen is gone', () => {
-    expect(focusAfterReorder([a, b, c], [a, c], null, isDone)).toBeNull()
+    expect(focusAfterReorder([a, b, c], [a, c], null, isDone, started)).toBeNull()
   })
 })

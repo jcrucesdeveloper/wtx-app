@@ -145,7 +145,6 @@ describe('FocusSession: deleting a set', () => {
     pinia = createPinia()
     Element.prototype.scrollIntoView = vi.fn<() => void>()
   })
-
   afterEach(() => {
     wrapper?.unmount()
     document.body.innerHTML = ''
@@ -255,5 +254,71 @@ describe('FocusSession: deleting a set', () => {
 
     expect(wrapper!.find('.now__name').text()).toBe('Bench Press')
     expect(wrapper!.find('.primary-action').text()).toContain('Next')
+  })
+})
+
+describe('FocusSession: a reorder never moves you off the exercise you are on', () => {
+  const THREE = `# Push Day
+unit: kg
+
+Bench Press | reps 3x8 | 60
+Overhead Press | reps 3x8 | 40
+Dips | reps 3x10
+`
+  let pinia: Pinia
+  let wrapper: VueWrapper | undefined
+
+  beforeEach(() => {
+    localStorage.clear()
+    i18n.global.locale.value = 'en'
+    pinia = createPinia()
+    setActivePinia(pinia)
+  })
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+  })
+
+  function start() {
+    const routines = useRoutinesStore()
+    const activeSession = useActiveSessionStore()
+    const routine = routines.add(THREE, '')
+    const parsed = routines.parsed(routine.id)
+    if (!parsed?.ok) throw new Error('routine should parse')
+    activeSession.start(routine, parsed.template, { roomId: 'room-1' })
+    wrapper = mount(FocusSession, { global: { plugins: [pinia, i18n] } })
+    return activeSession
+  }
+
+  const shown = () => wrapper!.find('.now__name').text()
+
+  it('keeps a half-done exercise on screen when another is moved in front of it', async () => {
+    const activeSession = start()
+    const bench = activeSession.session!.draft.exercises[0]!
+    activeSession.completeSet(0, bench.loggedSets[0]!.id)
+    await nextTick()
+    expect(shown()).toBe('Bench Press')
+
+    // The host moves Dips to the front — as a guest's session receives it.
+    activeSession.followRoomOrder([2, 0, 1], 1)
+    await nextTick()
+    expect(shown()).toBe('Bench Press')
+    expect(wrapper!.text()).toContain('2 of 3')
+  })
+
+  it('keeps a half-typed set on screen', async () => {
+    const activeSession = start()
+    const bench = activeSession.session!.draft.exercises[0]!
+    activeSession.updateSet(0, bench.loggedSets[0]!.id, { weight: 62.5 })
+    activeSession.followRoomOrder([1, 2, 0], 1)
+    await nextTick()
+    expect(shown()).toBe('Bench Press')
+  })
+
+  it('moves on to the new first exercise when nothing was started yet', async () => {
+    const activeSession = start()
+    activeSession.followRoomOrder([2, 0, 1], 1)
+    await nextTick()
+    expect(shown()).toBe('Dips')
   })
 })

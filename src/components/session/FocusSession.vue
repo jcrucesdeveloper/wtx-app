@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Check,
@@ -33,6 +33,7 @@ import { focusAndSelect, holdKeyboard, selectAll } from '@/lib/focusField'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import { HapticsService } from '@/services/haptics'
 import { allTimeBestsByExercise, liveRecordSetIds } from '@/lib/sessionRecords'
+import { focusAfterReorder } from '@/lib/sessionFocus'
 import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSession'
 
 /**
@@ -67,16 +68,38 @@ function isDone(exercise: SessionExerciseDraft): boolean {
   return exercise.loggedSets.length > 0 && exercise.loggedSets.every((s) => s.completed)
 }
 
+/** Under way: a set logged, or a number typed into one. */
+function isStarted(exercise: SessionExerciseDraft): boolean {
+  return exercise.loggedSets.some((s) => s.completed || s.weight !== null || s.reps !== null)
+}
+
 const firstOpenIndex = computed(() => exercises.value.findIndex((e) => !isDone(e)))
 const allDone = computed(() => exercises.value.length > 0 && firstOpenIndex.value === -1)
 
-/** Set when the user taps another exercise; cleared once that exercise is finished. */
-const pickedIndex = ref<number | null>(null)
+/**
+ * Set when the user taps another exercise; cleared once that exercise is
+ * finished. The exercise itself, not its index, so it stays put when the
+ * list is reordered around it.
+ */
+const pickedExercise = ref<SessionExerciseDraft | null>(null)
+const pickedIndex = computed(() =>
+  pickedExercise.value ? exercises.value.indexOf(pickedExercise.value) : -1,
+)
 
 const currentIndex = computed(() => {
-  if (pickedIndex.value !== null && exercises.value[pickedIndex.value]) return pickedIndex.value
+  if (pickedIndex.value >= 0) return pickedIndex.value
   return allDone.value ? exercises.value.length - 1 : Math.max(0, firstOpenIndex.value)
 })
+
+// A reorder — the user's own, or a group host's — never moves the screen to
+// another exercise: whatever is on it, half-typed set and all, stays.
+watch(
+  () => activeSession.session?.draft.exercises,
+  (next, previous) => {
+    if (!next || !previous || next === previous) return
+    pickedExercise.value = focusAfterReorder(previous, next, pickedExercise.value, isDone, isStarted)
+  },
+)
 const current = computed(() => exercises.value[currentIndex.value])
 
 /** Warm-ups/drop-sets show "W"/"D"; plain sets get sequential numbers, in array order. */
@@ -303,7 +326,7 @@ function removeExercise() {
       : t('workout.removeConfirm', { name })
   if (!confirm(message)) return
   activeSession.removeExercise(currentIndex.value)
-  pickedIndex.value = null
+  pickedExercise.value = null
   pickedSetId.value = null
 }
 
@@ -332,7 +355,7 @@ function onSwapPicked(name: string) {
   }
   activeSession.replaceExercise(index, name)
   // Stay on the slot that was swapped, wherever the workout would otherwise go next.
-  pickedIndex.value = index
+  pickedExercise.value = exercises.value[index] ?? null
   pickedSetId.value = null
 }
 
@@ -408,7 +431,7 @@ function deleteFromMenu() {
 const overviewOpen = ref(false)
 
 function focusExercise(index: number) {
-  pickedIndex.value = index
+  pickedExercise.value = exercises.value[index] ?? null
   pickedSetId.value = null
   swipedSetId.value = null
 }
@@ -428,7 +451,7 @@ function onPrimary() {
   if (primary.value === 'log') logSet()
   else if (primary.value === 'edited') pickedSetId.value = null
   else if (primary.value === 'add') activeSession.addSet(currentIndex.value)
-  else if (primary.value === 'next') pickedIndex.value = null
+  else if (primary.value === 'next') pickedExercise.value = null
   else emit('finish')
 }
 
