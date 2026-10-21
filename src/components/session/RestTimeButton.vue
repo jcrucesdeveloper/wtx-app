@@ -5,15 +5,14 @@ import { Timer, TimerOff } from '@lucide/vue'
 import RestTimeSheet from '@/components/session/RestTimeSheet.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock } from '@/lib/format'
-import type { SessionSetDraft } from '@/lib/serializeSession'
 
 /**
- * A set row's rest: how long the exercise rests after a set, tapped to change
- * it. On the set whose rest is running it counts down instead, so the row you
- * just logged says how long until the next. A warm-up starts no rest, so its
- * row keeps the space empty and the columns stay lined up.
+ * The exercise's rest, in the dock beside the one button: how long every set
+ * of it rests (warm-ups aside), tapped to change it. One setting per
+ * exercise, so it lives once, under the thumb, not on every set. It always
+ * shows the setting; a running rest counts down in the timer above it.
  */
-const props = defineProps<{ exerciseIndex: number; set: SessionSetDraft }>()
+const props = defineProps<{ exerciseIndex: number }>()
 
 const { t } = useI18n()
 const activeSession = useActiveSessionStore()
@@ -21,78 +20,53 @@ const activeSession = useActiveSessionStore()
 const seconds = computed(
   () => activeSession.session?.draft.exercises[props.exerciseIndex]?.restSeconds ?? 0,
 )
-const live = computed(() => {
-  const session = activeSession.session
-  return (
-    !!session?.restEndsAt &&
-    session.restExerciseIndex === props.exerciseIndex &&
-    session.restSetId === props.set.id
-  )
-})
-const shown = computed(() => (live.value ? activeSession.restRemainingSeconds : seconds.value))
 
 const editing = ref(false)
 </script>
 
 <template>
-  <span v-if="set.type === 'W'" class="rest-time rest-time--none" aria-hidden="true" />
   <button
-    v-else
     type="button"
     class="rest-time"
-    :class="{ 'rest-time--off': !shown, 'rest-time--live': live }"
+    :class="{ 'rest-time--off': !seconds }"
     :aria-label="
-      shown ? t('restTimer.buttonAria', { time: formatClock(shown) }) : t('restTimer.offAria')
+      seconds ? t('restTimer.buttonAria', { time: formatClock(seconds) }) : t('restTimer.offAria')
     "
-    @click.stop="editing = true"
+    @click="editing = true"
   >
-    <component :is="shown ? Timer : TimerOff" :size="15" :stroke-width="2.5" />
-    <span v-if="shown">{{ formatClock(shown) }}</span>
+    <component :is="seconds ? Timer : TimerOff" :size="20" :stroke-width="2.5" />
+    <span>{{ seconds ? formatClock(seconds) : t('restTimer.off') }}</span>
   </button>
-  <RestTimeSheet
-    v-if="set.type !== 'W'"
-    :open="editing"
-    :exercise-index="exerciseIndex"
-    @close="editing = false"
-  />
+  <RestTimeSheet :open="editing" :exercise-index="exerciseIndex" @close="editing = false" />
 </template>
 
 <style scoped>
-/* Width comes from the set list (`--rest-time-width`), so its head lines up. */
+/* Quiet, like the dock's other buttons, and as tall as the one beside it. */
 .rest-time {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  width: var(--rest-time-width, 60px);
-  height: var(--size-control);
+  gap: 6px;
+  min-width: 88px;
+  min-height: var(--size-action);
+  padding: 0 var(--space-3);
   border: none;
-  padding: 0;
+  border-radius: var(--radius-lg);
   font: inherit;
-  font-size: var(--text-small);
+  font-size: var(--text-body);
   font-weight: var(--weight-bold);
-  color: var(--color-text);
-  background: transparent;
+  color: var(--color-heading);
+  background: var(--color-background-mute);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
 
-.rest-time--none {
-  cursor: inherit;
-}
-
 .rest-time--off {
-  opacity: 0.55;
+  color: var(--color-text);
 }
 
-.rest-time:active:not(.rest-time--none) {
-  color: var(--color-heading);
-  transform: scale(0.94);
-}
-
-/* The rest running after this set: counting down, in the accent. */
-.rest-time--live {
-  color: var(--color-accent);
+.rest-time:active {
+  transform: scale(0.96);
 }
 </style>
