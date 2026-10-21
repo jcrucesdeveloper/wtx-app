@@ -70,9 +70,9 @@ describe('buildSessionNotification', () => {
     ])
     const content = buildSessionNotification(s, t, NOW)
     expect(content).toMatchObject({
-      exerciseName: 'Bench Press',
       title: 'Bench Press',
       body: 'Set 3 of 4 · 82.5 kg × 6',
+      detail: 'Push day',
       startedAt: s.startedAt,
       restEndsAt: null,
       afterRest: null,
@@ -104,7 +104,7 @@ describe('buildSessionNotification', () => {
     })
   })
 
-  it('counts down a running rest and says what comes after it', () => {
+  it('puts resting first while a rest runs, with the next set of the same exercise', () => {
     const s = session(
       [exercise('Squat', [set({ completed: true }), set({ weight: 100, reps: 5 })])],
       {
@@ -114,15 +114,17 @@ describe('buildSessionNotification', () => {
       },
     )
     const content = buildSessionNotification(s, t, NOW)
-    expect(content).toMatchObject({
-      title: 'Squat',
-      body: 'Resting · then Set 2 of 2 · 100 kg × 5',
+    expect(content).toEqual({
+      title: 'Resting',
+      body: 'Next: Set 2 of 2 · 100 kg × 5',
+      detail: 'Squat',
+      startedAt: s.startedAt,
       restEndsAt: NOW + 90_000,
-      afterRest: { exerciseName: 'Squat', title: 'Squat', body: 'Set 2 of 2 · 100 kg × 5' },
+      afterRest: { title: 'Squat', body: 'Set 2 of 2 · 100 kg × 5', detail: 'Push day' },
     })
   })
 
-  it('names the next exercise when the rest ends one', () => {
+  it('names the next exercise, and its first set, when the rest ends one', () => {
     const s = session(
       [
         exercise('Squat', [set({ completed: true })]),
@@ -132,10 +134,39 @@ describe('buildSessionNotification', () => {
     )
     const content = buildSessionNotification(s, t, NOW)
     expect(content).toMatchObject({
-      exerciseName: 'Squat',
-      body: 'Resting · next: Lunge',
-      afterRest: { exerciseName: 'Lunge', body: 'Set 1 of 1 · 20 kg × 12' },
+      title: 'Resting',
+      body: 'Next: Lunge',
+      detail: 'Set 1 of 1 · 20 kg × 12',
+      afterRest: { title: 'Lunge', body: 'Set 1 of 1 · 20 kg × 12' },
     })
+  })
+
+  it('says everything is logged when resting after the last set', () => {
+    const s = session([exercise('Squat', [set({ completed: true })])], {
+      restEndsAt: NOW + 60_000,
+      restExerciseIndex: 0,
+    })
+    expect(buildSessionNotification(s, t, NOW)).toMatchObject({
+      title: 'Resting',
+      body: 'All sets logged. Finish when you are ready.',
+      detail: '',
+    })
+  })
+
+  it('speaks Spanish too', () => {
+    const s = session([exercise('Squat', [set({ completed: true }), set()])], {
+      restEndsAt: NOW + 60_000,
+      restExerciseIndex: 0,
+    })
+    i18n.global.locale.value = 'es'
+    try {
+      expect(buildSessionNotification(s, t, NOW)).toMatchObject({
+        title: 'Descansando',
+        body: expect.stringMatching(/^Siguiente: /),
+      })
+    } finally {
+      i18n.global.locale.value = 'en'
+    }
   })
 
   it('ignores a rest deadline that has already passed', () => {
@@ -145,7 +176,6 @@ describe('buildSessionNotification', () => {
 
   it('uses the session name when there are no exercises', () => {
     expect(buildSessionNotification(session([]), t, NOW)).toMatchObject({
-      exerciseName: null,
       title: 'Push day',
       body: '',
     })

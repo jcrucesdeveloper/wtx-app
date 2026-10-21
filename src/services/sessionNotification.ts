@@ -9,23 +9,27 @@ import {
   type NotificationFace,
   type SessionNotificationContent,
 } from '@/lib/sessionNotificationContent'
-import { findCatalogEntryByName } from '@/lib/exercises/exerciseCatalog'
-import { getCachedImageObjectUrl } from '@/lib/exercises/imageCache'
+import { REST_STEP_SECONDS } from '@/lib/restTime'
 
-interface NativeFace {
-  title: string
-  body: string
-  /** Base64 JPEG (no `data:` prefix) for the large icon; omitted for none. */
-  largeIcon?: string
-}
-
-interface ShowOptions extends NativeFace {
+interface ShowOptions extends NotificationFace {
   channelName: string
   channelDescription: string
   startedAt: number
   /** Epoch ms the native countdown runs to; 0 when not resting. */
   restEndsAt: number
-  afterRest?: NativeFace
+  afterRest?: NotificationFace
+  /** Seconds the − and + rest actions move the rest by. */
+  restStep: number
+  /** Labels for the rest actions: less, more, skip. */
+  lessLabel: string
+  moreLabel: string
+  skipLabel: string
+}
+
+/** A rest action tapped in the notification; the native side has already redrawn it. */
+interface RestActionEvent {
+  action: 'less' | 'more' | 'skip'
+  seconds: number
 }
 
 /** The app's own plugin: android/app/src/main/java/com/wtxworkout/app/SessionNotificationPlugin.java. */
@@ -33,6 +37,10 @@ interface WtxSessionNotificationPlugin {
   show(options: ShowOptions): Promise<void>
   stop(): Promise<void>
   addListener(event: 'tap', listener: () => void): Promise<PluginListenerHandle>
+  addListener(
+    event: 'restAction',
+    listener: (event: RestActionEvent) => void,
+  ): Promise<PluginListenerHandle>
 }
 
 const WtxSessionNotification =
@@ -40,8 +48,6 @@ const WtxSessionNotification =
 
 /** Coalesces bursts (typing a weight) into one native update. */
 const UPDATE_DELAY_MS = 500
-/** Large-icon edge in px — the notification shows it at 64dp or less. */
-const ICON_SIZE = 160
 /** We ask for notification permission once, when the first workout starts. */
 const ASKED_KEY = 'wtx:sessionNotification:asked'
 
@@ -52,66 +58,24 @@ function isSupported(): boolean {
   )
 }
 
-const iconCache = new Map<string, Promise<string | undefined>>()
-
-/** The exercise's first image frame from the image cache, scaled down to a small base64 JPEG. */
-function exerciseIcon(name: string | null): Promise<string | undefined> {
-  if (!name) return Promise.resolve(undefined)
-  const entry = findCatalogEntryByName(name)
-  if (!entry) return Promise.resolve(undefined)
-  let pending = iconCache.get(entry.id)
-  if (!pending) {
-    pending = encodeIcon(entry.id)
-    iconCache.set(entry.id, pending)
-  }
-  return pending
-}
-
-async function encodeIcon(catalogId: string): Promise<string | undefined> {
-  const url = await getCachedImageObjectUrl(catalogId, 0)
-  if (!url) return undefined
-  try {
-    const image = new Image()
-    image.src = url
-    await image.decode()
-    const canvas = document.createElement('canvas')
-    canvas.width = ICON_SIZE
-    canvas.height = ICON_SIZE
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return undefined
-    // White square, image centred and contained: the photos are on white.
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, ICON_SIZE, ICON_SIZE)
-    const scale = Math.min(ICON_SIZE / image.naturalWidth, ICON_SIZE / image.naturalHeight)
-    const w = image.naturalWidth * scale
-    const h = image.naturalHeight * scale
-    ctx.drawImage(image, (ICON_SIZE - w) / 2, (ICON_SIZE - h) / 2, w, h)
-    return canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
-  } catch {
-    return undefined
-  } finally {
-    URL.revokeObjectURL(url)
-  }
-}
-
-async function toNative(face: NotificationFace): Promise<NativeFace> {
-  const largeIcon = await exerciseIcon(face.exerciseName)
-  return { title: face.title, body: face.body, ...(largeIcon ? { largeIcon } : {}) }
-}
-
-async function toShowOptions(content: SessionNotificationContent): Promise<ShowOptions> {
+function toShowOptions(content: SessionNotificationContent): ShowOptions {
   const t = i18n.global.t
-  const [face, afterRest] = await Promise.all([
-    toNative(content),
-    content.afterRest ? toNative(content.afterRest) : Promise.resolve(undefined),
-  ])
+  const face = (f: NotificationFace): NotificationFace => ({
+    title: f.title,
+    body: f.body,
+    detail: f.detail,
+  })
   return {
-    ...face,
+    ...face(content),
     channelName: t('sessionNotification.channelName'),
     channelDescription: t('sessionNotification.channelDescription'),
     startedAt: content.startedAt,
     restEndsAt: content.restEndsAt ?? 0,
-    ...(afterRest ? { afterRest } : {}),
+    ...(content.afterRest ? { afterRest: face(content.afterRest) } : {}),
+    restStep: REST_STEP_SECONDS,
+    lessLabel: t('sessionNotification.less', { n: REST_STEP_SECONDS }),
+    moreLabel: t('sessionNotification.more', { n: REST_STEP_SECONDS }),
+    skipLabel: t('sessionNotification.skip'),
   }
 }
 
@@ -135,9 +99,10 @@ async function askPermissionOnce(): Promise<void> {
 
 /**
  * Keeps an ongoing "workout in progress" notification in step with the
- * active session: the current exercise with its image and next set, or a
- * native rest countdown. Tapping it opens the session; finishing or
- * discarding removes it.
+ * active session: "Resting" over a big native countdown with what comes
+ * next (and −/+/skip actions), or the current exercise and next set under
+ * the workout clock. It can't be swiped away while the workout runs; tapping
+ * it opens the session; finishing or discarding removes it.
  *
  * Android only for now; a no-op on the web and iOS.
  */
@@ -148,23 +113,25 @@ export function initSessionNotification(router: Router) {
   let timer: ReturnType<typeof setTimeout> | undefined
   let lastSent = ''
   let shown = false
-  /** Bumps per flush, so a slow icon encode can't post over a newer update. */
-  let flushSeq = 0
 
   void WtxSessionNotification.addListener('tap', () => {
     if (store.isActive) void router.push({ name: 'active-session' })
   })
 
+  // The native side has already redrawn the notification; bring the store in line.
+  void WtxSessionNotification.addListener('restAction', ({ action, seconds }) => {
+    if (!store.session?.restEndsAt) return
+    if (action === 'skip') store.skipRestTimer()
+    else store.adjustRestTimer(action === 'less' ? -seconds : seconds)
+  })
+
   async function flush() {
     timer = undefined
-    const seq = ++flushSeq
     const content = buildSessionNotification(store.session, (key, params) =>
       i18n.global.t(key, params ?? {}),
     )
     if (!content) return
-    const options = await toShowOptions(content)
-    // The session may have ended, or changed again, while the icon was encoding.
-    if (!store.session || seq !== flushSeq) return
+    const options = toShowOptions(content)
     const key = JSON.stringify(options)
     if (key === lastSent) return
     lastSent = key

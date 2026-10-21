@@ -6,12 +6,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Base64;
+import android.os.SystemClock;
+import android.view.View;
+import android.widget.RemoteViews;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -19,10 +20,16 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 /**
- * The ongoing "workout in progress" notification: the current exercise with
- * its image and next set, or a rest countdown drawn by the system
- * (chronometer), so it keeps counting without the web view running. When the
- * rest ends, a timer here swaps in the "after rest" content JS sent along.
+ * The ongoing "workout in progress" notification. While resting it reads
+ * "Resting" over a big countdown with what comes next, and has −/+/skip
+ * actions; otherwise the current exercise and next set over the workout
+ * clock. The clock is a system-drawn Chronometer, so it keeps ticking without
+ * the web view running; when the rest ends, a timer here swaps in the
+ * "after rest" face JS sent along.
+ *
+ * It can't be dismissed while the workout runs: ongoing, and on Android 14+
+ * (where users can swipe ongoing notifications away) posted again from its
+ * delete intent by {@link SessionNotificationReceiver}.
  *
  * Held by {@link SessionNotificationService}, a foreground service, so the
  * process (and that timer) stays alive while the app is in the background.
@@ -30,21 +37,38 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "WtxSessionNotification")
 public class SessionNotificationPlugin extends Plugin {
 
-    static final String CHANNEL_ID = "wtx_session";
+    /**
+     * Default importance without sound or vibration, so it sits with the
+     * alerting notifications at the top of the shade instead of under
+     * "Silent". A channel's importance can't change once made, hence a new id.
+     */
+    static final String CHANNEL_ID = "wtx_workout";
+    /** The first channel: low importance, so it was filed under "Silent". */
+    private static final String OLD_CHANNEL_ID = "wtx_session";
     static final int NOTIFICATION_ID = 4201;
     static final String EXTRA_OPEN_SESSION = "com.wtxworkout.app.OPEN_SESSION";
 
-    /** What the service shows when it starts; the latest posted notification. */
+    /** The app's accent, for the small icon and action labels. */
+    private static final int ACCENT = 0xFFE0263A;
+
+    /** What the service shows when it starts, and what a dismissal puts back; `null` once the workout ends. */
     static volatile Notification current;
+
+    /** The live plugin, for the notification's rest actions; `null` while there's no bridge. */
+    private static SessionNotificationPlugin instance;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable restEnd;
     private boolean serviceStarted = false;
-    private String lastIconBase64;
-    private Bitmap lastIcon;
+
+    /** The latest options from JS, so a rest action can redraw without a round trip. */
+    private JSObject lastOptions;
+    /** The rest deadline currently drawn (epoch ms); 0 when not resting. */
+    private long restEndsAt;
 
     @Override
     public void load() {
+        instance = this;
         // Cold start from the notification: the event waits for the JS listener.
         Intent intent = getActivity().getIntent();
         if (isOpenSessionIntent(intent)) {
@@ -68,29 +92,11 @@ public class SessionNotificationPlugin extends Plugin {
 
     @PluginMethod
     public void show(PluginCall call) {
-        Context context = getContext();
         JSObject data = call.getData();
-        ensureChannel(context, data.optString("channelName", "Workout"), data.optString("channelDescription", ""));
-
-        long startedAt = data.optLong("startedAt", System.currentTimeMillis());
-        long restEndsAt = data.optLong("restEndsAt", 0);
-        long now = System.currentTimeMillis();
-        boolean resting = restEndsAt > now;
-
-        Notification notification = build(context, data, resting ? restEndsAt : startedAt, resting);
-
-        cancelRestEnd();
-        JSObject afterRest = call.getObject("afterRest");
-        if (resting && afterRest != null) {
-            final Notification after = build(context, afterRest, startedAt, false);
-            restEnd = () -> {
-                restEnd = null;
-                post(context, after);
-            };
-            handler.postDelayed(restEnd, restEndsAt - now);
-        }
-
-        post(context, notification);
+        ensureChannel(getContext(), data.optString("channelName", "Workout"), data.optString("channelDescription", ""));
+        lastOptions = data;
+        restEndsAt = data.optLong("restEndsAt", 0);
+        render();
         call.resolve();
     }
 
@@ -98,6 +104,8 @@ public class SessionNotificationPlugin extends Plugin {
     public void stop(PluginCall call) {
         cancelRestEnd();
         current = null;
+        lastOptions = null;
+        restEndsAt = 0;
         Context context = getContext();
         // Always: after an activity restart this plugin instance may not be the one that started it.
         context.stopService(new Intent(context, SessionNotificationService.class));
@@ -110,7 +118,65 @@ public class SessionNotificationPlugin extends Plugin {
     @Override
     protected void handleOnDestroy() {
         cancelRestEnd();
+        if (instance == this) instance = null;
         super.handleOnDestroy();
+    }
+
+    /**
+     * A rest action from the notification: redraws it at once, then tells JS
+     * so the session's rest moves the same way. Ignored once the rest is over.
+     */
+    static void onRestAction(String action) {
+        SessionNotificationPlugin plugin = instance;
+        if (plugin != null) plugin.applyRestAction(action);
+    }
+
+    private void applyRestAction(String action) {
+        if (lastOptions == null) return;
+        long now = System.currentTimeMillis();
+        if (restEndsAt <= now) return;
+        int step = lastOptions.optInt("restStep", 15);
+        if (SessionNotificationReceiver.ACTION_SKIP.equals(action)) {
+            restEndsAt = 0;
+        } else {
+            long delta = (SessionNotificationReceiver.ACTION_LESS.equals(action) ? -step : step) * 1000L;
+            restEndsAt = Math.max(now, restEndsAt + delta);
+            if (restEndsAt <= now) restEndsAt = 0;
+        }
+        render();
+
+        JSObject event = new JSObject();
+        event.put("action", action);
+        event.put("seconds", step);
+        notifyListeners("restAction", event);
+    }
+
+    /** Draws the latest options: the rest face (with its end scheduled) or the working face. */
+    private void render() {
+        if (lastOptions == null) return;
+        Context context = getContext();
+        long startedAt = lastOptions.optLong("startedAt", System.currentTimeMillis());
+        long now = System.currentTimeMillis();
+        boolean resting = restEndsAt > now;
+        JSObject afterRest = lastOptions.getJSObject("afterRest");
+
+        cancelRestEnd();
+        Notification notification;
+        if (resting) {
+            notification = build(context, lastOptions, restEndsAt, true);
+            final Notification after = build(context, afterRest != null ? afterRest : lastOptions, startedAt, false);
+            restEnd = () -> {
+                restEnd = null;
+                restEndsAt = 0;
+                post(context, after);
+            };
+            handler.postDelayed(restEnd, restEndsAt - now);
+        } else {
+            // A rest that ended (or was skipped) natively shows what comes after it.
+            JSObject face = lastOptions.optLong("restEndsAt", 0) > 0 && afterRest != null ? afterRest : lastOptions;
+            notification = build(context, face, startedAt, false);
+        }
+        post(context, notification);
     }
 
     private void cancelRestEnd() {
@@ -139,50 +205,83 @@ public class SessionNotificationPlugin extends Plugin {
         if (manager != null) manager.notify(NOTIFICATION_ID, notification);
     }
 
+    /**
+     * One face of the notification. {@code when} is the rest deadline when
+     * {@code countDown}, else the workout start the clock counts up from.
+     */
     private Notification build(Context context, JSObject face, long when, boolean countDown) {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
             ? new Notification.Builder(context, CHANNEL_ID)
             : new Notification.Builder(context);
 
+        String title = face.optString("title", "");
+        String body = face.optString("body", "");
+        String detail = face.optString("detail", "");
+
+        // The clock runs on elapsed-realtime; a countdown is pushed by just under a second so it
+        // reads like the app's (rounded up) and shows 0:00 only as it ends.
+        long sinceBoot = SystemClock.elapsedRealtime();
+        long now = System.currentTimeMillis();
+        long base = countDown ? sinceBoot + (when - now) + 999 : sinceBoot - (now - when);
+
+        RemoteViews collapsed = new RemoteViews(context.getPackageName(), R.layout.notification_session_collapsed);
+        RemoteViews expanded = new RemoteViews(context.getPackageName(), R.layout.notification_session_expanded);
+        for (RemoteViews views : new RemoteViews[] { collapsed, expanded }) {
+            views.setTextViewText(R.id.session_title, title);
+            views.setTextViewText(R.id.session_body, body);
+            views.setViewVisibility(R.id.session_body, body.isEmpty() ? View.GONE : View.VISIBLE);
+            views.setChronometer(R.id.session_clock, base, null, true);
+            views.setChronometerCountDown(R.id.session_clock, countDown);
+        }
+        expanded.setTextViewText(R.id.session_detail, detail);
+        expanded.setViewVisibility(R.id.session_detail, detail.isEmpty() ? View.GONE : View.VISIBLE);
+
         builder
             .setSmallIcon(R.drawable.ic_stat_workout)
-            .setContentTitle(face.optString("title", ""))
-            .setContentText(face.optString("body", ""))
+            .setColor(ACCENT)
+            // Plain text too: what accessibility services, watches and the fallback templates read.
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(new Notification.DecoratedCustomViewStyle())
+            .setCustomContentView(collapsed)
+            .setCustomBigContentView(expanded)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setShowWhen(true)
-            .setWhen(when)
-            .setUsesChronometer(true)
-            .setChronometerCountDown(countDown)
-            .setCategory(Notification.CATEGORY_PROGRESS)
+            // The clock is in the content; a second one in the header would only compete with it.
+            .setShowWhen(false)
             .setVisibility(Notification.VISIBILITY_PUBLIC)
-            .setContentIntent(openSessionIntent(context));
+            .setContentIntent(openSessionIntent(context))
+            .setDeleteIntent(SessionNotificationReceiver.pendingIntent(context, SessionNotificationReceiver.ACTION_DISMISSED));
 
+        builder.setCategory(
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? Notification.CATEGORY_WORKOUT : Notification.CATEGORY_PROGRESS
+        );
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setPriority(Notification.PRIORITY_LOW);
+            // Android 7: no channel, so no sound or vibration is set here and it stays quiet.
+            builder.setPriority(Notification.PRIORITY_DEFAULT);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
         }
 
-        Bitmap icon = decodeIcon(face.optString("largeIcon", ""));
-        if (icon != null) builder.setLargeIcon(icon);
+        if (countDown) {
+            builder.addAction(action(context, lastOptions.optString("lessLabel", "−15 s"), SessionNotificationReceiver.ACTION_LESS));
+            builder.addAction(action(context, lastOptions.optString("moreLabel", "+15 s"), SessionNotificationReceiver.ACTION_MORE));
+            builder.addAction(action(context, lastOptions.optString("skipLabel", "Skip"), SessionNotificationReceiver.ACTION_SKIP));
+        }
 
-        return builder.build();
+        Notification notification = builder.build();
+        // Ongoing already keeps it out of "Clear all"; say so explicitly for every launcher and OEM shade.
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+        return notification;
     }
 
-    private Bitmap decodeIcon(String base64) {
-        if (base64 == null || base64.isEmpty()) return null;
-        if (base64.equals(lastIconBase64)) return lastIcon;
-        try {
-            byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-            lastIconBase64 = base64;
-            lastIcon = bitmap;
-            return bitmap;
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private static Notification.Action action(Context context, String label, String action) {
+        return new Notification.Action.Builder(
+            (Icon) null,
+            label,
+            SessionNotificationReceiver.pendingIntent(context, action)
+        ).build();
     }
 
     private PendingIntent openSessionIntent(Context context) {
@@ -197,14 +296,18 @@ public class SessionNotificationPlugin extends Plugin {
         );
     }
 
-    /** Low importance: it stays in the shade without sound or a heads-up on every update. */
+    /** Silent and still: it never makes a sound, buzzes or pops up, it just stays near the top. */
     private static void ensureChannel(Context context, String name, String description) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager == null) return;
-        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW);
+        if (manager.getNotificationChannel(OLD_CHANNEL_ID) != null) manager.deleteNotificationChannel(OLD_CHANNEL_ID);
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
         channel.setDescription(description);
         channel.setShowBadge(false);
+        channel.setSound(null, null);
+        channel.enableVibration(false);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
         // Re-creating an existing channel only updates its name and description (e.g. after a language change).
         manager.createNotificationChannel(channel);
     }

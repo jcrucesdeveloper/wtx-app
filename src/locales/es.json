@@ -1206,13 +1206,15 @@
   },
   "sessionNotification": {
     "channelName": "Entrenamiento en curso",
-    "channelDescription": "Muestra el ejercicio actual y el descanso durante un entrenamiento.",
+    "channelDescription": "Muestra la cuenta atrás del descanso y la siguiente serie durante un entrenamiento.",
     "load": "{weight} × {amount}",
     "setLine": "{position} · {load}",
     "allDone": "Todas las series registradas. Termina cuando quieras.",
-    "rest": "Descansando",
-    "restThen": "Descansando · luego {next}",
-    "restNextExercise": "Descansando · siguiente: {name}"
+    "resting": "Descansando",
+    "next": "Siguiente: {next}",
+    "less": "−{n} s",
+    "more": "+{n} s",
+    "skip": "Saltar descanso"
   },
   "finishShare": {
     "promptTitle": "Comparte tu entrenamiento",
