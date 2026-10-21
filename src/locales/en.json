@@ -1205,13 +1205,15 @@
   },
   "sessionNotification": {
     "channelName": "Workout in progress",
-    "channelDescription": "Shows the current exercise and the rest timer during a workout.",
+    "channelDescription": "Shows the rest countdown and the next set during a workout.",
     "load": "{weight} × {amount}",
     "setLine": "{position} · {load}",
     "allDone": "All sets logged. Finish when you are ready.",
-    "rest": "Resting",
-    "restThen": "Resting · then {next}",
-    "restNextExercise": "Resting · next: {name}"
+    "resting": "Resting",
+    "next": "Next: {next}",
+    "less": "−{n} s",
+    "more": "+{n} s",
+    "skip": "Skip rest"
   },
   "finishShare": {
     "promptTitle": "Share your workout",
