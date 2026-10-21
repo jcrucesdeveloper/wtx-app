@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { nextTick, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ImagePlus, Share2 } from '@lucide/vue'
+import { Share2 } from '@lucide/vue'
 import ShareWorkoutSheet from './ShareWorkoutSheet.vue'
+import { HapticsService } from '@/services/haptics'
 import {
   paintWorkoutCard,
   type WorkoutCardData,
@@ -12,10 +13,10 @@ import {
 
 /**
  * Sharing, offered on the finish screen itself: a small copy of the card that
- * will be shared, and the two ways in — add a photo, or share it as it is.
- * Both open the share sheet, where the image is previewed before anything
- * leaves the phone. It owns what the sheet is set to, so a photo picked once
- * is still there the next time the sheet opens.
+ * will be shared, and the whole thing is one tap into the share sheet, where
+ * the image is previewed (and a photo added) before anything leaves the phone.
+ * It owns what the sheet is set to, so a photo picked once is still there the
+ * next time the sheet opens.
  */
 const props = defineProps<{
   data: WorkoutCardData | null
@@ -42,41 +43,30 @@ async function paintThumb() {
 
 watch(() => [props.data, photo.value], paintThumb, { immediate: true })
 
-/** Opens the sheet; with `'photo'`, straight to choosing a photo. */
-function open(start?: WorkoutCardStyle) {
-  if (start) style.value = start
+function open() {
   sheetOpen.value = true
+}
+
+function onTap() {
+  void HapticsService.selection()
+  open()
 }
 
 defineExpose({ open })
 </script>
 
 <template>
-  <section v-if="data" class="prompt">
-    <button
-      type="button"
-      class="prompt__thumb"
-      :aria-label="t('finishShare.previewAria')"
-      @click="open()"
-    >
-      <canvas ref="thumb" />
-    </button>
-    <div class="prompt__body">
-      <h2 class="prompt__title">{{ t('finishShare.promptTitle') }}</h2>
-      <p class="prompt__text">{{ t('finishShare.promptBody') }}</p>
-      <div class="prompt__actions">
-        <button type="button" class="prompt__btn" @click="open('photo')">
-          <ImagePlus :size="16" :stroke-width="2.25" />
-          {{ t('finishShare.addPhoto') }}
-        </button>
-        <!-- Not accent-filled: "Done" below is the screen's one primary action. -->
-        <button type="button" class="prompt__btn" @click="open()">
-          <Share2 :size="16" :stroke-width="2.25" />
-          {{ t('finishShare.share') }}
-        </button>
-      </div>
-    </div>
-  </section>
+  <button v-if="data" type="button" class="prompt" @click="onTap">
+    <!-- The card itself, small: what is shared is what is shown. -->
+    <span class="prompt__thumb" aria-hidden="true"><canvas ref="thumb" /></span>
+    <span class="prompt__body">
+      <span class="prompt__title">{{ t('finishShare.promptTitle') }}</span>
+      <span class="prompt__text">{{ t('finishShare.promptBody') }}</span>
+    </span>
+    <span class="prompt__go" aria-hidden="true">
+      <Share2 :size="20" :stroke-width="2.25" />
+    </span>
+  </button>
 
   <ShareWorkoutSheet
     v-model:style="style"
@@ -90,27 +80,45 @@ defineExpose({ open })
 </template>
 
 <style scoped>
+/* One tappable card. Not accent-filled: "Done" is the screen's one primary action. */
 .prompt {
   display: flex;
   gap: var(--space-4);
   align-items: center;
+  width: 100%;
   padding: var(--space-3);
+  padding-right: var(--space-4);
+  border: none;
   border-radius: var(--radius-xl);
+  font: inherit;
+  text-align: left;
+  color: inherit;
   background: var(--color-background-soft);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--motion-quick) var(--ease-out),
+    background-color var(--motion-quick) var(--ease-out);
 }
 
-/* The card itself, small: what is shared is what is shown. */
+.prompt:active {
+  transform: scale(0.98);
+  background: var(--color-background-mute);
+}
+
+.prompt:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 .prompt__thumb {
   flex-shrink: 0;
-  width: 72px;
+  width: 56px;
   aspect-ratio: 9 / 16;
-  padding: 0;
-  border: none;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: #0f1012;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-  cursor: pointer;
 }
 
 .prompt__thumb canvas {
@@ -121,49 +129,31 @@ defineExpose({ open })
 
 .prompt__body {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--space-1);
   min-width: 0;
 }
 
 .prompt__title {
-  margin: 0;
   font-size: var(--text-body);
   font-weight: var(--weight-heavy);
   color: var(--color-heading);
 }
 
 .prompt__text {
-  margin: 0;
   font-size: var(--text-small);
   line-height: 1.35;
 }
 
-.prompt__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-}
-
-.prompt__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: var(--radius-pill);
-  font: inherit;
-  font-size: var(--text-small);
-  font-weight: var(--weight-bold);
+.prompt__go {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   color: var(--color-heading);
   background: var(--color-background);
-  cursor: pointer;
-}
-
-.prompt__btn:active,
-.prompt__thumb:active {
-  transform: scale(0.97);
 }
 </style>

@@ -17,7 +17,7 @@ import { formatSetValue, isTimeExercise } from '@/lib/sessionTime'
 /**
  * The finish screen as one statement and then
  * its supporting facts, in a fixed order: the best thing that happened, the
- * numbers, your week, what you did. The reveal is a CSS stagger (`--i` is
+ * numbers, a way to share them, your week, what you did. The reveal is a CSS stagger (`--i` is
  * each block's place in it), so reduced motion needs no second code path.
  *
  * How loud it is depends on what happened (see `celebrationTier`): most
@@ -209,7 +209,10 @@ const lines = computed(() =>
       </p>
     </section>
 
-    <section v-if="recap" class="card rise" style="--i: 5">
+    <!-- Sharing, right as the numbers land: high enough to see without scrolling (filled by the view). -->
+    <div v-if="$slots.share" class="rise" style="--i: 5"><slot name="share" /></div>
+
+    <section v-if="recap" class="card rise" style="--i: 6">
       <WeekStrip :date-strs="dateStrs" />
       <div class="card__text">
         <span class="card__title">{{
@@ -222,10 +225,7 @@ const lines = computed(() =>
       </p>
     </section>
 
-    <!-- Sharing, offered once the numbers have landed (filled by the view). -->
-    <div v-if="$slots.share" class="rise" style="--i: 6"><slot name="share" /></div>
-
-    <section class="rise" style="--i: 6">
+    <section class="rise" style="--i: 7">
       <h2 class="label">{{ t('finish.whatYouDid') }}</h2>
       <ul class="list">
         <li v-for="(line, i) in lines" :key="i" class="line">
