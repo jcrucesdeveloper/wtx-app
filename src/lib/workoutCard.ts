@@ -20,6 +20,7 @@
  */
 import type { WorkoutSession } from '@/lib/wtx'
 import type { PersonalRecord } from '@/lib/sessionRecords'
+import type { SessionComparison } from '@/lib/sessionComparisons'
 import { formatClock, formatCompactDuration, formatNumber } from '@/lib/format'
 import { isTimeExercise } from '@/lib/sessionTime'
 
@@ -80,13 +81,19 @@ export interface WorkoutCardData {
   /** Up to three headline numbers. */
   stats: WorkoutCardStat[]
   /**
-   * The one thing worth bragging about: a personal record, or the streak. It
-   * is drawn as the card's centrepiece, under the name: a share card is posted
-   * for its flex, so the flex is the biggest number on it.
+   * The one thing worth bragging about, drawn as the card's centrepiece under
+   * the name: a personal record, else progress on last time, else a streak
+   * that is still going. Sharers post achievements and hold back ordinary
+   * sessions, so the best fact the workout has leads.
    */
   highlight?: { label: string; text: string }
   /** Every exercise with a logged set, in the order it was done. */
   lifts: WorkoutCardLift[]
+  /**
+   * Every lift that fits instead of only the top {@link TOP_LIFTS}. Off by
+   * default: people sharing a workout want a summary, not every detail.
+   */
+  allLifts?: boolean
   /** The short mark beside a record lift, e.g. "PR". */
   recordLabel: string
   /** The line that stands in for the lifts that did not fit, e.g. "+4 more". */
@@ -111,8 +118,15 @@ export interface WorkoutCardLabels {
   recordMark: string
   streakLabel: string
   streak: (weeks: number) => string
+  /** The highlight's label for progress on last time, e.g. "Vs last time". */
+  progressLabel: string
+  /** The volume gained on last time, given formatted ("1,250"), e.g. "+1,250 kg volume". */
+  progress: (volume: string) => string
   more: (count: number) => string
 }
+
+/** How many lifts the card shows unless the user asks for all of them. */
+export const TOP_LIFTS = 3
 
 /**
  * What goes on the card for a finished workout. Only what the finish screen
@@ -122,7 +136,13 @@ export interface WorkoutCardLabels {
 export function workoutCardContent(input: {
   session: WorkoutSession
   /** Absent when the finish screen was opened without its recap. */
-  recap?: { elapsedSeconds: number; weekStreak: number; personalRecords: PersonalRecord[] } | null
+  recap?: {
+    elapsedSeconds: number
+    weekStreak: number
+    personalRecords: PersonalRecord[]
+    /** Against the last time this routine was logged; absent the first time. */
+    comparison?: SessionComparison | null
+  } | null
   labels: WorkoutCardLabels
   /** The exercise's name in the user's language. */
   exerciseName?: (name: string) => string
@@ -174,7 +194,13 @@ export function workoutCardContent(input: {
       text:
         `${displayName(topPr.exerciseName)} · ${topPr.weight} ${unit}`.trim() + ` × ${topPr.reps}`,
     }
+  } else if (recap?.comparison?.isVolumeUp && recap.comparison.volumeDelta > 0) {
+    highlight = {
+      label: labels.progressLabel,
+      text: labels.progress(formatNumber(recap.comparison.volumeDelta)),
+    }
   } else if (recap && recap.weekStreak >= 2) {
+    // Only a streak that is going: showing a broken one lowers what people do next.
     highlight = { label: labels.streakLabel, text: labels.streak(recap.weekStreak) }
   }
 
@@ -189,6 +215,22 @@ export function workoutCardContent(input: {
     host: input.host,
     accent: input.accent,
   }
+}
+
+/**
+ * The `count` lifts the card leads with: records first — they are the reason
+ * to post — then the rest in the order they were done, shown in that order.
+ */
+export function topLifts(lifts: WorkoutCardLift[], count: number): WorkoutCardLift[] {
+  if (lifts.length <= count) return lifts
+  const keep = new Set(
+    lifts
+      .map((lift, index) => ({ lift, index }))
+      .sort((a, b) => Number(!!b.lift.record) - Number(!!a.lift.record) || a.index - b.index)
+      .slice(0, Math.max(0, count))
+      .map((item) => item.index),
+  )
+  return lifts.filter((_, index) => keep.has(index))
 }
 
 /**
@@ -241,6 +283,8 @@ const CONTENT_WIDTH = CARD_WIDTH - MARGIN_X * 2
 /** The baseline of the brand row: the last thing above a story's reply bar. */
 const brandBaseline = (frame: WorkoutCardFrame) => frame.height - frame.safeBottom - 44
 const LIFT_ROW = 88
+/** The smallest a row gets when every lift is asked for: still readable on a phone. */
+const COMPACT_LIFT_ROW = 60
 /** Fewer rows than this and the lifts are left off: one lift and a "+N more" says less than none. */
 const MIN_LIFT_ROWS = 2
 const STICKER_PADDING = 64
@@ -415,20 +459,32 @@ function highlightBand(ctx: Ctx, data: WorkoutCardData, width: number): Band {
 }
 
 /** The lifts, one per row: the name on the left, its best set on the right. */
-function liftsBand(ctx: Ctx, data: WorkoutCardData, width: number, maxRows: number): Band {
-  const { rows, more } = fitLifts(data.lifts, maxRows)
+function liftsBand(
+  ctx: Ctx,
+  data: WorkoutCardData,
+  width: number,
+  maxRows: number,
+  row = LIFT_ROW,
+): Band {
+  // Type and spacing shrink with the row, so a compact list keeps its proportions.
+  const k = row / LIFT_ROW
+  const size = (px: number) => Math.round(px * k)
+  // By default only the top few, with no "+N more": the card is a summary.
+  const { rows, more } = data.allLifts
+    ? fitLifts(data.lifts, maxRows)
+    : { rows: topLifts(data.lifts, Math.min(TOP_LIFTS, maxRows)), more: 0 }
   const count = rows.length + (more > 0 ? 1 : 0)
   return {
-    height: count * LIFT_ROW,
+    height: count * row,
     draw: (x, y) => {
       rows.forEach((lift, index) => {
-        const top = y + index * LIFT_ROW
-        const baseline = top + 58
+        const top = y + index * row
+        const baseline = top + size(58)
         if (index > 0) {
           ctx.fillStyle = HAIRLINE
           ctx.fillRect(x, top, width, 2)
         }
-        ctx.font = font(700, 42)
+        ctx.font = font(700, size(42))
         const detail = ellipsize(ctx, lift.detail, width * 0.5)
         const detailWidth = ctx.measureText(detail).width
         ctx.fillStyle = TEXT
@@ -436,25 +492,25 @@ function liftsBand(ctx: Ctx, data: WorkoutCardData, width: number, maxRows: numb
 
         let right = x + width - detailWidth - 28
         if (lift.record) {
-          ctx.font = font(800, 30)
+          ctx.font = font(800, size(30))
           const markWidth = ctx.measureText(data.recordLabel).width
           ctx.fillStyle = data.accent
           ctx.fillText(data.recordLabel, right - markWidth, baseline - 3)
           right -= markWidth + 24
         }
         ctx.fillStyle = TEXT
-        ctx.font = font(600, 42)
+        ctx.font = font(600, size(42))
         ctx.fillText(ellipsize(ctx, lift.name, right - x), x, baseline)
       })
       if (more > 0) {
-        const top = y + rows.length * LIFT_ROW
+        const top = y + rows.length * row
         if (rows.length > 0) {
           ctx.fillStyle = HAIRLINE
           ctx.fillRect(x, top, width, 2)
         }
         ctx.fillStyle = MUTED
-        ctx.font = font(600, 38)
-        ctx.fillText(ellipsize(ctx, data.moreLabel(more), width), x, top + 58)
+        ctx.font = font(600, size(38))
+        ctx.fillText(ellipsize(ctx, data.moreLabel(more), width), x, top + size(58))
       }
     },
   }
@@ -503,9 +559,15 @@ function summaryBands(ctx: Ctx, data: WorkoutCardData, width: number, titleMax: 
 }
 
 /** How many rows of lifts fit in `room` pixels, or 0 when too few would. */
-export function liftRowsFor(room: number): number {
-  const rows = Math.floor(room / LIFT_ROW)
+export function liftRowsFor(room: number, row = LIFT_ROW): number {
+  const rows = Math.floor(room / row)
   return rows >= MIN_LIFT_ROWS ? rows : 0
+}
+
+/** The row height that fits `count` lifts in `room`, between the compact floor and the full row. */
+export function compactLiftRow(room: number, count: number): number {
+  if (count <= 0) return LIFT_ROW
+  return Math.min(LIFT_ROW, Math.max(COMPACT_LIFT_ROW, Math.floor(room / count)))
 }
 
 function drawCard(ctx: Ctx, data: WorkoutCardData, frame: WorkoutCardFrame) {
@@ -520,11 +582,14 @@ function drawCard(ctx: Ctx, data: WorkoutCardData, frame: WorkoutCardFrame) {
     eyebrowBand(ctx, data, CONTENT_WIDTH),
     ...summaryBands(ctx, data, CONTENT_WIDTH, square ? 96 : 120),
   ]
-  // The lifts get whatever height the name and the numbers leave.
-  const maxRows = liftRowsFor(bottom - top - heightOf(fixed) - 40)
+  // The lifts get whatever height the name and the numbers leave. Asked for
+  // all of them, the rows shrink (down to a floor) so as many as possible fit.
+  const room = bottom - top - heightOf(fixed) - 40
+  const row = data.allLifts ? compactLiftRow(room, data.lifts.length) : LIFT_ROW
+  const maxRows = liftRowsFor(room, row)
   const bands =
     data.lifts.length && maxRows > 0
-      ? [...fixed, gap(40), liftsBand(ctx, data, CONTENT_WIDTH, maxRows)]
+      ? [...fixed, gap(40), liftsBand(ctx, data, CONTENT_WIDTH, maxRows, row)]
       : fixed
   // A short workout sits a little above the middle rather than leaving the card bottom-heavy.
   drawBands(bands, MARGIN_X, top + Math.max(0, bottom - top - heightOf(bands)) * 0.36)

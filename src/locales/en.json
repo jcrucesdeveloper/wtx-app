@@ -397,12 +397,15 @@
     "shareStats": "{sets} sets · {exercises} exercises",
     "sharePr": "New PR on {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks}-week streak going 🔥",
+    "shareProgress": "+{volume} {unit} more volume than last time 📈",
     "cardMore": "+{count} more",
     "cardRecordMark": "PR",
     "cardPr": "New PR",
     "cardPrs": "{count} new PRs",
     "cardStreak": "{weeks}-week streak",
-    "cardStreakLabel": "Streak"
+    "cardStreakLabel": "Streak",
+    "cardProgressLabel": "Vs last time",
+    "cardProgress": "+{volume} {unit} volume"
   },
   "shareCard": {
     "title": "Share workout",
@@ -423,6 +426,11 @@
     "shape": {
       "story": "9:16",
       "square": "1:1"
+    },
+    "lifts": {
+      "aria": "Exercises on the image",
+      "top": "Top 3",
+      "all": "All {count}"
     },
     "destinationsAria": "Share to",
     "destination": {

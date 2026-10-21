@@ -397,12 +397,15 @@
     "shareStats": "{sets} series · {exercises} ejercicios",
     "sharePr": "Nuevo récord en {exercise}: {weight}{unit} × {reps} 🏆",
     "shareStreak": "{weeks} semanas de racha 🔥",
+    "shareProgress": "+{volume} {unit} más de volumen que la última vez 📈",
     "cardMore": "+{count} más",
     "cardRecordMark": "PR",
     "cardPr": "Nuevo récord",
     "cardPrs": "{count} récords nuevos",
     "cardStreak": "{weeks} semanas de racha",
-    "cardStreakLabel": "Racha"
+    "cardStreakLabel": "Racha",
+    "cardProgressLabel": "Vs. la última vez",
+    "cardProgress": "+{volume} {unit} de volumen"
   },
   "shareCard": {
     "title": "Compartir entrenamiento",
@@ -423,6 +426,11 @@
     "shape": {
       "story": "9:16",
       "square": "1:1"
+    },
+    "lifts": {
+      "aria": "Ejercicios en la imagen",
+      "top": "Top 3",
+      "all": "Todos ({count})"
     },
     "destinationsAria": "Compartir en",
     "destination": {

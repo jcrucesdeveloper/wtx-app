@@ -8,6 +8,7 @@ import {
   coverCrop,
   drawWorkoutCard,
   fitLifts,
+  topLifts,
   liftRowsFor,
   workoutCardContent,
   workoutCardFrame,
@@ -33,6 +34,8 @@ const EN: WorkoutCardLabels = {
   recordMark: 'PR',
   streakLabel: 'Streak',
   streak: (weeks) => `${weeks}-week streak`,
+  progressLabel: 'Vs last time',
+  progress: (volume) => `+${volume} kg volume`,
   more: (count) => `+${count} more`,
 }
 
@@ -47,6 +50,8 @@ const ES: WorkoutCardLabels = {
   recordMark: 'PR',
   streakLabel: 'Racha',
   streak: (weeks) => `Racha de ${weeks} semanas`,
+  progressLabel: 'Vs. la última vez',
+  progress: (volume) => `+${volume} kg de volumen`,
   more: (count) => `+${count} más`,
 }
 
@@ -170,6 +175,21 @@ describe('workoutCardContent', () => {
     ).toBeUndefined()
   })
 
+  it('puts progress on last time after a record and before the streak', () => {
+    const up = { volumeDelta: 1250, workingSetsDelta: 1, isVolumeUp: true }
+    const recap = { elapsedSeconds: 60, weekStreak: 4, personalRecords: [], comparison: up }
+    expect(content(TYPICAL, recap).highlight).toEqual({
+      label: 'Vs last time',
+      text: `+${formatNumber(1250)} kg volume`,
+    })
+    // A record still leads.
+    const withPr = { ...recap, personalRecords: [pr('Bench Press', 72.5, 5)] }
+    expect(content(TYPICAL, withPr).highlight?.label).toBe('New PR')
+    // Less volume than last time is never the headline: the streak takes over.
+    const down = { volumeDelta: -300, workingSetsDelta: 0, isVolumeUp: false }
+    expect(content(TYPICAL, { ...recap, comparison: down }).highlight?.label).toBe('Streak')
+  })
+
   it('uses the translated exercise names and labels', () => {
     const data = workoutCardContent({
       session: TYPICAL,
@@ -193,6 +213,24 @@ describe('workoutCardContent', () => {
       '1 | 100 | 5',
     ])
     expect(JSON.stringify(content(noted))).not.toMatch(/twinge|2026/)
+  })
+})
+
+describe('topLifts', () => {
+  const lifts = (names: string[], records: string[] = []): WorkoutCardLift[] =>
+    names.map((name) => ({
+      name,
+      detail: '1',
+      ...(records.includes(name) ? { record: true } : {}),
+    }))
+
+  it('keeps them all when there are few enough', () => {
+    expect(topLifts(lifts(['A', 'B']), 3).map((l) => l.name)).toEqual(['A', 'B'])
+  })
+
+  it('takes records first, then the earliest, shown in the order they were done', () => {
+    const picked = topLifts(lifts(['A', 'B', 'C', 'D', 'E'], ['D']), 3)
+    expect(picked.map((l) => l.name)).toEqual(['A', 'B', 'D'])
   })
 })
 
@@ -357,8 +395,21 @@ describe('drawWorkoutCard', () => {
     },
   )
 
-  it('lists lifts on the card only, and says how many did not fit', () => {
+  it('shows only the top three lifts by default, with no count of the rest', () => {
     const data = CASES[2]![1]
+    const { ctx, texts } = recordingContext()
+    drawWorkoutCard(ctx, data, 'card')
+    // Long names are cut with an ellipsis, so a row is found by its start, under the totals.
+    const totals = texts.find((t) => t.text === data.stats[1]!.label)!
+    const rows = texts.filter((t) => t.text.startsWith('Exercise Number') && t.top > totals.bottom)
+    expect(rows).toHaveLength(3)
+    expect(texts.some((t) => t.text.endsWith(' more'))).toBe(false)
+    // The record is one of them.
+    expect(texts.some((t) => t.text === 'PR')).toBe(true)
+  })
+
+  it('lists every lift that fits when asked, and says how many did not fit', () => {
+    const data = { ...CASES[2]![1], allLifts: true }
     const card = recordingContext()
     drawWorkoutCard(card.ctx, data, 'card')
     const more = card.texts.map((t) => /^\+(\d+) more$/.exec(t.text)?.[1]).find(Boolean)
@@ -441,7 +492,8 @@ describe('the square format', () => {
   }
 
   it('fits some lifts on a square card when there is room, and never a lone "+N more"', () => {
-    for (const [, data] of CASES) {
+    for (const [, base] of CASES) {
+      const data = { ...base, allLifts: true }
       const { ctx, texts } = recordingContext()
       drawWorkoutCard(ctx, data, 'card', undefined, 'square')
       const shown = data.lifts.filter((lift) => texts.some((t) => t.text === lift.detail))
