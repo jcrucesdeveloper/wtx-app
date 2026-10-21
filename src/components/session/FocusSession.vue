@@ -595,15 +595,19 @@ function onNoteInput(event: Event) {
           <p class="now__set">
             {{ currentSetLine }}
           </p>
-          <button
-            type="button"
-            class="now__type"
-            :class="`now__type--${currentSet.set.type}`"
-            :aria-label="t('workout.setTypeAria')"
-            @click="cycleType"
-          >
-            {{ t(`workout.setType.${currentSet.set.type}`) }}
-          </button>
+          <!-- The exercise's rest beside the set's type: both describe the set you're on. -->
+          <div class="now__chips">
+            <RestTimeButton :exercise-index="currentIndex" />
+            <button
+              type="button"
+              class="now__type"
+              :class="`now__type--${currentSet.set.type}`"
+              :aria-label="t('workout.setTypeAria')"
+              @click="cycleType"
+            >
+              {{ t(`workout.setType.${currentSet.set.type}`) }}
+            </button>
+          </div>
         </div>
 
         <!-- Keyed by set: the next set's numbers arrive, they don't just change. -->
@@ -788,11 +792,7 @@ function onNoteInput(event: Event) {
 
     <div class="dock">
       <!-- Between exercises: what's next, to walk over to while resting. -->
-      <UpNextCard
-        v-if="primary === 'next' && nextExercise"
-        :exercise="nextExercise"
-        :unit="unit"
-      />
+      <UpNextCard v-if="primary === 'next' && nextExercise" :exercise="nextExercise" :unit="unit" />
 
       <p v-if="recordFlash !== null" class="record" role="status">
         <Trophy :size="18" :stroke-width="2.25" />
@@ -808,43 +808,39 @@ function onNoteInput(event: Event) {
       </p>
 
       <RestTimer />
-      <!-- The exercise's rest beside the one button: a setting per exercise, so it is here once. -->
-      <div class="dock__row">
-        <RestTimeButton v-if="primary !== 'finish'" :exercise-index="currentIndex" />
-        <!-- `row__check` only so the existing capture scripts still find it. -->
-        <AppButton
-          :variant="primary === 'log' || primary === 'finish' ? 'primary' : 'quiet'"
-          size="lg"
-          block
-          class="primary-action"
-          :class="{ row__check: primary === 'log' }"
-          @click="onPrimary"
-        >
-          <template v-if="primary === 'log'">
-            <Check :size="20" :stroke-width="3" />
-            {{
-              currentSet?.set.type === 'number'
-                ? t('workout.logSet', { n: currentSet.label })
-                : t(`workout.logSetType.${currentSet?.set.type}`)
-            }}
-          </template>
-          <template v-else-if="primary === 'edited'">
-            <Check :size="20" :stroke-width="3" />
-            {{ t('workout.doneEditing') }}
-          </template>
-          <template v-else-if="primary === 'add'">
-            <Plus :size="20" :stroke-width="2.5" />
-            {{ t('session.activeExerciseCard.addSet') }}
-          </template>
-          <template v-else-if="primary === 'next'">{{
-            t('workout.nextExercise', { name: nextName })
-          }}</template>
-          <template v-else>
-            <Check :size="20" :stroke-width="3" />
-            {{ t('workout.finishWorkout') }}
-          </template>
-        </AppButton>
-      </div>
+      <!-- `row__check` only so the existing capture scripts still find it. -->
+      <AppButton
+        :variant="primary === 'log' || primary === 'finish' ? 'primary' : 'quiet'"
+        size="lg"
+        block
+        class="primary-action"
+        :class="{ row__check: primary === 'log' }"
+        @click="onPrimary"
+      >
+        <template v-if="primary === 'log'">
+          <Check :size="20" :stroke-width="3" />
+          {{
+            currentSet?.set.type === 'number'
+              ? t('workout.logSet', { n: currentSet.label })
+              : t(`workout.logSetType.${currentSet?.set.type}`)
+          }}
+        </template>
+        <template v-else-if="primary === 'edited'">
+          <Check :size="20" :stroke-width="3" />
+          {{ t('workout.doneEditing') }}
+        </template>
+        <template v-else-if="primary === 'add'">
+          <Plus :size="20" :stroke-width="2.5" />
+          {{ t('session.activeExerciseCard.addSet') }}
+        </template>
+        <template v-else-if="primary === 'next'">{{
+          t('workout.nextExercise', { name: nextName })
+        }}</template>
+        <template v-else>
+          <Check :size="20" :stroke-width="3" />
+          {{ t('workout.finishWorkout') }}
+        </template>
+      </AppButton>
     </div>
 
     <WorkoutOverviewSheet
@@ -1114,6 +1110,12 @@ button.where__now:active {
   font-size: 14px;
   font-weight: var(--weight-bold);
   color: var(--color-heading);
+}
+
+.now__chips {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
 }
 
 .now__type {
@@ -1461,17 +1463,6 @@ button.where__now:active {
   padding: 12px 20px 16px;
   border-top: 1px solid var(--color-border);
   background: var(--color-background);
-}
-
-/* Rest and the one button, side by side; the button takes what is left. */
-.dock__row {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.dock__row > .primary-action {
-  flex: 1;
-  min-width: 0;
 }
 
 /* A set just deleted: what went, and the way back, for a few seconds. Quiet,
