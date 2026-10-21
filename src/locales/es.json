@@ -47,6 +47,7 @@
       "D": "Registrar serie descendente"
     },
     "nextExercise": "Siguiente: {name}",
+    "upNext": "A continuación",
     "finishWorkout": "Terminar entrenamiento",
     "setType": {
       "number": "Serie efectiva",
