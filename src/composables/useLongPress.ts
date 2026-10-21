@@ -38,7 +38,7 @@ export function useLongPress<K>(
   const pressing = ref(null) as Ref<K | null>
   let timer: ReturnType<typeof setTimeout> | undefined
   let start: { x: number; y: number; pointerId: number } | null = null
-  /** This press has already opened the menu. */
+  /** The press under way has already opened the menu; a touch browser's own contextmenu for it is not another. */
   let fired = false
 
   function cancel() {
@@ -95,8 +95,12 @@ export function useLongPress<K>(
         cancel()
         // Whatever click this press was going to send has been sent by then.
         if (fired) disarmTimer = setTimeout(disarm, 600)
+        fired = false
       },
-      pointercancel: cancel,
+      pointercancel() {
+        cancel()
+        fired = false
+      },
       contextmenu(event) {
         event.preventDefault()
         if (fired) return

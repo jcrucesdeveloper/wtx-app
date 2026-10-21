@@ -160,4 +160,13 @@ describe('useLongPress', () => {
     expect(late.defaultPrevented).toBe(true)
     expect(onLongPress).toHaveBeenCalledOnce()
   })
+
+  it('opens from the menu key after an earlier long press has ended', () => {
+    const { onLongPress, handlers } = setup()
+    handlers.pointerdown(pointer())
+    vi.advanceTimersByTime(LONG_PRESS_MS)
+    handlers.pointerup()
+    handlers.contextmenu(new Event('contextmenu', { cancelable: true }))
+    expect(onLongPress).toHaveBeenCalledTimes(2)
+  })
 })
