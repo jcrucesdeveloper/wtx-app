@@ -347,3 +347,74 @@ Dips | reps 3x10
     expect(shown()).toBe('Dips')
   })
 })
+
+describe('FocusSession: the rest time in the dock', () => {
+  let pinia: Pinia
+  let wrapper: VueWrapper | undefined
+
+  beforeEach(() => {
+    localStorage.clear()
+    i18n.global.locale.value = 'en'
+    pinia = createPinia()
+    Element.prototype.scrollIntoView = vi.fn<() => void>()
+  })
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+    vi.restoreAllMocks()
+  })
+
+  function mountSession() {
+    wrapper = mount(FocusSession, {
+      attachTo: document.body,
+      global: { plugins: [pinia, i18n] },
+    })
+    return wrapper
+  }
+
+  const restButton = () => wrapper!.find('.dock .rest-time')
+
+  it('sits once beside the one button, not on every set', () => {
+    const activeSession = startSession(pinia)
+    activeSession.setRestSeconds(0, 90)
+    mountSession()
+
+    expect(wrapper!.findAll('li.set .rest-time')).toHaveLength(0)
+    expect(wrapper!.findAll('.dock .rest-time')).toHaveLength(1)
+    expect(restButton().text()).toBe('1:30')
+    expect(restButton().attributes('aria-label')).toBe('Rest 1:30. Change the rest timer')
+  })
+
+  it('says when the exercise rests not at all', async () => {
+    const activeSession = startSession(pinia)
+    activeSession.setRestSeconds(0, 0)
+    mountSession()
+    await nextTick()
+
+    expect(restButton().text()).toBe('Off')
+    expect(restButton().attributes('aria-label')).toBe('No rest timer. Set one')
+  })
+
+  it('keeps showing the setting while a rest counts down', async () => {
+    const activeSession = startSession(pinia)
+    activeSession.setRestSeconds(0, 90)
+    mountSession()
+
+    await wrapper!.find('.primary-action').trigger('click')
+    await nextTick()
+
+    expect(activeSession.session!.restEndsAt).not.toBeNull()
+    expect(restButton().text()).toBe('1:30')
+  })
+
+  it("opens the exercise's rest sheet", async () => {
+    const activeSession = startSession(pinia)
+    activeSession.setRestSeconds(0, 90)
+    mountSession()
+
+    await restButton().trigger('click')
+    await nextTick()
+
+    expect(document.body.querySelector('[role="dialog"][aria-label="Rest timer"]')).not.toBeNull()
+  })
+})
