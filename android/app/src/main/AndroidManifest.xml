@@ -51,6 +51,11 @@
                 android:value="Ongoing notification for a workout the user started: shows the current exercise and counts down the rest between sets until the user finishes the workout." />
         </service>
 
+        <!-- The workout notification's rest actions, and putting it back when swiped away. -->
+        <receiver
+            android:name=".SessionNotificationReceiver"
+            android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
