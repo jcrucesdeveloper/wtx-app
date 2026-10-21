@@ -78,6 +78,7 @@ export function useWorkoutShare(
         exercises: t('sessionComplete.exercises'),
         volume: t('sessionComplete.volumeUnit', { unit: s.unit }),
         record: t('sessionComplete.cardPr'),
+        records: (count) => t('sessionComplete.cardPrs', { count }),
         recordMark: t('sessionComplete.cardRecordMark'),
         streakLabel: t('sessionComplete.cardStreakLabel'),
         streak: (weeks) => t('sessionComplete.cardStreak', { weeks }),

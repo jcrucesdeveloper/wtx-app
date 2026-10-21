@@ -41,18 +41,24 @@ export function toBase64(bytes: Uint8Array): string {
 }
 
 /**
+ * How a share through the system sheet ended: an app was picked, the sheet
+ * was dismissed, or (on the web) this browser can't share a file at all.
+ */
+export type ShareOutcome = 'shared' | 'dismissed' | 'unsupported'
+
+/**
  * Shares an image through the system sheet, with an optional caption — the
  * route into Instagram / WhatsApp stories and the like.
  *
- * @returns `false` when this browser can't share files, so the caller can
- *   fall back to sharing text. Dismissing the sheet still counts as handled.
+ * @returns `unsupported` when this browser can't share files, so the caller
+ *   can save the image instead.
  */
 export async function shareImage(
   bytes: Uint8Array,
   filename: string,
   mimeType: string,
   text?: string,
-): Promise<boolean> {
+): Promise<ShareOutcome> {
   if (isNative()) {
     const { uri } = await Filesystem.writeFile({
       path: filename,
@@ -60,22 +66,35 @@ export async function shareImage(
       directory: Directory.Cache,
     })
     try {
+      // Resolves once an app is chosen, rejects when the sheet is dismissed.
       await Share.share({ text, files: [uri] })
+      return 'shared'
     } catch {
-      /* dismissed */
+      return 'dismissed'
     }
-    return true
   }
 
   const file = new File([bytes as BlobPart], filename, { type: mimeType })
   if (typeof navigator.canShare !== 'function' || !navigator.canShare({ files: [file] }))
-    return false
+    return 'unsupported'
   try {
     await navigator.share({ files: [file], text })
+    return 'shared'
   } catch {
-    /* dismissed */
+    return 'dismissed'
   }
-  return true
+}
+
+/** Whether this browser can share an image file (always in the app). */
+export function canShareFiles(): boolean {
+  if (isNative()) return true
+  if (typeof navigator === 'undefined' || typeof navigator.canShare !== 'function') return false
+  try {
+    const probe = new File([new Uint8Array([0])], 'probe.png', { type: 'image/png' })
+    return navigator.canShare({ files: [probe] })
+  } catch {
+    return false
+  }
 }
 
 /**

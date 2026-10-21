@@ -400,6 +400,7 @@
     "cardMore": "+{count} more",
     "cardRecordMark": "PR",
     "cardPr": "New PR",
+    "cardPrs": "{count} new PRs",
     "cardStreak": "{weeks}-week streak",
     "cardStreakLabel": "Streak"
   },
@@ -415,10 +416,30 @@
     "hint": {
       "card": "A story card with your numbers and your best set of each exercise.",
       "photo": "Your numbers over a photo of your own. The photo stays on your phone until you share it.",
-      "sticker": "Only the numbers, on a transparent background. Save it, then add it over a photo or video from your gallery."
+      "sticker": "Only the numbers, on a transparent background, to place over a photo or video in your story."
     },
     "choosePhoto": "Choose a photo",
-    "changePhoto": "Change photo"
+    "changePhoto": "Change photo",
+    "shape": {
+      "story": "9:16",
+      "square": "1:1"
+    },
+    "destinationsAria": "Share to",
+    "destination": {
+      "instagram": "Instagram",
+      "whatsapp": "WhatsApp",
+      "save": {
+        "download": "Download",
+        "gallery": "Save",
+        "share-sheet": "Save"
+      },
+      "more": {
+        "web": "Share",
+        "android": "More",
+        "ios": "More"
+      }
+    },
+    "linkCopied": "Link copied. Paste it into Instagram's Link sticker so friends can find WTX."
   },
   "sessionDetail": {
     "title": "Workout",

@@ -13,8 +13,15 @@ vi.mock('@capacitor/filesystem', () => ({
 }))
 vi.mock('@capacitor/share', () => ({ Share: { share } }))
 
-const { toBase64, canShare, imageSaveRoute, saveImage, timestampedName, GALLERY_FOLDER } =
-  await import('../nativeShare')
+const {
+  toBase64,
+  canShare,
+  imageSaveRoute,
+  saveImage,
+  shareImage,
+  timestampedName,
+  GALLERY_FOLDER,
+} = await import('../nativeShare')
 
 function on(name: 'web' | 'android' | 'ios') {
   platform.native = name !== 'web'
@@ -74,6 +81,26 @@ describe('nativeShare', () => {
     expect(route).toBe('share-sheet')
     expect(writeFile).toHaveBeenLastCalledWith(expect.objectContaining({ directory: 'CACHE' }))
     expect(share).toHaveBeenCalledWith({ title: 'a.png', files: ['file:///cache/a.png'] })
+  })
+
+  it('tells a share that went out from a dismissed sheet in the app', async () => {
+    on('android')
+    writeFile.mockResolvedValue({ uri: 'file:///cache/c.png' })
+    share.mockResolvedValueOnce(undefined)
+    expect(await shareImage(new Uint8Array([1]), 'c.png', 'image/png', 'hi')).toBe('shared')
+    expect(share).toHaveBeenCalledWith({ text: 'hi', files: ['file:///cache/c.png'] })
+    share.mockRejectedValueOnce(new Error('Share canceled'))
+    expect(await shareImage(new Uint8Array([1]), 'c.png', 'image/png')).toBe('dismissed')
+  })
+
+  it('says when a browser cannot share a file, so the caller can save it', async () => {
+    const original = navigator.canShare
+    Object.defineProperty(navigator, 'canShare', { value: () => false, configurable: true })
+    try {
+      expect(await shareImage(new Uint8Array([1]), 'c.png', 'image/png')).toBe('unsupported')
+    } finally {
+      Object.defineProperty(navigator, 'canShare', { value: original, configurable: true })
+    }
   })
 
   it('names saved images by the time, so a second save keeps the first', () => {

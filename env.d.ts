@@ -35,4 +35,11 @@ interface ImportMetaEnv {
   readonly VITE_APP_STORE_PROVIDER_ID?: string
   /** Google Play package name. The banner is hidden on Android until it's set. */
   readonly VITE_PLAY_STORE_ID?: string
+
+  /**
+   * Facebook App ID (public, not a secret). With it, the share sheet's Instagram
+   * button opens Instagram's story editor directly; without it, Instagram gets a
+   * plain image share and asks Story, Feed or Chat itself.
+   */
+  readonly VITE_FACEBOOK_APP_ID?: string
 }

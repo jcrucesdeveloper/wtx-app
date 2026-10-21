@@ -25,6 +25,10 @@ export type AppEventName =
   | 'review_requested'
   | 'install_banner_tapped'
   | 'workout_card_shared'
+  | 'share_sheet_opened'
+  | 'workout_card_saved'
+  | 'workout_card_shared_instagram'
+  | 'workout_card_shared_whatsapp'
 
 // A type alias, not an interface: supabase-js needs rows assignable to Record<string, unknown>.
 export type RoomRow = {

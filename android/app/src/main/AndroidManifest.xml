@@ -76,6 +76,14 @@
             android:value="${admobAppId}" />
     </application>
 
+    <!-- The apps a workout card can be sent to in one tap (ShareTargetsPlugin):
+         Android 11+ hides other apps unless they are named here. -->
+    <queries>
+        <package android:name="com.instagram.android" />
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+    </queries>
+
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
