@@ -23,19 +23,19 @@ import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import TimedSetField from '@/components/session/TimedSetField.vue'
 import ExerciseKindRow from '@/components/session/ExerciseKindRow.vue'
-import SwipeToDelete from '@/components/session/SwipeToDelete.vue'
 import UpNextCard from '@/components/session/UpNextCard.vue'
 import { formatDurationInput } from '@/lib/durationInput'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useSessionsStore } from '@/stores/sessions'
 import { useExerciseName } from '@/composables/useExerciseName'
+import { useLongPress } from '@/composables/useLongPress'
 import { formatClock } from '@/lib/format'
 import { focusAndSelect, holdKeyboard, selectAll } from '@/lib/focusField'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import { HapticsService } from '@/services/haptics'
 import { allTimeBestsByExercise, liveRecordSetIds } from '@/lib/sessionRecords'
 import { focusAfterReorder } from '@/lib/sessionFocus'
-import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSession'
+import type { SessionExerciseDraft, SessionSetDraft, SessionSetType } from '@/lib/serializeSession'
 
 /**
  * The active session as one focused step at a time: the set you're on is the
@@ -43,8 +43,8 @@ import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSessi
  * thumb. Under it, every set of the exercise is a row; above it, where you
  * are in the workout and a way to the exercise before and after. Nothing
  * that removes work sits in the scroll path: an exercise goes from its menu,
- * and asks first; a single set slides aside to show its Delete (or goes from
- * the same menu) and doesn't ask — it can be undone for a few seconds.
+ * and asks first; a single set goes from its own menu — hold its row — or
+ * from the exercise's, and doesn't ask: it can be undone for a few seconds.
  *
  * Finishing an exercise never moves the screen by itself: the last set's tap
  * leaves you on that exercise, every set ticked, with what comes next under
@@ -278,7 +278,6 @@ function toggleSet(row: (typeof labeledSets.value)[number]) {
  * stays logged: its numbers can be corrected in place.
  */
 function pickSet(set: SessionSetDraft) {
-  swipedSetId.value = null
   if (pickedSetId.value === set.id) return
   pickedSetId.value = set.id
   void HapticsService.selection()
@@ -374,8 +373,15 @@ function onSwapPicked(name: string) {
 
 // ----- deleting one set: no question first, an undo after -----
 
-/** The row slid open to show its Delete — one at a time. */
-const swipedSetId = ref<string | null>(null)
+/** The set whose own menu is open, from holding its row. */
+const menuSetId = ref<string | null>(null)
+const menuRow = computed(() => labeledSets.value.find(({ set }) => set.id === menuSetId.value))
+
+/** Holding a row opens its set's menu, the way a list item does on a phone. */
+const { pressing, bind: holdSet } = useLongPress<string>((setId) => {
+  menuSetId.value = setId
+  void HapticsService.light()
+})
 
 /** How long the undo stays offered after a set is deleted. */
 const UNDO_MS = 8000
@@ -412,7 +418,6 @@ function deleteSet(setId: string) {
   const text = t(`workout.setDeleted.${row.set.type}`, { n: row.label })
 
   activeSession.removeSet(index, setId)
-  swipedSetId.value = null
   if (pickedSetId.value === setId) pickedSetId.value = null
   // Taking the last open set away finishes the exercise; stay on it rather
   // than jumping to the next one under the thumb that just deleted.
@@ -441,12 +446,36 @@ function deleteFromMenu() {
   if (currentSet.value) deleteSet(currentSet.value.set.id)
 }
 
+/** The held set's menu: delete it, the same way. */
+function deleteFromSetMenu() {
+  const setId = menuSetId.value
+  menuSetId.value = null
+  if (setId) deleteSet(setId)
+}
+
+const setTypes: SessionSetType[] = ['number', 'W', 'D']
+
+/**
+ * The held set's menu: make it a working set, warm-up or drop set. Stepped
+ * through the store's own cycle, the same change the type button makes, so a
+ * group room hears about it the same way.
+ */
+function setTypeFromMenu(type: SessionSetType) {
+  const row = menuRow.value
+  menuSetId.value = null
+  if (!row || row.set.type === type) return
+  for (let i = 0; i < setTypes.length - 1 && row.set.type !== type; i++) {
+    activeSession.cycleSetType(currentIndex.value, row.set.id)
+  }
+  void HapticsService.selection()
+}
+
 const overviewOpen = ref(false)
 
 function focusExercise(index: number) {
   pickedExercise.value = exercises.value[index] ?? null
   pickedSetId.value = null
-  swipedSetId.value = null
+  menuSetId.value = null
 }
 
 /**
@@ -673,7 +702,7 @@ function onNoteInput(event: Event) {
         <p v-else class="sets__empty">{{ t('workout.noSets') }}</p>
 
         <ul class="sets__rows">
-          <!-- Swiping a row left shows its Delete; the menu has the same, for the set you're on. -->
+          <!-- Holding a row opens its set's menu; the exercise's menu can delete the set you're on too. -->
           <li
             v-for="row in labeledSets"
             :key="row.set.id"
@@ -682,15 +711,11 @@ function onNoteInput(event: Event) {
               'set--done': row.set.completed,
               'set--current': row.set.id === currentSet?.set.id,
               'set--just': row.set.id === justLoggedId,
+              'set--pressing': row.set.id === pressing,
+              'set--held': row.set.id === menuSetId,
             }"
           >
-            <SwipeToDelete
-              :open="swipedSetId === row.set.id"
-              :label="t('workout.deleteSet')"
-              :action-label="t('workout.deleteSetAria', { label: row.label })"
-              @update:open="swipedSetId = $event ? row.set.id : null"
-              @delete="deleteSet(row.set.id)"
-            >
+            <div class="set__hold" v-on="holdSet(row.set.id)">
               <div class="set__row" @click="pickSet(row.set)">
                 <!-- The whole row picks the set; the button is what a keyboard or screen reader uses. -->
                 <button
@@ -742,7 +767,7 @@ function onNoteInput(event: Event) {
                   </span>
                 </button>
               </div>
-            </SwipeToDelete>
+            </div>
           </li>
         </ul>
 
@@ -862,6 +887,33 @@ function onNoteInput(event: Event) {
           :label="t('session.activeExerciseCard.removeExercise')"
           :hint="t('workout.removeExerciseHint')"
           @click="removeExercise"
+        />
+      </div>
+    </BottomSheet>
+
+    <!-- A set's own menu, from holding its row. -->
+    <BottomSheet
+      :open="!!menuRow"
+      :title="menuRow ? t(`workout.setMenuTitle.${menuRow.set.type}`, { n: menuRow.label }) : ''"
+      @close="menuSetId = null"
+    >
+      <div v-if="menuRow" class="actions">
+        <SettingsRow
+          v-for="type in setTypes"
+          :key="type"
+          action
+          :label="t(`workout.setType.${type}`)"
+          :aria-pressed="menuRow.set.type === type"
+          @click="setTypeFromMenu(type)"
+        >
+          <Check v-if="menuRow.set.type === type" :size="18" :stroke-width="2.5" />
+        </SettingsRow>
+        <SettingsRow
+          action
+          danger
+          :label="deleteLabel(menuRow)"
+          :hint="t('workout.deleteSetUndoHint')"
+          @click="deleteFromSetMenu"
         />
       </div>
     </BottomSheet>
@@ -1213,6 +1265,39 @@ button.where__now:active {
 .set--current .set__row {
   background: var(--color-background-soft);
   box-shadow: inset 0 0 0 1px var(--color-border-hover);
+}
+
+/* Held for its menu: no text selection, no system callout, no native menu. */
+.set__hold {
+  border-radius: var(--radius-md);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Being held sinks in, slowly enough that a tap never shows it; its menu
+   open, it stays marked as the set the menu is about. */
+.set--pressing .set__row,
+.set--held .set__row {
+  background: var(--color-background-mute);
+}
+
+.set--pressing .set__row {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .set__row {
+    transition:
+      transform var(--motion-quick) var(--ease-out),
+      background-color var(--motion-quick) var(--ease-out);
+  }
+
+  .set--pressing .set__row {
+    transition:
+      transform 330ms var(--ease-out) 120ms,
+      background-color 330ms var(--ease-out) 120ms;
+  }
 }
 
 .set__main {
