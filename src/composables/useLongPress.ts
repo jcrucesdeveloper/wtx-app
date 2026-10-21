@@ -68,9 +68,12 @@ export function useLongPress<K>(
   }
 
   function fire(key: K) {
+    // Only a finger or button still down has a click to come; a right-click
+    // or the menu key doesn't, and the next click is a real one.
+    const held = start !== null
     fired = true
     cancel()
-    arm()
+    if (held) arm()
     onLongPress(key)
   }
 

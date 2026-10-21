@@ -136,6 +136,14 @@ describe('useLongPress', () => {
     expect(clickInPage().clicked).toHaveBeenCalledOnce()
   })
 
+  it('swallows nothing after a right-click or the menu key, which send no click', () => {
+    const { onLongPress, handlers } = setup()
+    handlers.contextmenu(new Event('contextmenu', { cancelable: true }))
+    expect(onLongPress).toHaveBeenCalledOnce()
+    // Enter on the menu's first item.
+    expect(clickInPage().clicked).toHaveBeenCalledOnce()
+  })
+
   it('opens on a context menu instead of the native one, once per press', () => {
     const { onLongPress, handlers } = setup()
     const menu = new Event('contextmenu', { cancelable: true })
