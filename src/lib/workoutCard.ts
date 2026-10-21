@@ -11,9 +11,12 @@
  * The card and the photo come as a 9:16 story or a 1:1 square (a feed post,
  * a chat); the sticker is sized to what is on it.
  *
- * Every style carries the app's name and address inside the block of numbers,
- * small: a share says where it came from, and cropping that out means
- * cropping the numbers.
+ * Every style carries the app's icon, name and address inside the block of
+ * numbers, small: a share says where it came from, and cropping that out
+ * means cropping the numbers.
+ *
+ * A record (or the streak) sits right under the name as the centrepiece: a
+ * card is posted for its flex, so the flex leads and the totals back it up.
  */
 import type { WorkoutSession } from '@/lib/wtx'
 import type { PersonalRecord } from '@/lib/sessionRecords'
@@ -76,7 +79,11 @@ export interface WorkoutCardData {
   title: string
   /** Up to three headline numbers. */
   stats: WorkoutCardStat[]
-  /** The one thing worth bragging about: a personal record, or the streak. */
+  /**
+   * The one thing worth bragging about: a personal record, or the streak. It
+   * is drawn as the card's centrepiece, under the name: a share card is posted
+   * for its flex, so the flex is the biggest number on it.
+   */
   highlight?: { label: string; text: string }
   /** Every exercise with a logged set, in the order it was done. */
   lifts: WorkoutCardLift[]
@@ -99,6 +106,8 @@ export interface WorkoutCardLabels {
   /** The volume stat's label, unit included, e.g. "kg volume". */
   volume: string
   record: string
+  /** The highlight's label when more than one record fell, e.g. "3 new PRs". */
+  records: (count: number) => string
   recordMark: string
   streakLabel: string
   streak: (weeks: number) => string
@@ -156,11 +165,12 @@ export function workoutCardContent(input: {
     ]
   })
 
-  const topPr = recap?.personalRecords[0]
+  const records = recap?.personalRecords ?? []
+  const topPr = records[0]
   let highlight: WorkoutCardData['highlight']
   if (topPr) {
     highlight = {
-      label: labels.record,
+      label: records.length > 1 ? labels.records(records.length) : labels.record,
       text:
         `${displayName(topPr.exerciseName)} · ${topPr.weight} ${unit}`.trim() + ` × ${topPr.reps}`,
     }
@@ -287,8 +297,21 @@ function roundedRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: nu
   ctx.closePath()
 }
 
-/** The barbell mark from the app icon, drawn in a `size`-pixel box. */
+/** The app icon's tile colour (android ic_launcher_background): the mark looks like the icon in the store. */
+const ICON_TILE = '#181818'
+
+/**
+ * The app icon, drawn in a `size`-pixel box: the barbell on its dark tile. A
+ * viewer who wants the app looks for this icon in the store, so the share
+ * shows the icon itself rather than a bare glyph.
+ */
 function drawMark(ctx: Ctx, x: number, y: number, size: number) {
+  roundedRect(ctx, x, y, size, size, size * 0.24)
+  ctx.fillStyle = ICON_TILE
+  ctx.fill()
+  ctx.strokeStyle = HAIRLINE
+  ctx.lineWidth = 3
+  ctx.stroke()
   const u = size / 100
   ctx.fillStyle = TEXT
   const rects: [number, number, number, number, number][] = [
@@ -359,29 +382,33 @@ function statsBand(ctx: Ctx, data: WorkoutCardData, width: number): Band {
   }
 }
 
-/** The record or the streak: the only place the accent appears. */
+const HIGHLIGHT_HEIGHT = 188
+
+/**
+ * The record or the streak, as the card's centrepiece: its label in the
+ * accent (the only place the accent appears), the record itself large below.
+ */
 function highlightBand(ctx: Ctx, data: WorkoutCardData, width: number): Band {
   const highlight = data.highlight!
+  const inset = 44
+  const room = width - inset * 2
   return {
-    height: 128,
+    height: HIGHLIGHT_HEIGHT,
     draw: (x, y) => {
-      roundedRect(ctx, x, y, width, 128, 36)
+      roundedRect(ctx, x, y, width, HIGHLIGHT_HEIGHT, 40)
       ctx.fillStyle = TINT
       ctx.fill()
+      // A bar of the accent down the left edge, so the panel reads as "this one".
+      roundedRect(ctx, x, y + 32, 10, HIGHLIGHT_HEIGHT - 64, 5)
       ctx.fillStyle = data.accent
-      ctx.beginPath()
-      ctx.arc(x + 50, y + 64, 13, 0, Math.PI * 2)
       ctx.fill()
 
-      ctx.font = font(700, 38)
-      const label = ellipsize(ctx, highlight.label, width * 0.4)
-      const labelWidth = ctx.measureText(label).width
-      ctx.fillStyle = MUTED
-      ctx.fillText(label, x + 84, y + 78)
+      ctx.font = font(800, 34)
+      ctx.fillStyle = data.accent
+      ctx.fillText(ellipsize(ctx, highlight.label, room), x + inset, y + 66)
       ctx.fillStyle = TEXT
-      const room = width - 84 - labelWidth - 24 - 36
-      ctx.font = font(700, fitSize(ctx, highlight.text, 700, 40, 32, room))
-      ctx.fillText(ellipsize(ctx, highlight.text, room), x + 84 + labelWidth + 24, y + 78)
+      ctx.font = font(800, fitSize(ctx, highlight.text, 800, 60, 36, room))
+      ctx.fillText(ellipsize(ctx, highlight.text, room), x + inset, y + 144)
     },
   }
 }
@@ -434,14 +461,14 @@ function liftsBand(ctx: Ctx, data: WorkoutCardData, width: number, maxRows: numb
 
 /** The app's mark and name, and where to find it. Small, and part of the block. */
 function drawBrand(ctx: Ctx, data: WorkoutCardData, x: number, baseline: number, width: number) {
-  drawMark(ctx, x - 10, baseline - 62, 88)
+  drawMark(ctx, x, baseline - 58, 72)
   ctx.fillStyle = TEXT
   ctx.font = font(800, 44)
-  ctx.fillText('WTX', x + 88, baseline)
+  ctx.fillText('WTX', x + 96, baseline)
   const nameWidth = ctx.measureText('WTX').width
   ctx.fillStyle = MUTED
   ctx.font = font(600, 36)
-  const host = ellipsize(ctx, data.host, width - 88 - nameWidth - 40)
+  const host = ellipsize(ctx, data.host, width - 96 - nameWidth - 40)
   ctx.fillText(host, x + width - ctx.measureText(host).width, baseline)
 }
 
@@ -460,13 +487,17 @@ function drawBands(bands: Band[], x: number, y: number) {
   }
 }
 
-/** The name, the numbers and the highlight: the part every style shares. */
+/**
+ * The name, the highlight and the numbers: the part every style shares. The
+ * highlight comes straight after the name, ahead of the totals — a record is
+ * what the share is for, the totals back it up.
+ */
 function summaryBands(ctx: Ctx, data: WorkoutCardData, width: number, titleMax: number): Band[] {
   return [
     titleBand(ctx, data, width, titleMax, 72),
-    gap(44),
+    gap(data.highlight ? 36 : 44),
+    ...(data.highlight ? [highlightBand(ctx, data, width), gap(40)] : []),
     statsBand(ctx, data, width),
-    ...(data.highlight ? [gap(20), highlightBand(ctx, data, width)] : []),
   ]
 }
 

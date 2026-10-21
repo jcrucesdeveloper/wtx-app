@@ -399,6 +399,7 @@
     "cardMore": "+{count} more",
     "cardRecordMark": "PR",
     "cardPr": "New PR",
+    "cardPrs": "{count} new PRs",
     "cardStreak": "{weeks}-week streak",
     "cardStreakLabel": "Streak"
   },

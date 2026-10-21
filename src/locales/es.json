@@ -399,6 +399,7 @@
     "cardMore": "+{count} más",
     "cardRecordMark": "PR",
     "cardPr": "Nuevo récord",
+    "cardPrs": "{count} récords nuevos",
     "cardStreak": "{weeks} semanas de racha",
     "cardStreakLabel": "Racha"
   },

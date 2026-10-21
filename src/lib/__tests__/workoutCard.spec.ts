@@ -29,6 +29,7 @@ const EN: WorkoutCardLabels = {
   exercises: 'exercises',
   volume: 'kg volume',
   record: 'New PR',
+  records: (count) => `${count} new PRs`,
   recordMark: 'PR',
   streakLabel: 'Streak',
   streak: (weeks) => `${weeks}-week streak`,
@@ -42,6 +43,7 @@ const ES: WorkoutCardLabels = {
   exercises: 'ejercicios',
   volume: 'kg de volumen',
   record: 'Nuevo récord personal',
+  records: (count) => `${count} récords nuevos`,
   recordMark: 'PR',
   streakLabel: 'Racha',
   streak: (weeks) => `Racha de ${weeks} semanas`,
@@ -142,11 +144,18 @@ describe('workoutCardContent', () => {
       weekStreak: 9,
       personalRecords: [pr('bench press', 72.5, 5), pr('Lateral Raise', 10, 15)],
     })
-    expect(data.highlight).toEqual({ label: 'New PR', text: 'bench press · 72.5 kg × 5' })
+    // Two records: the label counts them, the text shows the top one.
+    expect(data.highlight).toEqual({ label: '2 new PRs', text: 'bench press · 72.5 kg × 5' })
     expect(data.lifts.filter((l) => l.record).map((l) => l.name)).toEqual([
       'Bench Press',
       'Lateral Raise',
     ])
+    const one = content(TYPICAL, {
+      elapsedSeconds: 60,
+      weekStreak: 9,
+      personalRecords: [pr('Bench Press', 72.5, 5)],
+    })
+    expect(one.highlight?.label).toBe('New PR')
   })
 
   it('falls back to the streak, and to nothing for a streak of one', () => {
@@ -364,6 +373,20 @@ describe('drawWorkoutCard', () => {
     // No rows of lifts over a photo: no record marks, no count of the rest.
     expect(photo.texts.some((t) => t.text === 'PR' || t.text.endsWith(' more'))).toBe(false)
   })
+
+  it.each(['card', 'photo', 'sticker'] as WorkoutCardStyle[])(
+    'puts the record on the %s right under the name, above the totals',
+    (style) => {
+      const { ctx, texts } = recordingContext()
+      const data = CASES[1]![1]
+      drawWorkoutCard(ctx, data, style)
+      const title = texts.find((t) => t.text === 'Push Day')!
+      const record = texts.find((t) => t.text === data.highlight!.text)!
+      const sets = texts.find((t) => t.text === data.stats[1]!.label)!
+      expect(record.top).toBeGreaterThan(title.bottom)
+      expect(record.bottom).toBeLessThan(sets.top)
+    },
+  )
 
   it('cuts a very long name to two lines', () => {
     const { ctx, texts } = recordingContext()
