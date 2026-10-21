@@ -415,10 +415,30 @@
     "hint": {
       "card": "Una tarjeta para historias con tus números y tu mejor serie de cada ejercicio.",
       "photo": "Tus números sobre una foto tuya. La foto no sale de tu teléfono hasta que la compartes.",
-      "sticker": "Solo los números, con fondo transparente. Guárdalo y añádelo sobre una foto o un video desde tu galería."
+      "sticker": "Solo los números, con fondo transparente, para poner sobre una foto o un video en tu historia."
     },
     "choosePhoto": "Elegir una foto",
-    "changePhoto": "Cambiar foto"
+    "changePhoto": "Cambiar foto",
+    "shape": {
+      "story": "9:16",
+      "square": "1:1"
+    },
+    "destinationsAria": "Compartir en",
+    "destination": {
+      "instagram": "Instagram",
+      "whatsapp": "WhatsApp",
+      "save": {
+        "download": "Descargar",
+        "gallery": "Guardar",
+        "share-sheet": "Guardar"
+      },
+      "more": {
+        "web": "Compartir",
+        "android": "Más",
+        "ios": "Más"
+      }
+    },
+    "linkCopied": "Enlace copiado. Pégalo en el sticker de enlace de Instagram para que tus amigos encuentren WTX."
   },
   "sessionDetail": {
     "title": "Entrenamiento",
