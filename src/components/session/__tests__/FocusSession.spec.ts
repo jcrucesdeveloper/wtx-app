@@ -406,7 +406,7 @@ Dips | reps 3x10
   })
 })
 
-describe('FocusSession: the rest time in the dock', () => {
+describe('FocusSession: the rest time beside the set type', () => {
   let pinia: Pinia
   let wrapper: VueWrapper | undefined
 
@@ -430,7 +430,7 @@ describe('FocusSession: the rest time in the dock', () => {
     return wrapper
   }
 
-  const restButton = () => wrapper!.find('.dock .rest-time')
+  const restButton = () => wrapper!.find('.now__meta .rest-time')
 
   it('sits once beside the one button, not on every set', () => {
     const activeSession = startSession(pinia)
@@ -438,7 +438,8 @@ describe('FocusSession: the rest time in the dock', () => {
     mountSession()
 
     expect(wrapper!.findAll('li.set .rest-time')).toHaveLength(0)
-    expect(wrapper!.findAll('.dock .rest-time')).toHaveLength(1)
+    expect(wrapper!.findAll('.dock .rest-time')).toHaveLength(0)
+    expect(wrapper!.findAll('.now__meta .rest-time')).toHaveLength(1)
     expect(restButton().text()).toBe('1:30')
     expect(restButton().attributes('aria-label')).toBe('Rest 1:30. Change the rest timer')
   })

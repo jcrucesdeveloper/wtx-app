@@ -7,10 +7,10 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 import { formatClock } from '@/lib/format'
 
 /**
- * The exercise's rest, in the dock beside the one button: how long every set
- * of it rests (warm-ups aside), tapped to change it. One setting per
- * exercise, so it lives once, under the thumb, not on every set. It always
- * shows the setting; a running rest counts down in the timer above it.
+ * The exercise's rest, a chip beside the set's type: how long every set of it
+ * rests (warm-ups aside), tapped to change it. One setting per exercise, so
+ * it shows once, not on every set. It always shows the setting; a running
+ * rest counts down in the timer above the log button.
  */
 const props = defineProps<{ exerciseIndex: number }>()
 
@@ -34,27 +34,26 @@ const editing = ref(false)
     "
     @click="editing = true"
   >
-    <component :is="seconds ? Timer : TimerOff" :size="20" :stroke-width="2.5" />
+    <component :is="seconds ? Timer : TimerOff" :size="15" :stroke-width="2.5" />
     <span>{{ seconds ? formatClock(seconds) : t('restTimer.off') }}</span>
   </button>
   <RestTimeSheet :open="editing" :exercise-index="exerciseIndex" @close="editing = false" />
 </template>
 
 <style scoped>
-/* Quiet, like the dock's other buttons, and as tall as the one beside it. */
+/* The same pill as the set-type chip beside it. */
 .rest-time {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 88px;
-  min-height: var(--size-action);
-  padding: 0 var(--space-3);
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 12px;
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-pill);
   font: inherit;
-  font-size: var(--text-body);
+  font-size: var(--text-small);
   font-weight: var(--weight-bold);
   color: var(--color-heading);
   background: var(--color-background-mute);
