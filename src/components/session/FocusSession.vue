@@ -720,7 +720,6 @@ function onNoteInput(event: Event) {
                     isTime ? formatDurationInput(shownReps(row.set)) : shownReps(row.set)
                   }}</span>
                 </button>
-                <RestTimeButton :exercise-index="currentIndex" :set="row.set" />
                 <button
                   type="button"
                   class="set__done"
@@ -767,39 +766,43 @@ function onNoteInput(event: Event) {
       </p>
 
       <RestTimer />
-      <!-- `row__check` only so the existing capture scripts still find it. -->
-      <AppButton
-        :variant="primary === 'log' || primary === 'finish' ? 'primary' : 'quiet'"
-        size="lg"
-        block
-        class="primary-action"
-        :class="{ row__check: primary === 'log' }"
-        @click="onPrimary"
-      >
-        <template v-if="primary === 'log'">
-          <Check :size="20" :stroke-width="3" />
-          {{
-            currentSet?.set.type === 'number'
-              ? t('workout.logSet', { n: currentSet.label })
-              : t(`workout.logSetType.${currentSet?.set.type}`)
-          }}
-        </template>
-        <template v-else-if="primary === 'edited'">
-          <Check :size="20" :stroke-width="3" />
-          {{ t('workout.doneEditing') }}
-        </template>
-        <template v-else-if="primary === 'add'">
-          <Plus :size="20" :stroke-width="2.5" />
-          {{ t('session.activeExerciseCard.addSet') }}
-        </template>
-        <template v-else-if="primary === 'next'">{{
-          t('workout.nextExercise', { name: nextName })
-        }}</template>
-        <template v-else>
-          <Check :size="20" :stroke-width="3" />
-          {{ t('workout.finishWorkout') }}
-        </template>
-      </AppButton>
+      <!-- The exercise's rest beside the one button: a setting per exercise, so it is here once. -->
+      <div class="dock__row">
+        <RestTimeButton v-if="primary !== 'finish'" :exercise-index="currentIndex" />
+        <!-- `row__check` only so the existing capture scripts still find it. -->
+        <AppButton
+          :variant="primary === 'log' || primary === 'finish' ? 'primary' : 'quiet'"
+          size="lg"
+          block
+          class="primary-action"
+          :class="{ row__check: primary === 'log' }"
+          @click="onPrimary"
+        >
+          <template v-if="primary === 'log'">
+            <Check :size="20" :stroke-width="3" />
+            {{
+              currentSet?.set.type === 'number'
+                ? t('workout.logSet', { n: currentSet.label })
+                : t(`workout.logSetType.${currentSet?.set.type}`)
+            }}
+          </template>
+          <template v-else-if="primary === 'edited'">
+            <Check :size="20" :stroke-width="3" />
+            {{ t('workout.doneEditing') }}
+          </template>
+          <template v-else-if="primary === 'add'">
+            <Plus :size="20" :stroke-width="2.5" />
+            {{ t('session.activeExerciseCard.addSet') }}
+          </template>
+          <template v-else-if="primary === 'next'">{{
+            t('workout.nextExercise', { name: nextName })
+          }}</template>
+          <template v-else>
+            <Check :size="20" :stroke-width="3" />
+            {{ t('workout.finishWorkout') }}
+          </template>
+        </AppButton>
+      </div>
     </div>
 
     <WorkoutOverviewSheet
@@ -1141,7 +1144,6 @@ button.where__now:active {
 .sets {
   /* Previous is only as wide as its text; the two numbers share the rest. */
   --set-columns: 36px 80px minmax(0, 1.4fr) minmax(0, 1fr);
-  --rest-time-width: 60px;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -1157,8 +1159,8 @@ button.where__now:active {
 }
 
 .sets__head {
-  /* Lines up with the rows: their inset on the left, their rest and check on the right. */
-  padding: 0 calc(var(--rest-time-width) + var(--size-touch) + 2 * var(--space-1)) 0 var(--space-2);
+  /* Lines up with the rows: their inset on the left, their check on the right. */
+  padding: 0 calc(var(--size-touch) + var(--space-1)) 0 var(--space-2);
   font-size: var(--text-micro);
   font-weight: var(--weight-medium);
 }
@@ -1357,6 +1359,17 @@ button.where__now:active {
   padding: 12px 20px 16px;
   border-top: 1px solid var(--color-border);
   background: var(--color-background);
+}
+
+/* Rest and the one button, side by side; the button takes what is left. */
+.dock__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.dock__row > .primary-action {
+  flex: 1;
+  min-width: 0;
 }
 
 /* A set just deleted: what went, and the way back, for a few seconds. Quiet,
