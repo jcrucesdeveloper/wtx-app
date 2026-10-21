@@ -283,8 +283,13 @@ const CONTENT_WIDTH = CARD_WIDTH - MARGIN_X * 2
 /** The baseline of the brand row: the last thing above a story's reply bar. */
 const brandBaseline = (frame: WorkoutCardFrame) => frame.height - frame.safeBottom - 44
 const LIFT_ROW = 88
-/** The smallest a row gets when every lift is asked for: still readable on a phone. */
-const COMPACT_LIFT_ROW = 60
+/**
+ * The smallest a row gets when every lift is asked for. At 66 the names stay
+ * about 11 pt on a 390 pt wide phone, the size iOS treats as its smallest:
+ * glance legibility drops sharply as text shrinks, and more so for light text
+ * on dark (Dobres et al. 2016, Ergonomics).
+ */
+const COMPACT_LIFT_ROW = 66
 /** Fewer rows than this and the lifts are left off: one lift and a "+N more" says less than none. */
 const MIN_LIFT_ROWS = 2
 const STICKER_PADDING = 64
@@ -492,7 +497,8 @@ function liftsBand(
 
         let right = x + width - detailWidth - 28
         if (lift.record) {
-          ctx.font = font(800, size(30))
+          // The record mark never shrinks: it is already the smallest text on the card.
+          ctx.font = font(800, 30)
           const markWidth = ctx.measureText(data.recordLabel).width
           ctx.fillStyle = data.accent
           ctx.fillText(data.recordLabel, right - markWidth, baseline - 3)
