@@ -309,7 +309,8 @@ function drawMark(ctx: Ctx, x: number, y: number, size: number) {
   roundedRect(ctx, x, y, size, size, size * 0.24)
   ctx.fillStyle = ICON_TILE
   ctx.fill()
-  ctx.strokeStyle = HAIRLINE
+  // The tile is nearly the card's own dark: an edge keeps it an icon.
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.32)'
   ctx.lineWidth = 3
   ctx.stroke()
   const u = size / 100
