@@ -5,6 +5,7 @@ import { createPinia, setActivePinia, type Pinia } from 'pinia'
 import { i18n } from '@/i18n'
 import { useRoutinesStore } from '@/stores/routines'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { LONG_PRESS_MS } from '@/composables/useLongPress'
 import FocusSession from '../FocusSession.vue'
 
 vi.mock('@/services/supabase', () => ({
@@ -168,38 +169,79 @@ describe('FocusSession: deleting a set', () => {
     const event = new MouseEvent(type, { bubbles: true, cancelable: true, clientX, clientY })
     Object.defineProperty(event, 'pointerType', { value: 'touch' })
     Object.defineProperty(event, 'pointerId', { value: 1 })
+    Object.defineProperty(event, 'isPrimary', { value: true })
     el.dispatchEvent(event)
   }
 
-  async function swipeLeft(index: number) {
-    const slide = rows()[index]!.find('.swipe__slide').element
-    pointer(slide, 'pointerdown', 300, 100)
-    pointer(slide, 'pointermove', 260, 101)
-    pointer(slide, 'pointermove', 180, 102)
-    pointer(slide, 'pointerup', 180, 102)
-    // The click the end of a drag produces.
+  /** Presses a row for `ms`, lets go, and sends the click a release does. */
+  async function press(index: number, ms = LONG_PRESS_MS) {
+    vi.useFakeTimers()
+    const el = rows()[index]!.find('.set__hold').element
+    pointer(el, 'pointerdown', 100, 100)
+    vi.advanceTimersByTime(ms)
+    pointer(el, 'pointerup', 100, 100)
     await rows()[index]!.find('.set__prev').trigger('click')
   }
 
-  it('slides a row open to its Delete without picking the set', async () => {
+  /** A row of the open sheet, by its label. */
+  function menuItem(label: string) {
+    return [...document.querySelectorAll<HTMLButtonElement>('button')].find(
+      (b) => b.querySelector('.row__label')?.textContent?.trim() === label,
+    )
+  }
+  const menuTitle = () => document.querySelector('.sheet__head h2')?.textContent?.trim()
+
+  it("holding a row opens its set's menu without picking the set", async () => {
     startSession(pinia)
     mountSession()
 
-    await swipeLeft(1)
+    await press(1)
 
-    expect(rows()[1]!.find('.swipe__action').classes()).toContain('swipe__action--shown')
+    expect(menuTitle()).toBe('Set 2')
+    expect(menuItem('Delete set 2')).toBeDefined()
+    expect(rows()[1]!.classes()).toContain('set--held')
     expect(rows()[0]!.classes()).toContain('set--current')
   })
 
-  it('deletes the set from its Delete, and offers it back', async () => {
+  it('a quick tap still picks the set, and a drag opens nothing', async () => {
+    startSession(pinia)
+    mountSession()
+
+    // A scroll that started on the row: it moved, so holding on is no press.
+    vi.useFakeTimers()
+    const el = rows()[1]!.find('.set__hold').element
+    pointer(el, 'pointerdown', 100, 100)
+    pointer(el, 'pointermove', 100, 130)
+    vi.advanceTimersByTime(LONG_PRESS_MS * 2)
+    await nextTick()
+    expect(menuTitle()).toBeUndefined()
+    expect(rows()[1]!.classes()).not.toContain('set--pressing')
+
+    await press(2, 120)
+    expect(menuTitle()).toBeUndefined()
+    expect(rows()[2]!.classes()).toContain('set--current')
+  })
+
+  it('opens the same menu on a right-click', async () => {
+    startSession(pinia)
+    mountSession()
+
+    await rows()[1]!.find('.set__hold').trigger('contextmenu')
+
+    expect(menuTitle()).toBe('Set 2')
+  })
+
+  it('deletes the set from its menu, and offers it back', async () => {
     const activeSession = startSession(pinia)
     mountSession()
     const second = activeSession.session!.draft.exercises[0]!.loggedSets[1]!.id
 
-    await swipeLeft(1)
-    await rows()[1]!.find('.swipe__action').trigger('click')
+    await press(1)
+    menuItem('Delete set 2')!.click()
+    await nextTick()
 
     expect(labels()).toEqual(['1', '2'])
+    expect(menuTitle()).toBeUndefined()
     expect(wrapper!.find('.undo').text()).toContain('Set 2 deleted')
 
     await wrapper!.find('.undo__btn').trigger('click')
@@ -209,13 +251,28 @@ describe('FocusSession: deleting a set', () => {
     expect(wrapper!.find('.undo').exists()).toBe(false)
   })
 
-  it('stops offering the undo after a few seconds', async () => {
-    vi.useFakeTimers()
+  it('makes the held set a warm-up or a drop set from its menu', async () => {
     startSession(pinia)
     mountSession()
 
-    await swipeLeft(0)
-    await rows()[0]!.find('.swipe__action').trigger('click')
+    await press(1)
+    menuItem('Drop set')!.click()
+    await nextTick()
+    expect(labels()).toEqual(['1', 'D', '2'])
+
+    await press(0)
+    menuItem('Warm-up')!.click()
+    await nextTick()
+    expect(labels()).toEqual(['W', 'D', '1'])
+  })
+
+  it('stops offering the undo after a few seconds', async () => {
+    startSession(pinia)
+    mountSession()
+
+    await press(0)
+    menuItem('Delete set 1')!.click()
+    await nextTick()
     expect(wrapper!.find('.undo').exists()).toBe(true)
 
     vi.advanceTimersByTime(8000)
@@ -249,8 +306,9 @@ describe('FocusSession: deleting a set', () => {
     activeSession.completeSet(0, sets[1]!.id)
     await nextTick()
 
-    await swipeLeft(2)
-    await rows()[2]!.find('.swipe__action').trigger('click')
+    await press(2)
+    menuItem('Delete set 3')!.click()
+    await nextTick()
 
     expect(wrapper!.find('.now__name').text()).toBe('Bench Press')
     expect(wrapper!.find('.primary-action').text()).toContain('Next')
