@@ -47,6 +47,7 @@
       "D": "Log drop set"
     },
     "nextExercise": "Next: {name}",
+    "upNext": "Up next",
     "finishWorkout": "Finish workout",
     "setType": {
       "number": "Working set",

@@ -24,6 +24,7 @@ import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import TimedSetField from '@/components/session/TimedSetField.vue'
 import ExerciseKindRow from '@/components/session/ExerciseKindRow.vue'
 import SwipeToDelete from '@/components/session/SwipeToDelete.vue'
+import UpNextCard from '@/components/session/UpNextCard.vue'
 import { formatDurationInput } from '@/lib/durationInput'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useSessionsStore } from '@/stores/sessions'
@@ -44,6 +45,11 @@ import type { SessionExerciseDraft, SessionSetDraft } from '@/lib/serializeSessi
  * that removes work sits in the scroll path: an exercise goes from its menu,
  * and asks first; a single set slides aside to show its Delete (or goes from
  * the same menu) and doesn't ask — it can be undone for a few seconds.
+ *
+ * Finishing an exercise never moves the screen by itself: the last set's tap
+ * leaves you on that exercise, every set ticked, with what comes next under
+ * it and the button saying "Next: …" — time to walk over to the machine
+ * while the rest runs. Moving on is the next tap.
  *
  * Nothing here waits on an animation: every tap changes state at once, and
  * motion only follows it. Celebration mid-workout is a line and a buzz, never
@@ -77,9 +83,10 @@ const firstOpenIndex = computed(() => exercises.value.findIndex((e) => !isDone(e
 const allDone = computed(() => exercises.value.length > 0 && firstOpenIndex.value === -1)
 
 /**
- * Set when the user taps another exercise; cleared once that exercise is
- * finished. The exercise itself, not its index, so it stays put when the
- * list is reordered around it.
+ * Set when the user taps another exercise, or finishes the one on screen (so
+ * the screen stays on it until "Next"); cleared by that "Next". The exercise
+ * itself, not its index, so it stays put when the list is reordered around it.
+ * Kept in the component only: a reload in between lands on the next exercise.
  */
 const pickedExercise = ref<SessionExerciseDraft | null>(null)
 const pickedIndex = computed(() =>
@@ -247,6 +254,9 @@ function logSet(target = currentSet.value) {
   } else {
     void HapticsService.light()
   }
+
+  // Its last set: stay on it, done, until "Next" — never a jump under the thumb.
+  if (exercise && isDone(exercise)) pickedExercise.value = exercise
 
   pickedSetId.value = null
   justLoggedId.value = set.id
@@ -440,8 +450,9 @@ function focusExercise(index: number) {
 }
 
 /**
- * The one button: log the set, move on once an exercise is done, finish at
- * the end. An exercise left with no sets can only be given one.
+ * The one button: log the set, move on once an exercise is done (a tap of
+ * its own, after the last set's), finish at the end. An exercise left with no
+ * sets can only be given one.
  */
 const primary = computed<'log' | 'edited' | 'add' | 'next' | 'finish'>(() => {
   // A logged set opened to correct it: the button closes it again.
@@ -458,10 +469,9 @@ function onPrimary() {
   else emit('finish')
 }
 
-const nextName = computed(() => {
-  const next = exercises.value[firstOpenIndex.value]
-  return next ? exerciseName(next.name) : ''
-})
+/** Where "Next" goes: the first exercise not done, wherever it sits. */
+const nextExercise = computed(() => exercises.value[firstOpenIndex.value])
+const nextName = computed(() => (nextExercise.value ? exerciseName(nextExercise.value.name) : ''))
 
 /** One segment per exercise, filled by the share of its sets that are logged. */
 const segments = computed(() =>
@@ -752,6 +762,13 @@ function onNoteInput(event: Event) {
     </section>
 
     <div class="dock">
+      <!-- Between exercises: what's next, to walk over to while resting. -->
+      <UpNextCard
+        v-if="primary === 'next' && nextExercise"
+        :exercise="nextExercise"
+        :unit="unit"
+      />
+
       <p v-if="recordFlash !== null" class="record" role="status">
         <Trophy :size="18" :stroke-width="2.25" />
         {{ t('workout.newRecord', { weight: recordFlash, unit }) }}

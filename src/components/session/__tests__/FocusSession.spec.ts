@@ -418,3 +418,118 @@ describe('FocusSession: the rest time in the dock', () => {
     expect(document.body.querySelector('[role="dialog"][aria-label="Rest timer"]')).not.toBeNull()
   })
 })
+
+describe('FocusSession: a step between exercises', () => {
+  const TWO = `# Push Day
+unit: kg
+
+Bench Press | reps 2x8 | 60 | rest 1m30s
+Overhead Press | reps 3x10 | 40
+`
+  let pinia: Pinia
+  let wrapper: VueWrapper | undefined
+
+  beforeEach(() => {
+    localStorage.clear()
+    i18n.global.locale.value = 'en'
+    pinia = createPinia()
+    setActivePinia(pinia)
+    Element.prototype.scrollIntoView = vi.fn<() => void>()
+  })
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+  })
+
+  function start(source = TWO, options?: { roomId: string }) {
+    const routines = useRoutinesStore()
+    const activeSession = useActiveSessionStore()
+    const routine = routines.add(source, '')
+    const parsed = routines.parsed(routine.id)
+    if (!parsed?.ok) throw new Error('routine should parse')
+    activeSession.start(routine, parsed.template, options)
+    wrapper = mount(FocusSession, { attachTo: document.body, global: { plugins: [pinia, i18n] } })
+    return activeSession
+  }
+
+  const shown = () => wrapper!.find('.now__name').text()
+  const primary = () => wrapper!.find('.primary-action')
+  const rows = () => wrapper!.findAll('li.set')
+
+  /** Logs every open set of the exercise on screen with the big button. */
+  async function logAll() {
+    while (primary().text().startsWith('Log')) await primary().trigger('click')
+  }
+
+  it('stays on a finished exercise, with what comes next, until Next is tapped', async () => {
+    const activeSession = start()
+    await logAll()
+
+    expect(shown()).toBe('Bench Press')
+    expect(rows().every((row) => row.classes().includes('set--done'))).toBe(true)
+    expect(primary().text()).toBe('Next: Overhead Press')
+    const card = wrapper!.find('.up-next')
+    expect(card.text()).toContain('Up next')
+    expect(card.text()).toContain('Overhead Press')
+    expect(card.text()).toContain('3 × 10 · 40 kg')
+    // The rest after the last set keeps running through the step.
+    expect(activeSession.session!.restEndsAt).not.toBeNull()
+
+    await primary().trigger('click')
+    expect(shown()).toBe('Overhead Press')
+    expect(primary().text()).toContain('Log set 1')
+    expect(wrapper!.find('.up-next').exists()).toBe(false)
+    expect(activeSession.session!.restEndsAt).not.toBeNull()
+  })
+
+  it('finishes from the last exercise, with no step after it', async () => {
+    start()
+    await logAll()
+    await primary().trigger('click')
+    await logAll()
+
+    expect(shown()).toBe('Overhead Press')
+    expect(primary().text()).toBe('Finish workout')
+    expect(wrapper!.find('.up-next').exists()).toBe(false)
+    await primary().trigger('click')
+    expect(wrapper!.emitted('finish')).toHaveLength(1)
+  })
+
+  it('goes back to editing a set taken back in the step, without moving on', async () => {
+    start()
+    await logAll()
+
+    await rows()[1]!.find('.set__done').trigger('click')
+    expect(shown()).toBe('Bench Press')
+    expect(primary().text()).toBe('Log set 2')
+    expect(wrapper!.find('.up-next').exists()).toBe(false)
+
+    await primary().trigger('click')
+    expect(shown()).toBe('Bench Press')
+    expect(primary().text()).toBe('Next: Overhead Press')
+  })
+
+  it('logs a set added in the step, and still waits for Next', async () => {
+    start()
+    await logAll()
+
+    await wrapper!.find('.sets__add').trigger('click')
+    expect(primary().text()).toBe('Log set 3')
+    await primary().trigger('click')
+    expect(shown()).toBe('Bench Press')
+    expect(primary().text()).toBe('Next: Overhead Press')
+  })
+
+  it('stays on the finished exercise when the host reorders the workout', async () => {
+    const activeSession = start(TWO, { roomId: 'room-1' })
+    await logAll()
+
+    activeSession.followRoomOrder([1, 0], 1)
+    await nextTick()
+    expect(shown()).toBe('Bench Press')
+    expect(primary().text()).toBe('Next: Overhead Press')
+
+    await primary().trigger('click')
+    expect(shown()).toBe('Overhead Press')
+  })
+})
