@@ -2,6 +2,8 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { PersonalRecord } from '@/lib/sessionRecords'
+import type { SessionComparison } from '@/lib/sessionComparisons'
+import { formatNumber } from '@/lib/format'
 import { publicOrigin, publicRouteUrl } from '@/lib/publicUrl'
 import { workoutCardContent, type WorkoutCardData } from '@/lib/workoutCard'
 import { useThemeStore } from '@/stores/theme'
@@ -12,6 +14,8 @@ export interface WorkoutShareRecap {
   elapsedSeconds: number
   weekStreak: number
   personalRecords: PersonalRecord[]
+  /** Against the last time this routine was logged; absent the first time. */
+  comparison?: SessionComparison | null
 }
 
 /**
@@ -31,7 +35,7 @@ export function useWorkoutShare(
   const theme = useThemeStore()
   const { exerciseName } = useExerciseName()
 
-  // Leads with the most exciting fact — a fresh PR beats a plain streak count.
+  // Leads with the same fact as the card: a PR, else progress, else a streak.
   const caption = computed(() => {
     const s = toValue(session)
     if (!s) return ''
@@ -53,6 +57,13 @@ export function useWorkoutShare(
           reps: topPr.reps,
         }),
       )
+    } else if (r?.comparison?.isVolumeUp && r.comparison.volumeDelta > 0) {
+      lines.push(
+        t('sessionComplete.shareProgress', {
+          volume: formatNumber(r.comparison.volumeDelta),
+          unit: s.unit,
+        }),
+      )
     } else if (r && r.weekStreak >= 2) {
       lines.push(t('sessionComplete.shareStreak', { weeks: r.weekStreak }))
     }
@@ -61,7 +72,7 @@ export function useWorkoutShare(
     return lines.join('\n')
   })
 
-  /** What goes on the shared image: the numbers, the lifts, and the top record or the streak. */
+  /** What goes on the shared image: the numbers, the lifts, and the one fact worth leading with. */
   const cardData = computed<WorkoutCardData | null>(() => {
     const s = toValue(session)
     if (!s) return null
@@ -82,6 +93,8 @@ export function useWorkoutShare(
         recordMark: t('sessionComplete.cardRecordMark'),
         streakLabel: t('sessionComplete.cardStreakLabel'),
         streak: (weeks) => t('sessionComplete.cardStreak', { weeks }),
+        progressLabel: t('sessionComplete.cardProgressLabel'),
+        progress: (volume) => t('sessionComplete.cardProgress', { volume, unit: s.unit }),
         more: (count) => t('sessionComplete.cardMore', { count }),
       },
     })

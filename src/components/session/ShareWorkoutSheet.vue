@@ -15,6 +15,7 @@ import BottomSheet from '@/components/ui/BottomSheet.vue'
 import {
   paintWorkoutCard,
   renderWorkoutCard,
+  TOP_LIFTS,
   type WorkoutCardData,
   type WorkoutCardFormat,
   type WorkoutCardStyle,
@@ -88,13 +89,26 @@ const notice = ref('')
 const needsPhoto = computed(() => style.value === 'photo' && !photo.value)
 const blocked = computed(() => !!busy.value || !props.data || needsPhoto.value)
 
-async function paint() {
-  await nextTick()
-  if (!props.open || !props.data || !canvas.value) return
-  paintWorkoutCard(canvas.value, props.data, style.value, photo.value ?? undefined, format.value)
+/** Every lift instead of the top few: only the Lifts look lists them. */
+const allLifts = ref(false)
+const offerAllLifts = computed(
+  () => style.value === 'card' && (props.data?.lifts.length ?? 0) > TOP_LIFTS,
+)
+/** What is drawn and shared: the card as the parent built it, with the lift choice. */
+const shown = computed(() => (props.data ? { ...props.data, allLifts: allLifts.value } : null))
+
+function pickLifts(all: boolean) {
+  allLifts.value = all
+  void HapticsService.selection()
 }
 
-watch(() => [props.open, props.data, style.value, format.value, photo.value], paint, {
+async function paint() {
+  await nextTick()
+  if (!props.open || !shown.value || !canvas.value) return
+  paintWorkoutCard(canvas.value, shown.value, style.value, photo.value ?? undefined, format.value)
+}
+
+watch(() => [props.open, shown.value, style.value, format.value, photo.value], paint, {
   immediate: true,
 })
 watch(
@@ -146,7 +160,7 @@ function removePhoto() {
 }
 
 const render = () =>
-  renderWorkoutCard(props.data!, style.value, photo.value ?? undefined, format.value)
+  renderWorkoutCard(shown.value!, style.value, photo.value ?? undefined, format.value)
 
 /** Runs one destination with the sheet locked, and a notice if the image can't be made. */
 async function run(destination: ShareDestination, action: () => Promise<void>) {
@@ -251,6 +265,33 @@ function label(destination: ShareDestination): string {
           @click="pickFormat(option)"
         >
           {{ t(`shareCard.shape.${option}`) }}
+        </button>
+      </div>
+
+      <!-- How many lifts, on the image it changes: a summary by default. -->
+      <div
+        v-if="offerAllLifts"
+        class="shape shape--lifts"
+        role="radiogroup"
+        :aria-label="t('shareCard.lifts.aria')"
+      >
+        <button
+          type="button"
+          class="shape__option"
+          role="radio"
+          :aria-checked="!allLifts"
+          @click="pickLifts(false)"
+        >
+          {{ t('shareCard.lifts.top') }}
+        </button>
+        <button
+          type="button"
+          class="shape__option"
+          role="radio"
+          :aria-checked="allLifts"
+          @click="pickLifts(true)"
+        >
+          {{ t('shareCard.lifts.all', { count: data?.lifts.length ?? 0 }) }}
         </button>
       </div>
 
@@ -428,6 +469,11 @@ function label(destination: ShareDestination): string {
   border-radius: var(--radius-pill);
   background: rgba(15, 16, 18, 0.72);
   backdrop-filter: blur(6px);
+}
+
+.shape--lifts {
+  right: auto;
+  left: var(--space-3);
 }
 
 .shape__option {
