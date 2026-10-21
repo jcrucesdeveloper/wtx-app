@@ -18,7 +18,7 @@ function pointer(overrides: Partial<PointerEvent> = {}): PointerEvent {
 let wrapper: VueWrapper | undefined
 
 function setup() {
-  const onLongPress = vi.fn()
+  const onLongPress = vi.fn<(key: string) => void>()
   let api!: ReturnType<typeof useLongPress<string>>
   wrapper = mount(
     defineComponent({
@@ -32,9 +32,9 @@ function setup() {
 }
 
 /** A click the way the browser sends it, bubbling from a button in the page. */
-function clickInPage(): { clicked: ReturnType<typeof vi.fn>; event: MouseEvent } {
+function clickInPage(): { clicked: ReturnType<typeof vi.fn<() => void>>; event: MouseEvent } {
   const button = document.createElement('button')
-  const clicked = vi.fn()
+  const clicked = vi.fn<() => void>()
   button.addEventListener('click', clicked)
   document.body.append(button)
   const event = new MouseEvent('click', { bubbles: true, cancelable: true })
