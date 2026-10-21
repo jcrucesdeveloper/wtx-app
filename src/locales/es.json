@@ -1215,10 +1215,7 @@
   },
   "finishShare": {
     "promptTitle": "Comparte tu entrenamiento",
-    "promptBody": "Súbelo a tu historia o mándaselo a un amigo, con una foto del gym si quieres.",
-    "addPhoto": "Añadir foto",
-    "share": "Compartir",
-    "previewAria": "Vista previa de tu tarjeta de entrenamiento. Abre las opciones para compartir.",
+    "promptBody": "Súbelo a tu historia o mándaselo a un amigo.",
     "camera": "Cámara",
     "gallery": "Galería",
     "removePhoto": "Quitar foto",

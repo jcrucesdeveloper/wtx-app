@@ -1215,10 +1215,7 @@
   },
   "finishShare": {
     "promptTitle": "Share your workout",
-    "promptBody": "Post it to your story or send it to a friend, with a photo from the gym if you like.",
-    "addPhoto": "Add a photo",
-    "share": "Share",
-    "previewAria": "Preview of your workout card. Opens the share options.",
+    "promptBody": "Post it to your story or send it to a friend.",
     "camera": "Camera",
     "gallery": "Gallery",
     "removePhoto": "Remove photo",
