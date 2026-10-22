@@ -6,8 +6,10 @@ import {
   mergeRoomRow,
   needsReorder,
   normalizeOrder,
+  normalizeRemoved,
   orderedRoutine,
   sameOrder,
+  splitRemoved,
 } from '@/lib/roomOrder'
 
 const ex = (name: string, slot?: number) => ({ name, ...(slot === undefined ? {} : { slot }) })
@@ -135,5 +137,34 @@ describe('mergeRoomRow', () => {
 
   it('treats a server without the order columns as version 0', () => {
     expect(mergeRoomRow(row(undefined, null), row(undefined, null, 'finished'))).toEqual(row(undefined, null, 'finished'))
+  })
+})
+
+describe('removed slots', () => {
+  it('normalizes what the server holds', () => {
+    expect(normalizeRemoved(null, 3)).toEqual([])
+    expect(normalizeRemoved([2, 2, 'x', -1, 9, 0], 3)).toEqual([0, 2])
+  })
+
+  it('leaves removed slots out of the routine, in the room order', () => {
+    expect(orderedRoutine(['a', 'b', 'c'], [2, 0, 1], [0])).toEqual(['c', 'b'])
+    expect(orderedRoutine(['a', 'b', 'c'], null, undefined)).toEqual(['a', 'b', 'c'])
+  })
+
+  it('drops untouched exercises in removed slots and keeps the ones with sets logged', () => {
+    const done = { name: 'a', slot: 0, loggedSets: [{ completed: true }, { completed: false }] }
+    const fresh = { name: 'b', slot: 1, loggedSets: [{ completed: false }] }
+    const stays = { name: 'c', slot: 2, loggedSets: [] }
+    const own = { name: 'd', loggedSets: [] }
+    expect(splitRemoved([done, fresh, stays, own], [0, 1])).toEqual({ drop: [fresh], keep: [done] })
+  })
+})
+
+describe('mergeRoomRow with removed slots', () => {
+  it('keeps the removed slots held here when the incoming row is stale', () => {
+    const held = { status: 'active', exercise_order: [1, 0], removed_slots: [1], order_version: 4 }
+    const stale = { status: 'active', exercise_order: [0, 1], removed_slots: [], order_version: 3 }
+    expect(mergeRoomRow(held, stale).removed_slots).toEqual([1])
+    expect(mergeRoomRow(stale, held).removed_slots).toEqual([1])
   })
 })

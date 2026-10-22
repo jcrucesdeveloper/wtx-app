@@ -47,7 +47,12 @@ export type RoomRow = {
    * the routine as written. Optional so a server without the column still reads.
    */
   exercise_order?: number[] | null
-  /** Goes up with every reorder; an older one is never applied over a newer one. */
+  /**
+   * Routine slots the host removed for everyone. Optional so a server without
+   * the column still reads.
+   */
+  removed_slots?: number[] | null
+  /** Goes up with every reorder or removal; an older one is never applied over a newer one. */
   order_version?: number
 }
 
@@ -344,6 +349,10 @@ export type Database = {
       }
       set_room_exercise_order: {
         Args: { p_room_id: string; p_order: number[] }
+        Returns: RoomRow
+      }
+      set_room_plan: {
+        Args: { p_room_id: string; p_order: number[]; p_removed: number[] }
         Returns: RoomRow
       }
       join_room: {

@@ -150,7 +150,7 @@ describe('room store: the host owns the exercise order', () => {
     expect(names()).toEqual(['Dips', 'Bench Press', 'Overhead Press'])
   })
 
-  it("keeps a slot the host removed in the room order, for guests who still have it", async () => {
+  it('keeps a slot the host removed in the room order, and marks it removed for everyone', async () => {
     signIn('host')
     const room = useRoomStore()
     room.room = roomRow()
@@ -159,9 +159,13 @@ describe('room store: the host owns the exercise order', () => {
     rpc.mockResolvedValue({ data: null, error: null })
     const active = useActiveSessionStore()
     active.removeExercise(1) // Overhead Press
+    expect(rpc).toHaveBeenLastCalledWith('set_room_plan', { p_room_id: 'room-1', p_order: [0, 1, 2], p_removed: [1] })
+    await flush()
     const [a, c] = active.session!.draft.exercises
     active.reorderExercises([c!, a!])
-    expect(rpc).toHaveBeenCalledWith('set_room_exercise_order', { p_room_id: 'room-1', p_order: [2, 0, 1] })
+    await flush()
+    expect(rpc).toHaveBeenLastCalledWith('set_room_plan', { p_room_id: 'room-1', p_order: [2, 0, 1], p_removed: [1] })
+    expect(room.routineExercises.map((e) => e.name)).toEqual(['Dips', 'Bench Press'])
   })
 
   it('sends only the latest order when the host reorders again while a write is in flight', async () => {
@@ -198,5 +202,141 @@ describe('room store: the host owns the exercise order', () => {
     const room = useRoomStore()
     room.room = roomRow({ exercise_order: [1, 0, 2], order_version: 1 })
     expect(room.routineExercises.map((e) => e.name)).toEqual(['Overhead Press', 'Bench Press', 'Dips'])
+  })
+})
+
+describe('room store: the host removes routine exercises for everyone', () => {
+  let routineId: string
+
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('wtx:routines', '[]')
+    setActivePinia(createPinia())
+    rpc.mockReset()
+    routineId = useRoutinesStore().add(ROUTINE, 'push-day.wtt').id
+  })
+
+  function signIn(id: string) {
+    useAuthStore().session = { user: { id } } as unknown as Session
+  }
+
+  function startWorkout() {
+    const routines = useRoutinesStore()
+    const parsed = routines.parsed(routineId)
+    if (!parsed?.ok) throw new Error('routine did not parse')
+    useActiveSessionStore().start(routines.getById(routineId)!, parsed.template, { roomId: 'room-1' })
+  }
+
+  const names = () => useActiveSessionStore().session!.draft.exercises.map((e) => e.name)
+
+  it("drops the host's removed exercise from a guest's session mid-workout, and says so", async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow()
+    startWorkout()
+    await flush()
+
+    room.room = roomRow({ removed_slots: [1], order_version: 1 })
+    await flush()
+    expect(names()).toEqual(['Bench Press', 'Dips'])
+    expect(room.routineExercises.map((e) => e.name)).toEqual(['Bench Press', 'Dips'])
+    expect(room.events.filter((e) => e.kind === 'exercise-removed')).toMatchObject([
+      { from: 'host', exercise: 'Overhead Press', kept: false },
+    ])
+  })
+
+  it('keeps the sets a guest already logged on a removed exercise, as their own exercise', async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow()
+    startWorkout()
+    await flush()
+    const active = useActiveSessionStore()
+    const ohp = active.session!.draft.exercises[1]!
+    active.completeSet(1, ohp.loggedSets[0]!.id)
+
+    room.room = roomRow({ removed_slots: [1], order_version: 1 })
+    await flush()
+    expect(names()).toEqual(['Bench Press', 'Overhead Press', 'Dips'])
+    // Only what was lifted stays; it's no longer the routine's.
+    expect(ohp.loggedSets.map((s) => s.completed)).toEqual([true])
+    expect(ohp.slot).toBeUndefined()
+    expect(room.events.filter((e) => e.kind === 'exercise-removed')).toMatchObject([
+      { exercise: 'Overhead Press', kept: true },
+    ])
+
+    // The host reorders later: the kept exercise rides with the one before it.
+    room.room = roomRow({ removed_slots: [1], exercise_order: [2, 0, 1], order_version: 2 })
+    await flush()
+    expect(names()).toEqual(['Dips', 'Bench Press', 'Overhead Press'])
+  })
+
+  it("gives a late joiner the host's routine, removals and order, without toasts", async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow({ exercise_order: [2, 1, 0], removed_slots: [1], order_version: 4 })
+    startWorkout()
+    await flush()
+    expect(names()).toEqual(['Dips', 'Bench Press'])
+    expect(useActiveSessionStore().session!.orderVersion).toBe(4)
+    expect(room.events).toEqual([])
+  })
+
+  it("won't let a guest remove a routine exercise, but lets them remove one they added", async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow()
+    startWorkout()
+    await flush()
+    const active = useActiveSessionStore()
+    expect(active.canReorder).toBe(false)
+    expect(active.canRemoveExercise(0)).toBe(false)
+    active.removeExercise(0)
+    expect(names()).toEqual(['Bench Press', 'Overhead Press', 'Dips'])
+
+    active.addExercise('Push-up')
+    expect(active.canRemoveExercise(3)).toBe(true)
+    active.removeExercise(3)
+    expect(names()).toEqual(['Bench Press', 'Overhead Press', 'Dips'])
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('locks the shared routine until the room has loaded, even for the host', async () => {
+    signIn('host')
+    startWorkout()
+    await flush()
+    const active = useActiveSessionStore()
+    expect(active.canReorder).toBe(false)
+    expect(active.canRemoveExercise(0)).toBe(false)
+
+    useRoomStore().room = roomRow()
+    await flush()
+    expect(active.canReorder).toBe(true)
+    expect(active.canRemoveExercise(0)).toBe(true)
+  })
+
+  it("doesn't publish when the host removes an exercise they added", async () => {
+    signIn('host')
+    const room = useRoomStore()
+    room.room = roomRow()
+    startWorkout()
+    await flush()
+    const active = useActiveSessionStore()
+    active.addExercise('Push-up')
+    active.removeExercise(3)
+    expect(rpc).not.toHaveBeenCalled()
+    expect(room.removedSlots).toEqual([])
+  })
+
+  it("never lets a stale row bring back a guest's removed exercise", async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow({ removed_slots: [0], order_version: 2 })
+    startWorkout()
+    await flush()
+    expect(names()).toEqual(['Overhead Press', 'Dips'])
+    room.room = roomRow({ removed_slots: [], order_version: 1 })
+    await flush()
+    expect(names()).toEqual(['Overhead Press', 'Dips'])
   })
 })

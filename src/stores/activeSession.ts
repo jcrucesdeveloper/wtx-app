@@ -17,7 +17,7 @@ import { isTimeExercise } from '@/lib/sessionTime'
 import type { WorkoutTemplate } from '@/lib/wtx'
 import { HapticsService } from '@/services/haptics'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
-import { applyOrder, needsReorder } from '@/lib/roomOrder'
+import { applyOrder, needsReorder, splitRemoved } from '@/lib/roomOrder'
 
 /** The live, in-progress workout. Only one can be active at a time. */
 export interface ActiveSession {
@@ -106,6 +106,30 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   })
 
   const isActive = computed(() => session.value !== null)
+
+  /**
+   * Whether this device hosts the group workout this session is logged in —
+   * kept up to date by the room store, never stored: until the room has
+   * loaded it isn't known, and the shared routine stays locked.
+   */
+  const hostsRoom = ref(false)
+  function setHostsRoom(value: boolean) {
+    hostsRoom.value = value
+  }
+
+  /** In a group workout the host owns the routine's order; everyone else follows it. */
+  const canReorder = computed(() => !session.value?.roomId || hostsRoom.value)
+
+  /**
+   * Whether the exercise at `index` can be taken out. In a group workout the
+   * routine's exercises are the host's to remove (for everyone); exercises a
+   * member added themselves are theirs to remove.
+   */
+  function canRemoveExercise(index: number): boolean {
+    const exercise = session.value?.draft.exercises[index]
+    if (!exercise) return false
+    return !session.value?.roomId || exercise.slot === undefined || hostsRoom.value
+  }
 
   /** Elapsed workout time, self-correcting after backgrounding/reload. */
   const elapsedSeconds = computed(() => {
@@ -301,7 +325,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    * affected — the routine/template it was started from is untouched.
    */
   function removeExercise(index: number) {
-    if (!session.value) return
+    if (!session.value || !canRemoveExercise(index)) return
     const restExerciseIndex = session.value.restExerciseIndex
     if (restExerciseIndex !== null) {
       if (restExerciseIndex === index) skipRestTimer()
@@ -398,9 +422,16 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
 
   /**
    * Reorders the in-progress session's exercises. Only this session is
-   * affected — the routine/template it was started from is untouched.
+   * affected — the routine/template it was started from is untouched. In a
+   * group workout only the host can (see {@link canReorder}).
    */
   function reorderExercises(newOrder: SessionExerciseDraft[]) {
+    if (!session.value || !canReorder.value) return
+    setExercises(newOrder)
+  }
+
+  /** Replaces the exercise list; the rest timer keeps pointing at its exercise, wherever it went. */
+  function setExercises(newOrder: SessionExerciseDraft[]) {
     if (!session.value) return
     const restExerciseIndex = session.value.restExerciseIndex
     const restExercise =
@@ -429,8 +460,34 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     session.value.orderVersion = version
     const exercises = session.value.draft.exercises
     if (!needsReorder(exercises, order)) return false
-    reorderExercises(applyOrder(exercises, order))
+    setExercises(applyOrder(exercises, order))
     return true
+  }
+
+  /**
+   * Takes the routine exercises the group's host removed out of this session.
+   * One with nothing logged goes; one with sets logged keeps those sets — they
+   * were lifted and stay in this workout's history — loses the sets not done
+   * yet, and leaves the shared routine as this member's own exercise.
+   * Idempotent: an exercise is only ever taken out once.
+   *
+   * @param removed Routine slots the host removed.
+   * @returns The names of the exercises dropped, and of those kept for their logged sets.
+   */
+  function followRoomRemovals(removed: readonly number[]): { dropped: string[]; kept: string[] } {
+    const exercises = session.value?.draft.exercises
+    if (!exercises || !removed.length) return { dropped: [], kept: [] }
+    const { drop, keep } = splitRemoved(exercises, removed)
+    for (const exercise of keep) {
+      exercise.loggedSets = exercise.loggedSets.filter((s) => s.completed)
+      delete exercise.slot
+    }
+    if (drop.length) {
+      const restExercise = session.value!.restExerciseIndex
+      if (restExercise !== null && drop.includes(exercises[restExercise]!)) skipRestTimer()
+      setExercises(exercises.filter((e) => !drop.includes(e)))
+    }
+    return { dropped: drop.map((e) => e.name), kept: keep.map((e) => e.name) }
   }
 
   function startRestTimer(exerciseIndex: number, setId: string, seconds: number) {
@@ -559,6 +616,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     replaceExercise,
     reorderExercises,
     followRoomOrder,
+    followRoomRemovals,
+    hostsRoom,
+    setHostsRoom,
+    canReorder,
+    canRemoveExercise,
     setExerciseKind,
     startRestTimer,
     skipRestTimer,

@@ -21,7 +21,7 @@ import {
   type RoomEvent,
 } from '@/lib/roomEvents'
 import { newUuid } from '@/lib/uuid'
-import { hostOrder, mergeRoomRow, normalizeOrder, orderedRoutine, sameOrder } from '@/lib/roomOrder'
+import { hostOrder, mergeRoomRow, normalizeOrder, normalizeRemoved, orderedRoutine, sameOrder } from '@/lib/roomOrder'
 import { isConflict, startVerdict, type WorkoutConflict } from '@/lib/workoutConflict'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
@@ -158,10 +158,12 @@ export const useRoomStore = defineStore('room', () => {
   /** The host's order of the routine's slots — the one order everyone follows. */
   const order = computed(() => normalizeOrder(room.value?.exercise_order, baseRoutine.value.length))
   const orderVersion = computed(() => room.value?.order_version ?? 0)
+  /** Routine slots the host removed for everyone. */
+  const removedSlots = computed(() => normalizeRemoved(room.value?.removed_slots, baseRoutine.value.length))
 
-  /** The room's routine, in the host's order. */
+  /** The room's routine, in the host's order, without the exercises the host removed. */
   const routineExercises = computed<PlannedExercise[]>(() =>
-    orderedRoutine(baseRoutine.value, room.value?.exercise_order),
+    orderedRoutine(baseRoutine.value, room.value?.exercise_order, room.value?.removed_slots),
   )
 
   /** Planned working sets per exercise (by normalized name). */
@@ -548,34 +550,57 @@ export const useRoomStore = defineStore('room', () => {
     if (channel && room.value?.id === roomId) void channel.send({ type: 'broadcast', event: 'pr', payload: pr })
   }
 
-  // --- The host's exercise order --------------------------------------------
+  // --- The host's routine: its order and its exercises ----------------------
   //
-  // The host's session is the one source of the order. When the host reorders,
-  // the new order goes to the room row (versioned); every guest's session
-  // follows that row as it arrives over Realtime, when the room loads (a late
-  // joiner) and when the channel rejoins (a reconnect). Guests can't reorder.
+  // The host's session is the one source of the routine. When the host
+  // reorders or removes a routine exercise, the new order and the removed
+  // slots go to the room row (versioned); every guest's session follows that
+  // row as it arrives over Realtime, when the room loads (a late joiner) and
+  // when the channel rejoins (a reconnect). Guests can't reorder, nor remove
+  // the routine's exercises — only ones they added themselves.
+
+  // The session's own guard: only the host may touch the shared routine.
+  watch(
+    [isHost, () => room.value?.id, () => activeSession.session?.roomId],
+    () => {
+      const roomId = activeSession.session?.roomId
+      activeSession.setHostsRoom(!!roomId && room.value?.id === roomId && isHost.value)
+    },
+    { immediate: true, flush: 'sync' },
+  )
 
   /**
-   * Puts a guest's session in the room's order. Idempotent: run whenever the
-   * order, the room or the session changes.
+   * Puts a guest's session in the room's order, without the exercises the
+   * host removed. Idempotent: run whenever the order, the room or the session
+   * changes.
    *
-   * @param announce Whether moving the guest's exercises gets a toast — not
-   *   when it just undoes a reorder the guest tried themselves.
+   * @param announce Whether a change gets a toast — not when it just undoes
+   *   a reorder the guest tried themselves.
    */
   function followOrder(announce = true) {
     const session = activeSession.session
     const current = room.value
     if (!session || !current || session.roomId !== current.id || !myId.value || isHost.value) return
     const followedBefore = session.orderVersion
+    const { dropped, kept } = activeSession.followRoomRemovals(removedSlots.value)
     const moved = activeSession.followRoomOrder(order.value, orderVersion.value)
-    // A session just started takes the order silently; only a change mid-workout is news.
-    if (moved && announce && followedBefore !== undefined && current.host_id) {
-      addEvent({ kind: 'order-changed', from: current.host_id })
-    }
+    // A session just started takes the room's routine silently; only a change mid-workout is news.
+    if (!announce || followedBefore === undefined || !current.host_id) return
+    const from = current.host_id
+    for (const exercise of dropped) addEvent({ kind: 'exercise-removed', from, exercise, kept: false })
+    for (const exercise of kept) addEvent({ kind: 'exercise-removed', from, exercise, kept: true })
+    if (moved) addEvent({ kind: 'order-changed', from })
   }
 
   watch(
-    [() => activeSession.session, () => room.value?.id, orderVersion, () => room.value?.exercise_order, isHost],
+    [
+      () => activeSession.session,
+      () => room.value?.id,
+      orderVersion,
+      () => room.value?.exercise_order,
+      () => room.value?.removed_slots,
+      isHost,
+    ],
     () => followOrder(),
   )
 
@@ -584,19 +609,25 @@ export const useRoomStore = defineStore('room', () => {
   let orderDirty = false
   let orderRetryTimer: ReturnType<typeof setTimeout> | undefined
 
-  /** Host only: makes the order of the host's session the room's. */
-  function publishOrder(roomId: string) {
+  /**
+   * Host only: makes the order of the host's session the room's.
+   *
+   * @param removedSlot A routine slot the host just took out — removed for everyone.
+   */
+  function publishOrder(roomId: string, removedSlot?: number) {
     const current = room.value
     const session = activeSession.session
     if (!current || current.id !== roomId || !session || current.status === 'finished') return
+    const count = baseRoutine.value.length
     const next = hostOrder(
       current.exercise_order,
       session.draft.exercises.map((e) => e.slot),
-      baseRoutine.value.length,
+      count,
     )
-    if (sameOrder(next, order.value)) return
+    const removed = normalizeRemoved([...removedSlots.value, removedSlot], count)
+    if (sameOrder(next, order.value) && sameOrder(removed, removedSlots.value)) return
     // Shown here at once; the server's version for it comes back with the write.
-    room.value = { ...current, exercise_order: next, order_version: orderVersion.value + 1 }
+    room.value = { ...current, exercise_order: next, removed_slots: removed, order_version: orderVersion.value + 1 }
     void sendOrder(roomId)
   }
 
@@ -613,10 +644,11 @@ export const useRoomStore = defineStore('room', () => {
         orderDirty = false
         const latest = room.value?.id === roomId ? room.value.exercise_order : null
         if (!latest) return
-        const { data, error } = await requireSupabase().rpc('set_room_exercise_order', {
-          p_room_id: roomId,
-          p_order: latest,
-        })
+        const removed = room.value?.removed_slots ?? []
+        // Nothing removed: the order alone, through the call every server has.
+        const { data, error } = removed.length
+          ? await requireSupabase().rpc('set_room_plan', { p_room_id: roomId, p_order: latest, p_removed: removed })
+          : await requireSupabase().rpc('set_room_exercise_order', { p_room_id: roomId, p_order: latest })
         if (error) {
           // No code: the request never got there (offline) — try again shortly.
           if (!error.code) orderRetryTimer = setTimeout(() => void sendOrder(roomId), RETRY_MS)
@@ -708,8 +740,16 @@ export const useRoomStore = defineStore('room', () => {
 
     // Either way the sets logged under that exercise are gone from the workout.
     if (name === 'removeExercise' || name === 'replaceExercise') {
-      const doneIds = (exercises[args[0] as number]?.loggedSets ?? []).filter((s) => s.completed).map((s) => s.id)
-      after(() => doneIds.forEach((id) => deleteSet(roomId, id)))
+      const target = exercises[args[0] as number]
+      const doneIds = (target?.loggedSets ?? []).filter((s) => s.completed).map((s) => s.id)
+      const slot = target?.slot
+      after(() => {
+        // A removal the session refused (a guest's, of a routine exercise) changed nothing.
+        if (name === 'removeExercise' && target && activeSession.session?.draft.exercises.includes(target)) return
+        doneIds.forEach((id) => deleteSet(roomId, id))
+        // The host's removal of a routine exercise is everyone's.
+        if (name === 'removeExercise' && slot !== undefined && isHost.value) publishOrder(roomId, slot)
+      })
       return
     }
 
@@ -736,6 +776,7 @@ export const useRoomStore = defineStore('room', () => {
     routineExercises,
     order,
     orderVersion,
+    removedSlots,
     progress,
     team,
     lastIn,

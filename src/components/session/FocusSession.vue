@@ -325,7 +325,21 @@ function loggedCount(exercise: SessionExerciseDraft): number {
   return exercise.loggedSets.filter((s) => s.completed).length
 }
 
+/**
+ * In a group workout the routine is the host's: their removal is everyone's,
+ * and nobody else can take a routine exercise out (only ones they added).
+ */
+const canRemove = computed(() => activeSession.canRemoveExercise(currentIndex.value))
+const sharedRoutineExercise = computed(
+  () => !!activeSession.session?.roomId && current.value?.slot !== undefined,
+)
+const removeHint = computed(() => {
+  if (!sharedRoutineExercise.value) return t('workout.removeExerciseHint')
+  return canRemove.value ? t('workout.removeExerciseHintGroup') : t('workout.removeExerciseHostOnly')
+})
+
 function removeExercise() {
+  if (!canRemove.value) return
   actionsOpen.value = false
   const exercise = current.value
   if (!exercise) return
@@ -880,8 +894,9 @@ function onNoteInput(event: Event) {
           v-if="exercises.length > 1"
           action
           danger
+          :disabled="!canRemove"
           :label="t('session.activeExerciseCard.removeExercise')"
-          :hint="t('workout.removeExerciseHint')"
+          :hint="removeHint"
           @click="removeExercise"
         />
       </div>
