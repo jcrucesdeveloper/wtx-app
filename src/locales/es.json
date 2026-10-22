@@ -87,6 +87,7 @@
     "last12": "Sin entrenamientos en las últimas 12 semanas | {count} entrenamiento en las últimas 12 semanas | {count} entrenamientos en las últimas 12 semanas",
     "bestSets": "Mejores series",
     "workouts": "Entrenamientos",
+    "showAllWorkouts": "Ver los {count} entrenamientos",
     "today": "Hoy",
     "goTrain": "Empezar un entrenamiento"
   },
