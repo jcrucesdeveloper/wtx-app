@@ -1177,6 +1177,8 @@
     "enableReminders": "Enable reminders",
     "remindersOn": "Reminders on",
     "remindersDenied": "Notifications are off for WTX in your device settings.",
+    "vibrateRestEnd": "Vibrate when rest ends",
+    "vibrateRestEndHint": "A buzz when the rest timer runs out, even with the phone locked.",
     "about": "About",
     "version": "WTX v{version}",
     "contactSupport": "Contact support",

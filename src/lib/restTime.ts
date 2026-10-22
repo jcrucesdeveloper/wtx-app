@@ -10,6 +10,18 @@ export const REST_STEP_SECONDS = 15
 /** Longest rest the editor goes to. */
 export const REST_MAX_SECONDS = 600
 
+/**
+ * How late the app may notice a rest ran out and still buzz for it. Later
+ * than this (the app was in the background) the moment has passed — and on
+ * Android the notification has already buzzed for it.
+ */
+export const REST_END_BUZZ_GRACE_MS = 3000
+
+/** Whether a rest that ended at `endsAt` just ended, as seen at `now`. */
+export function restJustEnded(endsAt: number, now: number): boolean {
+  return now >= endsAt && now - endsAt <= REST_END_BUZZ_GRACE_MS
+}
+
 /** A rest length as the editor keeps it: whole seconds, from 0 (off) to the max. */
 export function clampRestSeconds(seconds: number): number {
   if (!Number.isFinite(seconds)) return 0

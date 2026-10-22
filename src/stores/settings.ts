@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 const UNIT_STORAGE_KEY = 'wtx:default-unit'
 const SAVE_TARGET_STORAGE_KEY = 'wtx:session-save-target'
 const SHARE_TO_FEED_STORAGE_KEY = 'wtx:share-to-feed-default'
+const VIBRATE_REST_END_STORAGE_KEY = 'wtx:vibrate-rest-end'
 
 export type WeightUnit = 'kg' | 'lb'
 
@@ -30,6 +31,15 @@ function readStoredSaveTarget(): SessionSaveTarget {
 function readStoredShareToFeedDefault(): boolean {
   try {
     return localStorage.getItem(SHARE_TO_FEED_STORAGE_KEY) !== '0'
+  } catch {
+    return true
+  }
+}
+
+/** Defaults on: the buzz is how you know the rest is over with the phone in a pocket. */
+function readStoredVibrateOnRestEnd(): boolean {
+  try {
+    return localStorage.getItem(VIBRATE_REST_END_STORAGE_KEY) !== '0'
   } catch {
     return true
   }
@@ -81,6 +91,21 @@ export const useSettingsStore = defineStore('settings', () => {
     shareToFeedDefault.value = value
   }
 
+  /** Whether the phone vibrates when a rest timer runs out, in the app or from the notification. */
+  const vibrateOnRestEnd = ref<boolean>(readStoredVibrateOnRestEnd())
+
+  watch(vibrateOnRestEnd, (value) => {
+    try {
+      localStorage.setItem(VIBRATE_REST_END_STORAGE_KEY, value ? '1' : '0')
+    } catch {
+      /* storage unavailable — keep the in-memory value */
+    }
+  })
+
+  function setVibrateOnRestEnd(value: boolean) {
+    vibrateOnRestEnd.value = value
+  }
+
   return {
     defaultUnit,
     setDefaultUnit,
@@ -88,5 +113,7 @@ export const useSettingsStore = defineStore('settings', () => {
     setSessionSaveTarget,
     shareToFeedDefault,
     setShareToFeedDefault,
+    vibrateOnRestEnd,
+    setVibrateOnRestEnd,
   }
 })

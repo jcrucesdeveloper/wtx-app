@@ -4,6 +4,7 @@ import { serializeTemplate } from '@/lib/serializeRoutine'
 import {
   REST_MAX_SECONDS,
   clampRestSeconds,
+  restJustEnded,
   restProgress,
   routineDraftWithRest,
   routineHasExercise,
@@ -24,6 +25,18 @@ describe('clampRestSeconds', () => {
     expect(clampRestSeconds(-15)).toBe(0)
     expect(clampRestSeconds(REST_MAX_SECONDS + 15)).toBe(REST_MAX_SECONDS)
     expect(clampRestSeconds(Number.NaN)).toBe(0)
+  })
+})
+
+describe('restJustEnded', () => {
+  it('is true from the deadline to a few seconds after it', () => {
+    expect(restJustEnded(10_000, 10_000)).toBe(true)
+    expect(restJustEnded(10_000, 12_500)).toBe(true)
+  })
+
+  it('is false before the deadline, and once it is long past', () => {
+    expect(restJustEnded(10_000, 9_999)).toBe(false)
+    expect(restJustEnded(10_000, 60_000)).toBe(false)
   })
 })
 

@@ -1,6 +1,10 @@
 import { Capacitor } from '@capacitor/core'
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics'
 
+/** The rest-over buzz: two pulses this long, this far apart (SessionRestEnd.java matches it). */
+const REST_OVER_PULSE_MS = 400
+const REST_OVER_GAP_MS = 200
+
 function isNativePlatform(): boolean {
   return Capacitor.getPlatform() !== 'web'
 }
@@ -26,7 +30,8 @@ async function fire(label: string, call: () => Promise<void>): Promise<void> {
  *   success    a record or a milestone
  *   heavy      a rare moment — a new plate
  * and, apart from that scale:
- *   warning    time is up (the rest timer)
+ *   warning    something needs attention
+ *   restOver   the rest timer ran out (a real vibration, if the setting is on)
  *   error      something failed
  *
  * Every call is a safe no-op on web — callers never need to check platform
@@ -64,9 +69,21 @@ export const HapticsService = {
     return fire('notification', () => Haptics.notification({ type: NotificationType.Success }))
   },
 
-  /** The rest timer ran out. */
+  /** Something needs attention — a short, distinct buzz. */
   warning(): Promise<void> {
     return fire('notification', () => Haptics.notification({ type: NotificationType.Warning }))
+  },
+
+  /**
+   * The rest is over — two long buzzes, a real vibration rather than a tap,
+   * so it is felt through a pocket. Same rhythm as the Android notification's.
+   */
+  restOver(): Promise<void> {
+    return fire('vibrate', async () => {
+      await Haptics.vibrate({ duration: REST_OVER_PULSE_MS })
+      await new Promise((resolve) => setTimeout(resolve, REST_OVER_PULSE_MS + REST_OVER_GAP_MS))
+      await Haptics.vibrate({ duration: REST_OVER_PULSE_MS })
+    })
   },
 
   /** Something failed and the user needs to know. */
