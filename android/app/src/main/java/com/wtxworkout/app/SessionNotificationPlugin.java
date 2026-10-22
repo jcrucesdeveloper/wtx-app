@@ -8,8 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Icon;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.SystemClock;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -24,8 +22,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * "Resting" over a big countdown with what comes next, and has −/+/skip
  * actions; otherwise the current exercise and next set over the workout
  * clock. The clock is a system-drawn Chronometer, so it keeps ticking without
- * the web view running; when the rest ends, a timer here swaps in the
- * "after rest" face JS sent along.
+ * the web view running; when the rest ends, {@link SessionRestEnd} swaps in
+ * the "after rest" face JS sent along (and buzzes, if the setting is on).
  *
  * It can't be dismissed while the workout runs: ongoing, and on Android 14+
  * (where users can swipe ongoing notifications away) posted again from its
@@ -57,8 +55,6 @@ public class SessionNotificationPlugin extends Plugin {
     /** The live plugin, for the notification's rest actions; `null` while there's no bridge. */
     private static SessionNotificationPlugin instance;
 
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private Runnable restEnd;
     private boolean serviceStarted = false;
 
     /** The latest options from JS, so a rest action can redraw without a round trip. */
@@ -69,6 +65,7 @@ public class SessionNotificationPlugin extends Plugin {
     @Override
     public void load() {
         instance = this;
+        SessionRestEnd.appInForeground = true;
         // Cold start from the notification: the event waits for the JS listener.
         Intent intent = getActivity().getIntent();
         if (isOpenSessionIntent(intent)) {
@@ -84,6 +81,19 @@ public class SessionNotificationPlugin extends Plugin {
             intent.removeExtra(EXTRA_OPEN_SESSION);
             notifyListeners("tap", new JSObject(), true);
         }
+    }
+
+    @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        SessionRestEnd.appInForeground = true;
+    }
+
+    @Override
+    protected void handleOnPause() {
+        super.handleOnPause();
+        // Paused also covers a locked screen: the rest-end buzz is the native side's then.
+        SessionRestEnd.appInForeground = false;
     }
 
     private static boolean isOpenSessionIntent(Intent intent) {
@@ -102,7 +112,7 @@ public class SessionNotificationPlugin extends Plugin {
 
     @PluginMethod
     public void stop(PluginCall call) {
-        cancelRestEnd();
+        SessionRestEnd.cancel();
         current = null;
         lastOptions = null;
         restEndsAt = 0;
@@ -117,7 +127,7 @@ public class SessionNotificationPlugin extends Plugin {
 
     @Override
     protected void handleOnDestroy() {
-        cancelRestEnd();
+        // The rest end is left pending: the service outlives the activity, and the countdown must still stop at zero.
         if (instance == this) instance = null;
         super.handleOnDestroy();
     }
@@ -160,30 +170,18 @@ public class SessionNotificationPlugin extends Plugin {
         boolean resting = restEndsAt > now;
         JSObject afterRest = lastOptions.getJSObject("afterRest");
 
-        cancelRestEnd();
+        SessionRestEnd.settle();
         Notification notification;
         if (resting) {
             notification = build(context, lastOptions, restEndsAt, true);
-            final Notification after = build(context, afterRest != null ? afterRest : lastOptions, startedAt, false);
-            restEnd = () -> {
-                restEnd = null;
-                restEndsAt = 0;
-                post(context, after);
-            };
-            handler.postDelayed(restEnd, restEndsAt - now);
+            Notification after = build(context, afterRest != null ? afterRest : lastOptions, startedAt, false);
+            SessionRestEnd.schedule(context, restEndsAt, after, lastOptions.optBoolean("vibrateOnRestEnd", true));
         } else {
             // A rest that ended (or was skipped) natively shows what comes after it.
             JSObject face = lastOptions.optLong("restEndsAt", 0) > 0 && afterRest != null ? afterRest : lastOptions;
             notification = build(context, face, startedAt, false);
         }
         post(context, notification);
-    }
-
-    private void cancelRestEnd() {
-        if (restEnd != null) {
-            handler.removeCallbacks(restEnd);
-            restEnd = null;
-        }
     }
 
     /** The first post starts the foreground service; later ones update its notification in place. */
