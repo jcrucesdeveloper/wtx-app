@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  Camera,
-  Download,
-  Images,
-  LayoutList,
-  Image as ImageIcon,
-  Share2,
-  Sticker,
-  X,
-} from '@lucide/vue'
+import { Camera, Download, Images, LayoutList, Share2, Sticker, X } from '@lucide/vue'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import {
   paintWorkoutCard,
+  photoRect,
   renderWorkoutCard,
+  workoutCardFrame,
   TOP_LIFTS,
   type WorkoutCardData,
   type WorkoutCardFormat,
@@ -68,7 +61,7 @@ const { t } = useI18n()
 
 const STYLES: { id: WorkoutCardStyle; icon: typeof LayoutList }[] = [
   { id: 'card', icon: LayoutList },
-  { id: 'photo', icon: ImageIcon },
+  { id: 'photo', icon: Camera },
   { id: 'sticker', icon: Sticker },
 ]
 const FORMATS: WorkoutCardFormat[] = ['story', 'square']
@@ -87,6 +80,24 @@ const busy = ref<ShareDestination | null>(null)
 const notice = ref('')
 
 const needsPhoto = computed(() => style.value === 'photo' && !photo.value)
+
+/**
+ * Where the photo sits on the preview, in percent of the image: the buttons to
+ * add or change it are laid over exactly that space, so it is plain what they
+ * act on.
+ */
+const photoArea = computed(() => {
+  if (!props.data) return {}
+  const frame = workoutCardFrame(format.value)
+  const rect = photoRect(props.data, format.value)
+  const pct = (value: number, of: number) => `${(value / of) * 100}%`
+  return {
+    left: pct(rect.x, frame.width),
+    top: pct(rect.y, frame.height),
+    width: pct(rect.width, frame.width),
+    height: pct(rect.height, frame.height),
+  }
+})
 const blocked = computed(() => !!busy.value || !props.data || needsPhoto.value)
 
 /** Every lift instead of the top few: only the Lifts look lists them. */
@@ -126,11 +137,9 @@ watch(
 function pick(next: WorkoutCardStyle) {
   notice.value = ''
   void HapticsService.selection()
-  const opening = next === 'photo' && style.value !== 'photo' && !photo.value
+  // The photo look without a photo shows where the photo goes, with the camera
+  // and the gallery right there: opening one straight away hid the other.
   style.value = next
-  // The photo look without a photo: straight to the gallery, one tap. The
-  // camera stays on the preview, and backing out leaves the choice there.
-  if (opening) void choosePhoto('gallery')
 }
 
 function pickFormat(next: WorkoutCardFormat) {
@@ -240,12 +249,77 @@ function label(destination: ShareDestination): string {
 <template>
   <BottomSheet :open="open" :title="t('shareCard.title')" @close="emit('close')">
     <div class="preview" :class="[`preview--${style}`, `preview--${format}`]">
-      <canvas
-        ref="canvas"
-        class="preview__image"
-        role="img"
-        :aria-label="t('shareCard.previewAria')"
-      />
+      <div class="stage">
+        <canvas
+          ref="canvas"
+          class="preview__image"
+          role="img"
+          :aria-label="t('shareCard.previewAria')"
+        />
+
+        <!-- No photo yet: the space it will fill asks for one, camera first. -->
+        <div v-if="needsPhoto" class="photo-slot photo-slot--empty" :style="photoArea">
+          <span class="photo-slot__icon" aria-hidden="true">
+            <Camera :size="26" :stroke-width="2" />
+          </span>
+          <p class="photo-slot__ask">{{ t('shareCard.addPhoto.title') }}</p>
+          <p class="photo-slot__why">{{ t('shareCard.addPhoto.body') }}</p>
+          <div class="photo-slot__actions">
+            <button
+              v-if="offerCamera"
+              type="button"
+              class="pick-btn pick-btn--primary"
+              @click="choosePhoto('camera')"
+            >
+              <Camera :size="18" :stroke-width="2.25" />
+              {{ t('shareCard.addPhoto.camera') }}
+            </button>
+            <button
+              type="button"
+              class="pick-btn"
+              :class="{ 'pick-btn--primary': !offerCamera }"
+              @click="choosePhoto('gallery')"
+            >
+              <Images :size="18" :stroke-width="2.25" />
+              {{ t('shareCard.addPhoto.gallery') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- With a photo in: change it, retake it, or take it off, on the photo itself. -->
+        <div v-else-if="style === 'photo' && photo" class="photo-slot" :style="photoArea">
+          <div class="photo-tools">
+            <button
+              type="button"
+              class="tool tool--label"
+              :disabled="!!busy"
+              @click="choosePhoto('gallery')"
+            >
+              <Images :size="16" :stroke-width="2.25" />
+              {{ t('shareCard.changePhoto') }}
+            </button>
+            <button
+              v-if="offerCamera"
+              type="button"
+              class="tool"
+              :aria-label="t('shareCard.retakePhoto')"
+              :disabled="!!busy"
+              @click="choosePhoto('camera')"
+            >
+              <Camera :size="18" :stroke-width="2.25" />
+            </button>
+            <button
+              type="button"
+              class="tool"
+              :aria-label="t('finishShare.removePhoto')"
+              :disabled="!!busy"
+              @click="removePhoto"
+            >
+              <X :size="18" :stroke-width="2.25" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- The shape, on the image it changes. A sticker is sized to what is on it. -->
       <div
@@ -292,51 +366,6 @@ function label(destination: ShareDestination): string {
           @click="pickLifts(true)"
         >
           {{ t('shareCard.lifts.all', { count: data?.lifts.length ?? 0 }) }}
-        </button>
-      </div>
-
-      <!-- No photo yet: the choice sits on the empty part of the card itself. -->
-      <div v-if="needsPhoto" class="preview__pick">
-        <p class="preview__ask">{{ t('finishShare.photoNeeded') }}</p>
-        <button type="button" class="pick-btn" @click="choosePhoto('gallery')">
-          <Images :size="20" :stroke-width="2.25" />
-          {{ t('finishShare.gallery') }}
-        </button>
-        <button v-if="offerCamera" type="button" class="pick-btn" @click="choosePhoto('camera')">
-          <Camera :size="20" :stroke-width="2.25" />
-          {{ t('finishShare.camera') }}
-        </button>
-      </div>
-
-      <!-- With a photo in: change it from either source, or take it off. -->
-      <div v-else-if="style === 'photo' && photo" class="photo-tools">
-        <button
-          type="button"
-          class="tool"
-          :aria-label="t('shareCard.changePhoto')"
-          :disabled="!!busy"
-          @click="choosePhoto('gallery')"
-        >
-          <Images :size="18" :stroke-width="2.25" />
-        </button>
-        <button
-          v-if="offerCamera"
-          type="button"
-          class="tool"
-          :aria-label="t('finishShare.camera')"
-          :disabled="!!busy"
-          @click="choosePhoto('camera')"
-        >
-          <Camera :size="18" :stroke-width="2.25" />
-        </button>
-        <button
-          type="button"
-          class="tool"
-          :aria-label="t('finishShare.removePhoto')"
-          :disabled="!!busy"
-          @click="removePhoto"
-        >
-          <X :size="18" :stroke-width="2.25" />
         </button>
       </div>
     </div>
@@ -495,49 +524,99 @@ function label(destination: ShareDestination): string {
   background: #f4f4f5;
 }
 
-/* Over the top of the card, where the photo will be: the card's own text stays visible below. */
-.preview__pick {
+.stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.preview--sticker .stage {
+  width: 100%;
+}
+
+/* Laid over exactly where the photo is (or will be) on the image. */
+.photo-slot {
   position: absolute;
-  top: 18%;
-  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: var(--space-2);
+  border-radius: 6px;
+}
+
+.photo-slot--empty {
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  /* Always over the dark frame, in either theme. */
+  color: #f4f4f5;
+  border: 2px dashed rgba(255, 255, 255, 0.34);
+}
+
+.photo-slot__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.photo-slot__ask {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+}
+
+.photo-slot__why {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-small);
+  line-height: 1.3;
+  color: rgba(244, 244, 245, 0.72);
+}
+
+/* A square leaves a short slot: the buttons say enough on their own. */
+.preview--square .photo-slot__why {
+  display: none;
+}
+
+.photo-slot__actions {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--space-2);
-  width: min(70%, 220px);
-  transform: translateX(-50%);
+  gap: var(--space-1);
+  width: min(100%, 200px);
 }
 
-.preview--square .preview__pick {
-  top: 14%;
-}
-
-.preview__ask {
-  margin: 0 0 var(--space-1);
-  font-size: var(--text-small);
-  font-weight: var(--weight-bold);
-  text-align: center;
-  /* Always over the dark card, in either theme. */
-  color: #f4f4f5;
+.preview--square .photo-slot__actions {
+  flex-direction: row;
+  width: auto;
 }
 
 .pick-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: 6px;
   min-height: var(--size-touch);
+  padding: 0 var(--space-3);
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: var(--radius-pill);
   font: inherit;
   font-size: var(--text-small);
   font-weight: var(--weight-bold);
+  white-space: nowrap;
   color: #f4f4f5;
   background: rgba(255, 255, 255, 0.12);
   cursor: pointer;
 }
 
-.pick-btn:first-of-type {
+.pick-btn--primary {
+  border-color: transparent;
   color: #0f1012;
   background: #f4f4f5;
 }
@@ -548,26 +627,37 @@ function label(destination: ShareDestination): string {
   transform: scale(0.95);
 }
 
-/* Over the photo, top left: the shape toggle has the other corner. */
+/* At the foot of the photo: the shape toggle has the top corner. */
 .photo-tools {
-  position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
   display: flex;
   gap: var(--space-1);
 }
 
 .tool {
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   width: 40px;
   height: 40px;
+  padding: 0;
   border: none;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
   color: #f4f4f5;
   background: rgba(15, 16, 18, 0.72);
   backdrop-filter: blur(6px);
   cursor: pointer;
+}
+
+.tool--label {
+  width: auto;
+  padding: 0 var(--space-3);
+  color: #0f1012;
+  background: rgba(244, 244, 245, 0.92);
 }
 
 .tool:disabled {

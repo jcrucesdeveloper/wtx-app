@@ -10,7 +10,11 @@ vi.mock('@/lib/workoutCard', () => ({
   paintWorkoutCard: paint,
   renderWorkoutCard: vi.fn<() => void>(),
   TOP_LIFTS: 3,
+  photoRect: () => ({ x: 32, y: 32, width: 1016, height: 1160 }),
+  workoutCardFrame: () => ({ width: 1080, height: 1920, safeTop: 250, safeBottom: 340 }),
 }))
+const pickPhoto = vi.hoisted(() => vi.fn<(source: string) => Promise<unknown>>())
+vi.mock('@/services/photoPicker', () => ({ canTakePhoto: () => true, pickPhoto }))
 vi.mock('@/services/shareTargets', () => ({
   installedTargets: () => Promise.resolve({ instagram: false, whatsapp: false }),
   sharePlatform: () => 'web',
@@ -36,10 +40,14 @@ function data(lifts: number): WorkoutCardData {
   }
 }
 
-function mountSheet(card: WorkoutCardData, style: WorkoutCardStyle = 'card') {
+function mountSheet(
+  card: WorkoutCardData,
+  style: WorkoutCardStyle = 'card',
+  photo: HTMLImageElement | null = null,
+) {
   i18n.global.locale.value = 'en'
   return mount(ShareWorkoutSheet, {
-    props: { open: true, data: card, caption: '', style },
+    props: { open: true, data: card, caption: '', style, photo },
     global: { plugins: [i18n], stubs: { BottomSheet: SheetStub } },
   })
 }
@@ -80,5 +88,41 @@ describe('ShareWorkoutSheet: how many lifts', () => {
   it('offers no choice on the looks that do not list lifts', () => {
     const wrapper = mountSheet(data(6), 'sticker')
     expect(wrapper.find('[aria-label="Exercises on the image"]').exists()).toBe(false)
+  })
+})
+
+describe('ShareWorkoutSheet: the photo', () => {
+  beforeEach(() => pickPhoto.mockReset().mockResolvedValue(null))
+
+  const buttonNamed = (wrapper: ReturnType<typeof mountSheet>, name: string) =>
+    wrapper.findAll('button').find((b) => b.text() === name || b.attributes('aria-label') === name)
+
+  it('shows where the photo goes, with the camera and the gallery, before opening either', async () => {
+    const wrapper = mountSheet(data(2))
+    await buttonNamed(wrapper, 'Photo')!.trigger('click')
+    await nextTick()
+    // Choosing the look opens nothing by itself: both ways in are on the image.
+    expect(pickPhoto).not.toHaveBeenCalled()
+    const slot = wrapper.find('.photo-slot--empty')
+    expect(slot.text()).toContain('Add your photo')
+    expect(slot.attributes('style')).toContain('left: 2.96')
+
+    await buttonNamed(wrapper, 'Take photo')!.trigger('click')
+    expect(pickPhoto).toHaveBeenLastCalledWith('camera')
+    await buttonNamed(wrapper, 'Choose photo')!.trigger('click')
+    expect(pickPhoto).toHaveBeenLastCalledWith('gallery')
+  })
+
+  it('offers to change, retake or remove a photo once there is one', () => {
+    const wrapper = mountSheet(data(2), 'photo', {} as HTMLImageElement)
+    expect(wrapper.find('.photo-slot--empty').exists()).toBe(false)
+    expect(buttonNamed(wrapper, 'Change photo')).toBeDefined()
+    expect(buttonNamed(wrapper, 'Take a new photo')).toBeDefined()
+    expect(buttonNamed(wrapper, 'Remove photo')).toBeDefined()
+  })
+
+  it('has nothing about a photo on the card look', () => {
+    const wrapper = mountSheet(data(2))
+    expect(wrapper.find('.photo-slot').exists()).toBe(false)
   })
 })
