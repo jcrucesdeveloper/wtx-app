@@ -8,6 +8,7 @@ import {
   EQUIPMENT_TYPES,
   MUSCLE_GROUPS,
   type EquipmentType,
+  type ExerciseCatalogEntry,
   type MuscleGroup,
   filterExerciseCatalog,
   findCatalogEntryByName,
@@ -76,6 +77,14 @@ function groupLabel(group: MuscleGroup) {
 
 function equipmentLabel(equipment: EquipmentType) {
   return t(`wtx.equipment.${equipment.toLowerCase()}`)
+}
+
+/** Muscle and equipment tags, minus whichever a chip already fixes — every row would repeat it. */
+function metaFor(entry: ExerciseCatalogEntry) {
+  const parts: string[] = []
+  if (!selectedGroup.value) parts.push(groupLabel(entry.muscleGroup))
+  if (!selectedEquipment.value) parts.push(equipmentLabel(entry.equipment))
+  return parts.join(' · ')
 }
 
 const trimmedQuery = computed(() => query.value.trim())
@@ -186,9 +195,7 @@ const previewName = ref<string | null>(null)
           </button>
           <button type="button" class="picker__item" @click="choose(entry.name)">
             <span class="picker__name">{{ exerciseName(entry.name) }}</span>
-            <span class="picker__meta">
-              {{ groupLabel(entry.muscleGroup) }} · {{ equipmentLabel(entry.equipment) }}
-            </span>
+            <span v-if="metaFor(entry)" class="picker__meta">{{ metaFor(entry) }}</span>
           </button>
         </li>
         <li v-if="filtered.total === 0" class="picker__empty">
@@ -248,8 +255,8 @@ const previewName = ref<string | null>(null)
   overflow-x: auto;
   min-width: 0;
   scrollbar-width: none;
-  mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
 }
 
 .picker__chips::-webkit-scrollbar {

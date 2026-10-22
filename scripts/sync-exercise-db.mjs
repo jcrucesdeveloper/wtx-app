@@ -71,7 +71,7 @@ const EQUIPMENT_BY_NAME = [
   [/\btrap bar\b/i, 'Barbell'],
   [/\bbands?\b/i, 'Band'],
   [
-    /\b(plates?|sled|sledgehammer|smr|atlas|keg|log lift|tire|yoke|rickshaw|sandbag|farmer|chains?|axle|car deadlift|conan|circus bell|crucifix|power stairs|drag|battling ropes|rope (climb|jumping)|wrist roller|harness|heavy bag|svend|balance board|bicycling|skating)\b/i,
+    /\b(ab roller|plates?|sled|sledgehammer|smr|atlas|keg|log lift|tire|yoke|rickshaw|sandbag|farmer|chains?|axle|car deadlift|conan|circus bell|crucifix|power stairs|drag|battling ropes|rope (climb|jumping)|wrist roller|harness|heavy bag|svend|balance board|bicycling|skating)\b/i,
     'Other',
   ],
 ]
