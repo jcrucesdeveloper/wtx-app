@@ -25,6 +25,9 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * the web view running; when the rest ends, {@link SessionRestEnd} swaps in
  * the "after rest" face JS sent along (and buzzes, if the setting is on).
  *
+ * Only the rest countdown is drawn big. Outside rest the exercise is the
+ * headline, with the workout time small beside it.
+ *
  * It can't be dismissed while the workout runs: ongoing, and on Android 14+
  * (where users can swipe ongoing notifications away) posted again from its
  * delete intent by {@link SessionNotificationReceiver}.
@@ -228,8 +231,19 @@ public class SessionNotificationPlugin extends Plugin {
             views.setTextViewText(R.id.session_title, title);
             views.setTextViewText(R.id.session_body, body);
             views.setViewVisibility(R.id.session_body, body.isEmpty() ? View.GONE : View.VISIBLE);
-            views.setChronometer(R.id.session_clock, base, null, true);
-            views.setChronometerCountDown(R.id.session_clock, countDown);
+            // Resting: the countdown is the hero. Otherwise the workout time is a quiet
+            // "· 12:34" beside the exercise name. The hidden clock is stopped, not left ticking.
+            views.setViewVisibility(R.id.session_clock, countDown ? View.VISIBLE : View.GONE);
+            views.setViewVisibility(R.id.session_clock_inline, countDown ? View.GONE : View.VISIBLE);
+            if (countDown) {
+                views.setChronometer(R.id.session_clock, base, null, true);
+                views.setChronometerCountDown(R.id.session_clock, true);
+                views.setChronometer(R.id.session_clock_inline, base, null, false);
+            } else {
+                views.setChronometer(R.id.session_clock_inline, base, "· %s", true);
+                views.setChronometerCountDown(R.id.session_clock_inline, false);
+                views.setChronometer(R.id.session_clock, base, null, false);
+            }
         }
         expanded.setTextViewText(R.id.session_detail, detail);
         expanded.setViewVisibility(R.id.session_detail, detail.isEmpty() ? View.GONE : View.VISIBLE);

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The ongoing workout notification, collapsed: the two lines on the left,
-     the clock (rest countdown or workout time) big on the right, like a timer. -->
+<!-- The ongoing workout notification, collapsed: the two lines on the left and,
+     while resting, the countdown big on the right, like a timer. Outside rest
+     the workout time sits small beside the exercise name instead. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -13,13 +14,32 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/session_title"
-            style="@style/TextAppearance.Compat.Notification.Title"
+        <!-- The title, and outside rest the workout time small right after it. The
+             title gives way (ellipsizes) first, so the time always shows. -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:singleLine="true" />
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/session_title"
+                style="@style/TextAppearance.Compat.Notification.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:singleLine="true" />
+
+            <Chronometer
+                android:id="@+id/session_clock_inline"
+                style="@style/TextAppearance.Compat.Notification"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFeatureSettings="tnum"
+                android:singleLine="true"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/session_body"
@@ -40,5 +60,6 @@
         android:fontFeatureSettings="tnum"
         android:includeFontPadding="false"
         android:singleLine="true"
-        android:textSize="34sp" />
+        android:textSize="34sp"
+        android:visibility="gone" />
 </LinearLayout>
