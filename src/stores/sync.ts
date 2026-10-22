@@ -1,11 +1,18 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { requireSupabase } from '@/services/supabase'
-import { useRoutinesStore, type StoredRoutine } from '@/stores/routines'
+import { useRoutinesStore, type RoutineSection, type StoredRoutine } from '@/stores/routines'
 import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
-import { mergeRoutines, mergeSessions } from '@/lib/sync/merge'
-import { routineToRow, rowToRoutine, rowToSession, sessionToRow } from '@/lib/sync/rows'
+import { mergeRoutines, mergeSections, mergeSessions } from '@/lib/sync/merge'
+import {
+  routineToRow,
+  rowToRoutine,
+  rowToSection,
+  rowToSession,
+  sectionToRow,
+  sessionToRow,
+} from '@/lib/sync/rows'
 import type { Tables } from '@/lib/supabase/database.types'
 import { isUuid, newUuid } from '@/lib/uuid'
 
@@ -25,10 +32,14 @@ interface SyncState {
   /** Sessions other people shared (pulled before sync filtered by owner) have been cleared from the log. */
   foreignSessionsChecked: boolean
   routinesCursor: string | null
+  sectionsCursor: string | null
   sessionsCursor: string | null
   /** The library is small, so any routine change re-uploads all of it (with positions). */
   routinesDirty: boolean
   deletedRoutineIds: string[]
+  /** Same for the routine sections: any change re-uploads the whole list. */
+  sectionsDirty: boolean
+  deletedSectionIds: string[]
   upsertSessionIds: string[]
   deletedSessionIds: string[]
 }
@@ -47,7 +58,20 @@ const MAX_RETRIES = 5
 const PULL_MIN_INTERVAL_MS = 5 * 60_000
 
 /** Store actions that change data — everything else on those stores is a read. */
-const ROUTINE_MUTATIONS = new Set(['add', 'update', 'remove', 'reorder', 'clear', 'resetToDefaults'])
+const ROUTINE_MUTATIONS = new Set([
+  'add',
+  'update',
+  'remove',
+  'reorder',
+  'clear',
+  'resetToDefaults',
+  'addSection',
+  'updateSection',
+  'removeSection',
+  'reorderSections',
+  'moveToSection',
+  'arrange',
+])
 const SESSION_MUTATIONS = new Set(['add', 'remove', 'clear', 'saveToProfile'])
 
 function emptyState(userId: string | null = null): SyncState {
@@ -56,9 +80,12 @@ function emptyState(userId: string | null = null): SyncState {
     firstSyncDone: false,
     foreignSessionsChecked: false,
     routinesCursor: null,
+    sectionsCursor: null,
     sessionsCursor: null,
     routinesDirty: false,
     deletedRoutineIds: [],
+    sectionsDirty: false,
+    deletedSectionIds: [],
     upsertSessionIds: [],
     deletedSessionIds: [],
   }
@@ -98,7 +125,7 @@ function laterOf(a: string | null, b: string | null): string | null {
 }
 
 /**
- * Mirrors the local routine library and session log to Supabase while logged
+ * Mirrors the local routine library (with its sections) and session log to Supabase while logged
  * in. The local stores stay the source of truth for the UI; this store only
  * watches their actions (`$onAction`), pushes changes, and folds pulled rows
  * back in through their `applyRemote` methods.
@@ -153,10 +180,18 @@ export const useSyncStore = defineStore('sync', () => {
     routines.$onAction(({ name, after }) => {
       if (!ROUTINE_MUTATIONS.has(name)) return
       const before = routines.routines.map((r) => r.id)
+      const sectionsBefore = JSON.stringify(routines.sections)
+      const sectionIdsBefore = routines.sections.map((s) => s.id)
       after(() => {
         const now = new Set(routines.routines.map((r) => r.id))
         for (const id of before) if (!now.has(id)) addUnique(state.value.deletedRoutineIds, id)
         state.value.routinesDirty = true
+        // Routine edits leave the sections alone, so only a real change re-uploads them.
+        if (JSON.stringify(routines.sections) !== sectionsBefore) {
+          const sectionsNow = new Set(routines.sections.map((s) => s.id))
+          for (const id of sectionIdsBefore) if (!sectionsNow.has(id)) addUnique(state.value.deletedSectionIds, id)
+          state.value.sectionsDirty = true
+        }
         scheduleSync()
       })
     }, true)
@@ -231,6 +266,21 @@ export const useSyncStore = defineStore('sync', () => {
 
     normalizeIds()
 
+    // Sections go up before the routines filed under them (routines.section_id references them).
+    if (state.value.sectionsDirty) {
+      state.value.sectionsDirty = false
+      const rows = routines.sections.map((s, i) => sectionToRow(s, uid, i))
+      try {
+        for (const batch of chunks(rows)) {
+          const { error } = await sb.from('routine_sections').upsert(batch)
+          if (error) throw error
+        }
+      } catch (e) {
+        state.value.sectionsDirty = true
+        throw e
+      }
+    }
+
     if (state.value.routinesDirty) {
       state.value.routinesDirty = false
       const rows = routines.routines.map((r, i) => routineToRow(r, uid, i))
@@ -253,6 +303,16 @@ export const useSyncStore = defineStore('sync', () => {
         .in('id', batch)
       if (error) throw error
       state.value.deletedRoutineIds = without(state.value.deletedRoutineIds, batch)
+    }
+
+    const deletedSections = [...state.value.deletedSectionIds]
+    for (const batch of chunks(deletedSections)) {
+      const { error } = await sb
+        .from('routine_sections')
+        .update({ deleted_at: new Date().toISOString() })
+        .in('id', batch)
+      if (error) throw error
+      state.value.deletedSectionIds = without(state.value.deletedSectionIds, batch)
     }
 
     const upsertIds = [...state.value.upsertSessionIds]
@@ -285,11 +345,11 @@ export const useSyncStore = defineStore('sync', () => {
    * matters: RLS also lets you read the shared sessions of people you follow,
    * and those must never land in your own log.
    */
-  async function fetchSince<T extends 'routines' | 'sessions'>(table: T, uid: string, cursor: string | null) {
+  async function fetchSince<T extends 'routines' | 'routine_sections' | 'sessions'>(table: T, uid: string, cursor: string | null) {
     const sb = requireSupabase()
     const rows: Tables<T>[] = []
     for (let from = 0; ; from += PAGE_SIZE) {
-      // Typed as `sessions` only so `eq('user_id')` type-checks — both tables have every column used here.
+      // Typed as `sessions` only so `eq('user_id')` type-checks — every table has each column used here.
       let query = sb
         .from(table as 'sessions')
         .select('*')
@@ -316,8 +376,15 @@ export const useSyncStore = defineStore('sync', () => {
     const sessions = useSessionsStore()
     const activeSession = useActiveSessionStore()
 
+    const sectionRows = await fetchSince('routine_sections', uid, state.value.sectionsCursor)
     const routineRows = await fetchSince('routines', uid, state.value.routinesCursor)
     const sessionRows = await fetchSince('sessions', uid, state.value.sessionsCursor)
+
+    // Sections first, so the routines merged next find the sections they're filed under.
+    const mergedSections = mergeSections(routines.sections, sectionRows.map(rowToSection), opts)
+    if (sectionRows.length) {
+      routines.applyRemoteSections(mergedSections.items as RoutineSection[], mergedSections.remap)
+    }
 
     const mergedRoutines = mergeRoutines(routines.routines, routineRows.map(rowToRoutine), opts)
     const remap = mergedRoutines.remap
@@ -339,6 +406,10 @@ export const useSyncStore = defineStore('sync', () => {
     const active = activeSession.session
     if (active && remap[active.routineId]) active.routineId = remap[active.routineId]!
 
+    state.value.sectionsCursor = sectionRows.reduce<string | null>(
+      (max, r) => laterOf(max, r.updated_at),
+      state.value.sectionsCursor,
+    )
     state.value.routinesCursor = routineRows.reduce<string | null>(
       (max, r) => laterOf(max, r.updated_at),
       state.value.routinesCursor,
@@ -364,6 +435,7 @@ export const useSyncStore = defineStore('sync', () => {
     const remoteSessionIds = await pull(uid, { dedupe: true })
     await dropForeignSessions(uid)
     state.value.routinesDirty = true
+    state.value.sectionsDirty = true
     state.value.upsertSessionIds = sessions.sessions
       .filter((s) => !s.localOnly && !remoteSessionIds.has(s.id))
       .map((s) => s.id)
@@ -500,6 +572,8 @@ export const useSyncStore = defineStore('sync', () => {
     () =>
       state.value.routinesDirty ||
       state.value.deletedRoutineIds.length > 0 ||
+      state.value.sectionsDirty ||
+      state.value.deletedSectionIds.length > 0 ||
       state.value.upsertSessionIds.length > 0 ||
       state.value.deletedSessionIds.length > 0,
   )

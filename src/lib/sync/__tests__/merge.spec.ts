@@ -1,10 +1,17 @@
 import { describe, it, expect } from 'vitest'
-import { mergeRoutines, mergeSessions } from '../merge'
-import type { RemoteRoutine, RemoteSession } from '../rows'
+import { mergeRoutines, mergeSections, mergeSessions } from '../merge'
+import type { RemoteRoutine, RemoteSection, RemoteSession } from '../rows'
 
 const routine = (id: string, rawText = `# ${id}`) => ({ id, filename: `${id}.wtt`, rawText, addedAt: 1 })
 const remoteRoutine = (id: string, position: number, extra: Partial<RemoteRoutine> = {}): RemoteRoutine => ({
   ...routine(id),
+  position,
+  deleted: false,
+  ...extra,
+})
+const section = (id: string, name = id) => ({ id, name, color: '#10b981', addedAt: 1 })
+const remoteSection = (id: string, position: number, extra: Partial<RemoteSection> = {}): RemoteSection => ({
+  ...section(id),
   position,
   deleted: false,
   ...extra,
@@ -54,6 +61,54 @@ describe('mergeRoutines', () => {
   it('does not mutate the local array', () => {
     const local = [routine('a')]
     mergeRoutines(local, [remoteRoutine('a', 0, { deleted: true })])
+    expect(local).toHaveLength(1)
+  })
+})
+
+describe('mergeRoutines: sections', () => {
+  it('takes the section a routine is filed under from the remote row', () => {
+    const { items } = mergeRoutines([routine('a')], [remoteRoutine('a', 0, { sectionId: 's1' })])
+    expect(items[0]).toMatchObject({ id: 'a', sectionId: 's1' })
+  })
+
+  it('takes a routine out of its section when the remote row has none', () => {
+    const { items } = mergeRoutines([{ ...routine('a'), sectionId: 's1' }], [remoteRoutine('a', 0)])
+    expect(items[0]).not.toHaveProperty('sectionId')
+  })
+
+  it('keeps the section of local routines no row mentions', () => {
+    const { items } = mergeRoutines([{ ...routine('a'), sectionId: 's1' }], [remoteRoutine('b', 1)])
+    expect(items[0]).toMatchObject({ id: 'a', sectionId: 's1' })
+  })
+})
+
+describe('mergeSections', () => {
+  it('inserts, replaces and removes at remote positions', () => {
+    const { items } = mergeSections(
+      [section('a'), section('b'), section('c')],
+      [
+        remoteSection('b', 0, { name: 'Renamed', color: '#f59e0b' }),
+        remoteSection('c', 0, { deleted: true }),
+        remoteSection('d', 2),
+      ],
+    )
+    expect(items.map((s) => s.id)).toEqual(['b', 'a', 'd'])
+    expect(items[0]).toMatchObject({ name: 'Renamed', color: '#f59e0b' })
+  })
+
+  it('folds a never-uploaded local section into a remote one of the same name when deduping', () => {
+    const local = [section('local', 'push / pull ')]
+    const remote = [remoteSection('remote', 0, { name: 'Push / Pull' })]
+    expect(mergeSections(local, remote).items).toHaveLength(2)
+
+    const deduped = mergeSections(local, remote, { dedupe: true })
+    expect(deduped.items.map((s) => s.id)).toEqual(['remote'])
+    expect(deduped.remap).toEqual({ local: 'remote' })
+  })
+
+  it('does not mutate the local array', () => {
+    const local = [section('a')]
+    mergeSections(local, [remoteSection('a', 0, { deleted: true })])
     expect(local).toHaveLength(1)
   })
 })

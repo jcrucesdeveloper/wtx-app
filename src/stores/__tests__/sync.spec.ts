@@ -10,7 +10,7 @@ type Row = Record<string, unknown> & { id: string; user_id: string }
 const db = vi.hoisted(() => ({
   me: '',
   followed: new Set<string>(),
-  tables: { routines: [] as Row[], sessions: [] as Row[] } as Record<string, Row[]>,
+  tables: { routines: [] as Row[], routine_sections: [] as Row[], sessions: [] as Row[] } as Record<string, Row[]>,
   upserts: [] as { table: string; rows: Row[] }[],
 }))
 
@@ -70,6 +70,7 @@ vi.mock('@/services/analytics', () => ({ track: () => {} }))
 
 import { useSyncStore } from '@/stores/sync'
 import { useSessionsStore } from '@/stores/sessions'
+import { useRoutinesStore } from '@/stores/routines'
 
 const ME = '00000000-0000-4000-8000-00000000000a'
 const FRIEND = '00000000-0000-4000-8000-00000000000b'
@@ -102,7 +103,7 @@ describe('sync store', () => {
     setActivePinia(createPinia())
     db.me = ME
     db.followed = new Set([FRIEND])
-    db.tables = { routines: [], sessions: [] }
+    db.tables = { routines: [], routine_sections: [], sessions: [] }
     db.upserts = []
   })
 
@@ -201,5 +202,137 @@ describe('sync store', () => {
     sessions.applyRemote([local(1), local(2, { localOnly: true })])
     const sync = useSyncStore()
     expect(sync.unsyncedSessionIds()).toEqual([id(1)])
+  })
+})
+
+describe('sync store: routine sections', () => {
+  const ROUTINE = (name: string) => `# ${name}
+unit: kg
+
+Squat | reps 3x5 | 100
+`
+
+  function sectionRow(n: number, extra: Partial<Row> = {}): Row {
+    return {
+      id: id(n),
+      user_id: ME,
+      name: `Section ${n}`,
+      color: '#10b981',
+      position: 0,
+      created_at: '2026-09-01T10:00:00.000Z',
+      updated_at: '2026-09-01T10:00:00.000Z',
+      deleted_at: null,
+      ...extra,
+    }
+  }
+
+  function routineRow(n: number, extra: Partial<Row> = {}): Row {
+    return {
+      id: id(n),
+      user_id: ME,
+      section_id: null,
+      filename: `r${n}.wtt`,
+      raw_text: ROUTINE(`R${n}`),
+      position: 0,
+      created_at: '2026-09-01T10:00:00.000Z',
+      updated_at: '2026-09-01T10:00:00.000Z',
+      deleted_at: null,
+      ...extra,
+    }
+  }
+
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('wtx:routines', '[]')
+    setActivePinia(createPinia())
+    db.me = ME
+    db.followed = new Set()
+    db.tables = { routines: [], routine_sections: [], sessions: [] }
+    db.upserts = []
+  })
+
+  it('uploads sections before the routines filed under them', async () => {
+    const routines = useRoutinesStore()
+    const legs = routines.add(ROUTINE('Legs'), 'legs.wtt')
+    const ppl = routines.addSection('PPL', '#8b5cf6')
+    routines.moveToSection(legs.id, ppl.id)
+
+    const sync = useSyncStore()
+    await sync.start(ME)
+
+    expect(db.tables.routine_sections).toEqual([
+      expect.objectContaining({ id: ppl.id, user_id: ME, name: 'PPL', color: '#8b5cf6', position: 0 }),
+    ])
+    expect(db.tables.routines!.find((r) => r.id === legs.id)?.section_id).toBe(ppl.id)
+    const order = db.upserts.map((u) => u.table)
+    expect(order.indexOf('routine_sections')).toBeLessThan(order.indexOf('routines'))
+    expect(sync.isFullySynced()).toBe(true)
+    sync.stop()
+  })
+
+  it("pulls another device's sections and where its routines are filed", async () => {
+    db.tables.routine_sections!.push(sectionRow(1, { name: 'Strength', position: 1 }), sectionRow(2, { name: 'Cardio' }))
+    db.tables.routines!.push(routineRow(3, { section_id: id(1) }))
+
+    const sync = useSyncStore()
+    await sync.start(ME)
+
+    const routines = useRoutinesStore()
+    expect(routines.sections.map((s) => s.name)).toEqual(['Cardio', 'Strength'])
+    expect(routines.sectionOf(id(3))?.name).toBe('Strength')
+    sync.stop()
+  })
+
+  it('tombstones a deleted section and unfiles its routines on the server', async () => {
+    const routines = useRoutinesStore()
+    const legs = routines.add(ROUTINE('Legs'), 'legs.wtt')
+    const ppl = routines.addSection('PPL')
+    routines.moveToSection(legs.id, ppl.id)
+    const sync = useSyncStore()
+    await sync.start(ME)
+
+    routines.removeSection(ppl.id)
+    expect(sync.hasPending).toBe(true)
+    await sync.syncNow()
+
+    expect(db.tables.routine_sections!.find((r) => r.id === ppl.id)?.deleted_at).not.toBeNull()
+    expect(db.tables.routines!.find((r) => r.id === legs.id)?.section_id).toBeNull()
+    expect(routines.list.map((r) => r.id)).toEqual([legs.id])
+    expect(sync.isFullySynced()).toBe(true)
+    sync.stop()
+  })
+
+  it('drops a section another device deleted, keeping its routines unsorted', async () => {
+    db.tables.routine_sections!.push(sectionRow(1))
+    db.tables.routines!.push(routineRow(3, { section_id: id(1) }))
+    const sync = useSyncStore()
+    await sync.start(ME)
+    const routines = useRoutinesStore()
+    expect(routines.sectionOf(id(3))).toBeDefined()
+
+    const later = new Date(Date.now() + 60_000).toISOString()
+    Object.assign(db.tables.routine_sections![0]!, { deleted_at: later, updated_at: later })
+    await sync.syncNow({ force: true })
+
+    expect(routines.sections).toEqual([])
+    expect(routines.getById(id(3))?.sectionId).toBeUndefined()
+    sync.stop()
+  })
+
+  it("folds this device's section into the account's one of the same name on first sync", async () => {
+    db.tables.routine_sections!.push(sectionRow(1, { name: 'PPL' }))
+    const routines = useRoutinesStore()
+    const legs = routines.add(ROUTINE('Legs'), 'legs.wtt')
+    const mine = routines.addSection('ppl')
+    routines.moveToSection(legs.id, mine.id)
+
+    const sync = useSyncStore()
+    await sync.start(ME)
+
+    expect(routines.sections.map((s) => s.id)).toEqual([id(1)])
+    expect(routines.getById(legs.id)?.sectionId).toBe(id(1))
+    expect(db.tables.routine_sections!.map((r) => r.id)).toEqual([id(1)])
+    expect(db.tables.routines!.find((r) => r.id === legs.id)?.section_id).toBe(id(1))
+    sync.stop()
   })
 })
