@@ -5,9 +5,14 @@ import { useSettingsStore } from '@/stores/settings'
 import { WorkoutParser } from '@/lib/wtx'
 import type { StoredRoutine } from '@/stores/routines'
 
-const { restOver } = vi.hoisted(() => ({ restOver: vi.fn(() => Promise.resolve()) }))
+const { restOver } = vi.hoisted(() => ({ restOver: vi.fn<() => Promise<void>>(() => Promise.resolve()) }))
 vi.mock('@/services/haptics', () => ({
-  HapticsService: { restOver, light: vi.fn(), medium: vi.fn(), selection: vi.fn() },
+  HapticsService: {
+    restOver,
+    light: vi.fn<() => void>(),
+    medium: vi.fn<() => void>(),
+    selection: vi.fn<() => void>(),
+  },
 }))
 
 const ROUTINE = { id: 'r1', filename: 'push-day.wtt' } as StoredRoutine
