@@ -30,6 +30,24 @@
     "favorites": "Favoritas",
     "otherRoutines": "Otras rutinas"
   },
+  "sections": {
+    "new": "Nueva sección",
+    "newTitle": "Nueva sección",
+    "editTitle": "Editar sección",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "p. ej. Empuje Tirón Pierna",
+    "colorLabel": "Color",
+    "create": "Crear sección",
+    "save": "Guardar",
+    "delete": "Eliminar sección",
+    "deleteConfirm": "¿Eliminar «{name}»? No tiene rutinas. | ¿Eliminar «{name}»? Su rutina sigue en tu biblioteca. | ¿Eliminar «{name}»? Sus {count} rutinas siguen en tu biblioteca.",
+    "moveTo": "Mover a sección",
+    "moveTitle": "Mover a sección",
+    "none": "Sin sección",
+    "dropHere": "Arrastra rutinas aquí",
+    "emptyHint": "Aún no hay nada. Toca Editar para arrastrar rutinas, o muévelas desde su página.",
+    "dragAria": "Arrastra para reordenar secciones"
+  },
   "workout": {
     "removeConfirm": "¿Quitar {name} de este entrenamiento?",
     "replaceConfirm": "Tienes un entrenamiento en curso. ¿Descartarlo y empezar este?",

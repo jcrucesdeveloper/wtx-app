@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { routineToRow, rowToRoutine, rowToSession, sessionToRow } from '../rows'
+import { routineToRow, rowToRoutine, rowToSection, rowToSession, sectionToRow, sessionToRow } from '../rows'
 
 const USER = '00000000-0000-4000-8000-000000000001'
 const ROUTINE_ID = '00000000-0000-4000-8000-000000000002'
+const SECTION_ID = '00000000-0000-4000-8000-000000000003'
 
 describe('sync rows', () => {
   it('round-trips a routine', () => {
@@ -12,12 +13,70 @@ describe('sync rows', () => {
 
     const back = rowToRoutine({
       ...row,
+      section_id: row.section_id ?? null,
       position: 3,
       created_at: row.created_at!,
       updated_at: row.created_at!,
       deleted_at: null,
     })
     expect(back).toEqual({ ...routine, position: 3, deleted: false })
+  })
+
+  it('round-trips the section a routine is filed under, and sends null for unsorted', () => {
+    const routine = { id: ROUTINE_ID, filename: 'push.wtt', rawText: '# Push', addedAt: 0, sectionId: SECTION_ID }
+    const row = routineToRow(routine, USER, 0)
+    expect(row.section_id).toBe(SECTION_ID)
+    expect(routineToRow({ ...routine, sectionId: undefined }, USER, 0).section_id).toBeNull()
+
+    const back = rowToRoutine({
+      ...row,
+      section_id: row.section_id ?? null,
+      position: 0,
+      created_at: row.created_at!,
+      updated_at: row.created_at!,
+      deleted_at: null,
+    })
+    expect(back.sectionId).toBe(SECTION_ID)
+  })
+
+  it('never sends a non-UUID section id', () => {
+    const row = routineToRow({ id: ROUTINE_ID, filename: 'a', rawText: '#', addedAt: 0, sectionId: 's_1' }, USER, 0)
+    expect(row.section_id).toBeNull()
+  })
+
+  it('round-trips a section', () => {
+    const section = { id: SECTION_ID, name: 'Push/Pull/Legs', color: '#10b981', addedAt: 1_700_000_000_000 }
+    const row = sectionToRow(section, USER, 2)
+    expect(row).toMatchObject({ user_id: USER, name: 'Push/Pull/Legs', color: '#10b981', position: 2, deleted_at: null })
+
+    const back = rowToSection({
+      ...row,
+      position: 2,
+      created_at: row.created_at!,
+      updated_at: row.created_at!,
+      deleted_at: null,
+    })
+    expect(back).toEqual({ ...section, position: 2, deleted: false })
+  })
+
+  it('keeps a section row within the server checks', () => {
+    const row = sectionToRow({ id: SECTION_ID, name: `  ${'x'.repeat(100)}`, color: 'red', addedAt: 0 }, USER, 0)
+    expect(row.name.length).toBeLessThanOrEqual(60)
+    expect(row.color).toMatch(/^#[0-9a-f]{6}$/i)
+  })
+
+  it('maps a tombstoned section row', () => {
+    const back = rowToSection({
+      id: SECTION_ID,
+      user_id: USER,
+      name: 'Old',
+      color: '#3b82f6',
+      position: 0,
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+      deleted_at: new Date(0).toISOString(),
+    })
+    expect(back.deleted).toBe(true)
   })
 
   it('drops legacy non-UUID routine links from sessions', () => {

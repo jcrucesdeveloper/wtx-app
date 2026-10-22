@@ -84,3 +84,32 @@ describe('importedSessionAddedAt', () => {
     expect(importedSessionAddedAt('renamed.wts', '2024-01-01', now)).toBe(now)
   })
 })
+
+describe('routine sections in the export', () => {
+  const ppl = { id: 'sec1', name: 'Push / Pull: Legs' }
+
+  it('puts a filed routine in a folder named after its section', () => {
+    const filed: StoredRoutine = { ...routine, sectionId: 'sec1' }
+    const loose: StoredRoutine = { ...routine, id: 'r2', rawText: 'other' }
+    const zip = unzipSync(buildDataExportZip([filed, loose], [], [ppl]))
+    expect(Object.keys(zip).sort()).toEqual(['routines/Push - Pull- Legs/push.wtt', 'routines/push.wtt'])
+  })
+
+  it('reads the section back from the folder', () => {
+    const filed: StoredRoutine = { ...routine, sectionId: 'sec1' }
+    const parsed = parseDataExportZip(buildDataExportZip([filed], [], [ppl]))
+    expect(parsed.routines).toEqual([{ filename: 'push.wtt', rawText: routine.rawText, section: 'Push - Pull- Legs' }])
+  })
+
+  it('keeps two sections with the same name apart', () => {
+    const a: StoredRoutine = { ...routine, sectionId: 'a' }
+    const b: StoredRoutine = { ...routine, id: 'r2', sectionId: 'b' }
+    const zip = unzipSync(
+      buildDataExportZip([a, b], [], [
+        { id: 'a', name: 'PPL' },
+        { id: 'b', name: 'PPL' },
+      ]),
+    )
+    expect(Object.keys(zip).sort()).toEqual(['routines/PPL (2)/push.wtt', 'routines/PPL/push.wtt'])
+  })
+})

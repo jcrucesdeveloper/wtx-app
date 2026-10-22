@@ -1,4 +1,11 @@
-import type { LocalRoutine, LocalSession, RemoteRoutine, RemoteSession } from './rows'
+import type {
+  LocalRoutine,
+  LocalSection,
+  LocalSession,
+  RemoteRoutine,
+  RemoteSection,
+  RemoteSession,
+} from './rows'
 
 export interface MergeOptions {
   /**
@@ -43,8 +50,46 @@ export function mergeRoutines<T extends LocalRoutine>(
       }
     }
 
-    const { id, filename, rawText, addedAt } = row
-    items.splice(Math.min(Math.max(row.position, 0), items.length), 0, { id, filename, rawText, addedAt })
+    const { id, filename, rawText, addedAt, sectionId } = row
+    const merged: LocalRoutine = { id, filename, rawText, addedAt, ...(sectionId ? { sectionId } : {}) }
+    items.splice(Math.min(Math.max(row.position, 0), items.length), 0, merged)
+  }
+
+  return { items, remap }
+}
+
+/**
+ * Applies pulled section rows to the local sections, exactly like
+ * {@link mergeRoutines}: tombstones remove, everything else is inserted or
+ * replaced at its remote `position`. With `dedupe`, a never-uploaded local
+ * section folds into the account's one of the same name (ignoring case), so
+ * signing in on a device where you'd made "Push/Pull/Legs" doesn't double it.
+ */
+export function mergeSections<T extends LocalSection>(
+  local: T[],
+  remote: RemoteSection[],
+  options: MergeOptions = {},
+): MergeResult<T | LocalSection> {
+  const items: (T | LocalSection)[] = [...local]
+  const remap: Record<string, string> = {}
+  const remoteIds = new Set(remote.map((s) => s.id))
+  const key = (name: string) => name.trim().toLocaleLowerCase()
+
+  for (const row of [...remote].sort((a, b) => a.position - b.position)) {
+    const index = items.findIndex((s) => s.id === row.id)
+    if (index >= 0) items.splice(index, 1)
+    if (row.deleted) continue
+
+    if (index < 0 && options.dedupe) {
+      const dup = items.findIndex((s) => !remoteIds.has(s.id) && key(s.name) === key(row.name))
+      if (dup >= 0) {
+        remap[items[dup]!.id] = row.id
+        items.splice(dup, 1)
+      }
+    }
+
+    const { id, name, color, addedAt } = row
+    items.splice(Math.min(Math.max(row.position, 0), items.length), 0, { id, name, color, addedAt })
   }
 
   return { items, remap }

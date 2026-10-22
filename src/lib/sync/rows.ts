@@ -1,9 +1,15 @@
 import type { Database, Json, Tables } from '@/lib/supabase/database.types'
 import { isUuid } from '@/lib/uuid'
 import { parseFeedSnapshot, type FeedSnapshot } from '@/lib/feedSnapshot'
-import { FEED_SNAPSHOT_MAX_BYTES, ROUTINE_FILENAME_MAX, jsonByteLength } from '@/lib/supabase/limits'
+import {
+  FEED_SNAPSHOT_MAX_BYTES,
+  ROUTINE_FILENAME_MAX,
+  SECTION_NAME_MAX,
+  jsonByteLength,
+} from '@/lib/supabase/limits'
 
 type RoutineInsert = Database['public']['Tables']['routines']['Insert']
+type SectionInsert = Database['public']['Tables']['routine_sections']['Insert']
 type SessionInsert = Database['public']['Tables']['sessions']['Insert']
 
 /** The synced fields of a local routine (a `StoredRoutine`). */
@@ -12,6 +18,21 @@ export interface LocalRoutine {
   filename: string
   rawText: string
   addedAt: number
+  sectionId?: string
+}
+
+/** The synced fields of a local routine section (a `RoutineSection`). */
+export interface LocalSection {
+  id: string
+  name: string
+  color: string
+  addedAt: number
+}
+
+/** A section as pulled from the server — `deleted` rows are tombstones. */
+export interface RemoteSection extends LocalSection {
+  position: number
+  deleted: boolean
 }
 
 /** The synced fields of a local session (a `StoredSession`). */
@@ -40,6 +61,8 @@ export function routineToRow(routine: LocalRoutine, userId: string, position: nu
   return {
     id: routine.id,
     user_id: userId,
+    // Always sent (null = unsorted), so taking a routine out of a section syncs too.
+    section_id: routine.sectionId && isUuid(routine.sectionId) ? routine.sectionId : null,
     filename: routine.filename.slice(0, ROUTINE_FILENAME_MAX),
     raw_text: routine.rawText,
     position,
@@ -53,6 +76,31 @@ export function rowToRoutine(row: Tables<'routines'>): RemoteRoutine {
     id: row.id,
     filename: row.filename,
     rawText: row.raw_text,
+    addedAt: Date.parse(row.created_at),
+    // Rows written before sections existed have no such column at all.
+    ...(row.section_id ? { sectionId: row.section_id } : {}),
+    position: row.position,
+    deleted: row.deleted_at !== null,
+  }
+}
+
+export function sectionToRow(section: LocalSection, userId: string, position: number): SectionInsert {
+  return {
+    id: section.id,
+    user_id: userId,
+    name: section.name.trim().slice(0, SECTION_NAME_MAX) || '…',
+    color: /^#[0-9a-f]{6}$/i.test(section.color) ? section.color : '#3b82f6',
+    position,
+    created_at: new Date(section.addedAt).toISOString(),
+    deleted_at: null,
+  }
+}
+
+export function rowToSection(row: Tables<'routine_sections'>): RemoteSection {
+  return {
+    id: row.id,
+    name: row.name,
+    color: row.color,
     addedAt: Date.parse(row.created_at),
     position: row.position,
     deleted: row.deleted_at !== null,

@@ -96,10 +96,40 @@ export type Database = {
         }
         Relationships: []
       }
+      routine_sections: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          color: string
+          position: number
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id: string
+          user_id: string
+          name: string
+          color: string
+          position?: number
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          name?: string
+          color?: string
+          position?: number
+          deleted_at?: string | null
+        }
+        Relationships: []
+      }
       routines: {
         Row: {
           id: string
           user_id: string
+          section_id: string | null
           filename: string
           raw_text: string
           position: number
@@ -110,6 +140,7 @@ export type Database = {
         Insert: {
           id: string
           user_id: string
+          section_id?: string | null
           filename: string
           raw_text: string
           position?: number
@@ -118,6 +149,7 @@ export type Database = {
           deleted_at?: string | null
         }
         Update: {
+          section_id?: string | null
           filename?: string
           raw_text?: string
           position?: number
