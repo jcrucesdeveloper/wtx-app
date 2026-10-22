@@ -220,6 +220,16 @@ describe('filterExerciseCatalog', () => {
     expect(results.some((entry) => entry.name === 'Goblet Squat')).toBe(true)
   })
 
+  it('matches Spanish muscle-group and equipment words', () => {
+    const legs = filterExerciseCatalog({ query: 'piernas' }, 1000).results
+    expect(legs.some((entry) => entry.name === 'Squat')).toBe(true)
+    const dumbbell = filterExerciseCatalog({ query: 'mancuerna' }, 1000).results
+    expect(dumbbell.some((entry) => entry.name === 'Goblet Squat')).toBe(false)
+    expect(
+      dumbbell.filter((entry) => entry.equipment === 'Dumbbell').length,
+    ).toBe(EXERCISE_CATALOG.filter((entry) => entry.equipment === 'Dumbbell').length)
+  })
+
   it('ignores accents in the query', () => {
     const { results } = filterExerciseCatalog({ query: 'maquina' }, 1000)
     expect(results.some((entry) => entry.name === 'Bench Press (Machine)')).toBe(true)

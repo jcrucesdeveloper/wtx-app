@@ -43,12 +43,40 @@ export function normalizeSearchText(text: string): string {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 }
 
+/**
+ * Words (English and Spanish, normalized) a query can start with to match a
+ * muscle group or equipment bucket, so "piernas" or "mancuerna" surface every
+ * exercise in that bucket, not just ones with the word in their name. Mirrors
+ * the `wtx.muscleGroups` / `wtx.equipment` locale labels. Other has none:
+ * "other" isn't something people type to find an exercise.
+ */
+const MUSCLE_GROUP_TERMS: Record<MuscleGroup, string[]> = {
+  Chest: ['chest', 'pecho'],
+  Back: ['back', 'espalda'],
+  Shoulders: ['shoulders', 'hombros'],
+  Arms: ['arms', 'brazos'],
+  Abs: ['abs', 'abdomen', 'abdominales'],
+  Legs: ['legs', 'piernas'],
+  Neck: ['neck', 'cuello'],
+}
+
+const EQUIPMENT_TERMS: Record<EquipmentType, string[]> = {
+  Barbell: ['barbell', 'barra'],
+  Dumbbell: ['dumbbell', 'mancuerna'],
+  Machine: ['machine', 'maquina'],
+  Cable: ['cable', 'polea'],
+  Bodyweight: ['bodyweight', 'peso corporal'],
+  Kettlebell: ['kettlebell', 'pesa rusa'],
+  Band: ['band', 'banda'],
+  Other: [],
+}
+
 interface IndexedEntry {
   entry: ExerciseCatalogEntry
   name: string
   nameEs: string
-  muscleGroup: string
-  equipment: string
+  /** Muscle-group and equipment terms this entry matches by prefix. */
+  tags: string[]
 }
 
 /** Normalized search strings, built once at module load rather than per keystroke. */
@@ -56,8 +84,7 @@ const SEARCH_INDEX: IndexedEntry[] = EXERCISE_CATALOG.map((entry) => ({
   entry,
   name: normalizeSearchText(entry.name),
   nameEs: normalizeSearchText(entry.nameEs),
-  muscleGroup: entry.muscleGroup.toLowerCase(),
-  equipment: entry.equipment.toLowerCase(),
+  tags: [...MUSCLE_GROUP_TERMS[entry.muscleGroup], ...EQUIPMENT_TERMS[entry.equipment]],
 }))
 
 const EXACT_NAME_INDEX = new Map(
@@ -100,7 +127,7 @@ export function filterExerciseCatalog(
     if (equipment && item.entry.equipment !== equipment) continue
     if (!needle || item.name.startsWith(needle) || item.nameEs.startsWith(needle)) {
       nameStartsWith.push(item.entry)
-    } else if (item.muscleGroup.startsWith(needle) || item.equipment.startsWith(needle)) {
+    } else if (item.tags.some((tag) => tag.startsWith(needle))) {
       tagMatch.push(item.entry)
     } else if (item.name.includes(needle) || item.nameEs.includes(needle)) {
       nameIncludes.push(item.entry)
