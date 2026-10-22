@@ -421,11 +421,18 @@
     },
     "hint": {
       "card": "Una tarjeta para historias con tus números y tu mejor serie de cada ejercicio.",
-      "photo": "Tus números sobre una foto tuya. La foto no sale de tu teléfono hasta que la compartes.",
+      "photo": "Tu foto en un marco de WTX, con tus números debajo. La foto no sale de tu teléfono hasta que la compartes.",
       "sticker": "Solo los números, con fondo transparente, para poner sobre una foto o un video en tu historia."
     },
     "choosePhoto": "Elegir una foto",
     "changePhoto": "Cambiar foto",
+    "retakePhoto": "Hacer otra foto",
+    "addPhoto": {
+      "title": "Añade tu foto",
+      "body": "Tus números van en el marco, debajo.",
+      "camera": "Hacer foto",
+      "gallery": "Elegir foto"
+    },
     "shape": {
       "story": "9:16",
       "square": "1:1"
@@ -1256,7 +1263,6 @@
     "camera": "Cámara",
     "gallery": "Galería",
     "removePhoto": "Quitar foto",
-    "photoNeeded": "Añade una foto para poner tus números encima.",
     "formatAria": "Forma de la imagen",
     "format": {
       "story": "Historia 9:16",

@@ -4,7 +4,8 @@
  * - `card`    a 9:16 story card: the workout's name and numbers, then the
  *             lifts themselves — a strength workout has no route to show, so
  *             what was lifted is the picture.
- * - `photo`   the same numbers, kept small, over the user's own photo.
+ * - `photo`   the user's own photo in a frame, like a Polaroid: the photo
+ *             whole and uncovered, the name and the numbers in the band under it.
  * - `sticker` just the numbers on a transparent background, to place over a
  *             photo or video in another app.
  *
@@ -605,39 +606,157 @@ function drawCard(ctx: Ctx, data: WorkoutCardData, frame: WorkoutCardFrame) {
   drawBrand(ctx, data, MARGIN_X, baseline, CONTENT_WIDTH)
 }
 
+/**
+ * The photo look is a frame, like a Polaroid: the photo on top, whole and
+ * uncovered, and the numbers in the band under it. People post a photo of
+ * themselves for the photo, so nothing is drawn over it; the frame is what
+ * says it is a workout, and where it came from.
+ */
+const FRAME_BORDER = 32
+/** The frame's text is inset further than the photo, so it lines up inside the chin. */
+const CHIN_INSET = 72
+/** The story's chin is a little larger than the square's: it has the room, and a story is seen smaller. */
+const chinScale = (frame: WorkoutCardFrame) => (frame.height === frame.width ? 1 : 1.12)
+
+/** One-line title, the highlight, the totals: the chin's rows, top to bottom, unscaled. */
+const CHIN_TITLE = 76
+const CHIN_HIGHLIGHT = 56
+const CHIN_STATS = 140
+const chinHeight = (data: WorkoutCardData, k: number) =>
+  Math.round((CHIN_TITLE + (data.highlight ? 12 + CHIN_HIGHLIGHT : 0) + 16 + CHIN_STATS) * k)
+
+/** Where the photo sits in the photo look, in pixels of the image. */
+export interface PhotoRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/**
+ * The part of the photo look the photo fills. The preview lays its "add a
+ * photo" buttons over exactly this, so it is worked out here, once.
+ */
+export function photoRect(
+  data: Pick<WorkoutCardData, 'highlight'>,
+  format: WorkoutCardFormat = 'story',
+): PhotoRect {
+  const frame = workoutCardFrame(format)
+  const k = chinScale(frame)
+  const textBottom = frame.height - frame.safeBottom - 8
+  const chinTop = textBottom - chinHeight(data as WorkoutCardData, k) - Math.round(36 * k)
+  return {
+    x: FRAME_BORDER,
+    y: FRAME_BORDER,
+    width: frame.width - FRAME_BORDER * 2,
+    height: chinTop - FRAME_BORDER,
+  }
+}
+
+/** The app's mark beside its name and address, stacked, right-aligned at `right`. */
+function drawStackedBrand(ctx: Ctx, data: WorkoutCardData, right: number, top: number, k: number) {
+  const icon = Math.round(64 * k)
+  drawMark(ctx, right - icon, top, icon)
+  const textRight = right - icon - Math.round(18 * k)
+  ctx.fillStyle = TEXT
+  ctx.font = font(800, Math.round(34 * k))
+  const name = 'WTX'
+  ctx.fillText(name, textRight - ctx.measureText(name).width, top + Math.round(30 * k))
+  ctx.fillStyle = MUTED
+  ctx.font = font(600, Math.round(31 * k))
+  ctx.fillText(data.host, textRight - ctx.measureText(data.host).width, top + Math.round(64 * k))
+}
+
+function stackedBrandWidth(ctx: Ctx, data: WorkoutCardData, k: number): number {
+  ctx.font = font(800, Math.round(34 * k))
+  const name = ctx.measureText('WTX').width
+  ctx.font = font(600, Math.round(31 * k))
+  const host = ctx.measureText(data.host).width
+  return Math.max(name, host) + Math.round((18 + 64) * k)
+}
+
 function drawPhotoCard(
   ctx: Ctx,
   data: WorkoutCardData,
-  frame: WorkoutCardFrame,
+  format: WorkoutCardFormat,
   photo?: CanvasImageSource & { width: number; height: number },
 ) {
-  const { width, height } = frame
+  const frame = workoutCardFrame(format)
+  const k = chinScale(frame)
+  const s = (px: number) => Math.round(px * k)
   ctx.fillStyle = BACKGROUND
-  ctx.fillRect(0, 0, width, height)
+  ctx.fillRect(0, 0, frame.width, frame.height)
+
+  const rect = photoRect(data, format)
+  ctx.save()
+  roundedRect(ctx, rect.x, rect.y, rect.width, rect.height, 28)
+  ctx.clip()
   if (photo) {
-    const crop = coverCrop(photo.width, photo.height, width, height)
-    ctx.drawImage(photo, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, width, height)
+    const crop = coverCrop(photo.width, photo.height, rect.width, rect.height)
+    ctx.drawImage(
+      photo,
+      crop.sx,
+      crop.sy,
+      crop.sw,
+      crop.sh,
+      rect.x,
+      rect.y,
+      rect.width,
+      rect.height,
+    )
+  } else {
+    // Where the photo will go: the preview puts its camera and gallery buttons here.
+    ctx.fillStyle = TINT
+    ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
+  }
+  ctx.restore()
+
+  const left = CHIN_INSET
+  const width = frame.width - CHIN_INSET * 2
+  let y = frame.height - frame.safeBottom - 8 - chinHeight(data, k)
+
+  // The name on one line, the app's mark beside it.
+  const brandWidth = stackedBrandWidth(ctx, data, k)
+  const titleRoom = width - brandWidth - s(32)
+  const titleSize = fitSize(ctx, data.title, 800, s(64), s(44), titleRoom)
+  ctx.fillStyle = TEXT
+  ctx.font = font(800, titleSize)
+  ctx.fillText(ellipsize(ctx, data.title, titleRoom), left, y + s(CHIN_TITLE) - s(18))
+  drawStackedBrand(ctx, data, left + width, y + s(4), k)
+  y += s(CHIN_TITLE)
+
+  // The record, the progress or the streak: its label in the accent, on one line.
+  if (data.highlight) {
+    y += s(12)
+    const baseline = y + s(42)
+    ctx.font = font(800, s(32))
+    ctx.fillStyle = data.accent
+    const label = ellipsize(ctx, data.highlight.label, width * 0.5)
+    ctx.fillText(label, left, baseline)
+    const textLeft = left + ctx.measureText(label).width + s(20)
+    const room = left + width - textLeft
+    ctx.fillStyle = TEXT
+    ctx.font = font(800, fitSize(ctx, data.highlight.text, 800, s(40), s(32), room))
+    ctx.fillText(ellipsize(ctx, data.highlight.text, room), textLeft, baseline)
+    y += s(CHIN_HIGHLIGHT)
   }
 
-  // The numbers stay small and low, so the photo is still the photo.
-  const square = height === width
-  const bands = [
-    ...summaryBands(ctx, data, CONTENT_WIDTH, square ? 80 : 92),
-    gap(28),
-    brandBand(ctx, data, CONTENT_WIDTH),
-  ]
-  const blockTop = height - frame.safeBottom - 20 - heightOf(bands)
-
-  // A scrim only where the text is, deep enough to read white type on a bright photo.
-  const fade = square ? 180 : 260
-  const scrim = ctx.createLinearGradient(0, blockTop - fade, 0, height)
-  scrim.addColorStop(0, 'rgba(0, 0, 0, 0)')
-  scrim.addColorStop(0.3, 'rgba(0, 0, 0, 0.62)')
-  scrim.addColorStop(1, 'rgba(0, 0, 0, 0.86)')
-  ctx.fillStyle = scrim
-  ctx.fillRect(0, blockTop - fade, width, height - blockTop + fade)
-
-  drawBands(bands, MARGIN_X, blockTop)
+  // The totals, side by side under a hairline.
+  y += s(16)
+  ctx.fillStyle = HAIRLINE
+  ctx.fillRect(left, y, width, 3)
+  const stats = data.stats.slice(0, 3)
+  const column = width / Math.max(1, stats.length)
+  stats.forEach((stat, index) => {
+    const x = left + index * column
+    const room = column - s(28)
+    ctx.fillStyle = TEXT
+    ctx.font = font(800, fitSize(ctx, stat.value, 800, s(68), s(44), room))
+    ctx.fillText(ellipsize(ctx, stat.value, room), x, y + s(86))
+    ctx.fillStyle = MUTED
+    ctx.font = font(600, s(32))
+    ctx.fillText(ellipsize(ctx, stat.label, room), x, y + s(128))
+  })
 }
 
 function stickerBands(ctx: Ctx, data: WorkoutCardData): Band[] {
@@ -681,7 +800,7 @@ export function drawWorkoutCard(
 ): void {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
-  if (style === 'photo') drawPhotoCard(ctx, data, workoutCardFrame(format), photo)
+  if (style === 'photo') drawPhotoCard(ctx, data, format, photo)
   else if (style === 'sticker') drawSticker(ctx, data, workoutCardSize(ctx, data, style).height)
   else drawCard(ctx, data, workoutCardFrame(format))
 }
