@@ -8,8 +8,8 @@
 
 ## Trimming from upstream
 
-Each of the 876 entries is trimmed to `{ id, name, muscleGroup,
-primaryMuscles }` and sorted by `name`. `category` (upstream's exercise
+Each of the 876 entries is trimmed to `{ id, name, nameEs, muscleGroup,
+equipment, primaryMuscles }` and sorted by `name`. `category` (upstream's exercise
 style — `strength`, `powerlifting`, `strongman`, ...) is dropped: it's not
 what people search by. `muscleGroup` isn't from upstream at all — it's
 derived from `primaryMuscles` by collapsing its 17 specific values (e.g.
@@ -17,7 +17,27 @@ derived from `primaryMuscles` by collapsing its 17 specific values (e.g.
 Shoulders, Arms, Abs, Legs, Neck) via the `MUSCLE_GROUP_BY_MUSCLE` table in
 `scripts/sync-exercise-db.mjs`, which throws if it meets an upstream muscle
 it doesn't recognize. Other dropped fields — `force`, `level`, `mechanic`,
-`secondaryMuscles`, `instructions`, `equipment`, `images` — aren't used yet.
+`secondaryMuscles`, `instructions`, `images` — aren't used yet.
+
+## Equipment buckets
+
+`equipment` is derived from upstream's `equipment` by `equipmentFor()` in
+`scripts/sync-exercise-db.mjs`, collapsing its 12 values (plus null) into
+the 8 buckets the exercise picker filters by: Barbell, Dumbbell, Machine,
+Cable, Bodyweight, Kettlebell, Band, Other. The split follows what gym apps
+filter by (Hevy: barbell, dumbbell, kettlebell, machine, plate, resistance
+band, suspension, none; JEFIT: barbell, dumbbell, machine, cable, band,
+bodyweight), trimmed to what this catalog has enough of to be worth a chip:
+
+- `e-z curl bar` and a trap bar count as Barbell; anything with "Smith" in
+  its name is Machine (upstream tags one Smith lift `barbell`).
+- `medicine ball`, `exercise ball`, `foam roll`, plates, sleds and strongman
+  implements are Other — too few each for a chip of their own.
+- Upstream's `other` and null (~200 entries, mostly pull-ups, dips, jumps and
+  stretches) are resolved by name rules (`EQUIPMENT_BY_NAME`); whatever no
+  rule claims is Bodyweight.
+
+The sync throws on an upstream equipment value it doesn't recognize.
 
 `images` is handled separately from this catalog — see "Exercise images"
 below.

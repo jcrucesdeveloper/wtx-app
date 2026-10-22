@@ -250,8 +250,13 @@
     },
     "exercisePicker": {
       "title": "Choose exercise",
-      "searchPlaceholder": "Search exercises or muscle group",
-      "allCategories": "All",
+      "searchPlaceholder": "Search exercises, muscle or equipment",
+      "muscleLabel": "Muscle",
+      "equipmentLabel": "Equipment",
+      "resultCount": "No exercises | {count} exercise | {count} exercises",
+      "noResults": "No exercises match these filters.",
+      "clearFilters": "Clear filters",
+      "showMore": "Show more ({count} left)",
       "useCustom": "Use \"{query}\"",
       "previewAria": "Preview {name}"
     },
@@ -263,6 +268,16 @@
       "abs": "Abs",
       "legs": "Legs",
       "neck": "Neck"
+    },
+    "equipment": {
+      "barbell": "Barbell",
+      "dumbbell": "Dumbbell",
+      "machine": "Machine",
+      "cable": "Cable",
+      "bodyweight": "Bodyweight",
+      "kettlebell": "Kettlebell",
+      "band": "Band",
+      "other": "Other"
     },
     "routineForm": {
       "routineName": "Routine name",

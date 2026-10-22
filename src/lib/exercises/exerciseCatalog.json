@@ -4,6 +4,7 @@
     "name": "3/4 Sit-Up",
     "nameEs": "Abdominal 3/4",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -13,6 +14,7 @@
     "name": "90/90 Hamstring",
     "nameEs": "90/90 Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -22,6 +24,7 @@
     "name": "Ab Crunch Machine",
     "nameEs": "Máquina de Abdominales",
     "muscleGroup": "Abs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -31,6 +34,7 @@
     "name": "Ab Roller",
     "nameEs": "Rueda Abdominal",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -40,6 +44,7 @@
     "name": "Ab Rollout (Barbell)",
     "nameEs": "Rollout Abdominal (Barra)",
     "muscleGroup": "Abs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -49,6 +54,7 @@
     "name": "Adductor",
     "nameEs": "Aductor",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "adductors"
     ]
@@ -58,6 +64,7 @@
     "name": "Adductor/Groin",
     "nameEs": "Aductor/Ingle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -67,6 +74,7 @@
     "name": "Advanced Kettlebell Windmill",
     "nameEs": "Molinillo Avanzado Kettlebell",
     "muscleGroup": "Abs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -76,6 +84,7 @@
     "name": "Air Bike",
     "nameEs": "Bicicleta Air",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -85,6 +94,7 @@
     "name": "All Fours Quad Stretch",
     "nameEs": "Estiramiento All Fours Cuádriceps",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -94,6 +104,7 @@
     "name": "Alternate Hammer Curl",
     "nameEs": "Curl Martillo Alterno",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -103,6 +114,7 @@
     "name": "Alternate Heel Touchers",
     "nameEs": "Toques Alterno Heel",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -112,6 +124,7 @@
     "name": "Alternate Incline Dumbbell Curl",
     "nameEs": "Curl Alterno Inclinado Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -121,6 +134,7 @@
     "name": "Alternate Leg Diagonal Bound",
     "nameEs": "Salto Bound Alterno Pierna Diagonal",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -130,6 +144,7 @@
     "name": "Alternating Cable Shoulder Press",
     "nameEs": "Press Alterno Polea Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -139,6 +154,7 @@
     "name": "Alternating Deltoid Raise",
     "nameEs": "Elevación Alterno Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -148,6 +164,7 @@
     "name": "Alternating Floor Press",
     "nameEs": "Press Alterno En el Suelo",
     "muscleGroup": "Chest",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "chest"
     ]
@@ -157,6 +174,7 @@
     "name": "Alternating Hang Clean",
     "nameEs": "Cargada Alterno Colgante",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -166,6 +184,7 @@
     "name": "Alternating Kettlebell Press",
     "nameEs": "Press Alterno Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -175,6 +194,7 @@
     "name": "Alternating Kettlebell Row",
     "nameEs": "Remo Alterno Kettlebell",
     "muscleGroup": "Back",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -184,6 +204,7 @@
     "name": "Alternating Renegade Row",
     "nameEs": "Remo Alterno Renegade",
     "muscleGroup": "Back",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -193,6 +214,7 @@
     "name": "Ankle Circles",
     "nameEs": "Círculos de Tobillo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -202,6 +224,7 @@
     "name": "Ankle On The Knee",
     "nameEs": "Tobillo en Rodilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -211,6 +234,7 @@
     "name": "Anterior Tibialis-SMR",
     "nameEs": "Anterior Tibial (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "calves"
     ]
@@ -220,6 +244,7 @@
     "name": "Anti-Gravity Press",
     "nameEs": "Press Anti-Gravity",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -229,6 +254,7 @@
     "name": "Arm Circles",
     "nameEs": "Círculos de Brazo",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -238,6 +264,7 @@
     "name": "Arnold Dumbbell Press",
     "nameEs": "Press Arnold",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -247,6 +274,7 @@
     "name": "Around The Worlds",
     "nameEs": "Alrededor del Mundo",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -256,6 +284,7 @@
     "name": "Atlas Stone Trainer",
     "nameEs": "Entrenador de Piedra Atlas",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -265,6 +294,7 @@
     "name": "Atlas Stones",
     "nameEs": "Piedras Atlas",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -274,6 +304,7 @@
     "name": "Axle Deadlift",
     "nameEs": "Peso Muerto con Barra Gruesa",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -283,6 +314,7 @@
     "name": "Back Flyes (Band)",
     "nameEs": "Aperturas Espalda (Banda)",
     "muscleGroup": "Shoulders",
+    "equipment": "Band",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -292,6 +324,7 @@
     "name": "Backward Drag",
     "nameEs": "Arrastre Hacia Atrás",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -301,6 +334,7 @@
     "name": "Backward Medicine Ball Throw",
     "nameEs": "Lanzamiento Hacia Atrás Medicinal Balón",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -310,6 +344,7 @@
     "name": "Balance Board",
     "nameEs": "Tabla Equilibrio",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "calves"
     ]
@@ -319,6 +354,7 @@
     "name": "Ball Leg Curl",
     "nameEs": "Curl Balón Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -328,6 +364,7 @@
     "name": "Band Assisted Pull-Up",
     "nameEs": "Dominada Banda Asistido",
     "muscleGroup": "Back",
+    "equipment": "Band",
     "primaryMuscles": [
       "lats"
     ]
@@ -337,6 +374,7 @@
     "name": "Band Good Morning (Pull Through)",
     "nameEs": "Banda Buenos Días (Paso a Través)",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -346,6 +384,7 @@
     "name": "Band Hip Adductions",
     "nameEs": "Banda Cadera Adductions",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "adductors"
     ]
@@ -355,6 +394,7 @@
     "name": "Band Pull Apart",
     "nameEs": "Banda Tirón Apart",
     "muscleGroup": "Shoulders",
+    "equipment": "Band",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -364,6 +404,7 @@
     "name": "Band Skull Crusher",
     "nameEs": "Banda Press Francés",
     "muscleGroup": "Arms",
+    "equipment": "Band",
     "primaryMuscles": [
       "triceps"
     ]
@@ -373,6 +414,7 @@
     "name": "Barbell Ab Rollout",
     "nameEs": "Rollout Barra Abdominal",
     "muscleGroup": "Abs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -382,6 +424,7 @@
     "name": "Barbell Curl",
     "nameEs": "Curl con Barra",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -391,6 +434,7 @@
     "name": "Barbell Curls Lying Against An Incline",
     "nameEs": "Barra Curls Acostado contra un Inclinado",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -400,6 +444,7 @@
     "name": "Barbell Full Squat",
     "nameEs": "Sentadilla Barra Completo",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -409,6 +454,7 @@
     "name": "Barbell Glute Bridge",
     "nameEs": "Puente Barra Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "glutes"
     ]
@@ -418,6 +464,7 @@
     "name": "Barbell Guillotine Bench Press",
     "nameEs": "Press Barra Guillotina Banco",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -427,6 +474,7 @@
     "name": "Barbell Hip Thrust",
     "nameEs": "Hip Thrust con Barra",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "glutes"
     ]
@@ -436,6 +484,7 @@
     "name": "Barbell Lunge",
     "nameEs": "Zancada Barra",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -445,6 +494,7 @@
     "name": "Barbell Rear Delt Row",
     "nameEs": "Remo Barra Trasero Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -454,6 +504,7 @@
     "name": "Barbell Rollout from Bench",
     "nameEs": "Banco Barra Rollout de",
     "muscleGroup": "Abs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -463,6 +514,7 @@
     "name": "Barbell Shrug Behind The Back",
     "nameEs": "Barra Encogimiento de Hombros Detrás de Espalda",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "traps"
     ]
@@ -472,6 +524,7 @@
     "name": "Barbell Side Split Squat",
     "nameEs": "Sentadilla Barra Lateral Dividido",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -481,6 +534,7 @@
     "name": "Battling Ropes",
     "nameEs": "Cuerdas de Batalla",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -490,6 +544,7 @@
     "name": "Bear Crawl Sled Drags",
     "nameEs": "Oso Gateo Trineo Drags",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -499,6 +554,7 @@
     "name": "Behind Head Chest Stretch",
     "nameEs": "Estiramiento Detrás de la Cabeza Pecho",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -508,6 +564,7 @@
     "name": "Bench Dips",
     "nameEs": "Fondos en Banco",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -517,6 +574,7 @@
     "name": "Bench Jump",
     "nameEs": "Salto Banco",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -526,6 +584,7 @@
     "name": "Bench Press",
     "nameEs": "Press de Banca",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -535,6 +594,7 @@
     "name": "Bench Press (Band)",
     "nameEs": "Press de Banca (Banda)",
     "muscleGroup": "Chest",
+    "equipment": "Band",
     "primaryMuscles": [
       "chest"
     ]
@@ -544,6 +604,7 @@
     "name": "Bench Press (Dumbbell)",
     "nameEs": "Press de Banca (Mancuerna)",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -553,6 +614,7 @@
     "name": "Bench Press (Machine)",
     "nameEs": "Press de Banca (Máquina)",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -562,6 +624,7 @@
     "name": "Bench Press (Medium Grip)",
     "nameEs": "Press de Banca (Agarre Medio)",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -571,6 +634,7 @@
     "name": "Bench Press (Smith Machine)",
     "nameEs": "Press de Banca (Máquina Smith)",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -580,6 +644,7 @@
     "name": "Bench Press with Chains",
     "nameEs": "Cadenas Banco Press con",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -589,6 +654,7 @@
     "name": "Bench Sprint",
     "nameEs": "Sprint Banco",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -598,6 +664,7 @@
     "name": "Bent Over Barbell Row",
     "nameEs": "Remo con Barra Inclinado",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -607,6 +674,7 @@
     "name": "Bent Over Low-Pulley Side Lateral",
     "nameEs": "Inclinado sobre Polea Baja Lateral Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -616,6 +684,7 @@
     "name": "Bent Over One-Arm Long Bar Row",
     "nameEs": "Remo Inclinado sobre a Una Mano Largo Barra",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -625,6 +694,7 @@
     "name": "Bent Over Two-Arm Long Bar Row",
     "nameEs": "Remo Inclinado sobre a Dos Manos Largo Barra",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -634,6 +704,7 @@
     "name": "Bent Over Two-Dumbbell Row",
     "nameEs": "Remo Inclinado sobre con Dos Mancuernas",
     "muscleGroup": "Back",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -643,6 +714,7 @@
     "name": "Bent Press",
     "nameEs": "Press Inclinado",
     "muscleGroup": "Abs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -652,6 +724,7 @@
     "name": "Bent-Arm Barbell Pullover",
     "nameEs": "Pullover Brazo Flexionado Barra",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lats"
     ]
@@ -661,6 +734,7 @@
     "name": "Bent-Arm Dumbbell Pullover",
     "nameEs": "Pullover Brazo Flexionado Mancuerna",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -670,6 +744,7 @@
     "name": "Bent-Knee Hip Raise",
     "nameEs": "Elevación Bent-Knee Cadera",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -679,6 +754,7 @@
     "name": "Bent-Over Row (Neutral Grip)",
     "nameEs": "Remo Inclinado (Agarre Neutro)",
     "muscleGroup": "Back",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -688,6 +764,7 @@
     "name": "Bicep Curl (Dumbbell)",
     "nameEs": "Curl de Bíceps (Mancuerna)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -697,6 +774,7 @@
     "name": "Bicep Curl (Machine)",
     "nameEs": "Curl de Bíceps (Máquina)",
     "muscleGroup": "Arms",
+    "equipment": "Machine",
     "primaryMuscles": [
       "biceps"
     ]
@@ -706,6 +784,7 @@
     "name": "Bicycling",
     "nameEs": "Ciclismo",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -715,6 +794,7 @@
     "name": "Bicycling, Stationary",
     "nameEs": "Estático Ciclismo,",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -724,6 +804,7 @@
     "name": "Board Press",
     "nameEs": "Press con Tablas",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -733,6 +814,7 @@
     "name": "Body Tricep Press",
     "nameEs": "Press Cuerpo Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -742,6 +824,7 @@
     "name": "Body-Up",
     "nameEs": "Elevación Corporal",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -751,6 +834,7 @@
     "name": "Bodyweight Mid Row",
     "nameEs": "Remo Peso Corporal Medio",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -760,6 +844,7 @@
     "name": "Bosu Ball Cable Crunch With Side Bends",
     "nameEs": "Flexiones Laterales Bosu Balón Polea Abdominal con Lateral",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -769,6 +854,7 @@
     "name": "Bottoms Up",
     "nameEs": "Fondo Arriba",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -778,6 +864,7 @@
     "name": "Bottoms-Up Hang Clean (Kettlebell)",
     "nameEs": "Cargada Fondo Arriba Colgante (Kettlebell)",
     "muscleGroup": "Arms",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -787,6 +874,7 @@
     "name": "Box Jump (Multiple Response)",
     "nameEs": "Salto al Cajón (Respuesta Múltiple)",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -796,6 +884,7 @@
     "name": "Box Skip",
     "nameEs": "Salto de Cuerda Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -805,6 +894,7 @@
     "name": "Box Squat",
     "nameEs": "Sentadilla al Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -814,6 +904,7 @@
     "name": "Box Squat with Bands",
     "nameEs": "Bandas Cajón Sentadilla con",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -823,6 +914,7 @@
     "name": "Box Squat with Chains",
     "nameEs": "Cadenas Cajón Sentadilla con",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -832,6 +924,7 @@
     "name": "Brachialis-SMR",
     "nameEs": "Braquial (Automasaje)",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "biceps"
     ]
@@ -841,6 +934,7 @@
     "name": "Bradford/Rocky Presses",
     "nameEs": "Press Bradford/Rocky",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -850,6 +944,7 @@
     "name": "Butt Lift (Bridge)",
     "nameEs": "Levantamiento Glúteo (Puente)",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -859,6 +954,7 @@
     "name": "Butt-Ups",
     "nameEs": "Elevaciones de Glúteo",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -868,6 +964,7 @@
     "name": "Butterfly",
     "nameEs": "Mariposa",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -877,6 +974,7 @@
     "name": "Cable Crossover",
     "nameEs": "Cruce de Poleas",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -886,6 +984,7 @@
     "name": "Cable Crunch",
     "nameEs": "Abdominal en Polea",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -895,6 +994,7 @@
     "name": "Cable Deadlifts",
     "nameEs": "Peso Muerto en Polea",
     "muscleGroup": "Legs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -904,6 +1004,7 @@
     "name": "Cable Hip Adduction",
     "nameEs": "Polea Cadera Adduction",
     "muscleGroup": "Legs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -913,6 +1014,7 @@
     "name": "Cable Incline Pushdown",
     "nameEs": "Extensión en Polea Polea Inclinado",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -922,6 +1024,7 @@
     "name": "Cable Incline Triceps Extension",
     "nameEs": "Extensión Polea Inclinado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -931,6 +1034,7 @@
     "name": "Cable Internal Rotation",
     "nameEs": "Rotación Polea Interna",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -940,6 +1044,7 @@
     "name": "Cable Judo Flip",
     "nameEs": "Volteo Polea Judo",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -949,6 +1054,7 @@
     "name": "Cable Lying Triceps Extension",
     "nameEs": "Extensión Polea Acostado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -958,6 +1064,7 @@
     "name": "Cable One Arm Tricep Extension",
     "nameEs": "Extensión Polea a Una Mano Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -967,6 +1074,7 @@
     "name": "Cable Rear Delt Fly",
     "nameEs": "Apertura Polea Trasero Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -976,6 +1084,7 @@
     "name": "Cable Rope Overhead Triceps Extension",
     "nameEs": "Extensión Polea Cuerda Overhead Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -985,6 +1094,7 @@
     "name": "Cable Rope Rear-Delt Rows",
     "nameEs": "Remos Polea Cuerda Rear-Delt",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -994,6 +1104,7 @@
     "name": "Cable Russian Twists",
     "nameEs": "Giro Ruso en Polea",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1003,6 +1114,7 @@
     "name": "Cable Seated Crunch",
     "nameEs": "Abdominal Polea Sentado",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1012,6 +1124,7 @@
     "name": "Cable Seated Lateral Raise",
     "nameEs": "Elevación Polea Sentado Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1021,6 +1134,7 @@
     "name": "Cable Shrugs",
     "nameEs": "Polea Shrugs",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "traps"
     ]
@@ -1030,6 +1144,7 @@
     "name": "Cable Wrist Curl",
     "nameEs": "Curl de Muñeca en Polea",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "forearms"
     ]
@@ -1039,6 +1154,7 @@
     "name": "Calf Press",
     "nameEs": "Press Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "calves"
     ]
@@ -1048,6 +1164,7 @@
     "name": "Calf Press On The Leg Press Machine",
     "nameEs": "Pantorrilla Press en Pierna Press Máquina",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "calves"
     ]
@@ -1057,6 +1174,7 @@
     "name": "Calf Raise (Band)",
     "nameEs": "Elevación de Talones (Banda)",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "calves"
     ]
@@ -1066,6 +1184,7 @@
     "name": "Calf Raise On A Dumbbell",
     "nameEs": "Pantorrilla Elevación en un Mancuerna",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "calves"
     ]
@@ -1075,6 +1194,7 @@
     "name": "Calf Stretch Elbows Against Wall",
     "nameEs": "Pantorrilla Estiramiento Codos contra En la Pared",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -1084,6 +1204,7 @@
     "name": "Calf Stretch Hands Against Wall",
     "nameEs": "Pantorrilla Estiramiento Hands contra En la Pared",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -1093,6 +1214,7 @@
     "name": "Calf-Machine Shoulder Shrug",
     "nameEs": "Encogimiento de Hombros Calf-Machine Hombro",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "traps"
     ]
@@ -1102,6 +1224,7 @@
     "name": "Calves-SMR",
     "nameEs": "Pantorrillas (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "calves"
     ]
@@ -1111,6 +1234,7 @@
     "name": "Car Deadlift",
     "nameEs": "Peso Muerto con Auto",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1120,6 +1244,7 @@
     "name": "Car Drivers",
     "nameEs": "Piernas Alternadas Auto",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1129,6 +1254,7 @@
     "name": "Carioca Quick Step",
     "nameEs": "Paso Carioca Rápido",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -1138,6 +1264,7 @@
     "name": "Cat Stretch",
     "nameEs": "Estiramiento Cat",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1147,6 +1274,7 @@
     "name": "Catch and Overhead Throw",
     "nameEs": "Lanzamiento Catch y Overhead",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lats"
     ]
@@ -1156,6 +1284,7 @@
     "name": "Chain Handle Extension",
     "nameEs": "Extensión Cadena Mango",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1165,6 +1294,7 @@
     "name": "Chain Press",
     "nameEs": "Press con Cadenas",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -1174,6 +1304,7 @@
     "name": "Chair Leg Extended Stretch",
     "nameEs": "Estiramiento Silla Pierna Extended",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -1183,6 +1314,7 @@
     "name": "Chair Lower Back Stretch",
     "nameEs": "Estiramiento Silla Inferior Espalda",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -1192,6 +1324,7 @@
     "name": "Chair Squat",
     "nameEs": "Sentadilla Silla",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1201,6 +1334,7 @@
     "name": "Chair Upper Body Stretch",
     "nameEs": "Estiramiento Silla Superior Cuerpo",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1210,6 +1344,7 @@
     "name": "Chest And Front Of Shoulder Stretch",
     "nameEs": "Estiramiento Pecho y Frontal de Hombro",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -1219,6 +1354,7 @@
     "name": "Chest Press (Cable)",
     "nameEs": "Press de Pecho (Polea)",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -1228,6 +1364,7 @@
     "name": "Chest Press (Machine)",
     "nameEs": "Press de Pecho (Máquina)",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -1237,6 +1374,7 @@
     "name": "Chest Push (multiple response)",
     "nameEs": "Empuje Pecho (Respuesta Múltiple)",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -1246,6 +1384,7 @@
     "name": "Chest Push (single response)",
     "nameEs": "Empuje Pecho (Respuesta Simple)",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -1255,6 +1394,7 @@
     "name": "Chest Push from 3 point stance",
     "nameEs": "Postura Pecho Empuje de 3 point",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -1264,6 +1404,7 @@
     "name": "Chest Push with Run Release",
     "nameEs": "Pecho Empuje con Run Release",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -1273,6 +1414,7 @@
     "name": "Chest Stretch on Stability Ball",
     "nameEs": "Balón Pecho Estiramiento en Stability",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -1282,6 +1424,7 @@
     "name": "Child's Pose",
     "nameEs": "Postura del Niño",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1291,6 +1434,7 @@
     "name": "Chin To Chest Stretch",
     "nameEs": "Estiramiento Barbilla a Pecho",
     "muscleGroup": "Neck",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "neck"
     ]
@@ -1300,6 +1444,7 @@
     "name": "Chin-Up",
     "nameEs": "Dominada Supina",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -1309,6 +1454,7 @@
     "name": "Circus Bell",
     "nameEs": "Campana de Circo",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1318,6 +1464,7 @@
     "name": "Clean",
     "nameEs": "Cargada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -1327,6 +1474,7 @@
     "name": "Clean (Dumbbell)",
     "nameEs": "Cargada (Mancuerna)",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -1336,6 +1484,7 @@
     "name": "Clean and Jerk",
     "nameEs": "Cargada y Envión",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1345,6 +1494,7 @@
     "name": "Clean and Press",
     "nameEs": "Cargada y Press",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1354,6 +1504,7 @@
     "name": "Clean Deadlift",
     "nameEs": "Peso Muerto de Cargada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -1363,6 +1514,7 @@
     "name": "Clean from Blocks",
     "nameEs": "Bloques Cargada de",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1372,6 +1524,7 @@
     "name": "Clean Pull",
     "nameEs": "Tirón de Cargada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1381,6 +1534,7 @@
     "name": "Clean Shrug",
     "nameEs": "Encogimiento de Cargada",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "traps"
     ]
@@ -1390,6 +1544,7 @@
     "name": "Clock Push-Up",
     "nameEs": "Flexión Clock",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -1399,6 +1554,7 @@
     "name": "Close-Grip Barbell Bench Press",
     "nameEs": "Press de Banca con Agarre Cerrado",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1408,6 +1564,7 @@
     "name": "Close-Grip Dumbbell Press",
     "nameEs": "Press Agarre Cerrado Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1417,6 +1574,7 @@
     "name": "Close-Grip EZ Bar Curl",
     "nameEs": "Curl Agarre Cerrado EZ Barra",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1426,6 +1584,7 @@
     "name": "Close-Grip EZ-Bar Curl with Band",
     "nameEs": "Agarre Cerrado Barra EZ Curl con Banda",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1435,6 +1594,7 @@
     "name": "Close-Grip EZ-Bar Press",
     "nameEs": "Press Agarre Cerrado Barra EZ",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1444,6 +1604,7 @@
     "name": "Close-Grip Front Lat Pulldown",
     "nameEs": "Jalón Agarre Cerrado Frontal Dorsal",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -1453,6 +1614,7 @@
     "name": "Close-Grip Push-Up off of a Dumbbell",
     "nameEs": "Agarre Cerrado Flexión de de un Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1462,6 +1624,7 @@
     "name": "Close-Grip Standing Barbell Curl",
     "nameEs": "Curl Agarre Cerrado de Pie Barra",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1471,6 +1634,7 @@
     "name": "Cocoons",
     "nameEs": "Capullos",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1480,6 +1644,7 @@
     "name": "Conan's Wheel",
     "nameEs": "Rueda de Conan",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1489,6 +1654,7 @@
     "name": "Concentration Curl (Barbell, Close-Grip)",
     "nameEs": "Curl de Concentración (Barra, Agarre Cerrado)",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1498,6 +1664,7 @@
     "name": "Concentration Curls",
     "nameEs": "Curl de Concentración",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1507,6 +1674,7 @@
     "name": "Cross Body Hammer Curl",
     "nameEs": "Curl Martillo Cruzado",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1516,6 +1684,7 @@
     "name": "Cross Over (Band)",
     "nameEs": "Cruzado sobre (Banda)",
     "muscleGroup": "Chest",
+    "equipment": "Band",
     "primaryMuscles": [
       "chest"
     ]
@@ -1525,6 +1694,7 @@
     "name": "Cross-Body Crunch",
     "nameEs": "Abdominal Cruzado",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1534,6 +1704,7 @@
     "name": "Crossover Reverse Lunge",
     "nameEs": "Zancada Cruzado Inverso",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1543,6 +1714,7 @@
     "name": "Crucifix",
     "nameEs": "Crucifijo",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1552,6 +1724,7 @@
     "name": "Crunch (Hands Overhead)",
     "nameEs": "Abdominal (Manos Sobre la Cabeza)",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1561,6 +1734,7 @@
     "name": "Crunch (Legs On Ball)",
     "nameEs": "Abdominal (Piernas Sobre el Balón)",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1570,6 +1744,7 @@
     "name": "Crunches",
     "nameEs": "Abdominales",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1579,6 +1754,7 @@
     "name": "Cuban Press",
     "nameEs": "Press Cubano",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1588,6 +1764,7 @@
     "name": "Dancer's Stretch",
     "nameEs": "Estiramiento Dancer's",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1597,6 +1774,7 @@
     "name": "Dead Bug",
     "nameEs": "Dead Bug",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1606,6 +1784,7 @@
     "name": "Deadlift",
     "nameEs": "Peso Muerto",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1615,6 +1794,7 @@
     "name": "Deadlift (Machine)",
     "nameEs": "Peso Muerto (Máquina)",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1624,6 +1804,7 @@
     "name": "Deadlift with Bands",
     "nameEs": "Peso Muerto con Bandas",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1633,6 +1814,7 @@
     "name": "Deadlift with Chains",
     "nameEs": "Peso Muerto con Cadenas",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1642,6 +1824,7 @@
     "name": "Decline Barbell Bench Press",
     "nameEs": "Press de Banca Declinado con Barra",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -1651,6 +1834,7 @@
     "name": "Decline Crunch",
     "nameEs": "Abdominal Declinado",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1660,6 +1844,7 @@
     "name": "Decline Dumbbell Bench Press",
     "nameEs": "Press de Banca Declinado con Mancuernas",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -1669,6 +1854,7 @@
     "name": "Decline Dumbbell Flyes",
     "nameEs": "Aperturas Declinadas con Mancuernas",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -1678,6 +1864,7 @@
     "name": "Decline Dumbbell Triceps Extension",
     "nameEs": "Extensión Declinado Mancuerna Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1687,6 +1874,7 @@
     "name": "Decline EZ Bar Triceps Extension",
     "nameEs": "Extensión Declinado EZ Barra Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1696,6 +1884,7 @@
     "name": "Decline Oblique Crunch",
     "nameEs": "Abdominal Declinado Oblicuo",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1705,6 +1894,7 @@
     "name": "Decline Push-Up",
     "nameEs": "Flexión Declinado",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -1714,6 +1904,7 @@
     "name": "Decline Reverse Crunch",
     "nameEs": "Abdominal Declinado Inverso",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1723,6 +1914,7 @@
     "name": "Decline Skull Crusher (Close-Grip)",
     "nameEs": "Press Francés Declinado (Agarre Cerrado)",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1732,6 +1924,7 @@
     "name": "Decline Smith Press",
     "nameEs": "Press Declinado Smith",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -1741,6 +1934,7 @@
     "name": "Deficit Deadlift",
     "nameEs": "Peso Muerto con Déficit",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -1750,6 +1944,7 @@
     "name": "Depth Jump Leap",
     "nameEs": "Salto de Profundidad",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1759,6 +1954,7 @@
     "name": "Dip (Chest)",
     "nameEs": "Fondo (Pecho)",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -1768,6 +1964,7 @@
     "name": "Dip (Triceps)",
     "nameEs": "Fondo (Tríceps)",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1777,6 +1974,7 @@
     "name": "Dip Machine",
     "nameEs": "Fondo Máquina",
     "muscleGroup": "Arms",
+    "equipment": "Machine",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1786,6 +1984,7 @@
     "name": "Donkey Calf Raises",
     "nameEs": "Elevaciones Donkey Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -1795,6 +1994,7 @@
     "name": "Double Kettlebell Hang Clean",
     "nameEs": "Cargada Doble Kettlebell Colgante",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -1804,6 +2004,7 @@
     "name": "Double Kettlebell Jerk",
     "nameEs": "Envión Doble Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1813,6 +2014,7 @@
     "name": "Double Kettlebell Push Press",
     "nameEs": "Press Doble Kettlebell Empuje",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1822,6 +2024,7 @@
     "name": "Double Kettlebell Snatch",
     "nameEs": "Arrancada Doble Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1831,6 +2034,7 @@
     "name": "Double Kettlebell Windmill",
     "nameEs": "Molinillo Doble Kettlebell",
     "muscleGroup": "Abs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -1840,6 +2044,7 @@
     "name": "Double Leg Butt Kick",
     "nameEs": "Patada Doble Pierna Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1849,6 +2054,7 @@
     "name": "Downward Facing Balance",
     "nameEs": "Equilibrio Downward Facing",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "glutes"
     ]
@@ -1858,6 +2064,7 @@
     "name": "Drag Curl",
     "nameEs": "Curl de Arrastre",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1867,6 +2074,7 @@
     "name": "Drop Push",
     "nameEs": "Empuje Drop",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -1876,6 +2084,7 @@
     "name": "Dumbbell Alternate Bicep Curl",
     "nameEs": "Curl Mancuerna Alterno Bíceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1885,6 +2094,7 @@
     "name": "Dumbbell Bench Press with Neutral Grip",
     "nameEs": "Mancuerna Banco Press con Agarre Neutro",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -1894,6 +2104,7 @@
     "name": "Dumbbell Incline Row",
     "nameEs": "Remo Mancuerna Inclinado",
     "muscleGroup": "Back",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -1903,6 +2114,7 @@
     "name": "Dumbbell Lunges",
     "nameEs": "Zancadas Mancuerna",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1912,6 +2124,7 @@
     "name": "Dumbbell Lying Pronation",
     "nameEs": "Mancuerna Acostado Pronation",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -1921,6 +2134,7 @@
     "name": "Dumbbell Lying Rear Lateral Raise",
     "nameEs": "Elevación Mancuerna Acostado Trasero Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1930,6 +2144,7 @@
     "name": "Dumbbell Lying Supination",
     "nameEs": "Mancuerna Acostado Supination",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -1939,6 +2154,7 @@
     "name": "Dumbbell One-Arm Shoulder Press",
     "nameEs": "Press Mancuerna a Una Mano Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1948,6 +2164,7 @@
     "name": "Dumbbell One-Arm Triceps Extension",
     "nameEs": "Extensión Mancuerna a Una Mano Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -1957,6 +2174,7 @@
     "name": "Dumbbell Prone Incline Curl",
     "nameEs": "Curl Mancuerna Boca Abajo Inclinado",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -1966,6 +2184,7 @@
     "name": "Dumbbell Raise",
     "nameEs": "Elevación Mancuerna",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1975,6 +2194,7 @@
     "name": "Dumbbell Rear Lunge",
     "nameEs": "Zancada Mancuerna Trasero",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -1984,6 +2204,7 @@
     "name": "Dumbbell Scaption",
     "nameEs": "Mancuerna Scaption",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -1993,6 +2214,7 @@
     "name": "Dumbbell Seated Box Jump",
     "nameEs": "Salto Mancuerna Sentado Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2002,6 +2224,7 @@
     "name": "Dumbbell Seated One-Leg Calf Raise",
     "nameEs": "Elevación Mancuerna Sentado One-Leg Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "calves"
     ]
@@ -2011,6 +2234,7 @@
     "name": "Dynamic Back Stretch",
     "nameEs": "Estiramiento Dinámico Espalda",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -2020,6 +2244,7 @@
     "name": "Dynamic Chest Stretch",
     "nameEs": "Estiramiento Dinámico Pecho",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -2029,6 +2254,7 @@
     "name": "Elbow Circles",
     "nameEs": "Círculos de Codo",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2038,6 +2264,7 @@
     "name": "Elbow to Knee",
     "nameEs": "Codo a Rodilla",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2047,6 +2274,7 @@
     "name": "Elbows Back",
     "nameEs": "Codos Espalda",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -2056,6 +2284,7 @@
     "name": "Elevated Back Lunge",
     "nameEs": "Zancada Elevado Espalda",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2065,6 +2294,7 @@
     "name": "Elevated Cable Rows",
     "nameEs": "Remos Elevado Polea",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -2074,6 +2304,7 @@
     "name": "Elliptical Trainer",
     "nameEs": "Elíptica",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2083,6 +2314,7 @@
     "name": "Exercise Ball Crunch",
     "nameEs": "Abdominal Ejercicio Balón",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2092,6 +2324,7 @@
     "name": "Exercise Ball Pull-In",
     "nameEs": "Recogida Ejercicio Balón",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2101,6 +2334,7 @@
     "name": "External Rotation",
     "nameEs": "Rotación Externa",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2110,6 +2344,7 @@
     "name": "External Rotation with Band",
     "nameEs": "Externa Rotación con Banda",
     "muscleGroup": "Shoulders",
+    "equipment": "Band",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2119,6 +2354,7 @@
     "name": "External Rotation with Cable",
     "nameEs": "Externa Rotación con Polea",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2128,6 +2364,7 @@
     "name": "EZ-Bar Curl",
     "nameEs": "Curl con Barra EZ",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2137,6 +2374,7 @@
     "name": "EZ-Bar Skullcrusher",
     "nameEs": "Press Francés Barra EZ",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -2146,6 +2384,7 @@
     "name": "Face Pull",
     "nameEs": "Jalón a la Cara",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2155,6 +2394,7 @@
     "name": "Farmer's Walk",
     "nameEs": "Paseo del Granjero",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "forearms"
     ]
@@ -2164,6 +2404,7 @@
     "name": "Fast Skipping",
     "nameEs": "Salto de Cuerda Fast",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2173,6 +2414,7 @@
     "name": "Finger Curls",
     "nameEs": "Curl de Dedos",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -2182,6 +2424,7 @@
     "name": "Flat Bench Cable Flyes",
     "nameEs": "Aperturas Plano Banco Polea",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -2191,6 +2434,7 @@
     "name": "Flat Bench Leg Pull-In",
     "nameEs": "Recogida Plano Banco Pierna",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2200,6 +2444,7 @@
     "name": "Flat Bench Lying Leg Raise",
     "nameEs": "Elevación Plano Banco Acostado Pierna",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2209,6 +2454,7 @@
     "name": "Flexor Incline Dumbbell Curls",
     "nameEs": "Curls Flexor Inclinado Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2218,6 +2464,7 @@
     "name": "Floor Glute-Ham Raise",
     "nameEs": "Elevación En el Suelo Glute-Ham",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2227,6 +2474,7 @@
     "name": "Floor Press",
     "nameEs": "Press en el Suelo",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -2236,6 +2484,7 @@
     "name": "Floor Press (Dumbbell)",
     "nameEs": "Press en el Suelo (Mancuerna)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -2245,6 +2494,7 @@
     "name": "Floor Press with Chains",
     "nameEs": "Cadenas En el Suelo Press con",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -2254,6 +2504,7 @@
     "name": "Flutter Kicks",
     "nameEs": "Patadas Flutter",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -2263,6 +2514,7 @@
     "name": "Flyes (Bodyweight)",
     "nameEs": "Aperturas (Peso Corporal)",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2272,6 +2524,7 @@
     "name": "Flyes (Dumbbell)",
     "nameEs": "Aperturas (Mancuerna)",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2281,6 +2534,7 @@
     "name": "Foot-SMR",
     "nameEs": "Pie (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "calves"
     ]
@@ -2290,6 +2544,7 @@
     "name": "Forward Drag with Press",
     "nameEs": "Press Hacia Adelante Arrastre con",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -2299,6 +2554,7 @@
     "name": "Frankenstein Squat",
     "nameEs": "Sentadilla Frankenstein",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2308,6 +2564,7 @@
     "name": "Freehand Jump Squat",
     "nameEs": "Sentadilla Freehand Salto",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2317,6 +2574,7 @@
     "name": "Frog Hops",
     "nameEs": "Saltos Rana",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2326,6 +2584,7 @@
     "name": "Frog Sit-Ups",
     "nameEs": "Abdominales Rana",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2335,6 +2594,7 @@
     "name": "Front Barbell Squat",
     "nameEs": "Sentadilla Frontal Barra",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2344,6 +2604,7 @@
     "name": "Front Barbell Squat To A Bench",
     "nameEs": "Banco Frontal Barra Sentadilla a un",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2353,6 +2614,7 @@
     "name": "Front Box Jump",
     "nameEs": "Salto Frontal Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2362,6 +2624,7 @@
     "name": "Front Cable Raise",
     "nameEs": "Elevación Frontal Polea",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2371,6 +2634,7 @@
     "name": "Front Cone Hops (or hurdle hops)",
     "nameEs": "Saltos Frontal Cono (o Saltos de Valla)",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2380,6 +2644,7 @@
     "name": "Front Delt Raise (Straight-Arm, Overhead)",
     "nameEs": "Elevación Frontal de Deltoides (Brazo Recto, Overhead)",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2389,6 +2654,7 @@
     "name": "Front Dumbbell Raise",
     "nameEs": "Elevación Frontal con Mancuernas",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2398,6 +2664,7 @@
     "name": "Front Incline Dumbbell Raise",
     "nameEs": "Elevación Frontal Inclinado Mancuerna",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2407,6 +2674,7 @@
     "name": "Front Leg Raises",
     "nameEs": "Elevaciones Frontal Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2416,6 +2684,7 @@
     "name": "Front Plate Raise",
     "nameEs": "Elevación Frontal Disco",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2425,6 +2694,7 @@
     "name": "Front Raise And Pullover",
     "nameEs": "Pullover Frontal Elevación y",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2434,6 +2704,7 @@
     "name": "Front Squat (Clean Grip)",
     "nameEs": "Sentadilla Frontal (Agarre de Cargada)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2443,6 +2714,7 @@
     "name": "Front Squats With Two Kettlebells",
     "nameEs": "Frontal Sentadillas con Two Kettlebells",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2452,6 +2724,7 @@
     "name": "Front Two-Dumbbell Raise",
     "nameEs": "Elevación Frontal con Dos Mancuernas",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2461,6 +2734,7 @@
     "name": "Full Range-Of-Motion Lat Pulldown",
     "nameEs": "Jalón Completo Range-Of-Motion Dorsal",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -2470,6 +2744,7 @@
     "name": "Gironda Sternum Chins",
     "nameEs": "Dominadas Gironda Esternón",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -2479,6 +2754,7 @@
     "name": "Glute Ham Raise",
     "nameEs": "Elevación Glúteo-Femoral",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2488,6 +2764,7 @@
     "name": "Glute Kickback",
     "nameEs": "Patada de Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -2497,6 +2774,7 @@
     "name": "Goblet Squat",
     "nameEs": "Sentadilla Goblet",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2506,6 +2784,7 @@
     "name": "Good Morning",
     "nameEs": "Buenos Días",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2515,6 +2794,7 @@
     "name": "Good Morning (Band)",
     "nameEs": "Buenos Días (Banda)",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2524,6 +2804,7 @@
     "name": "Good Morning off Pins",
     "nameEs": "Buenos Días de Pins",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2533,6 +2814,7 @@
     "name": "Gorilla Chin/Crunch",
     "nameEs": "Dominada/Abdominal Gorila",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2542,6 +2824,7 @@
     "name": "Groin and Back Stretch",
     "nameEs": "Estiramiento Ingle y Espalda",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -2551,6 +2834,7 @@
     "name": "Groiners",
     "nameEs": "Estiramiento Dinámico de Ingle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -2560,6 +2844,7 @@
     "name": "Hack Squat",
     "nameEs": "Sentadilla Hack",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2569,6 +2854,7 @@
     "name": "Hack Squat (Barbell)",
     "nameEs": "Sentadilla Hack (Barra)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2578,6 +2864,7 @@
     "name": "Hammer Curl (Cable)",
     "nameEs": "Curl Martillo (Polea)",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2587,6 +2874,7 @@
     "name": "Hammer Curls",
     "nameEs": "Curl Martillo",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2596,6 +2884,7 @@
     "name": "Hammer Grip Incline DB Bench Press",
     "nameEs": "Press Martillo Agarre Inclinado DB Banco",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2605,6 +2894,7 @@
     "name": "Hamstring Stretch",
     "nameEs": "Estiramiento Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2614,6 +2904,7 @@
     "name": "Hamstring-SMR",
     "nameEs": "Isquiotibial (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2623,6 +2914,7 @@
     "name": "Handstand Push-Ups",
     "nameEs": "Flexiones Handstand",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -2632,6 +2924,7 @@
     "name": "Hang Clean",
     "nameEs": "Cargada Colgante",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2641,6 +2934,7 @@
     "name": "Hang Clean (Below Knees)",
     "nameEs": "Cargada Colgante (Debajo de las Rodillas)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2650,6 +2944,7 @@
     "name": "Hang Clean (Kettlebell)",
     "nameEs": "Cargada Colgante (Kettlebell)",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2659,6 +2954,7 @@
     "name": "Hang Snatch",
     "nameEs": "Arrancada Colgante",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2668,6 +2964,7 @@
     "name": "Hang Snatch (Below Knees)",
     "nameEs": "Arrancada Colgante (Debajo de las Rodillas)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2677,6 +2974,7 @@
     "name": "Hanging Bar Good Morning",
     "nameEs": "Colgado Barra Buenos Días",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2686,6 +2984,7 @@
     "name": "Hanging Leg Raise",
     "nameEs": "Elevación Colgado Pierna",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2695,6 +2994,7 @@
     "name": "Hanging Pike",
     "nameEs": "Colgado Pike",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -2704,6 +3004,7 @@
     "name": "Heaving Snatch Balance",
     "nameEs": "Equilibrio Heaving Arrancada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2713,6 +3014,7 @@
     "name": "Heavy Bag Thrust",
     "nameEs": "Empuje de Cadera Heavy Bag",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -2722,6 +3024,7 @@
     "name": "High Cable Curls",
     "nameEs": "Curls Alto Polea",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2731,6 +3034,7 @@
     "name": "Hip Circles (prone)",
     "nameEs": "Círculos de Cadera (Boca Abajo)",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
     ]
@@ -2740,6 +3044,7 @@
     "name": "Hip Extension with Bands",
     "nameEs": "Extensión de Cadera con Banda",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "glutes"
     ]
@@ -2749,6 +3054,7 @@
     "name": "Hip Flexion with Band",
     "nameEs": "Cadera Flexion con Banda",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2758,6 +3064,7 @@
     "name": "Hip Flexor & Quad Stretch",
     "nameEs": "Estiramiento Cadera Flexor & Cuádriceps",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -2767,6 +3074,7 @@
     "name": "Hip Lift with Band",
     "nameEs": "Cadera Levantamiento con Banda",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "glutes"
     ]
@@ -2776,6 +3084,7 @@
     "name": "Hug A Ball",
     "nameEs": "Balón Abrazo un",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -2785,6 +3094,7 @@
     "name": "Hug Knees To Chest",
     "nameEs": "Abrazo Rodillas a Pecho",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -2794,6 +3104,7 @@
     "name": "Hurdle Hops",
     "nameEs": "Saltos Hurdle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2803,6 +3114,7 @@
     "name": "Hyperextension (No Bench)",
     "nameEs": "Hiperextensión (Sin Banco)",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -2812,6 +3124,7 @@
     "name": "Hyperextensions (Back Extensions)",
     "nameEs": "Hiperextensiones (Extensiones de Espalda)",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -2821,6 +3134,7 @@
     "name": "Iliotibial Tract-SMR",
     "nameEs": "Iliotibial Tract (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abductors"
     ]
@@ -2830,6 +3144,7 @@
     "name": "Inchworm",
     "nameEs": "Oruga",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -2839,6 +3154,7 @@
     "name": "Incline Barbell Triceps Extension",
     "nameEs": "Extensión Inclinado Barra Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -2848,6 +3164,7 @@
     "name": "Incline Bench Press",
     "nameEs": "Press de Banca Inclinado",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2857,6 +3174,7 @@
     "name": "Incline Bench Pull",
     "nameEs": "Tirón Banco Inclinado",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -2866,6 +3184,7 @@
     "name": "Incline Cable Chest Press",
     "nameEs": "Press Inclinado Polea Pecho",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -2875,6 +3194,7 @@
     "name": "Incline Cable Flye",
     "nameEs": "Apertura Inclinado Polea",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -2884,6 +3204,7 @@
     "name": "Incline Dumbbell Curl",
     "nameEs": "Curl Inclinado Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2893,6 +3214,7 @@
     "name": "Incline Dumbbell Flye (With Twist)",
     "nameEs": "Apertura Inclinada con Mancuerna (Con Giro)",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2902,6 +3224,7 @@
     "name": "Incline Dumbbell Flyes",
     "nameEs": "Aperturas Inclinadas con Mancuernas",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2911,6 +3234,7 @@
     "name": "Incline Dumbbell Press",
     "nameEs": "Press Inclinado con Mancuernas",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2920,6 +3244,7 @@
     "name": "Incline Dumbbell Press (Neutral Grip)",
     "nameEs": "Press Inclinado con Mancuernas (Agarre Neutro)",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -2929,6 +3254,7 @@
     "name": "Incline Hammer Curls",
     "nameEs": "Curl Martillo Inclinado",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2938,6 +3264,7 @@
     "name": "Incline Inner Biceps Curl",
     "nameEs": "Curl Inclinado Interno Bíceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -2947,6 +3274,7 @@
     "name": "Incline Push-Up",
     "nameEs": "Flexión Inclinado",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -2956,6 +3284,7 @@
     "name": "Incline Push-Up Close-Grip",
     "nameEs": "Inclinado Flexión Agarre Cerrado",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -2965,6 +3294,7 @@
     "name": "Incline Push-Up Depth Jump",
     "nameEs": "Salto Inclinado Flexión Profundidad",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -2974,6 +3304,7 @@
     "name": "Incline Push-Up Medium",
     "nameEs": "Inclinado Flexión Medium",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -2983,6 +3314,7 @@
     "name": "Incline Push-Up Reverse Grip",
     "nameEs": "Agarre Inclinado Flexión Inverso",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -2992,6 +3324,7 @@
     "name": "Incline Push-Up Wide",
     "nameEs": "Inclinado Flexión Abierto",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -3001,6 +3334,7 @@
     "name": "Incline Shoulder Raise (Barbell)",
     "nameEs": "Elevación Inclinada de Hombro (Barra)",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3010,6 +3344,7 @@
     "name": "Incline Shoulder Raise (Dumbbell)",
     "nameEs": "Elevación Inclinada de Hombro (Mancuerna)",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3019,6 +3354,7 @@
     "name": "Intermediate Groin Stretch",
     "nameEs": "Estiramiento Intermedio Ingle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3028,6 +3364,7 @@
     "name": "Internal Rotation with Band",
     "nameEs": "Interna Rotación con Banda",
     "muscleGroup": "Shoulders",
+    "equipment": "Band",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3037,6 +3374,7 @@
     "name": "Inverted Row",
     "nameEs": "Remo Invertido",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3046,6 +3384,7 @@
     "name": "Inverted Row with Straps",
     "nameEs": "Invertido Remo con Straps",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3055,6 +3394,7 @@
     "name": "Iron Cross",
     "nameEs": "Cruz de Hierro",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3064,6 +3404,7 @@
     "name": "Iron Cross (Cable)",
     "nameEs": "Cruz de Hierro (Polea)",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -3073,6 +3414,7 @@
     "name": "Iron Crosses (stretch)",
     "nameEs": "Cruces de Hierro (Estiramiento)",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3082,6 +3424,7 @@
     "name": "Isometric Chest Squeezes",
     "nameEs": "Isométrico Pecho Squeezes",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -3091,6 +3434,7 @@
     "name": "Isometric Wipers",
     "nameEs": "Limpiaparabrisas Isométrico",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -3100,6 +3444,7 @@
     "name": "IT Band and Glute Stretch",
     "nameEs": "Estiramiento IT Banda y Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "abductors"
     ]
@@ -3109,6 +3454,7 @@
     "name": "Jackknife Sit-Up",
     "nameEs": "Abdominal Navaja",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3118,6 +3464,7 @@
     "name": "Janda Sit-Up",
     "nameEs": "Abdominal Janda",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3127,6 +3474,7 @@
     "name": "Jefferson Squats",
     "nameEs": "Sentadillas Jefferson",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3136,6 +3484,7 @@
     "name": "Jerk Balance",
     "nameEs": "Equilibrio Envión",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3145,6 +3494,7 @@
     "name": "Jerk Dip Squat",
     "nameEs": "Sentadilla Envión Fondo",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3154,6 +3504,7 @@
     "name": "JM Press",
     "nameEs": "Press JM",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -3163,6 +3514,7 @@
     "name": "Jogging, Treadmill",
     "nameEs": "Cinta de Correr Trote,",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3172,6 +3524,7 @@
     "name": "Keg Load",
     "nameEs": "Carga de Barril",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -3181,6 +3534,7 @@
     "name": "Kettlebell Arnold Press",
     "nameEs": "Press Kettlebell Arnold",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3190,6 +3544,7 @@
     "name": "Kettlebell Dead Clean",
     "nameEs": "Cargada Kettlebell Muerto",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3199,6 +3554,7 @@
     "name": "Kettlebell Figure 8",
     "nameEs": "Kettlebell Figure 8",
     "muscleGroup": "Abs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3208,6 +3564,7 @@
     "name": "Kettlebell Halo",
     "nameEs": "Halo con Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3217,6 +3574,7 @@
     "name": "Kettlebell Halo (Overhead Extension)",
     "nameEs": "Halo con Kettlebell (Extensión Overhead)",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders",
       "triceps"
@@ -3227,6 +3585,7 @@
     "name": "Kettlebell One-Legged Deadlift",
     "nameEs": "Peso Muerto Kettlebell a Una Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3236,6 +3595,7 @@
     "name": "Kettlebell Pass Between The Legs",
     "nameEs": "Kettlebell Pase Between Piernas",
     "muscleGroup": "Abs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3245,6 +3605,7 @@
     "name": "Kettlebell Pirate Ships",
     "nameEs": "Kettlebell Pirate Ships",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3254,6 +3615,7 @@
     "name": "Kettlebell Seated Press",
     "nameEs": "Press Kettlebell Sentado",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3263,6 +3625,7 @@
     "name": "Kettlebell Seesaw Press",
     "nameEs": "Press Kettlebell Seesaw",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3272,6 +3635,7 @@
     "name": "Kettlebell Sumo High Pull",
     "nameEs": "Tirón Kettlebell Sumo Alto",
     "muscleGroup": "Back",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "traps"
     ]
@@ -3281,6 +3645,7 @@
     "name": "Kettlebell Thruster",
     "nameEs": "Thruster con Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3290,6 +3655,7 @@
     "name": "Kettlebell Turkish Get-Up (Lunge Style)",
     "nameEs": "Levantamiento Turco con Kettlebell (Estilo Zancada)",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3299,6 +3665,7 @@
     "name": "Kettlebell Turkish Get-Up (Squat Style)",
     "nameEs": "Levantamiento Turco con Kettlebell (Estilo Sentadilla)",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3308,6 +3675,7 @@
     "name": "Kettlebell Windmill",
     "nameEs": "Molinillo con Kettlebell",
     "muscleGroup": "Abs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3317,6 +3685,7 @@
     "name": "Kipping Muscle Up",
     "nameEs": "Kipping Muscle Up",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -3326,6 +3695,7 @@
     "name": "Knee Across The Body",
     "nameEs": "Cuerpo Rodilla Across",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -3335,6 +3705,7 @@
     "name": "Knee Circles",
     "nameEs": "Círculos de Rodilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -3344,6 +3715,7 @@
     "name": "Knee Tuck Jump",
     "nameEs": "Salto Rodilla Encogido",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3353,6 +3725,7 @@
     "name": "Knee/Hip Raise On Parallel Bars",
     "nameEs": "Rodilla/Cadera Elevación en Paralelas Bars",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3362,6 +3735,7 @@
     "name": "Kneeling Arm Drill",
     "nameEs": "Drill Arrodillado Brazo",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3371,6 +3745,7 @@
     "name": "Kneeling Cable Crunch (Oblique Twist)",
     "nameEs": "Abdominal Arrodillado Polea (Giro Oblicuo)",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3380,6 +3755,7 @@
     "name": "Kneeling Cable Triceps Extension",
     "nameEs": "Extensión Arrodillado Polea Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -3389,6 +3765,7 @@
     "name": "Kneeling Forearm Stretch",
     "nameEs": "Estiramiento Arrodillado Antebrazo",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "forearms"
     ]
@@ -3398,6 +3775,7 @@
     "name": "Kneeling High Pulley Row",
     "nameEs": "Remo Arrodillado Alto Polea",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -3407,6 +3785,7 @@
     "name": "Kneeling Hip Flexor",
     "nameEs": "Flexor Arrodillado Cadera",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3416,6 +3795,7 @@
     "name": "Kneeling Jump Squat",
     "nameEs": "Sentadilla Arrodillado Salto",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "glutes"
     ]
@@ -3425,6 +3805,7 @@
     "name": "Kneeling Single-Arm High Pulley Row",
     "nameEs": "Remo Arrodillado a Un Brazo Alto Polea",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -3434,6 +3815,7 @@
     "name": "Kneeling Squat",
     "nameEs": "Sentadilla Arrodillado",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "glutes"
     ]
@@ -3443,6 +3825,7 @@
     "name": "Landmine 180's",
     "nameEs": "Landmine 180's",
     "muscleGroup": "Abs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3452,6 +3835,7 @@
     "name": "Landmine Linear Jammer",
     "nameEs": "Landmine Landmine Lineal",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3461,6 +3845,7 @@
     "name": "Lateral Bound",
     "nameEs": "Salto Bound Lateral",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -3470,6 +3855,7 @@
     "name": "Lateral Box Jump",
     "nameEs": "Salto Lateral Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -3479,6 +3865,7 @@
     "name": "Lateral Cone Hops",
     "nameEs": "Saltos Lateral Cono",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -3488,6 +3875,7 @@
     "name": "Lateral Raise (Band)",
     "nameEs": "Elevación Lateral (Banda)",
     "muscleGroup": "Shoulders",
+    "equipment": "Band",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3497,6 +3885,7 @@
     "name": "Latissimus Dorsi-SMR",
     "nameEs": "Dorsal Ancho (Automasaje)",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lats"
     ]
@@ -3506,6 +3895,7 @@
     "name": "Leg Extensions",
     "nameEs": "Extensión de Piernas",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3515,6 +3905,7 @@
     "name": "Leg Lift",
     "nameEs": "Levantamiento Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -3524,6 +3915,7 @@
     "name": "Leg Press",
     "nameEs": "Prensa de Piernas",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3533,6 +3925,7 @@
     "name": "Leg Press (Smith Machine)",
     "nameEs": "Prensa de Piernas (Máquina Smith)",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3542,6 +3935,7 @@
     "name": "Leg Pull-In",
     "nameEs": "Recogida Pierna",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3551,6 +3945,7 @@
     "name": "Leg-Over Floor Press",
     "nameEs": "Press Leg-Over En el Suelo",
     "muscleGroup": "Chest",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "chest"
     ]
@@ -3560,6 +3955,7 @@
     "name": "Leg-Up Hamstring Stretch",
     "nameEs": "Estiramiento Leg-Up Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3569,6 +3965,7 @@
     "name": "Leverage Decline Chest Press",
     "nameEs": "Press Máquina Declinado Pecho",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -3578,6 +3975,7 @@
     "name": "Leverage High Row",
     "nameEs": "Remo Máquina Alto",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3587,6 +3985,7 @@
     "name": "Leverage Incline Chest Press",
     "nameEs": "Press Máquina Inclinado Pecho",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -3596,6 +3995,7 @@
     "name": "Leverage Iso Row",
     "nameEs": "Remo Máquina Iso",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "lats"
     ]
@@ -3605,6 +4005,7 @@
     "name": "Linear 3-Part Start Technique",
     "nameEs": "Lineal 3-Part Start Technique",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3614,6 +4015,7 @@
     "name": "Linear Acceleration Wall Drill",
     "nameEs": "Drill Lineal Acceleration En la Pared",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3623,6 +4025,7 @@
     "name": "Linear Depth Jump",
     "nameEs": "Salto Lineal Profundidad",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3632,6 +4035,7 @@
     "name": "Log Lift",
     "nameEs": "Levantamiento de Tronco",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3641,6 +4045,7 @@
     "name": "London Bridges",
     "nameEs": "Puentes de Londres",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -3650,6 +4055,7 @@
     "name": "Looking At Ceiling",
     "nameEs": "Looking en Ceiling",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3659,6 +4065,7 @@
     "name": "Low Cable Crossover",
     "nameEs": "Polea Baja Cruzado",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -3668,6 +4075,7 @@
     "name": "Low Cable Triceps Extension",
     "nameEs": "Extensión Polea Baja Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -3677,6 +4085,7 @@
     "name": "Low Pulley Row To Neck",
     "nameEs": "Bajo Polea Remo a Cuello",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3686,6 +4095,7 @@
     "name": "Lower Back Curl",
     "nameEs": "Curl Inferior Espalda",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3695,6 +4105,7 @@
     "name": "Lower Back-SMR",
     "nameEs": "Inferior Espalda (Automasaje)",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -3704,6 +4115,7 @@
     "name": "Lunge Pass Through",
     "nameEs": "a Través Zancada Pase",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3713,6 +4125,7 @@
     "name": "Lunge Sprint",
     "nameEs": "Sprint Zancada",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3722,6 +4135,7 @@
     "name": "Lying Bent Leg Groin",
     "nameEs": "Acostado Inclinado Pierna Ingle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -3731,6 +4145,7 @@
     "name": "Lying Cable Curl",
     "nameEs": "Curl en Polea Acostado",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -3740,6 +4155,7 @@
     "name": "Lying Cambered Barbell Row",
     "nameEs": "Remo Acostado Cambered Barra",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3749,6 +4165,7 @@
     "name": "Lying Close-Grip Curl (Cable)",
     "nameEs": "Curl Acostado Agarre Cerrado (Polea)",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -3758,6 +4175,7 @@
     "name": "Lying Crossover",
     "nameEs": "Acostado Cruzado",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
     ]
@@ -3767,6 +4185,7 @@
     "name": "Lying Dumbbell Tricep Extension",
     "nameEs": "Extensión Acostado Mancuerna Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -3776,6 +4195,7 @@
     "name": "Lying Face Down Plate Neck Resistance",
     "nameEs": "Resistencia Acostado Cara Down Disco Cuello",
     "muscleGroup": "Neck",
+    "equipment": "Other",
     "primaryMuscles": [
       "neck"
     ]
@@ -3785,6 +4205,7 @@
     "name": "Lying Face Up Plate Neck Resistance",
     "nameEs": "Resistencia Acostado Cara Arriba Disco Cuello",
     "muscleGroup": "Neck",
+    "equipment": "Other",
     "primaryMuscles": [
       "neck"
     ]
@@ -3794,6 +4215,7 @@
     "name": "Lying Glute",
     "nameEs": "Acostado Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -3803,6 +4225,7 @@
     "name": "Lying Hamstring",
     "nameEs": "Acostado Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3812,6 +4235,7 @@
     "name": "Lying High Bench Barbell Curl",
     "nameEs": "Curl Acostado Alto Banco Barra",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -3821,6 +4245,7 @@
     "name": "Lying Leg Curls",
     "nameEs": "Curl de Pierna Acostado",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -3830,6 +4255,7 @@
     "name": "Lying Machine Squat",
     "nameEs": "Sentadilla Acostado Máquina",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3839,6 +4265,7 @@
     "name": "Lying One-Arm Lateral Raise",
     "nameEs": "Elevación Acostado a Una Mano Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3848,6 +4275,7 @@
     "name": "Lying Prone Quadriceps",
     "nameEs": "Acostado Boca Abajo Cuádriceps",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3857,6 +4285,7 @@
     "name": "Lying Rear Delt Raise",
     "nameEs": "Elevación Acostado Trasero Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3866,6 +4295,7 @@
     "name": "Lying Supine Dumbbell Curl",
     "nameEs": "Curl Acostado Supino Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -3875,6 +4305,7 @@
     "name": "Lying T-Bar Row",
     "nameEs": "Remo Acostado Barra T",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3884,6 +4315,7 @@
     "name": "Lying Triceps Press",
     "nameEs": "Press Acostado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -3893,6 +4325,7 @@
     "name": "Machine Preacher Curls",
     "nameEs": "Curls Máquina Predicador",
     "muscleGroup": "Arms",
+    "equipment": "Machine",
     "primaryMuscles": [
       "biceps"
     ]
@@ -3902,6 +4335,7 @@
     "name": "Machine Shoulder (Military) Press",
     "nameEs": "Press Máquina Hombro (Militar)",
     "muscleGroup": "Shoulders",
+    "equipment": "Machine",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3911,6 +4345,7 @@
     "name": "Machine Triceps Extension",
     "nameEs": "Extensión Máquina Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Machine",
     "primaryMuscles": [
       "triceps"
     ]
@@ -3920,6 +4355,7 @@
     "name": "Medicine Ball Chest Pass",
     "nameEs": "Pase Medicinal Balón Pecho",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -3929,6 +4365,7 @@
     "name": "Medicine Ball Full Twist",
     "nameEs": "Giro Medicinal Balón Completo",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -3938,6 +4375,7 @@
     "name": "Medicine Ball Scoop Throw",
     "nameEs": "Lanzamiento Medicinal Balón Barrido",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -3947,6 +4385,7 @@
     "name": "Middle Back Shrug",
     "nameEs": "Encogimiento de Hombros Medio Espalda",
     "muscleGroup": "Back",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3956,6 +4395,7 @@
     "name": "Middle Back Stretch",
     "nameEs": "Estiramiento Medio Espalda",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3965,6 +4405,7 @@
     "name": "Mixed Grip Chin",
     "nameEs": "Barbilla Mixto Agarre",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -3974,6 +4415,7 @@
     "name": "Monster Walk",
     "nameEs": "Caminata Monstruo",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "abductors"
     ]
@@ -3983,6 +4425,7 @@
     "name": "Mountain Climbers",
     "nameEs": "Escaladores",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -3992,6 +4435,7 @@
     "name": "Moving Claw Series",
     "nameEs": "Serie de Garra en Movimiento",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4001,6 +4445,7 @@
     "name": "Muscle Snatch",
     "nameEs": "Arrancada de Fuerza",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4010,6 +4455,7 @@
     "name": "Muscle Up",
     "nameEs": "Muscle Up",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -4019,6 +4465,7 @@
     "name": "Narrow Stance Hack Squats",
     "nameEs": "Sentadillas Estrecho Postura Hack",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4028,6 +4475,7 @@
     "name": "Narrow Stance Leg Press",
     "nameEs": "Press Estrecho Postura Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4037,6 +4485,7 @@
     "name": "Narrow Stance Squats",
     "nameEs": "Sentadilla con Postura Estrecha",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4046,6 +4495,7 @@
     "name": "Natural Glute Ham Raise",
     "nameEs": "Elevación Natural Glúteo Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4055,6 +4505,7 @@
     "name": "Neck Isometric Hold (Front & Back)",
     "nameEs": "Sostén Cuello Isométrico (Frontal y Trasero)",
     "muscleGroup": "Neck",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "neck"
     ]
@@ -4064,6 +4515,7 @@
     "name": "Neck Isometric Hold (Side)",
     "nameEs": "Sostén Cuello Isométrico (Lateral)",
     "muscleGroup": "Neck",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "neck"
     ]
@@ -4073,6 +4525,7 @@
     "name": "Neck Press",
     "nameEs": "Press al Cuello",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -4082,6 +4535,7 @@
     "name": "Neck-SMR",
     "nameEs": "Cuello (Automasaje)",
     "muscleGroup": "Neck",
+    "equipment": "Other",
     "primaryMuscles": [
       "neck"
     ]
@@ -4091,6 +4545,7 @@
     "name": "Oblique Crunches",
     "nameEs": "Abdominales Oblicuo",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4100,6 +4555,7 @@
     "name": "Oblique Crunches (Floor)",
     "nameEs": "Abdominales Oblicuo (En el Suelo)",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4109,6 +4565,7 @@
     "name": "Olympic Squat",
     "nameEs": "Sentadilla Olímpico",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4118,6 +4575,7 @@
     "name": "On Your Side Quad Stretch",
     "nameEs": "Estiramiento en Your Lateral Cuádriceps",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4127,6 +4585,7 @@
     "name": "On-Your-Back Quad Stretch",
     "nameEs": "Estiramiento On-Your-Back Cuádriceps",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4136,6 +4595,7 @@
     "name": "One Arm Against Wall",
     "nameEs": "a Una Mano contra En la Pared",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -4145,6 +4605,7 @@
     "name": "One Arm Chin-Up",
     "nameEs": "Dominada Supina a Una Mano",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -4154,6 +4615,7 @@
     "name": "One Arm Dumbbell Bench Press",
     "nameEs": "Press a Una Mano Mancuerna Banco",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -4163,6 +4625,7 @@
     "name": "One Arm Dumbbell Preacher Curl",
     "nameEs": "Curl a Una Mano Mancuerna Predicador",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -4172,6 +4635,7 @@
     "name": "One Arm Floor Press",
     "nameEs": "Press a Una Mano En el Suelo",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4181,6 +4645,7 @@
     "name": "One Arm Lat Pulldown",
     "nameEs": "Jalón a Una Mano",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -4190,6 +4655,7 @@
     "name": "One Half Locust",
     "nameEs": "Media Postura de la Langosta",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4199,6 +4665,7 @@
     "name": "One Handed Hang",
     "nameEs": "Colgante One Handed",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -4208,6 +4675,7 @@
     "name": "One Knee To Chest",
     "nameEs": "One Rodilla a Pecho",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -4217,6 +4685,7 @@
     "name": "One Leg Barbell Squat",
     "nameEs": "Sentadilla One Pierna Barra",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4226,6 +4695,7 @@
     "name": "One-Arm Dumbbell Press (Neutral Grip)",
     "nameEs": "Press con Mancuerna a Una Mano (Agarre Neutro)",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4235,6 +4705,7 @@
     "name": "One-Arm Dumbbell Row",
     "nameEs": "Remo con Mancuerna a Una Mano",
     "muscleGroup": "Back",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -4244,6 +4715,7 @@
     "name": "One-Arm Flat Bench Dumbbell Flye",
     "nameEs": "Apertura a Una Mano Plano Banco Mancuerna",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -4253,6 +4725,7 @@
     "name": "One-Arm High-Pulley Cable Side Bends",
     "nameEs": "Flexiones Laterales a Una Mano High-Pulley Polea Lateral",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4262,6 +4735,7 @@
     "name": "One-Arm Incline Lateral Raise",
     "nameEs": "Elevación a Una Mano Inclinado Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4271,6 +4745,7 @@
     "name": "One-Arm Kettlebell Clean",
     "nameEs": "Cargada a Una Mano Kettlebell",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4280,6 +4755,7 @@
     "name": "One-Arm Kettlebell Clean and Jerk",
     "nameEs": "Envión a Una Mano Kettlebell Cargada y",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4289,6 +4765,7 @@
     "name": "One-Arm Kettlebell Floor Press",
     "nameEs": "Press a Una Mano Kettlebell En el Suelo",
     "muscleGroup": "Chest",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "chest"
     ]
@@ -4298,6 +4775,7 @@
     "name": "One-Arm Kettlebell Floor Press (Extended Range)",
     "nameEs": "Press a Una Mano Kettlebell En el Suelo (Rango Extendido)",
     "muscleGroup": "Chest",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "chest"
     ]
@@ -4307,6 +4785,7 @@
     "name": "One-Arm Kettlebell Jerk",
     "nameEs": "Envión a Una Mano Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4316,6 +4795,7 @@
     "name": "One-Arm Kettlebell Para Press",
     "nameEs": "Press a Una Mano Kettlebell Para",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4325,6 +4805,7 @@
     "name": "One-Arm Kettlebell Push Press",
     "nameEs": "Press a Una Mano Kettlebell Empuje",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4334,6 +4815,7 @@
     "name": "One-Arm Kettlebell Row",
     "nameEs": "Remo con Kettlebell a Una Mano",
     "muscleGroup": "Back",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -4343,6 +4825,7 @@
     "name": "One-Arm Kettlebell Side Press",
     "nameEs": "Press a Una Mano Kettlebell Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4352,6 +4835,7 @@
     "name": "One-Arm Kettlebell Snatch",
     "nameEs": "Arrancada con Kettlebell a Una Mano",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4361,6 +4845,7 @@
     "name": "One-Arm Kettlebell Split Jerk",
     "nameEs": "Envión a Una Mano Kettlebell Dividido",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4370,6 +4855,7 @@
     "name": "One-Arm Kettlebell Split Snatch",
     "nameEs": "Arrancada a Una Mano Kettlebell Dividido",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4379,6 +4865,7 @@
     "name": "One-Arm Kettlebell Swings",
     "nameEs": "Balanceo con Kettlebell a Una Mano",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4388,6 +4875,7 @@
     "name": "One-Arm Long Bar Row",
     "nameEs": "Remo a Una Mano Largo Barra",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -4397,6 +4885,7 @@
     "name": "One-Arm Lying Rear Delt Raise",
     "nameEs": "Elevación a Una Mano Acostado Trasero Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4406,6 +4895,7 @@
     "name": "One-Arm Medicine Ball Slam",
     "nameEs": "Golpe al Suelo a Una Mano Medicinal Balón",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4415,6 +4905,7 @@
     "name": "One-Arm Open Palm Kettlebell Clean",
     "nameEs": "Cargada a Una Mano Abierto Palma Kettlebell",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4424,6 +4915,7 @@
     "name": "One-Arm Overhead Kettlebell Squats",
     "nameEs": "Sentadillas a Una Mano Overhead Kettlebell",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4433,6 +4925,7 @@
     "name": "One-Arm Side Deadlift",
     "nameEs": "Peso Muerto a Una Mano Lateral",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4442,6 +4935,7 @@
     "name": "One-Arm Side Laterals",
     "nameEs": "Laterales a Una Mano Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4451,6 +4945,7 @@
     "name": "One-Arm Triceps Extension (Dumbbell, Pronated)",
     "nameEs": "Extensión de Tríceps a Una Mano (Mancuerna, Prono)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4460,6 +4955,7 @@
     "name": "One-Arm Triceps Extension (Dumbbell, Supinated)",
     "nameEs": "Extensión de Tríceps a Una Mano (Mancuerna, Supino)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4469,6 +4965,7 @@
     "name": "One-Arm Triceps Extension (Dumbbell)",
     "nameEs": "Extensión de Tríceps a Una Mano (Mancuerna)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4478,6 +4975,7 @@
     "name": "One-Arm Triceps Extension (Low Cable)",
     "nameEs": "Extensión de Tríceps a Una Mano (Polea Baja)",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4487,6 +4985,7 @@
     "name": "One-Arm Upright Row (Dumbbell)",
     "nameEs": "Remo Vertical a Una Mano (Mancuerna)",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4496,6 +4995,7 @@
     "name": "One-Arm Upright Row (Smith Machine)",
     "nameEs": "Remo Vertical a Una Mano (Máquina Smith)",
     "muscleGroup": "Shoulders",
+    "equipment": "Machine",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4505,6 +5005,7 @@
     "name": "One-Arm Wrist Curl (Dumbbell, Palms-Down)",
     "nameEs": "Curl de Muñeca a Una Mano (Mancuerna, Palmas Abajo)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -4514,6 +5015,7 @@
     "name": "One-Arm Wrist Curl (Dumbbell, Palms-Up)",
     "nameEs": "Curl de Muñeca a Una Mano (Mancuerna, Palmas Arriba)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -4523,6 +5025,7 @@
     "name": "One-Legged Cable Kickback",
     "nameEs": "Patada de Tríceps a Una Pierna Polea",
     "muscleGroup": "Legs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "glutes"
     ]
@@ -4532,6 +5035,7 @@
     "name": "Open Palm Kettlebell Clean",
     "nameEs": "Cargada Abierto Palma Kettlebell",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4541,6 +5045,7 @@
     "name": "Otis-Up",
     "nameEs": "Otis-Up",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4550,6 +5055,7 @@
     "name": "Overhead Cable Curl",
     "nameEs": "Curl Overhead Polea",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -4559,6 +5065,7 @@
     "name": "Overhead Lat",
     "nameEs": "Overhead Dorsal",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -4568,6 +5075,7 @@
     "name": "Overhead Slam",
     "nameEs": "Golpe al Suelo Overhead",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lats"
     ]
@@ -4577,6 +5085,7 @@
     "name": "Overhead Squat",
     "nameEs": "Sentadilla Overhead",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4586,6 +5095,7 @@
     "name": "Overhead Stretch",
     "nameEs": "Estiramiento Overhead",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4595,6 +5105,7 @@
     "name": "Overhead Triceps",
     "nameEs": "Overhead Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4604,6 +5115,7 @@
     "name": "Overhead Triceps Extension (Barbell)",
     "nameEs": "Extensión de Tríceps Overhead (Barra)",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4613,6 +5125,7 @@
     "name": "Overhead Triceps Extension (Kettlebell)",
     "nameEs": "Extensión de Tríceps Overhead (Kettlebell)",
     "muscleGroup": "Arms",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4622,6 +5135,7 @@
     "name": "Overhead Triceps Extension (Sled)",
     "nameEs": "Extensión de Tríceps Overhead (Trineo)",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4631,6 +5145,7 @@
     "name": "Pallof Press",
     "nameEs": "Press Pallof",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4640,6 +5155,7 @@
     "name": "Pallof Press With Rotation",
     "nameEs": "Press Pallof con Rotación",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4649,6 +5165,7 @@
     "name": "Palms-Down Wrist Curl Over A Bench",
     "nameEs": "Banco Palmas Abajo Muñeca Curl sobre un",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -4658,6 +5175,7 @@
     "name": "Parallel Bar Dip",
     "nameEs": "Fondos en Paralelas",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4667,6 +5185,7 @@
     "name": "Pelvic Tilt Into Bridge",
     "nameEs": "Puente Pélvico Inclinación hacia",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -4676,6 +5195,7 @@
     "name": "Peroneals Stretch",
     "nameEs": "Estiramiento Peroneos",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -4685,6 +5205,7 @@
     "name": "Peroneals-SMR",
     "nameEs": "Peroneos (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "calves"
     ]
@@ -4694,6 +5215,7 @@
     "name": "Physioball Hip Bridge",
     "nameEs": "Puente Physioball Cadera",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "glutes"
     ]
@@ -4703,6 +5225,7 @@
     "name": "Pin Presses",
     "nameEs": "Press en Pines",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4712,6 +5235,7 @@
     "name": "Piriformis-SMR",
     "nameEs": "Piriforme (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "glutes"
     ]
@@ -4721,6 +5245,7 @@
     "name": "Pistol Squat (Kettlebell)",
     "nameEs": "Sentadilla Pistola (Kettlebell)",
     "muscleGroup": "Legs",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4730,6 +5255,7 @@
     "name": "Pistol Squat (Smith Machine)",
     "nameEs": "Sentadilla Pistola (Máquina Smith)",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4739,6 +5265,7 @@
     "name": "Plank",
     "nameEs": "Plancha",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4748,6 +5275,7 @@
     "name": "Plate Pinch",
     "nameEs": "Disco Pinch",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "forearms"
     ]
@@ -4757,6 +5285,7 @@
     "name": "Plate Twist",
     "nameEs": "Giro Disco",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4766,6 +5295,7 @@
     "name": "Platform Hamstring Slides",
     "nameEs": "Platform Isquiotibial Slides",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4775,6 +5305,7 @@
     "name": "Plie Dumbbell Squat",
     "nameEs": "Sentadilla Plie Mancuerna",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4784,6 +5315,7 @@
     "name": "Plyo Kettlebell Pushups",
     "nameEs": "Flexiones Pliométrico Kettlebell",
     "muscleGroup": "Chest",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "chest"
     ]
@@ -4793,6 +5325,7 @@
     "name": "Plyo Push-up",
     "nameEs": "Flexión Pliométrico",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -4802,6 +5335,7 @@
     "name": "Posterior Tibialis Stretch",
     "nameEs": "Estiramiento Posterior Tibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -4811,6 +5345,7 @@
     "name": "Power Clean",
     "nameEs": "Cargada de Potencia",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4820,6 +5355,7 @@
     "name": "Power Clean from Blocks",
     "nameEs": "Cargada de Potencia desde Bloques",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4829,6 +5365,7 @@
     "name": "Power Jerk",
     "nameEs": "Envión de Potencia",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4838,6 +5375,7 @@
     "name": "Power Partials",
     "nameEs": "de Fuerza Partials",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4847,6 +5385,7 @@
     "name": "Power Snatch",
     "nameEs": "Arrancada de Potencia",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4856,6 +5395,7 @@
     "name": "Power Snatch from Blocks",
     "nameEs": "Bloques de Fuerza Arrancada de",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -4865,6 +5405,7 @@
     "name": "Power Stairs",
     "nameEs": "de Fuerza Stairs",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4874,6 +5415,7 @@
     "name": "Preacher Curl",
     "nameEs": "Curl Predicador",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -4883,6 +5425,7 @@
     "name": "Preacher Curl (Cable)",
     "nameEs": "Curl Predicador (Polea)",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -4892,6 +5435,7 @@
     "name": "Preacher Hammer Dumbbell Curl",
     "nameEs": "Curl Predicador Martillo Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -4901,6 +5445,7 @@
     "name": "Press Sit-Up",
     "nameEs": "Abdominal Press",
     "muscleGroup": "Abs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -4910,6 +5455,7 @@
     "name": "Prone Manual Hamstring",
     "nameEs": "Boca Abajo Manual Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4919,6 +5465,7 @@
     "name": "Prowler Sprint",
     "nameEs": "Sprint con Prowler",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -4928,6 +5475,7 @@
     "name": "Pull Through",
     "nameEs": "Paso a Través",
     "muscleGroup": "Legs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "glutes"
     ]
@@ -4937,6 +5485,7 @@
     "name": "Pullups",
     "nameEs": "Dominadas",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -4946,6 +5495,7 @@
     "name": "Push Press",
     "nameEs": "Empuje de Press",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4955,6 +5505,7 @@
     "name": "Push Press (Behind Neck)",
     "nameEs": "Empuje de Press (Detrás de la Nuca)",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -4964,6 +5515,7 @@
     "name": "Push Up to Side Plank",
     "nameEs": "Plancha Flexión a Lateral",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -4973,6 +5525,7 @@
     "name": "Push-Up (Close & Wide Grip)",
     "nameEs": "Flexión (Agarre Cerrado y Abierto)",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -4982,6 +5535,7 @@
     "name": "Push-Up (Close-Grip)",
     "nameEs": "Flexión (Agarre Cerrado)",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -4991,6 +5545,7 @@
     "name": "Push-Up Wide",
     "nameEs": "Flexión Abierto",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -5000,6 +5555,7 @@
     "name": "Push-Ups With Feet Elevated",
     "nameEs": "Flexiones con Pies Elevado",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -5009,6 +5565,7 @@
     "name": "Push-Ups With Feet On An Exercise Ball",
     "nameEs": "Balón Flexiones con Pies en un Ejercicio",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -5018,6 +5575,7 @@
     "name": "Pushups",
     "nameEs": "Flexiones",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -5027,6 +5585,7 @@
     "name": "Pyramid",
     "nameEs": "Pirámide",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -5036,6 +5595,7 @@
     "name": "Quad Stretch",
     "nameEs": "Estiramiento Cuádriceps",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5045,6 +5605,7 @@
     "name": "Quadriceps-SMR",
     "nameEs": "Cuádriceps (Automasaje)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5054,6 +5615,7 @@
     "name": "Quick Leap",
     "nameEs": "Salto Largo Rápido",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5063,6 +5625,7 @@
     "name": "Rack Delivery",
     "nameEs": "Rack Delivery",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5072,6 +5635,7 @@
     "name": "Rack Pull with Bands",
     "nameEs": "Bandas Rack Tirón con",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -5081,6 +5645,7 @@
     "name": "Rack Pulls",
     "nameEs": "Peso Muerto Parcial en Rack",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -5090,6 +5655,7 @@
     "name": "Rear Delt Raise (Chest-Supported)",
     "nameEs": "Elevación Posterior de Deltoides (Con Pecho Apoyado)",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5099,6 +5665,7 @@
     "name": "Rear Leg Raises",
     "nameEs": "Elevaciones Trasero Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5108,6 +5675,7 @@
     "name": "Recumbent Bike",
     "nameEs": "Bicicleta Recumbent",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5117,6 +5685,7 @@
     "name": "Return Push from Stance",
     "nameEs": "Postura Return Empuje de",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5126,6 +5695,7 @@
     "name": "Reverse Band Bench Press",
     "nameEs": "Press Inverso Banda Banco",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -5135,6 +5705,7 @@
     "name": "Reverse Band Box Squat",
     "nameEs": "Sentadilla Inverso Banda Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5144,6 +5715,7 @@
     "name": "Reverse Band Deadlift",
     "nameEs": "Peso Muerto Inverso Banda",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -5153,6 +5725,7 @@
     "name": "Reverse Band Power Squat",
     "nameEs": "Sentadilla Inverso Banda de Fuerza",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5162,6 +5735,7 @@
     "name": "Reverse Band Sumo Deadlift",
     "nameEs": "Peso Muerto Inverso Banda Sumo",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5171,6 +5745,7 @@
     "name": "Reverse Barbell Curl",
     "nameEs": "Curl Inverso con Barra",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -5180,6 +5755,7 @@
     "name": "Reverse Barbell Preacher Curls",
     "nameEs": "Curls Inverso Barra Predicador",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -5189,6 +5765,7 @@
     "name": "Reverse Cable Curl",
     "nameEs": "Curl Inverso en Polea",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -5198,6 +5775,7 @@
     "name": "Reverse Crunch",
     "nameEs": "Abdominal Inverso",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5207,6 +5785,7 @@
     "name": "Reverse Crunch (Cable)",
     "nameEs": "Abdominal Inverso (Polea)",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5216,6 +5795,7 @@
     "name": "Reverse Flyes",
     "nameEs": "Aperturas Inversas",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5225,6 +5805,7 @@
     "name": "Reverse Flyes With External Rotation",
     "nameEs": "Rotación Inverso Aperturas con Externa",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5234,6 +5815,7 @@
     "name": "Reverse Grip Bent-Over Rows",
     "nameEs": "Remo Inclinado con Agarre Supino",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -5243,6 +5825,7 @@
     "name": "Reverse Grip Triceps Pushdown",
     "nameEs": "Extensión en Polea Inverso Agarre Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -5252,6 +5835,7 @@
     "name": "Reverse Hyperextension",
     "nameEs": "Hiperextensión Inversa",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5261,6 +5845,7 @@
     "name": "Reverse Machine Flyes",
     "nameEs": "Aperturas Inverso Máquina",
     "muscleGroup": "Shoulders",
+    "equipment": "Machine",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5270,6 +5855,7 @@
     "name": "Reverse Plate Curls",
     "nameEs": "Curl Inverso con Disco",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "biceps"
     ]
@@ -5279,6 +5865,7 @@
     "name": "Reverse Triceps Bench Press",
     "nameEs": "Press Inverso Tríceps Banco",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -5288,6 +5875,7 @@
     "name": "Rhomboids-SMR",
     "nameEs": "Romboides (Automasaje)",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "middle back"
     ]
@@ -5297,6 +5885,7 @@
     "name": "Rickshaw Carry",
     "nameEs": "Acarreo Rickshaw",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "forearms"
     ]
@@ -5306,6 +5895,7 @@
     "name": "Rickshaw Deadlift",
     "nameEs": "Peso Muerto Rickshaw",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5315,6 +5905,7 @@
     "name": "Ring Dips",
     "nameEs": "Fondos en Anillas",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -5324,6 +5915,7 @@
     "name": "Rocket Jump",
     "nameEs": "Salto Rocket",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5333,6 +5925,7 @@
     "name": "Rocking Standing Calf Raise",
     "nameEs": "Elevación Rocking de Pie Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "calves"
     ]
@@ -5342,6 +5935,7 @@
     "name": "Rocky Pull-Ups/Pulldowns",
     "nameEs": "Dominadas/Jalones Rocky",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -5351,6 +5945,7 @@
     "name": "Romanian Deadlift",
     "nameEs": "Peso Muerto Rumano",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5360,6 +5955,7 @@
     "name": "Romanian Deadlift from Deficit",
     "nameEs": "Déficit Rumano Peso Muerto de",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5369,6 +5965,7 @@
     "name": "Rope Climb",
     "nameEs": "Escalada de Cuerda",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lats"
     ]
@@ -5378,6 +5975,7 @@
     "name": "Rope Crunch",
     "nameEs": "Abdominal Cuerda",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5387,6 +5985,7 @@
     "name": "Rope Jumping",
     "nameEs": "Cuerda Jumping",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5396,6 +5995,7 @@
     "name": "Rope Straight-Arm Pulldown",
     "nameEs": "Jalón con Cuerda y Brazos Rectos",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -5405,6 +6005,7 @@
     "name": "Round The World Shoulder Stretch",
     "nameEs": "Estiramiento Round del Mundo Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5414,6 +6015,7 @@
     "name": "Rowing, Stationary",
     "nameEs": "Estático Remo (Cardio),",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5423,6 +6025,7 @@
     "name": "Runner's Stretch",
     "nameEs": "Estiramiento Runner's",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5432,6 +6035,7 @@
     "name": "Running, Treadmill",
     "nameEs": "Cinta de Correr Carrera,",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5441,6 +6045,7 @@
     "name": "Russian Twist",
     "nameEs": "Giro Ruso",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5450,6 +6055,7 @@
     "name": "Sandbag Load",
     "nameEs": "Carga de Saco de Arena",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5459,6 +6065,7 @@
     "name": "Scapular Pull-Up",
     "nameEs": "Dominada Escapular",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "traps"
     ]
@@ -5468,6 +6075,7 @@
     "name": "Scissor Kick",
     "nameEs": "Patada Tijera",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5477,6 +6085,7 @@
     "name": "Scissors Jump",
     "nameEs": "Salto Scissors",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5486,6 +6095,7 @@
     "name": "Seated Band Hamstring Curl",
     "nameEs": "Curl Sentado Banda Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5495,6 +6105,7 @@
     "name": "Seated Barbell Military Press",
     "nameEs": "Press Militar Sentado con Barra",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5504,6 +6115,7 @@
     "name": "Seated Barbell Twist",
     "nameEs": "Giro Sentado Barra",
     "muscleGroup": "Abs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5513,6 +6125,7 @@
     "name": "Seated Bent-Over Rear Delt Raise",
     "nameEs": "Elevación Sentado Inclinado Trasero Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5522,6 +6135,7 @@
     "name": "Seated Biceps",
     "nameEs": "Sentado Bíceps",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "biceps"
     ]
@@ -5531,6 +6145,7 @@
     "name": "Seated Cable Rows",
     "nameEs": "Remo en Polea Sentado",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "middle back"
     ]
@@ -5540,6 +6155,7 @@
     "name": "Seated Cable Shoulder Press",
     "nameEs": "Press Sentado Polea Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5549,6 +6165,7 @@
     "name": "Seated Calf Raise",
     "nameEs": "Elevación de Talones Sentado",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "calves"
     ]
@@ -5558,6 +6175,7 @@
     "name": "Seated Calf Raise (Barbell)",
     "nameEs": "Elevación de Talones Sentado (Barra)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "calves"
     ]
@@ -5567,6 +6185,7 @@
     "name": "Seated Calf Stretch",
     "nameEs": "Estiramiento Sentado Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -5576,6 +6195,7 @@
     "name": "Seated Dumbbell Curl",
     "nameEs": "Curl con Mancuernas Sentado",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -5585,6 +6205,7 @@
     "name": "Seated Dumbbell Inner Biceps Curl",
     "nameEs": "Curl Sentado Mancuerna Interno Bíceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -5594,6 +6215,7 @@
     "name": "Seated Dumbbell Palms-Down Wrist Curl",
     "nameEs": "Curl Sentado Mancuerna Palmas Abajo Muñeca",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -5603,6 +6225,7 @@
     "name": "Seated Dumbbell Palms-Up Wrist Curl",
     "nameEs": "Curl Sentado Mancuerna Palmas Arriba Muñeca",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -5612,6 +6235,7 @@
     "name": "Seated Dumbbell Press",
     "nameEs": "Press Sentado con Mancuernas",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5621,6 +6245,7 @@
     "name": "Seated Flat Bench Leg Pull-In",
     "nameEs": "Recogida Sentado Plano Banco Pierna",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5630,6 +6255,7 @@
     "name": "Seated Floor Hamstring Stretch",
     "nameEs": "Estiramiento Sentado En el Suelo Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5639,6 +6265,7 @@
     "name": "Seated Front Deltoid",
     "nameEs": "Sentado Frontal Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5648,6 +6275,7 @@
     "name": "Seated Glute",
     "nameEs": "Sentado Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -5657,6 +6285,7 @@
     "name": "Seated Good Mornings",
     "nameEs": "Sentado Buenos Días",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -5666,6 +6295,7 @@
     "name": "Seated Hamstring",
     "nameEs": "Sentado Isquiotibial",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5675,6 +6305,7 @@
     "name": "Seated Hamstring and Calf Stretch",
     "nameEs": "Estiramiento Sentado Isquiotibial y Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5684,6 +6315,7 @@
     "name": "Seated Head Harness Neck Resistance",
     "nameEs": "Resistencia Sentado Cabeza Arnés Cuello",
     "muscleGroup": "Neck",
+    "equipment": "Other",
     "primaryMuscles": [
       "neck"
     ]
@@ -5693,6 +6325,7 @@
     "name": "Seated Leg Curl",
     "nameEs": "Curl de Pierna Sentado",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -5702,6 +6335,7 @@
     "name": "Seated Leg Tucks",
     "nameEs": "Sentado Pierna Tucks",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5711,6 +6345,7 @@
     "name": "Seated One-Arm Bent-Over Triceps Extension",
     "nameEs": "Extensión Sentado a Una Mano Inclinado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -5720,6 +6355,7 @@
     "name": "Seated One-arm Cable Pulley Rows",
     "nameEs": "Remos Sentado a Una Mano Polea Polea",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "middle back"
     ]
@@ -5729,6 +6365,7 @@
     "name": "Seated Overhead Stretch",
     "nameEs": "Estiramiento Sentado Overhead",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5738,6 +6375,7 @@
     "name": "Seated Palm-Up Barbell Wrist Curl",
     "nameEs": "Curl Sentado Palmas Arriba Barra Muñeca",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -5747,6 +6385,7 @@
     "name": "Seated Palms-Down Barbell Wrist Curl",
     "nameEs": "Curl Sentado Palmas Abajo Barra Muñeca",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -5756,6 +6395,7 @@
     "name": "Seated Side Lateral Raise",
     "nameEs": "Elevación Sentado Lateral Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5765,6 +6405,7 @@
     "name": "Seated Triceps Press",
     "nameEs": "Press Sentado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -5774,6 +6415,7 @@
     "name": "Seated Two-Arm Bent-Over Triceps Extension",
     "nameEs": "Extensión Sentado a Dos Manos Inclinado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -5783,6 +6425,7 @@
     "name": "See-Saw Press (Alternating Side Press)",
     "nameEs": "Press See-Saw (Alternating Side Press)",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5792,6 +6435,7 @@
     "name": "Shotgun Row",
     "nameEs": "Remo Shotgun",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -5801,6 +6445,7 @@
     "name": "Shoulder Circles",
     "nameEs": "Círculos de Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5810,6 +6455,7 @@
     "name": "Shoulder Press (Band)",
     "nameEs": "Press de Hombro (Banda)",
     "muscleGroup": "Shoulders",
+    "equipment": "Band",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5819,6 +6465,7 @@
     "name": "Shoulder Press (Barbell)",
     "nameEs": "Press de Hombro (Barra)",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5828,6 +6475,7 @@
     "name": "Shoulder Press (Cable)",
     "nameEs": "Press de Hombro (Polea)",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5837,6 +6485,7 @@
     "name": "Shoulder Press (Dumbbell)",
     "nameEs": "Press de Hombro (Mancuerna)",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5846,6 +6495,7 @@
     "name": "Shoulder Press (Machine)",
     "nameEs": "Press de Hombro (Máquina)",
     "muscleGroup": "Shoulders",
+    "equipment": "Machine",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5855,6 +6505,7 @@
     "name": "Shoulder Raise",
     "nameEs": "Elevación Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5864,6 +6515,7 @@
     "name": "Shoulder Stretch",
     "nameEs": "Estiramiento Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5873,6 +6525,7 @@
     "name": "Shrug (Barbell)",
     "nameEs": "Encogimiento de Hombros (Barra)",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "traps"
     ]
@@ -5882,6 +6535,7 @@
     "name": "Shrug (Dumbbell)",
     "nameEs": "Encogimiento de Hombros (Mancuerna)",
     "muscleGroup": "Back",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "traps"
     ]
@@ -5891,6 +6545,7 @@
     "name": "Shrug (Machine)",
     "nameEs": "Encogimiento de Hombros (Máquina)",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "traps"
     ]
@@ -5900,6 +6555,7 @@
     "name": "Side Bend (Barbell)",
     "nameEs": "Flexión Lateral de Torso (Barra)",
     "muscleGroup": "Abs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5909,6 +6565,7 @@
     "name": "Side Bend (Dumbbell)",
     "nameEs": "Flexión Lateral de Torso (Mancuerna)",
     "muscleGroup": "Abs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5918,6 +6575,7 @@
     "name": "Side Bridge",
     "nameEs": "Puente Lateral",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5927,6 +6585,7 @@
     "name": "Side Hop-Sprint",
     "nameEs": "Lateral Hop-Sprint",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5936,6 +6595,7 @@
     "name": "Side Jackknife",
     "nameEs": "Navaja Lateral",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -5945,6 +6605,7 @@
     "name": "Side Lateral Raise",
     "nameEs": "Elevación Lateral",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5954,6 +6615,7 @@
     "name": "Side Laterals to Front Raise",
     "nameEs": "Elevación Lateral Laterales a Frontal",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -5963,6 +6625,7 @@
     "name": "Side Leg Raises",
     "nameEs": "Elevaciones Lateral Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -5972,6 +6635,7 @@
     "name": "Side Lying Groin Stretch",
     "nameEs": "Estiramiento Lateral Acostado Ingle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
     ]
@@ -5981,6 +6645,7 @@
     "name": "Side Neck Stretch",
     "nameEs": "Estiramiento Lateral Cuello",
     "muscleGroup": "Neck",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "neck"
     ]
@@ -5990,6 +6655,7 @@
     "name": "Side Standing Long Jump",
     "nameEs": "Salto Lateral de Pie Largo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -5999,6 +6665,7 @@
     "name": "Side to Side Box Shuffle",
     "nameEs": "Lateral a Lateral Cajón Shuffle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6008,6 +6675,7 @@
     "name": "Side To Side Chins",
     "nameEs": "Dominadas Lateral a Lateral",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -6017,6 +6685,7 @@
     "name": "Side Wrist Pull",
     "nameEs": "Tirón Lateral Muñeca",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6026,6 +6695,7 @@
     "name": "Side-Lying Floor Stretch",
     "nameEs": "Estiramiento Side-Lying En el Suelo",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -6035,6 +6705,7 @@
     "name": "Single Dumbbell Raise",
     "nameEs": "Elevación Simple Mancuerna",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6044,6 +6715,7 @@
     "name": "Single Leg Butt Kick",
     "nameEs": "Patada a Una Pierna Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6053,6 +6725,7 @@
     "name": "Single Leg Glute Bridge",
     "nameEs": "Puente a Una Pierna Glúteo",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -6062,6 +6735,7 @@
     "name": "Single Leg Push-off",
     "nameEs": "a Una Pierna Push-off",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6071,6 +6745,7 @@
     "name": "Single-Arm Cable Crossover",
     "nameEs": "a Un Brazo Polea Cruzado",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -6080,6 +6755,7 @@
     "name": "Single-Arm Linear Jammer",
     "nameEs": "Landmine a Un Brazo Lineal",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6089,6 +6765,7 @@
     "name": "Single-Arm Push-Up",
     "nameEs": "Flexión a Un Brazo",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -6098,6 +6775,7 @@
     "name": "Single-Cone Sprint Drill",
     "nameEs": "Drill Single-Cone Sprint",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6107,6 +6785,7 @@
     "name": "Single-Leg High Box Squat",
     "nameEs": "Sentadilla a Una Pierna Alto Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6116,6 +6795,7 @@
     "name": "Single-Leg Hop Progression",
     "nameEs": "a Una Pierna Salto Progression",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6125,6 +6805,7 @@
     "name": "Single-Leg Lateral Hop",
     "nameEs": "Salto a Una Pierna Lateral",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6134,6 +6815,7 @@
     "name": "Single-Leg Leg Extension",
     "nameEs": "Extensión a Una Pierna Pierna",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6143,6 +6825,7 @@
     "name": "Single-Leg Stride Jump",
     "nameEs": "Salto a Una Pierna Zancada",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6152,6 +6835,7 @@
     "name": "Sit Squats",
     "nameEs": "Sentadillas Sit",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6161,6 +6845,7 @@
     "name": "Sit-Up",
     "nameEs": "Abdominal",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6170,6 +6855,7 @@
     "name": "Skating",
     "nameEs": "Patinaje",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6179,6 +6865,7 @@
     "name": "Skull Crusher (Behind Head)",
     "nameEs": "Press Francés (Detrás de la Cabeza)",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -6188,6 +6875,7 @@
     "name": "Skull Crusher (To Chin)",
     "nameEs": "Press Francés (Hasta la Barbilla)",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -6197,6 +6885,7 @@
     "name": "Sled Drag (Harness)",
     "nameEs": "Arrastre de Trineo (Arnés)",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6206,6 +6895,7 @@
     "name": "Sled Overhead Backward Walk",
     "nameEs": "Caminata Trineo Overhead Hacia Atrás",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6215,6 +6905,7 @@
     "name": "Sled Push",
     "nameEs": "Empuje de Trineo",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6224,6 +6915,7 @@
     "name": "Sled Reverse Flye",
     "nameEs": "Apertura Trineo Inverso",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6233,6 +6925,7 @@
     "name": "Sled Row",
     "nameEs": "Remo con Trineo",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "middle back"
     ]
@@ -6242,6 +6935,7 @@
     "name": "Sledgehammer Swings",
     "nameEs": "Balanceos Sledgehammer",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6251,6 +6945,7 @@
     "name": "Smith Incline Shoulder Raise",
     "nameEs": "Elevación Smith Inclinado Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Machine",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6260,6 +6955,7 @@
     "name": "Smith Machine Behind the Back Shrug",
     "nameEs": "Encogimiento de Hombros Máquina Smith Detrás de Espalda",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "traps"
     ]
@@ -6269,6 +6965,7 @@
     "name": "Smith Machine Bent Over Row",
     "nameEs": "Remo Máquina Smith Inclinado sobre",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "middle back"
     ]
@@ -6278,6 +6975,7 @@
     "name": "Smith Machine Calf Raise",
     "nameEs": "Elevación Máquina Smith Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "calves"
     ]
@@ -6287,6 +6985,7 @@
     "name": "Smith Machine Close-Grip Bench Press",
     "nameEs": "Press Máquina Smith Agarre Cerrado Banco",
     "muscleGroup": "Arms",
+    "equipment": "Machine",
     "primaryMuscles": [
       "triceps"
     ]
@@ -6296,6 +6995,7 @@
     "name": "Smith Machine Decline Press",
     "nameEs": "Press Máquina Smith Declinado",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -6305,6 +7005,7 @@
     "name": "Smith Machine Hang Power Clean",
     "nameEs": "Cargada Máquina Smith Colgante de Fuerza",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6314,6 +7015,7 @@
     "name": "Smith Machine Hip Raise",
     "nameEs": "Elevación Máquina Smith Cadera",
     "muscleGroup": "Abs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6323,6 +7025,7 @@
     "name": "Smith Machine Incline Bench Press",
     "nameEs": "Press Máquina Smith Banco Inclinado",
     "muscleGroup": "Chest",
+    "equipment": "Machine",
     "primaryMuscles": [
       "chest"
     ]
@@ -6332,6 +7035,7 @@
     "name": "Smith Machine Overhead Shoulder Press",
     "nameEs": "Press Máquina Smith Overhead Hombro",
     "muscleGroup": "Shoulders",
+    "equipment": "Machine",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6341,6 +7045,7 @@
     "name": "Smith Machine Reverse Calf Raises",
     "nameEs": "Elevaciones Máquina Smith Inverso Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "calves"
     ]
@@ -6350,6 +7055,7 @@
     "name": "Smith Machine Stiff-Legged Deadlift",
     "nameEs": "Peso Muerto Máquina Smith Piernas Rígidas",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6359,6 +7065,7 @@
     "name": "Smith Machine Upright Row",
     "nameEs": "Máquina Smith Remo Vertical",
     "muscleGroup": "Back",
+    "equipment": "Machine",
     "primaryMuscles": [
       "traps"
     ]
@@ -6368,6 +7075,7 @@
     "name": "Smith Single-Leg Split Squat",
     "nameEs": "Sentadilla Smith a Una Pierna Dividido",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6377,6 +7085,7 @@
     "name": "Snatch",
     "nameEs": "Arrancada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6386,6 +7095,7 @@
     "name": "Snatch Balance",
     "nameEs": "Balance de Arrancada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6395,6 +7105,7 @@
     "name": "Snatch Deadlift",
     "nameEs": "Peso Muerto de Arrancada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6404,6 +7115,7 @@
     "name": "Snatch from Blocks",
     "nameEs": "Bloques Arrancada de",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6413,6 +7125,7 @@
     "name": "Snatch Pull",
     "nameEs": "Tirón de Arrancada",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6422,6 +7135,7 @@
     "name": "Snatch Shrug",
     "nameEs": "Encogimiento de Arrancada",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "traps"
     ]
@@ -6431,6 +7145,7 @@
     "name": "Speed Band Overhead Triceps",
     "nameEs": "Velocidad Banda Overhead Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Band",
     "primaryMuscles": [
       "triceps"
     ]
@@ -6440,6 +7155,7 @@
     "name": "Speed Box Squat",
     "nameEs": "Sentadilla Velocidad Cajón",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6449,6 +7165,7 @@
     "name": "Speed Squats",
     "nameEs": "Sentadillas Velocidad",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6458,6 +7175,7 @@
     "name": "Spell Caster",
     "nameEs": "Spell Caster",
     "muscleGroup": "Abs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6467,6 +7185,7 @@
     "name": "Spider Crawl",
     "nameEs": "Gateo Araña",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6476,6 +7195,7 @@
     "name": "Spider Curl",
     "nameEs": "Curl Araña",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6485,6 +7205,7 @@
     "name": "Spinal Stretch",
     "nameEs": "Estiramiento Espinal",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -6494,6 +7215,7 @@
     "name": "Split Clean",
     "nameEs": "Cargada con Tijera",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6503,6 +7225,7 @@
     "name": "Split Jerk",
     "nameEs": "Envión con Tijera",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6512,6 +7235,7 @@
     "name": "Split Jump",
     "nameEs": "Salto con Tijera",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6521,6 +7245,7 @@
     "name": "Split Snatch",
     "nameEs": "Arrancada con Tijera",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6530,6 +7255,7 @@
     "name": "Split Squat with Dumbbells",
     "nameEs": "Sentadilla Dividida con Mancuernas",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6539,6 +7265,7 @@
     "name": "Split Squats",
     "nameEs": "Sentadilla Dividida",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6548,6 +7275,7 @@
     "name": "Squat",
     "nameEs": "Sentadilla",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6557,6 +7285,7 @@
     "name": "Squat (Band)",
     "nameEs": "Sentadilla (Banda)",
     "muscleGroup": "Legs",
+    "equipment": "Band",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6566,6 +7295,7 @@
     "name": "Squat (Bodyweight)",
     "nameEs": "Sentadilla (Peso Corporal)",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6575,6 +7305,7 @@
     "name": "Squat (Dumbbell)",
     "nameEs": "Sentadilla (Mancuerna)",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6584,6 +7315,7 @@
     "name": "Squat (Smith Machine)",
     "nameEs": "Sentadilla (Máquina Smith)",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6593,6 +7325,7 @@
     "name": "Squat Jerk",
     "nameEs": "Envión Sentadilla",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6602,6 +7335,7 @@
     "name": "Squat To A Bench (Barbell)",
     "nameEs": "Sentadilla al Banco (Barra)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6611,6 +7345,7 @@
     "name": "Squat To A Bench (Dumbbell)",
     "nameEs": "Sentadilla al Banco (Mancuerna)",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6620,6 +7355,7 @@
     "name": "Squat with Bands",
     "nameEs": "Sentadilla con Bandas",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6629,6 +7365,7 @@
     "name": "Squat with Chains",
     "nameEs": "Sentadilla con Cadenas",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6638,6 +7375,7 @@
     "name": "Squat with Plate Movers",
     "nameEs": "Sentadilla con Disco Movers",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6647,6 +7385,7 @@
     "name": "Stairmaster",
     "nameEs": "Escaladora",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6656,6 +7395,7 @@
     "name": "Standing Alternating Dumbbell Press",
     "nameEs": "Press de Pie Alterno Mancuerna",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6665,6 +7405,7 @@
     "name": "Standing Barbell Calf Raise",
     "nameEs": "Elevación de Talones de Pie con Barra",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "calves"
     ]
@@ -6674,6 +7415,7 @@
     "name": "Standing Barbell Press Behind Neck",
     "nameEs": "de Pie Barra Press Detrás de la Nuca",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6683,6 +7425,7 @@
     "name": "Standing Biceps Cable Curl",
     "nameEs": "Curl de Bíceps de Pie en Polea",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6692,6 +7435,7 @@
     "name": "Standing Biceps Stretch",
     "nameEs": "Estiramiento de Pie Bíceps",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6701,6 +7445,7 @@
     "name": "Standing Bradford Press",
     "nameEs": "Press de Pie Bradford",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6710,6 +7455,7 @@
     "name": "Standing Cable Chest Press",
     "nameEs": "Press de Pie Polea Pecho",
     "muscleGroup": "Chest",
+    "equipment": "Cable",
     "primaryMuscles": [
       "chest"
     ]
@@ -6719,6 +7465,7 @@
     "name": "Standing Cable Lift",
     "nameEs": "Levantamiento de Pie Polea",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6728,6 +7475,7 @@
     "name": "Standing Cable Wood Chop",
     "nameEs": "Golpe de Pie Polea Wood",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6737,6 +7485,7 @@
     "name": "Standing Calf Raises",
     "nameEs": "Elevación de Talones de Pie",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "calves"
     ]
@@ -6746,6 +7495,7 @@
     "name": "Standing Concentration Curl",
     "nameEs": "Curl de Concentración de Pie",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6755,6 +7505,7 @@
     "name": "Standing Dumbbell Calf Raise",
     "nameEs": "Elevación de Talones de Pie con Mancuernas",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "calves"
     ]
@@ -6764,6 +7515,7 @@
     "name": "Standing Dumbbell Press",
     "nameEs": "Press de Pie con Mancuernas",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6773,6 +7525,7 @@
     "name": "Standing Dumbbell Reverse Curl",
     "nameEs": "Curl Inverso de Pie con Mancuernas",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6782,6 +7535,7 @@
     "name": "Standing Dumbbell Triceps Extension",
     "nameEs": "Extensión de Tríceps de Pie con Mancuernas",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -6791,6 +7545,7 @@
     "name": "Standing Dumbbell Upright Row",
     "nameEs": "Remo Vertical de Pie con Mancuernas",
     "muscleGroup": "Back",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "traps"
     ]
@@ -6800,6 +7555,7 @@
     "name": "Standing Elevated Quad Stretch",
     "nameEs": "Estiramiento de Pie Elevado Cuádriceps",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6809,6 +7565,7 @@
     "name": "Standing Front Barbell Raise Over Head",
     "nameEs": "Cabeza de Pie Frontal Barra Elevación sobre",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6818,6 +7575,7 @@
     "name": "Standing Gastrocnemius Calf Stretch",
     "nameEs": "Estiramiento de Pie Gastrocnemio Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -6827,6 +7585,7 @@
     "name": "Standing Hamstring and Calf Stretch",
     "nameEs": "Estiramiento de Pie Isquiotibial y Pantorrilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6836,6 +7595,7 @@
     "name": "Standing Hip Circles",
     "nameEs": "Círculos de Cadera de Pie",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
     ]
@@ -6845,6 +7605,7 @@
     "name": "Standing Hip Flexors",
     "nameEs": "Estiramiento de Flexores de Cadera de Pie",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6854,6 +7615,7 @@
     "name": "Standing Inner-Biceps Curl",
     "nameEs": "Curl de Pie Inner-Biceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6863,6 +7625,7 @@
     "name": "Standing Lateral Stretch",
     "nameEs": "Estiramiento de Pie Lateral",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6872,6 +7635,7 @@
     "name": "Standing Leg Curl",
     "nameEs": "Curl de Pierna de Pie",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6881,6 +7645,7 @@
     "name": "Standing Long Jump",
     "nameEs": "Salto Largo de Pie",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -6890,6 +7655,7 @@
     "name": "Standing Low-Pulley Deltoid Raise",
     "nameEs": "Elevación de Pie Polea Baja Deltoides",
     "muscleGroup": "Shoulders",
+    "equipment": "Cable",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6899,6 +7665,7 @@
     "name": "Standing Military Press",
     "nameEs": "Press Militar de Pie",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6908,6 +7675,7 @@
     "name": "Standing Olympic Plate Hand Squeeze",
     "nameEs": "de Pie Olímpico Disco Hand Squeeze",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "forearms"
     ]
@@ -6917,6 +7685,7 @@
     "name": "Standing One-Arm Bent-Over Triceps Extension",
     "nameEs": "Extensión de Pie a Una Mano Inclinado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -6926,6 +7695,7 @@
     "name": "Standing One-Arm Cable Curl",
     "nameEs": "Curl en Polea de Pie a Una Mano",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6935,6 +7705,7 @@
     "name": "Standing One-Arm Curl (Incline Bench)",
     "nameEs": "Curl de Pie a Una Mano (Banco Inclinado)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -6944,6 +7715,7 @@
     "name": "Standing Palms-In Dumbbell Press",
     "nameEs": "Press de Pie Palmas Adentro Mancuerna",
     "muscleGroup": "Shoulders",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -6953,6 +7725,7 @@
     "name": "Standing Pelvic Tilt",
     "nameEs": "Inclinación de Pie Pélvico",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -6962,6 +7735,7 @@
     "name": "Standing Rope Crunch",
     "nameEs": "Abdominal de Pie Cuerda",
     "muscleGroup": "Abs",
+    "equipment": "Cable",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -6971,6 +7745,7 @@
     "name": "Standing Soleus And Achilles Stretch",
     "nameEs": "Estiramiento de Pie Sóleo y Aquiles",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
     ]
@@ -6980,6 +7755,7 @@
     "name": "Standing Toe Touches",
     "nameEs": "de Pie Dedo del Pie Touches",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -6989,6 +7765,7 @@
     "name": "Standing Towel Triceps Extension",
     "nameEs": "Extensión de Pie Towel Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -6998,6 +7775,7 @@
     "name": "Standing Two-Arm Bent-Over Triceps Extension",
     "nameEs": "Extensión de Pie a Dos Manos Inclinado Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7007,6 +7785,7 @@
     "name": "Standing Two-Arm Overhead Throw",
     "nameEs": "Lanzamiento de Pie a Dos Manos Overhead",
     "muscleGroup": "Shoulders",
+    "equipment": "Other",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -7016,6 +7795,7 @@
     "name": "Star Jump",
     "nameEs": "Salto Star",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7025,6 +7805,7 @@
     "name": "Step Mill",
     "nameEs": "Paso Mill",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7034,6 +7815,7 @@
     "name": "Step Ups (Barbell)",
     "nameEs": "Subidas al Banco (Barra)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7043,6 +7825,7 @@
     "name": "Step Ups (Dumbbell)",
     "nameEs": "Subidas al Banco (Mancuerna)",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7052,6 +7835,7 @@
     "name": "Step-up with Knee Raise",
     "nameEs": "Elevación Step-Up con Rodilla",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
     ]
@@ -7061,6 +7845,7 @@
     "name": "Stiff Leg Barbell Good Morning",
     "nameEs": "Rígido Pierna Barra Buenos Días",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "lower back"
     ]
@@ -7070,6 +7855,7 @@
     "name": "Stiff-Legged Barbell Deadlift",
     "nameEs": "Peso Muerto con Piernas Rígidas",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7079,6 +7865,7 @@
     "name": "Stiff-Legged Dumbbell Deadlift",
     "nameEs": "Peso Muerto con Mancuernas y Piernas Rígidas",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7088,6 +7875,7 @@
     "name": "Stomach Vacuum",
     "nameEs": "Vacío Abdominal Estómago",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7097,6 +7885,7 @@
     "name": "Straight Bar Bench Mid Rows",
     "nameEs": "Remos Recto Barra Banco Medio",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -7106,6 +7895,7 @@
     "name": "Straight Raises on Incline Bench",
     "nameEs": "Recto Elevaciones en Banco Inclinado",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -7115,6 +7905,7 @@
     "name": "Straight-Arm Dumbbell Pullover",
     "nameEs": "Pullover Brazo Recto Mancuerna",
     "muscleGroup": "Chest",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -7124,6 +7915,7 @@
     "name": "Straight-Arm Pulldown",
     "nameEs": "Jalón con Brazos Rectos",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -7133,6 +7925,7 @@
     "name": "Stride Jump Crossover",
     "nameEs": "Zancada Salto Cruzado",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7142,6 +7935,7 @@
     "name": "Sumo Deadlift",
     "nameEs": "Peso Muerto Sumo",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7151,6 +7945,7 @@
     "name": "Sumo Deadlift with Bands",
     "nameEs": "Peso Muerto Sumo con Bandas",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7160,6 +7955,7 @@
     "name": "Sumo Deadlift with Chains",
     "nameEs": "Peso Muerto Sumo con Cadenas",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7169,6 +7965,7 @@
     "name": "Superman",
     "nameEs": "Superman",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
     ]
@@ -7178,6 +7975,7 @@
     "name": "Supine Chest Throw",
     "nameEs": "Lanzamiento Supino Pecho",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7187,6 +7985,7 @@
     "name": "Supine One-Arm Overhead Throw",
     "nameEs": "Lanzamiento Supino a Una Mano Overhead",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7196,6 +7995,7 @@
     "name": "Supine Two-Arm Overhead Throw",
     "nameEs": "Lanzamiento Supino a Dos Manos Overhead",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7205,6 +8005,7 @@
     "name": "Suspended Fallout",
     "nameEs": "Suspendido Fallout",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7214,6 +8015,7 @@
     "name": "Suspended Push-Up",
     "nameEs": "Flexión Suspendido",
     "muscleGroup": "Chest",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
     ]
@@ -7223,6 +8025,7 @@
     "name": "Suspended Reverse Crunch",
     "nameEs": "Abdominal Suspendido Inverso",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7232,6 +8035,7 @@
     "name": "Suspended Row",
     "nameEs": "Remo Suspendido",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -7241,6 +8045,7 @@
     "name": "Suspended Split Squat",
     "nameEs": "Sentadilla Suspendido Dividido",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7250,6 +8055,7 @@
     "name": "Svend Press",
     "nameEs": "Press Svend",
     "muscleGroup": "Chest",
+    "equipment": "Other",
     "primaryMuscles": [
       "chest"
     ]
@@ -7259,6 +8065,7 @@
     "name": "T-Bar Row with Handle",
     "nameEs": "Remo en Barra T",
     "muscleGroup": "Back",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -7268,6 +8075,7 @@
     "name": "Tate Press",
     "nameEs": "Press Tate",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7277,6 +8085,7 @@
     "name": "The Straddle",
     "nameEs": "Straddle",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7286,6 +8095,7 @@
     "name": "Thigh Abductor",
     "nameEs": "Muslo Abductor",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "abductors"
     ]
@@ -7295,6 +8105,7 @@
     "name": "Thigh Adductor",
     "nameEs": "Muslo Aductor",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "adductors"
     ]
@@ -7304,6 +8115,7 @@
     "name": "Tire Flip",
     "nameEs": "Volteo de Llanta",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7313,6 +8125,7 @@
     "name": "Toe Touchers",
     "nameEs": "Toques Dedo del Pie",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7322,6 +8135,7 @@
     "name": "Torso Rotation",
     "nameEs": "Rotación de Torso",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7331,6 +8145,7 @@
     "name": "Trail Running/Walking",
     "nameEs": "Correr/Caminar por Sendero",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7340,6 +8155,7 @@
     "name": "Trap Bar Deadlift",
     "nameEs": "Peso Muerto con Barra Hexagonal",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7349,6 +8165,7 @@
     "name": "Tricep Dumbbell Kickback",
     "nameEs": "Patada de Tríceps Tríceps Mancuerna",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7358,6 +8175,7 @@
     "name": "Tricep Side Stretch",
     "nameEs": "Estiramiento Tríceps Lateral",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7367,6 +8185,7 @@
     "name": "Triceps Extension (Dumbbell, Pronated)",
     "nameEs": "Extensión de Tríceps (Mancuerna, Prono)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7376,6 +8195,7 @@
     "name": "Triceps Overhead Extension with Rope",
     "nameEs": "Tríceps Extensión Overhead con Cuerda",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7385,6 +8205,7 @@
     "name": "Triceps Pushdown",
     "nameEs": "Extensión de Tríceps en Polea",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7394,6 +8215,7 @@
     "name": "Triceps Pushdown (Rope)",
     "nameEs": "Extensión de Tríceps en Polea (Cuerda)",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7403,6 +8225,7 @@
     "name": "Triceps Pushdown (V-Bar)",
     "nameEs": "Extensión de Tríceps en Polea (Barra V)",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7412,6 +8235,7 @@
     "name": "Triceps Stretch",
     "nameEs": "Estiramiento Tríceps",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7421,6 +8245,7 @@
     "name": "Tuck Crunch",
     "nameEs": "Abdominal Encogido",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7430,6 +8255,7 @@
     "name": "Two-Arm Dumbbell Preacher Curl",
     "nameEs": "Curl a Dos Manos Mancuerna Predicador",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -7439,6 +8265,7 @@
     "name": "Two-Arm Kettlebell Clean",
     "nameEs": "Cargada a Dos Manos Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -7448,6 +8275,7 @@
     "name": "Two-Arm Kettlebell Jerk",
     "nameEs": "Envión a Dos Manos Kettlebell",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -7457,6 +8285,7 @@
     "name": "Two-Arm Kettlebell Military Press",
     "nameEs": "Press Militar con Kettlebell a Dos Manos",
     "muscleGroup": "Shoulders",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -7466,6 +8295,7 @@
     "name": "Two-Arm Kettlebell Row",
     "nameEs": "Remo a Dos Manos Kettlebell",
     "muscleGroup": "Back",
+    "equipment": "Kettlebell",
     "primaryMuscles": [
       "middle back"
     ]
@@ -7475,6 +8305,7 @@
     "name": "Two-Arm Wrist Curl (Cable, Palms-Up)",
     "nameEs": "Curl de Muñeca a Dos Manos (Polea, Palmas Arriba)",
     "muscleGroup": "Arms",
+    "equipment": "Cable",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7484,6 +8315,7 @@
     "name": "Underhand Cable Pulldowns",
     "nameEs": "Underhand Polea Pulldowns",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -7493,6 +8325,7 @@
     "name": "Upper Back Stretch",
     "nameEs": "Estiramiento Superior Espalda",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
     ]
@@ -7502,6 +8335,7 @@
     "name": "Upper Back-Leg Grab",
     "nameEs": "Superior Back-Leg Grab",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7511,6 +8345,7 @@
     "name": "Upright Barbell Row",
     "nameEs": "Remo Vertical Barra",
     "muscleGroup": "Shoulders",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -7520,6 +8355,7 @@
     "name": "Upright Cable Row",
     "nameEs": "Remo Vertical Polea",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "traps"
     ]
@@ -7529,6 +8365,7 @@
     "name": "Upright Row (Band)",
     "nameEs": "Remo Vertical (Banda)",
     "muscleGroup": "Back",
+    "equipment": "Band",
     "primaryMuscles": [
       "traps"
     ]
@@ -7538,6 +8375,7 @@
     "name": "Upward Stretch",
     "nameEs": "Estiramiento Upward",
     "muscleGroup": "Shoulders",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
     ]
@@ -7547,6 +8385,7 @@
     "name": "V-Bar Pulldown",
     "nameEs": "Jalón Barra V",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -7556,6 +8395,7 @@
     "name": "V-Bar Pullup",
     "nameEs": "Dominada Barra V",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -7565,6 +8405,7 @@
     "name": "Vertical Swing",
     "nameEs": "Balanceo Vertical",
     "muscleGroup": "Legs",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7574,6 +8415,7 @@
     "name": "Walking Lunge (Barbell)",
     "nameEs": "Zancada Caminando (Barra)",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7583,6 +8425,7 @@
     "name": "Walking Lunge (Bodyweight)",
     "nameEs": "Zancada Caminando (Peso Corporal)",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7592,6 +8435,7 @@
     "name": "Walking, Treadmill",
     "nameEs": "Cinta de Correr Caminata,",
     "muscleGroup": "Legs",
+    "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7601,6 +8445,7 @@
     "name": "Weighted Ball Hyperextension",
     "nameEs": "Hiperextensión Con Peso Balón",
     "muscleGroup": "Back",
+    "equipment": "Other",
     "primaryMuscles": [
       "lower back"
     ]
@@ -7610,6 +8455,7 @@
     "name": "Weighted Ball Side Bend",
     "nameEs": "Flexión Lateral Con Peso Balón Lateral",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7619,6 +8465,7 @@
     "name": "Weighted Bench Dip",
     "nameEs": "Fondo Con Peso Banco",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
     ]
@@ -7628,6 +8475,7 @@
     "name": "Weighted Crunches",
     "nameEs": "Abdominales Con Peso",
     "muscleGroup": "Abs",
+    "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7637,6 +8485,7 @@
     "name": "Weighted Jump Squat",
     "nameEs": "Sentadilla Con Peso Salto",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7646,6 +8495,7 @@
     "name": "Weighted Pull Ups",
     "nameEs": "Con Peso Dominadas",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -7655,6 +8505,7 @@
     "name": "Weighted Sissy Squat",
     "nameEs": "Sentadilla Con Peso Sissy",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7664,6 +8515,7 @@
     "name": "Weighted Sit-Up (Band)",
     "nameEs": "Abdominal Con Peso (Banda)",
     "muscleGroup": "Abs",
+    "equipment": "Band",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7673,6 +8525,7 @@
     "name": "Weighted Squat",
     "nameEs": "Sentadilla Con Peso",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7682,6 +8535,7 @@
     "name": "Wide Stance Barbell Squat",
     "nameEs": "Sentadilla con Barra y Postura Ancha",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7691,6 +8545,7 @@
     "name": "Wide Stance Stiff Legs",
     "nameEs": "Peso Muerto Piernas Rígidas Postura Ancha",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7700,6 +8555,7 @@
     "name": "Wide-Grip Barbell Bench Press",
     "nameEs": "Press de Banca con Barra y Agarre Abierto",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -7709,6 +8565,7 @@
     "name": "Wide-Grip Decline Barbell Bench Press",
     "nameEs": "Press de Banca Declinado con Barra y Agarre Abierto",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -7718,6 +8575,7 @@
     "name": "Wide-Grip Decline Barbell Pullover",
     "nameEs": "Pullover Agarre Abierto Declinado Barra",
     "muscleGroup": "Chest",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "chest"
     ]
@@ -7727,6 +8585,7 @@
     "name": "Wide-Grip Lat Pulldown",
     "nameEs": "Jalón al Pecho con Agarre Abierto",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -7736,6 +8595,7 @@
     "name": "Wide-Grip Pulldown Behind The Neck",
     "nameEs": "Agarre Abierto Jalón Detrás de Cuello",
     "muscleGroup": "Back",
+    "equipment": "Cable",
     "primaryMuscles": [
       "lats"
     ]
@@ -7745,6 +8605,7 @@
     "name": "Wide-Grip Rear Pull-Up",
     "nameEs": "Dominada Agarre Abierto Trasero",
     "muscleGroup": "Back",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
     ]
@@ -7754,6 +8615,7 @@
     "name": "Wide-Grip Standing Barbell Curl",
     "nameEs": "Curl Agarre Abierto de Pie Barra",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -7763,6 +8625,7 @@
     "name": "Wind Sprints",
     "nameEs": "Sprints Cortos",
     "muscleGroup": "Abs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
     ]
@@ -7772,6 +8635,7 @@
     "name": "Windmills",
     "nameEs": "Molinillos",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
     ]
@@ -7781,6 +8645,7 @@
     "name": "World's Greatest Stretch",
     "nameEs": "Estiramiento World's Greatest",
     "muscleGroup": "Legs",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
     ]
@@ -7790,6 +8655,7 @@
     "name": "Wrist Circles",
     "nameEs": "Círculos de Muñeca",
     "muscleGroup": "Arms",
+    "equipment": "Bodyweight",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7799,6 +8665,7 @@
     "name": "Wrist Curl (Barbell, Behind Back)",
     "nameEs": "Curl de Muñeca (Barra, Detrás de la Espalda)",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7808,6 +8675,7 @@
     "name": "Wrist Curl (Barbell, Palms-Up)",
     "nameEs": "Curl de Muñeca (Barra, Palmas Arriba)",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7817,6 +8685,7 @@
     "name": "Wrist Curl (Dumbbell, Palms-Down)",
     "nameEs": "Curl de Muñeca (Mancuerna, Palmas Abajo)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7826,6 +8695,7 @@
     "name": "Wrist Curl (Dumbbell, Palms-Up)",
     "nameEs": "Curl de Muñeca (Mancuerna, Palmas Arriba)",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7835,6 +8705,7 @@
     "name": "Wrist Roller",
     "nameEs": "Rodillo de Muñeca",
     "muscleGroup": "Arms",
+    "equipment": "Other",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7844,6 +8715,7 @@
     "name": "Wrist Rotations with Straight Bar",
     "nameEs": "Barra Muñeca Rotations con Recto",
     "muscleGroup": "Arms",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "forearms"
     ]
@@ -7853,6 +8725,7 @@
     "name": "Yoke Walk",
     "nameEs": "Caminata con Yugo",
     "muscleGroup": "Legs",
+    "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7862,6 +8735,7 @@
     "name": "Zercher Squats",
     "nameEs": "Sentadilla Zercher",
     "muscleGroup": "Legs",
+    "equipment": "Barbell",
     "primaryMuscles": [
       "quadriceps"
     ]
@@ -7871,6 +8745,7 @@
     "name": "Zottman Curl",
     "nameEs": "Curl Zottman",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]
@@ -7880,6 +8755,7 @@
     "name": "Zottman Preacher Curl",
     "nameEs": "Curl Zottman Predicador",
     "muscleGroup": "Arms",
+    "equipment": "Dumbbell",
     "primaryMuscles": [
       "biceps"
     ]

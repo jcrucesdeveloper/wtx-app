@@ -5,14 +5,18 @@ import BottomSheet from '@/components/ui/BottomSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
 import {
-  EXERCISE_CATALOG,
+  EQUIPMENT_TYPES,
   MUSCLE_GROUPS,
+  type EquipmentType,
+  type ExerciseCatalogEntry,
   type MuscleGroup,
-  searchExerciseCatalog,
+  filterExerciseCatalog,
+  findCatalogEntryByName,
 } from '@/lib/exercises/exerciseCatalog'
 import { useExerciseName } from '@/composables/useExerciseName'
 
-const RESULT_LIMIT = 50
+/** Rows rendered per page; "Show more" adds another page. */
+const PAGE_SIZE = 50
 
 const props = defineProps<{
   open: boolean
@@ -29,14 +33,15 @@ const { t } = useI18n()
 const { exerciseName } = useExerciseName()
 const query = ref('')
 const selectedGroup = ref<MuscleGroup | null>(null)
+const selectedEquipment = ref<EquipmentType | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
-const categoriesEl = ref<HTMLElement | null>(null)
 
-/** Lets a plain vertical mouse wheel scroll this row, since it has no vertical overflow of its own. */
-function onCategoriesWheel(event: WheelEvent) {
-  if (!categoriesEl.value || event.deltaY === 0) return
+/** Lets a plain vertical mouse wheel scroll a chip row, since it has no vertical overflow of its own. */
+function onChipsWheel(event: WheelEvent) {
+  const row = event.currentTarget as HTMLElement | null
+  if (!row || event.deltaY === 0) return
   event.preventDefault()
-  categoriesEl.value.scrollLeft += event.deltaY
+  row.scrollLeft += event.deltaY
 }
 
 watch(
@@ -44,37 +49,63 @@ watch(
   async (open) => {
     if (!open) return
     query.value = props.initialQuery ?? ''
-    selectedGroup.value = null
+    clearFilters()
     await nextTick()
     searchInput.value?.focus()
     searchInput.value?.select()
   },
 )
 
+/** Tapping the active chip clears that row's filter. */
 function toggleGroup(group: MuscleGroup) {
   selectedGroup.value = selectedGroup.value === group ? null : group
 }
+
+function toggleEquipment(equipment: EquipmentType) {
+  selectedEquipment.value = selectedEquipment.value === equipment ? null : equipment
+}
+
+function clearFilters() {
+  selectedGroup.value = null
+  selectedEquipment.value = null
+}
+
+const hasChipFilter = computed(() => selectedGroup.value !== null || selectedEquipment.value !== null)
 
 function groupLabel(group: MuscleGroup) {
   return t(`wtx.muscleGroups.${group.toLowerCase()}`)
 }
 
+function equipmentLabel(equipment: EquipmentType) {
+  return t(`wtx.equipment.${equipment.toLowerCase()}`)
+}
+
+/** Muscle and equipment tags, minus whichever a chip already fixes — every row would repeat it. */
+function metaFor(entry: ExerciseCatalogEntry) {
+  const parts: string[] = []
+  if (!selectedGroup.value) parts.push(groupLabel(entry.muscleGroup))
+  if (!selectedEquipment.value) parts.push(equipmentLabel(entry.equipment))
+  return parts.join(' · ')
+}
+
 const trimmedQuery = computed(() => query.value.trim())
-const results = computed(() => {
-  if (!selectedGroup.value) return searchExerciseCatalog(query.value, RESULT_LIMIT)
-  // Search the whole catalog (not just the default top-N slice) so groups
-  // that sort later alphabetically, like Neck, aren't filtered down to nothing.
-  return searchExerciseCatalog(query.value, EXERCISE_CATALOG.length)
-    .filter((entry) => entry.muscleGroup === selectedGroup.value)
-    .slice(0, RESULT_LIMIT)
+const limit = ref(PAGE_SIZE)
+// A new search or filter starts back at one page.
+watch([query, selectedGroup, selectedEquipment], () => {
+  limit.value = PAGE_SIZE
 })
+/** Query, muscle and equipment combine with AND, over the whole catalog. */
+const filtered = computed(() =>
+  filterExerciseCatalog(
+    { query: query.value, muscleGroup: selectedGroup.value, equipment: selectedEquipment.value },
+    limit.value,
+  ),
+)
 
 /** Shown when nothing in the catalog is an exact (case-insensitive) match. */
-const showCustomOption = computed(() => {
-  if (!trimmedQuery.value) return false
-  const needle = trimmedQuery.value.toLowerCase()
-  return !results.value.some((entry) => entry.name.toLowerCase() === needle)
-})
+const showCustomOption = computed(
+  () => !!trimmedQuery.value && !findCatalogEntryByName(trimmedQuery.value),
+)
 
 function choose(name: string) {
   emit('select', name)
@@ -96,24 +127,56 @@ const previewName = ref<string | null>(null)
         autocomplete="off"
       />
 
-      <div ref="categoriesEl" class="picker__categories" @wheel="onCategoriesWheel">
-        <button
-          type="button"
-          class="picker__category-chip"
-          :class="{ active: selectedGroup === null }"
-          @click="selectedGroup = null"
+      <div class="picker__filters">
+        <span id="picker-filter-muscle" class="picker__filter-label">
+          {{ t('wtx.exercisePicker.muscleLabel') }}
+        </span>
+        <div
+          class="picker__chips"
+          role="group"
+          aria-labelledby="picker-filter-muscle"
+          @wheel="onChipsWheel"
         >
-          {{ t('wtx.exercisePicker.allCategories') }}
-        </button>
-        <button
-          v-for="group in MUSCLE_GROUPS"
-          :key="group"
-          type="button"
-          class="picker__category-chip"
-          :class="{ active: selectedGroup === group }"
-          @click="toggleGroup(group)"
+          <button
+            v-for="group in MUSCLE_GROUPS"
+            :key="group"
+            type="button"
+            class="picker__chip"
+            :class="{ active: selectedGroup === group }"
+            :aria-pressed="selectedGroup === group"
+            @click="toggleGroup(group)"
+          >
+            {{ groupLabel(group) }}
+          </button>
+        </div>
+
+        <span id="picker-filter-equipment" class="picker__filter-label">
+          {{ t('wtx.exercisePicker.equipmentLabel') }}
+        </span>
+        <div
+          class="picker__chips"
+          role="group"
+          aria-labelledby="picker-filter-equipment"
+          @wheel="onChipsWheel"
         >
-          {{ groupLabel(group) }}
+          <button
+            v-for="equipment in EQUIPMENT_TYPES"
+            :key="equipment"
+            type="button"
+            class="picker__chip"
+            :class="{ active: selectedEquipment === equipment }"
+            :aria-pressed="selectedEquipment === equipment"
+            @click="toggleEquipment(equipment)"
+          >
+            {{ equipmentLabel(equipment) }}
+          </button>
+        </div>
+      </div>
+
+      <div class="picker__summary" aria-live="polite">
+        <span>{{ t('wtx.exercisePicker.resultCount', filtered.total) }}</span>
+        <button v-if="hasChipFilter" type="button" class="picker__clear" @click="clearFilters">
+          {{ t('wtx.exercisePicker.clearFilters') }}
         </button>
       </div>
 
@@ -127,7 +190,7 @@ const previewName = ref<string | null>(null)
             {{ t('wtx.exercisePicker.useCustom', { query: trimmedQuery }) }}
           </button>
         </li>
-        <li v-for="entry in results" :key="entry.id" class="picker__row">
+        <li v-for="entry in filtered.results" :key="entry.id" class="picker__row">
           <button
             type="button"
             class="picker__thumb-btn"
@@ -138,8 +201,16 @@ const previewName = ref<string | null>(null)
           </button>
           <button type="button" class="picker__item" @click="choose(entry.name)">
             <span class="picker__name">{{ exerciseName(entry.name) }}</span>
-            <span class="picker__meta">{{ groupLabel(entry.muscleGroup) }}</span>
+            <span v-if="metaFor(entry)" class="picker__meta">{{ metaFor(entry) }}</span>
           </button>
+        </li>
+        <li v-if="filtered.total > filtered.results.length" class="picker__more-row">
+          <button type="button" class="picker__clear" @click="limit += PAGE_SIZE">
+            {{ t('wtx.exercisePicker.showMore', { count: filtered.total - filtered.results.length }) }}
+          </button>
+        </li>
+        <li v-if="filtered.total === 0" class="picker__empty">
+          {{ t('wtx.exercisePicker.noResults') }}
         </li>
       </ul>
     </div>
@@ -172,21 +243,38 @@ const previewName = ref<string | null>(null)
   color: var(--color-text);
 }
 
-.picker__categories {
+/* Label column + chip column, so both rows' chips start at the same x. */
+.picker__filters {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.picker__filter-label {
+  font-size: var(--text-small);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+.picker__chips {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  flex-shrink: 0;
+  min-width: 0;
   scrollbar-width: none;
-  mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 12px, black calc(100% - 12px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
 }
 
-.picker__categories::-webkit-scrollbar {
+.picker__chips::-webkit-scrollbar {
   display: none;
 }
 
-.picker__category-chip {
+.picker__chip {
   flex-shrink: 0;
   border: 1px solid var(--color-border);
   background: var(--color-background-mute);
@@ -201,11 +289,36 @@ const previewName = ref<string | null>(null)
   white-space: nowrap;
 }
 
-.picker__category-chip.active {
+.picker__chip.active {
   background: var(--color-accent);
   border-color: var(--color-accent);
   color: var(--color-background);
   opacity: 1;
+}
+
+.picker__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+  margin-top: -4px;
+  flex-shrink: 0;
+  font-size: var(--text-small);
+}
+
+.picker__summary > span {
+  opacity: 0.6;
+}
+
+.picker__clear {
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  font-weight: 700;
+  padding: 4px 0;
+  cursor: pointer;
 }
 
 .picker__list {
@@ -240,6 +353,7 @@ const previewName = ref<string | null>(null)
   justify-content: space-between;
   gap: 12px;
   width: 100%;
+  min-width: 0;
   padding: 11px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -267,5 +381,18 @@ const previewName = ref<string | null>(null)
   font-size: var(--text-small);
   opacity: 0.6;
   flex-shrink: 0;
+}
+
+.picker__more-row {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+}
+
+.picker__empty {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: var(--text-small);
+  opacity: 0.7;
 }
 </style>

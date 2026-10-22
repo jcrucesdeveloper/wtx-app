@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
+  EQUIPMENT_TYPES,
   EXERCISE_CATALOG,
   MUSCLE_GROUPS,
+  filterExerciseCatalog,
   findCatalogEntryByName,
   searchExerciseCatalog,
 } from '../exerciseCatalog'
@@ -108,5 +110,128 @@ describe('findCatalogEntryByName', () => {
 
   it('returns undefined for an empty name', () => {
     expect(findCatalogEntryByName('  ')).toBeUndefined()
+  })
+})
+
+describe('equipment buckets', () => {
+  const equipmentOf = (name: string) => findCatalogEntryByName(name)?.equipment
+
+  it('gives every entry a known equipment bucket', () => {
+    expect(
+      EXERCISE_CATALOG.every((entry) =>
+        (EQUIPMENT_TYPES as readonly string[]).includes(entry.equipment),
+      ),
+    ).toBe(true)
+  })
+
+  it('uses every bucket at least once', () => {
+    for (const type of EQUIPMENT_TYPES) {
+      expect(EXERCISE_CATALOG.some((entry) => entry.equipment === type)).toBe(true)
+    }
+  })
+
+  it('maps upstream equipment straight through', () => {
+    expect(equipmentOf('Bench Press (Medium Grip)')).toBe('Barbell')
+    expect(equipmentOf('Bench Press (Dumbbell)')).toBe('Dumbbell')
+    expect(equipmentOf('Chest Press (Machine)')).toBe('Machine')
+    expect(equipmentOf('Chest Press (Cable)')).toBe('Cable')
+    expect(equipmentOf('Pistol Squat (Kettlebell)')).toBe('Kettlebell')
+    expect(equipmentOf('Back Flyes (Band)')).toBe('Band')
+    expect(equipmentOf('Pushups')).toBe('Bodyweight')
+  })
+
+  it('folds EZ-bar into Barbell and niche gear into Other', () => {
+    expect(equipmentOf('Close-Grip EZ Bar Curl')).toBe('Barbell')
+    expect(equipmentOf('Medicine Ball Chest Pass')).toBe('Other')
+    expect(equipmentOf('Exercise Ball Crunch')).toBe('Other')
+    expect(equipmentOf('Hamstring-SMR')).toBe('Other')
+  })
+
+  it("resolves upstream's untagged/\"other\" entries from the name", () => {
+    expect(equipmentOf('Trap Bar Deadlift')).toBe('Barbell')
+    expect(equipmentOf('Band Assisted Pull-Up')).toBe('Band')
+    expect(equipmentOf('Sled Push')).toBe('Other')
+    expect(equipmentOf("Farmer's Walk")).toBe('Other')
+    expect(equipmentOf('Parallel Bar Dip')).toBe('Bodyweight')
+    expect(equipmentOf('Muscle Up')).toBe('Bodyweight')
+    expect(equipmentOf("Child's Pose")).toBe('Bodyweight')
+  })
+
+  it('treats Smith machine lifts as Machine even where upstream says barbell', () => {
+    expect(equipmentOf('Smith Incline Shoulder Raise')).toBe('Machine')
+    expect(equipmentOf('Squat (Smith Machine)')).toBe('Machine')
+  })
+})
+
+describe('filterExerciseCatalog', () => {
+  it('returns the whole catalog, alphabetically, with no filters', () => {
+    const { results, total } = filterExerciseCatalog({}, 10)
+    expect(total).toBe(EXERCISE_CATALOG.length)
+    expect(results).toEqual(EXERCISE_CATALOG.slice(0, 10))
+  })
+
+  it('filters by muscle group alone, across the whole catalog', () => {
+    const { results, total } = filterExerciseCatalog({ muscleGroup: 'Neck' }, 1000)
+    expect(total).toBeGreaterThan(0)
+    expect(results).toHaveLength(total)
+    expect(results.every((entry) => entry.muscleGroup === 'Neck')).toBe(true)
+  })
+
+  it('filters by equipment alone', () => {
+    const { results } = filterExerciseCatalog({ equipment: 'Cable' }, 1000)
+    expect(results.length).toBe(EXERCISE_CATALOG.filter((e) => e.equipment === 'Cable').length)
+    expect(results.every((entry) => entry.equipment === 'Cable')).toBe(true)
+  })
+
+  it('ANDs muscle group, equipment and query together', () => {
+    const { results, total } = filterExerciseCatalog(
+      { query: 'press', muscleGroup: 'Chest', equipment: 'Dumbbell' },
+      1000,
+    )
+    expect(total).toBeGreaterThan(0)
+    expect(results.some((entry) => entry.name === 'Bench Press (Dumbbell)')).toBe(true)
+    expect(
+      results.every(
+        (entry) =>
+          entry.muscleGroup === 'Chest' &&
+          entry.equipment === 'Dumbbell' &&
+          /press/i.test(entry.name + entry.nameEs),
+      ),
+    ).toBe(true)
+    expect(results.some((entry) => entry.name === 'Bench Press (Machine)')).toBe(false)
+  })
+
+  it('reports the total beyond the limit', () => {
+    const { results, total } = filterExerciseCatalog({ equipment: 'Barbell' }, 5)
+    expect(results).toHaveLength(5)
+    expect(total).toBeGreaterThan(5)
+  })
+
+  it('returns nothing when filters exclude every exercise', () => {
+    expect(filterExerciseCatalog({ muscleGroup: 'Neck', equipment: 'Kettlebell' })).toEqual({
+      results: [],
+      total: 0,
+    })
+  })
+
+  it('matches an equipment name typed into the search', () => {
+    const { results } = filterExerciseCatalog({ query: 'kettlebell' }, 1000)
+    // Kettlebell exercise without "kettlebell" in its name.
+    expect(results.some((entry) => entry.name === 'Goblet Squat')).toBe(true)
+  })
+
+  it('matches Spanish muscle-group and equipment words', () => {
+    const legs = filterExerciseCatalog({ query: 'piernas' }, 1000).results
+    expect(legs.some((entry) => entry.name === 'Squat')).toBe(true)
+    const dumbbell = filterExerciseCatalog({ query: 'mancuerna' }, 1000).results
+    expect(dumbbell.some((entry) => entry.name === 'Goblet Squat')).toBe(false)
+    expect(
+      dumbbell.filter((entry) => entry.equipment === 'Dumbbell').length,
+    ).toBe(EXERCISE_CATALOG.filter((entry) => entry.equipment === 'Dumbbell').length)
+  })
+
+  it('ignores accents in the query', () => {
+    const { results } = filterExerciseCatalog({ query: 'maquina' }, 1000)
+    expect(results.some((entry) => entry.name === 'Bench Press (Machine)')).toBe(true)
   })
 })

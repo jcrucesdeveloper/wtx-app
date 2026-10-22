@@ -250,8 +250,13 @@
     },
     "exercisePicker": {
       "title": "Elegir ejercicio",
-      "searchPlaceholder": "Buscar ejercicios o grupo muscular",
-      "allCategories": "Todos",
+      "searchPlaceholder": "Buscar ejercicio, músculo o equipo",
+      "muscleLabel": "Músculo",
+      "equipmentLabel": "Equipo",
+      "resultCount": "Ningún ejercicio | {count} ejercicio | {count} ejercicios",
+      "noResults": "Ningún ejercicio coincide con estos filtros.",
+      "clearFilters": "Quitar filtros",
+      "showMore": "Ver más (quedan {count})",
       "useCustom": "Usar \"{query}\"",
       "previewAria": "Vista previa de {name}"
     },
@@ -263,6 +268,16 @@
       "abs": "Abdomen",
       "legs": "Piernas",
       "neck": "Cuello"
+    },
+    "equipment": {
+      "barbell": "Barra",
+      "dumbbell": "Mancuerna",
+      "machine": "Máquina",
+      "cable": "Polea",
+      "bodyweight": "Peso corporal",
+      "kettlebell": "Kettlebell",
+      "band": "Banda",
+      "other": "Otro"
     },
     "routineForm": {
       "routineName": "Nombre de la rutina",
