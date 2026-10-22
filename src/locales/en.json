@@ -30,6 +30,24 @@
     "favorites": "Favourites",
     "otherRoutines": "Other routines"
   },
+  "sections": {
+    "new": "New section",
+    "newTitle": "New section",
+    "editTitle": "Edit section",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Push Pull Legs",
+    "colorLabel": "Colour",
+    "create": "Create section",
+    "save": "Save",
+    "delete": "Delete section",
+    "deleteConfirm": "Delete “{name}”? It has no routines. | Delete “{name}”? Its routine stays in your library. | Delete “{name}”? Its {count} routines stay in your library.",
+    "moveTo": "Move to section",
+    "moveTitle": "Move to section",
+    "none": "No section",
+    "dropHere": "Drag routines here",
+    "emptyHint": "Nothing here yet. Tap Edit to drag routines in, or move one from its page.",
+    "dragAria": "Drag to reorder sections"
+  },
   "workout": {
     "removeConfirm": "Remove {name} from this workout?",
     "replaceConfirm": "You have a workout in progress. Discard it and start this one?",

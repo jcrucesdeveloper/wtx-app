@@ -12,6 +12,7 @@ import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ShareRoutineSheet from '@/components/share/ShareRoutineSheet.vue'
 import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
 import GroupStartSheet from '@/components/routine/GroupStartSheet.vue'
+import MoveToSectionSheet from '@/components/routine/MoveToSectionSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
 import { useStartRoutine } from '@/composables/useStartRoutine'
 import { parseTemplateText } from '@/lib/parseRoutine'
@@ -55,6 +56,13 @@ async function copySource() {
 const shareOpen = ref(false)
 const editOpen = ref(false)
 const groupOpen = ref(false)
+const moveOpen = ref(false)
+const section = computed(() => routines.sectionOf(id.value))
+
+function onMove() {
+  menuOpen.value = false
+  moveOpen.value = true
+}
 const menuOpen = ref(false)
 
 function closeMenu() {
@@ -125,6 +133,9 @@ function onDelete() {
           <EllipsisVertical :size="20" :stroke-width="2.25" />
         </button>
         <div v-if="menuOpen" class="menu__panel" @click.stop>
+          <button type="button" class="menu__item" @click="onMove">
+            {{ t('sections.moveTo') }}
+          </button>
           <button type="button" class="menu__item menu__item--danger" @click="onDelete">
             {{ t('routineDetail.deleteRoutine') }}
           </button>
@@ -144,6 +155,16 @@ function onDelete() {
       <div v-if="result.ok" class="stack">
         <header class="head">
           <h2 class="head__name">{{ result.template.name }}</h2>
+          <button
+            v-if="section"
+            type="button"
+            class="head__section"
+            :aria-label="`${t('sections.moveTo')}: ${section.name}`"
+            @click="moveOpen = true"
+          >
+            <i class="head__dot" :style="{ background: section.color }" />
+            {{ section.name }}
+          </button>
           <p v-if="result.template.notes" class="head__notes">{{ result.template.notes }}</p>
           <RoutineSummary :template="result.template" />
         </header>
@@ -198,6 +219,7 @@ function onDelete() {
       <ShareRoutineSheet v-model:open="shareOpen" :raw-text="routine.rawText" :name="shareName" />
       <EditRoutineSheet v-model:open="editOpen" :routine-id="routine.id" />
       <GroupStartSheet v-model:open="groupOpen" :routine-id="routine.id" :name="shareName" />
+      <MoveToSectionSheet v-model:open="moveOpen" :routine-id="routine.id" />
     </template>
   </AppPage>
 </template>
@@ -281,6 +303,31 @@ function onDelete() {
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--color-heading);
+}
+
+/* The section it's filed under, in its colour; tap to move it. */
+.head__section {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  margin-top: -6px;
+  padding: 0 12px 0 10px;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--color-heading);
+  background: var(--color-background-mute);
+  cursor: pointer;
+}
+
+.head__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
 .head__notes {

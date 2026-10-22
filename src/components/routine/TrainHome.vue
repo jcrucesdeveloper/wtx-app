@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 import { VueDraggable } from 'vue-draggable-plus'
-import { Download, GripVertical, Play, Plus, Star, Trash2 } from '@lucide/vue'
+import { ChevronDown, Download, GripVertical, Pencil, Play, Plus } from '@lucide/vue'
 import WeekStrip from '@/components/session/WeekStrip.vue'
+import SectionSheet from '@/components/routine/SectionSheet.vue'
+import TrainEditRow from '@/components/routine/TrainEditRow.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
-import { useRoutinesStore } from '@/stores/routines'
+import { useRoutinesStore, type RoutineSection } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
 import { useUiStore } from '@/stores/ui'
 import { useStartRoutine } from '@/composables/useStartRoutine'
@@ -21,11 +23,12 @@ import { computeWeekStreak, sessionsThisWeek, streakRepair } from '@/lib/session
  *   1. one line of status (your week), never a box of empty dots on its own;
  *   2. the one thing to do, above the fold: continue the workout in progress,
  *      or start the routine that is next in your rotation;
- *   3. your favourite routines, then every other one, each still one tap
- *      from starting;
+ *   3. your favourite routines, then your sections (if you made any), then
+ *      every other one, each still one tap from starting;
  *   4. the two ways to add a routine, as labelled buttons where the list ends.
- * Managing the list (reorder, favourite, delete) is a mode you enter with
- * "Edit", so the everyday screen carries no handles, stars to hit or bins.
+ * Managing the list (reorder, favourite, sort into sections, delete) is a
+ * mode you enter with "Edit", so the everyday screen carries no handles,
+ * stars to hit or bins.
  */
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -86,6 +89,8 @@ const items = computed(() =>
     return {
       id: routine.id,
       favorite: routines.isFavorite(routine.id),
+      sectionId: routine.sectionId,
+      sectionColor: routine.sectionId ? routines.getSection(routine.sectionId)?.color : undefined,
       name: result.ok ? result.template.name : routine.filename,
       ok: result.ok,
       // When each routine was last done sits on its row, so the rotation is
@@ -123,20 +128,66 @@ const rows = computed(() =>
 )
 
 /**
- * Favourites get their own group above the rest, each keeping the order you
- * gave the list: the routines you train most are the first rows under the
- * hero however long the library grows, and it is plain why they are there.
+ * Favourites get their own group above the rest, then each section you made,
+ * then whatever is in neither — each keeping the order you gave the list.
+ * A section always lists every routine filed in it, the suggested one and
+ * favourites included: it is the account's layout (synced), so it reads the
+ * same on every device, while Favourites is this device's shortcut on top.
  */
-const groups = computed(() => {
+interface Group {
+  key: string
+  title: string
+  items: typeof rows.value
+  section?: RoutineSection
+}
+
+const groups = computed<Group[]>(() => {
   const favorites = rows.value.filter((item) => item.favorite)
-  const others = rows.value.filter((item) => !item.favorite)
+  const sectionIds = new Set(routines.sections.map((s) => s.id))
+  const sectionGroups = routines.sections.map((section) => ({
+    key: section.id,
+    title: section.name,
+    items: items.value.filter((item) => item.sectionId === section.id),
+    section,
+  }))
+  const others = rows.value.filter(
+    (item) => !item.favorite && (!item.sectionId || !sectionIds.has(item.sectionId)),
+  )
   // The whole section's heading and its Edit button sit on the first group.
-  if (!favorites.length) return [{ key: 'all', title: t('routines.title'), items: others }]
+  if (!favorites.length && !sectionGroups.length) return [{ key: 'all', title: t('routines.title'), items: others }]
   return [
-    { key: 'favorites', title: t('train.favorites'), items: favorites },
+    ...(favorites.length ? [{ key: 'favorites', title: t('train.favorites'), items: favorites }] : []),
+    ...sectionGroups,
     ...(others.length ? [{ key: 'others', title: t('train.otherRoutines'), items: others }] : []),
   ]
 })
+
+/** Sections folded shut on this device — a view preference, so it stays here and never syncs. */
+const COLLAPSED_KEY = 'wtx:collapsedSections'
+function readCollapsed(): string[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(COLLAPSED_KEY) ?? '[]')
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : []
+  } catch {
+    return []
+  }
+}
+const collapsed = ref<string[]>(readCollapsed())
+watch(collapsed, (value) => {
+  try {
+    const live = value.filter((id) => routines.getSection(id))
+    if (live.length) localStorage.setItem(COLLAPSED_KEY, JSON.stringify(live))
+    else localStorage.removeItem(COLLAPSED_KEY)
+  } catch {
+    /* storage unavailable — the sections just open again next time */
+  }
+})
+
+function toggleCollapsed(id: string) {
+  collapsed.value = collapsed.value.includes(id)
+    ? collapsed.value.filter((c) => c !== id)
+    : [...collapsed.value, id]
+}
 
 function toggleFavorite(id: string) {
   routines.toggleFavorite(id)
@@ -146,21 +197,58 @@ function toggleFavorite(id: string) {
 /** Edit mode lists every routine, the suggested one included, in its stored order. */
 const editing = ref(false)
 
-const ordered = computed({
-  get: () => items.value,
-  set: (value) =>
-    routines.reorder(
-      value.flatMap((item) => {
-        const routine = routines.getById(item.id)
-        return routine ? [routine] : []
-      }),
-    ),
-})
+type Item = (typeof items.value)[number]
+interface EditSection {
+  section: RoutineSection
+  items: Item[]
+}
+
+/**
+ * Edit mode's working copy of the layout: each section with its routines,
+ * then the unsorted ones. Drag-and-drop moves items between these arrays;
+ * {@link commitLayout} then writes the whole layout to the store at once.
+ */
+const editSections = ref<EditSection[]>([])
+const editUnsorted = ref<Item[]>([])
+
+function buildLayout() {
+  const sectionIds = new Set(routines.sections.map((s) => s.id))
+  editSections.value = routines.sections.map((section) => ({
+    section,
+    items: items.value.filter((item) => item.sectionId === section.id),
+  }))
+  editUnsorted.value = items.value.filter((item) => !item.sectionId || !sectionIds.has(item.sectionId))
+}
+
+watch([items, () => routines.sections], buildLayout, { immediate: true, deep: true })
+
+/** Runs after a drop, once vue-draggable-plus has updated the arrays on both ends. */
+async function commitLayout() {
+  await nextTick()
+  const order = editSections.value.map((group) => group.section)
+  if (order.some((section, i) => section.id !== routines.sections[i]?.id)) routines.reorderSections(order)
+  routines.arrange([
+    ...editSections.value.map((group) => ({
+      sectionId: group.section.id,
+      routineIds: group.items.map((item) => item.id),
+    })),
+    { sectionId: null, routineIds: editUnsorted.value.map((item) => item.id) },
+  ])
+}
 
 function removeRoutine(id: string) {
   if (!confirm(t('routineDetail.deleteConfirm'))) return
   routines.remove(id)
   if (!routines.list.length) editing.value = false
+}
+
+/** The section sheet: `null` id makes a new section. */
+const sectionSheetOpen = ref(false)
+const sectionSheetId = ref<string | null>(null)
+
+function openSectionSheet(id: string | null) {
+  sectionSheetId.value = id
+  sectionSheetOpen.value = true
 }
 </script>
 
@@ -210,7 +298,7 @@ function removeRoutine(id: string) {
       </button>
     </RouterLink>
 
-    <section v-if="editing">
+    <section v-if="editing" class="edit">
       <div class="heading-row">
         <h2 class="heading">{{ t('routines.title') }}</h2>
         <button type="button" class="edit-toggle" @click="editing = false">
@@ -218,56 +306,127 @@ function removeRoutine(id: string) {
         </button>
       </div>
 
+      <!-- Sections drag by the handle on their heading; routines drag between them. -->
       <VueDraggable
-        v-model="ordered"
+        v-model="editSections"
+        class="edit__sections"
+        handle=".section__handle"
+        ghost-class="row--ghost"
+        :animation="150"
+        @end="commitLayout"
+      >
+        <div v-for="group in editSections" :key="group.section.id" class="section">
+          <div class="heading-row section__head">
+            <span class="section__handle" :aria-label="t('sections.dragAria')">
+              <GripVertical :size="20" :stroke-width="2" />
+            </span>
+            <i class="section__dot" :style="{ background: group.section.color }" />
+            <h3 class="heading section__name">{{ group.section.name }}</h3>
+            <button
+              type="button"
+              class="section__edit"
+              :aria-label="`${t('sections.editTitle')}: ${group.section.name}`"
+              @click="openSectionSheet(group.section.id)"
+            >
+              <Pencil :size="16" :stroke-width="2.25" />
+            </button>
+          </div>
+          <VueDraggable
+            v-model="group.items"
+            tag="ul"
+            class="list list--drop"
+            :data-empty="t('sections.dropHere')"
+            group="routines"
+            handle=".row__handle"
+            ghost-class="row--ghost"
+            :animation="150"
+            @end="commitLayout"
+          >
+            <TrainEditRow
+              v-for="item in group.items"
+              :key="item.id"
+              :name="item.name"
+              :meta="item.meta"
+              :favorite="item.favorite"
+              @favorite="toggleFavorite(item.id)"
+              @remove="removeRoutine(item.id)"
+            />
+          </VueDraggable>
+        </div>
+      </VueDraggable>
+
+      <div v-if="editSections.length" class="heading-row">
+        <h3 class="heading">{{ t('train.otherRoutines') }}</h3>
+      </div>
+      <VueDraggable
+        v-model="editUnsorted"
         tag="ul"
         class="list"
+        :class="{ 'list--drop': editSections.length }"
+        :data-empty="t('sections.dropHere')"
+        group="routines"
         handle=".row__handle"
         ghost-class="row--ghost"
         :animation="150"
+        @end="commitLayout"
       >
-        <li v-for="item in ordered" :key="item.id" class="row">
-          <span class="row__handle" :aria-label="t('session.reorderSheet.dragAria')">
-            <GripVertical :size="20" :stroke-width="2" />
-          </span>
-          <span class="row__body">
-            <span class="row__name">{{ item.name }}</span>
-            <span class="row__meta">{{ item.meta }}</span>
-          </span>
-          <button
-            type="button"
-            class="row__star"
-            :class="{ 'row__star--on': item.favorite }"
-            :aria-label="`${t(item.favorite ? 'routineDetail.unfavoriteAria' : 'routineDetail.favoriteAria')}: ${item.name}`"
-            :aria-pressed="item.favorite"
-            @click="toggleFavorite(item.id)"
-          >
-            <Star :size="20" :stroke-width="2" :fill="item.favorite ? 'currentColor' : 'none'" />
-          </button>
-          <button
-            type="button"
-            class="row__delete"
-            :aria-label="`${t('routineDetail.deleteRoutine')}: ${item.name}`"
-            @click="removeRoutine(item.id)"
-          >
-            <Trash2 :size="18" :stroke-width="2" />
-          </button>
-        </li>
+        <TrainEditRow
+          v-for="item in editUnsorted"
+          :key="item.id"
+          :name="item.name"
+          :meta="item.meta"
+          :favorite="item.favorite"
+          @favorite="toggleFavorite(item.id)"
+          @remove="removeRoutine(item.id)"
+        />
       </VueDraggable>
+
+      <button type="button" class="new-section" @click="openSectionSheet(null)">
+        <Plus :size="16" :stroke-width="2.5" />
+        {{ t('sections.new') }}
+      </button>
     </section>
 
-    <section v-for="(group, i) in rows.length ? groups : []" v-else :key="group.key">
+    <section v-for="(group, i) in rows.length || routines.sections.length ? groups : []" v-else :key="group.key">
       <div class="heading-row">
-        <h2 class="heading">{{ group.title }}</h2>
+        <button
+          v-if="group.section"
+          type="button"
+          class="section__toggle"
+          :aria-expanded="!collapsed.includes(group.section.id)"
+          @click="toggleCollapsed(group.section.id)"
+        >
+          <i class="section__dot" :style="{ background: group.section.color }" />
+          <h2 class="heading section__name">{{ group.title }}</h2>
+          <span v-if="collapsed.includes(group.section.id)" class="section__count">{{ group.items.length }}</span>
+          <ChevronDown
+            class="section__chevron"
+            :class="{ 'section__chevron--shut': collapsed.includes(group.section.id) }"
+            :size="18"
+            :stroke-width="2.25"
+          />
+        </button>
+        <h2 v-else class="heading">{{ group.title }}</h2>
         <button v-if="i === 0" type="button" class="edit-toggle" @click="editing = true">
           {{ t('train.edit') }}
         </button>
       </div>
 
-      <ul class="list">
+      <p v-if="group.section && !group.items.length && !collapsed.includes(group.key)" class="section__empty">
+        {{ t('sections.emptyHint') }}
+      </p>
+      <ul v-if="!group.section || !collapsed.includes(group.section.id)" class="list">
         <li v-for="item in group.items" :key="item.id" class="row">
           <RouterLink :to="`/routines/${item.id}`" class="row__body">
-            <span class="row__name">{{ item.name }}</span>
+            <span class="row__name">
+              <!-- A favourite still shows which section it belongs to. -->
+              <i
+                v-if="group.key === 'favorites' && item.sectionColor"
+                class="row__dot"
+                :style="{ background: item.sectionColor }"
+              />
+              {{ item.name }}
+            </span>
             <span class="row__meta">{{ item.meta }}</span>
           </RouterLink>
           <button
@@ -293,7 +452,13 @@ function removeRoutine(id: string) {
         <Download :size="18" :stroke-width="2.25" />
         {{ t('wtx.actions.load.title') }}
       </button>
+      <button v-if="!editing" type="button" class="new-section new-section--quiet" @click="openSectionSheet(null)">
+        <Plus :size="16" :stroke-width="2.5" />
+        {{ t('sections.new') }}
+      </button>
     </div>
+
+    <SectionSheet v-model:open="sectionSheetOpen" :section-id="sectionSheetId" />
   </div>
 </template>
 
@@ -452,26 +617,105 @@ function removeRoutine(id: string) {
   cursor: pointer;
 }
 
-/* Edit mode: a handle to drag by, and a bin where Start was. */
-.row__handle {
+/* A section heading reads like the Favourites one, with its colour as a dot. */
+.section__toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.section__dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.section__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.section__count {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.section__chevron {
+  flex-shrink: 0;
+  color: var(--color-text);
+  transition: transform var(--motion-quick) ease;
+}
+
+.section__chevron--shut {
+  transform: rotate(-90deg);
+}
+
+.section__empty {
+  padding: 4px 0 12px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Edit mode: sections stack with room between them, each dragged by its grip. */
+.edit {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.edit__sections:empty {
+  display: none;
+}
+
+.section {
+  background: var(--color-background);
+}
+
+.section__head {
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.section__handle {
   flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 32px;
   height: 44px;
   margin-left: -8px;
+  margin-right: -6px;
   color: var(--color-text);
   cursor: grab;
   touch-action: none;
 }
 
-/* A favourite is marked or unmarked here, away from the row's Start. */
-.row__star {
+.section__edit {
   flex-shrink: 0;
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
+  margin-left: auto;
+  margin-right: -10px;
   border: none;
   border-radius: 50%;
   color: var(--color-text);
@@ -479,25 +723,57 @@ function removeRoutine(id: string) {
   cursor: pointer;
 }
 
-.row__star--on {
-  color: var(--color-heading);
-}
-
-.row__star:active {
+.section__edit:active {
   background: var(--color-background-mute);
 }
 
-.row__delete {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
+/* An empty list still takes a drop, and says so. */
+.list--drop {
+  min-height: 52px;
+}
+
+.list--drop:empty::after {
+  content: attr(data-empty);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border: 1px dashed var(--color-border-hover);
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.new-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: 12px;
   border: none;
-  border-radius: 50%;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--color-heading);
-  background: var(--color-background-mute);
+  background: transparent;
   cursor: pointer;
+}
+
+/* On the everyday screen it stays out of the way, under the two add buttons. */
+.new-section--quiet {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.row__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: 0.1em;
 }
 
 .row--ghost {

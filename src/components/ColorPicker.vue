@@ -8,9 +8,12 @@ withDefaults(
   defineProps<{
     modelValue: string
     options?: AccentColor[]
+    /** What the colour is for, for screen readers; defaults to the app accent. */
+    label?: string
   }>(),
   {
     options: () => ACCENT_COLORS,
+    label: '',
   },
 )
 
@@ -24,7 +27,7 @@ function select(value: string) {
 </script>
 
 <template>
-  <div class="color-picker" role="radiogroup" :aria-label="t('colorPicker.accentColorAria')">
+  <div class="color-picker" role="radiogroup" :aria-label="label || t('colorPicker.accentColorAria')">
     <button
       v-for="option in options"
       :key="option.value"
