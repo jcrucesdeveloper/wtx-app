@@ -10,6 +10,7 @@ import {
   fitLifts,
   topLifts,
   liftRowsFor,
+  photoRect,
   workoutCardContent,
   workoutCardFrame,
   workoutCardSize,
@@ -523,5 +524,54 @@ describe('liftRowsFor', () => {
     expect(liftRowsFor(100)).toBe(0)
     expect(liftRowsFor(176)).toBe(2)
     expect(liftRowsFor(900)).toBe(10)
+  })
+})
+
+describe('the photo look, as a frame', () => {
+  const FORMATS: WorkoutCardFormat[] = ['story', 'square']
+
+  for (const format of FORMATS) {
+    it.each(CASES)(`never draws text over the photo of a ${format} with %s`, (_, data) => {
+      const { ctx, texts } = recordingContext()
+      drawWorkoutCard(ctx, data, 'photo', undefined, format)
+      const rect = photoRect(data, format)
+      for (const t of texts) expect(t.top).toBeGreaterThan(rect.y + rect.height)
+    })
+
+    it(`gives the photo most of a ${format}, and draws it into exactly that space`, () => {
+      const data = CASES[1]![1]
+      const frame = workoutCardFrame(format)
+      const rect = photoRect(data, format)
+      expect((rect.width * rect.height) / (frame.width * frame.height)).toBeGreaterThan(0.55)
+      // Of the part a story leaves visible, the photo is the larger share by far.
+      const seen =
+        Math.min(rect.y + rect.height, frame.height - frame.safeBottom) -
+        Math.max(rect.y, frame.safeTop)
+      expect(seen / (frame.height - frame.safeTop - frame.safeBottom)).toBeGreaterThan(0.6)
+
+      const drawn: number[][] = []
+      const { ctx } = recordingContext()
+      ;(ctx as unknown as { drawImage: (...a: number[]) => void }).drawImage = (_img, ...a) =>
+        drawn.push(a)
+      const photo = { width: 3000, height: 4000 } as unknown as HTMLImageElement
+      drawWorkoutCard(ctx, data, 'photo', photo, format)
+      expect(drawn).toHaveLength(1)
+      expect(drawn[0]!.slice(4)).toEqual([rect.x, rect.y, rect.width, rect.height])
+    })
+
+    it(`keeps every word in the frame of a ${format} at least about 11 pt on a phone`, () => {
+      for (const [, data] of CASES) {
+        const { ctx, texts } = recordingContext()
+        drawWorkoutCard(ctx, data, 'photo', undefined, format)
+        // 31 px of a 1080 px image is 11 pt across a 390 pt wide phone.
+        for (const t of texts) expect(t.bottom - t.top).toBeGreaterThanOrEqual(31 * 1.25)
+      }
+    })
+  }
+
+  it('makes the photo larger when there is no highlight to fit under it', () => {
+    const plain = CASES[0]![1]
+    const record = CASES[1]![1]
+    expect(photoRect(plain).height).toBeGreaterThan(photoRect(record).height)
   })
 })
