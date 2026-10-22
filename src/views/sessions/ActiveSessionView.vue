@@ -11,7 +11,6 @@ import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import PostSessionTransition from '@/components/session/PostSessionTransition.vue'
 import GroupProgressStrip from '@/components/social/GroupProgressStrip.vue'
 import { useActiveSessionStore } from '@/stores/activeSession'
-import { useRoomStore } from '@/stores/room'
 import { useFinishSession, type FinishSessionOptions } from '@/composables/useFinishSession'
 import { prefersReducedMotion } from '@/lib/reducedMotion'
 import { AdService } from '@/services/ads'
@@ -19,7 +18,6 @@ import { AdService } from '@/services/ads'
 const { t } = useI18n()
 const router = useRouter()
 const activeSession = useActiveSessionStore()
-const room = useRoomStore()
 const { finishSession } = useFinishSession()
 
 const draft = computed(() => activeSession.session?.draft)
@@ -113,9 +111,7 @@ const roomId = computed(() => activeSession.session?.roomId)
  * In a group workout the host owns the order, so everyone stays on the same
  * one; until the room has loaded it isn't known who the host is.
  */
-const reorderLocked = computed(
-  () => !!roomId.value && !(room.room?.id === roomId.value && room.isHost),
-)
+const reorderLocked = computed(() => !activeSession.canReorder)
 </script>
 
 <template>

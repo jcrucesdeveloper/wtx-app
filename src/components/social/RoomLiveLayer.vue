@@ -143,6 +143,16 @@ function handle(event: RoomEvent) {
       if (event.from === me) return
       showToast({ ...base, icon: '↕️', text: t('room.live.orderChanged', { name: fromName }) })
       return
+    case 'exercise-removed': {
+      if (event.from === me) return
+      const params = { name: fromName, exercise: exerciseName(event.exercise) }
+      showToast({
+        ...base,
+        icon: '➖',
+        text: t(event.kept ? 'room.live.exerciseRemovedKept' : 'room.live.exerciseRemoved', params),
+      })
+      return
+    }
     case 'team-cleared':
       showToast({ ...base, team: true, icon: '✅', text: t('room.live.teamCleared', { exercise: exerciseName(event.exercise) }) })
       return
