@@ -44,6 +44,51 @@ function muscleGroupFor(primaryMuscles) {
   return group
 }
 
+// Upstream's `equipment` has 12 values plus null, several too niche to filter
+// by (`e-z curl bar`, `foam roll`, `exercise ball`) and two catch-alls
+// (`other`, null) that hide ~200 exercises — mostly bodyweight moves like
+// pull-ups, dips and stretches. Collapse it to the buckets gym-goers pick
+// from (see README.md). `null` here means "decide from the name" below.
+const EQUIPMENT_BY_UPSTREAM = {
+  barbell: 'Barbell',
+  'e-z curl bar': 'Barbell',
+  dumbbell: 'Dumbbell',
+  machine: 'Machine',
+  cable: 'Cable',
+  kettlebells: 'Kettlebell',
+  bands: 'Band',
+  'body only': 'Bodyweight',
+  'medicine ball': 'Other',
+  'exercise ball': 'Other',
+  'foam roll': 'Other',
+  other: null,
+}
+
+// Name-based rules for upstream `other`/null entries, checked in order; the
+// first match wins and anything left over is bodyweight (pull-ups, dips,
+// box jumps, stretches, ...).
+const EQUIPMENT_BY_NAME = [
+  [/\btrap bar\b/i, 'Barbell'],
+  [/\bbands?\b/i, 'Band'],
+  [
+    /\b(plates?|sled|sledgehammer|smr|atlas|keg|log lift|tire|yoke|rickshaw|sandbag|farmer|chains?|axle|car deadlift|conan|circus bell|crucifix|power stairs|drag|battling ropes|rope (climb|jumping)|wrist roller|harness|heavy bag|svend|balance board|bicycling|skating)\b/i,
+    'Other',
+  ],
+]
+
+function equipmentFor(exercise, name) {
+  // A Smith machine is a machine, even where upstream tags it `barbell`.
+  if (/\bsmith\b/i.test(name)) return 'Machine'
+  const upstream = exercise.equipment ?? 'other'
+  if (!(upstream in EQUIPMENT_BY_UPSTREAM)) {
+    throw new Error(`No equipment bucket mapped for upstream equipment "${upstream}"`)
+  }
+  const bucket = EQUIPMENT_BY_UPSTREAM[upstream]
+  if (bucket) return bucket
+  const rule = EQUIPMENT_BY_NAME.find(([pattern]) => pattern.test(name))
+  return rule ? rule[1] : 'Bodyweight'
+}
+
 // A handful of upstream names carry a competition-discipline suffix (e.g.
 // "Bench Press - Powerlifting"). We tag by muscle group, not sport — strip it.
 const DISCIPLINE_SUFFIX = /\s*-\s*(Powerlifting|Strongman|Olympic Weightlifting|Weightlifting|CrossFit)$/i
@@ -1097,7 +1142,7 @@ if (!res.ok) {
   throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`)
 }
 
-/** @type {Array<{id: string, name: string, primaryMuscles: string[]}>} */
+/** @type {Array<{id: string, name: string, equipment: string | null, primaryMuscles: string[]}>} */
 const raw = await res.json()
 
 const trimmed = raw
@@ -1108,6 +1153,7 @@ const trimmed = raw
       name,
       nameEs: translateName(name),
       muscleGroup: muscleGroupFor(exercise.primaryMuscles),
+      equipment: equipmentFor(exercise, name),
       primaryMuscles: exercise.primaryMuscles,
     }
   })

@@ -5,6 +5,24 @@ export const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Abs', 'Legs
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
 
+/**
+ * Equipment buckets exercises are tagged with, in chip order. Collapsed from
+ * upstream's `equipment` field by `equipmentFor()` in
+ * `scripts/sync-exercise-db.mjs`. See README.md.
+ */
+export const EQUIPMENT_TYPES = [
+  'Barbell',
+  'Dumbbell',
+  'Machine',
+  'Cable',
+  'Bodyweight',
+  'Kettlebell',
+  'Band',
+  'Other',
+] as const
+
+export type EquipmentType = (typeof EQUIPMENT_TYPES)[number]
+
 /** One exercise from the vendored free-exercise-db catalog. See README.md. */
 export interface ExerciseCatalogEntry {
   id: string
@@ -13,37 +31,93 @@ export interface ExerciseCatalogEntry {
   /** Display-only Spanish name. Never used for storage/matching — see `useExerciseName`. */
   nameEs: string
   muscleGroup: MuscleGroup
+  equipment: EquipmentType
   primaryMuscles: string[]
 }
 
 /** All vendored exercises, sorted by name. */
 export const EXERCISE_CATALOG: ExerciseCatalogEntry[] = data as ExerciseCatalogEntry[]
 
+/** Lowercases and strips accents, so "maquina" finds "Máquina". */
+export function normalizeSearchText(text: string): string {
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+}
+
+interface IndexedEntry {
+  entry: ExerciseCatalogEntry
+  name: string
+  nameEs: string
+  muscleGroup: string
+  equipment: string
+}
+
+/** Normalized search strings, built once at module load rather than per keystroke. */
+const SEARCH_INDEX: IndexedEntry[] = EXERCISE_CATALOG.map((entry) => ({
+  entry,
+  name: normalizeSearchText(entry.name),
+  nameEs: normalizeSearchText(entry.nameEs),
+  muscleGroup: entry.muscleGroup.toLowerCase(),
+  equipment: entry.equipment.toLowerCase(),
+}))
+
+const EXACT_NAME_INDEX = new Map(
+  EXERCISE_CATALOG.map((entry) => [entry.name.toLowerCase(), entry] as const),
+)
+
+export interface ExerciseFilter {
+  query?: string
+  muscleGroup?: MuscleGroup | null
+  equipment?: EquipmentType | null
+}
+
+export interface ExerciseFilterResult {
+  /** The first `limit` matches, ranked. */
+  results: ExerciseCatalogEntry[]
+  /** How many exercises match in total, before `limit`. */
+  total: number
+}
+
 /**
- * Case-insensitive search over {@link EXERCISE_CATALOG}, matching the
- * exercise name (English or Spanish) and its muscle group (so "legs" or
- * "piernas" surfaces every leg exercise, not just ones with that word in the
- * name). A name that starts with `query` ranks first, then a muscle-group
- * match, then a name that merely contains `query`; ties keep the catalog's
- * alphabetical order. An empty query returns the first `limit` entries
- * alphabetically.
+ * Filters {@link EXERCISE_CATALOG} by text query, muscle group and equipment
+ * — all combined with AND. The query matches case- and accent-insensitively
+ * against the exercise name (English or Spanish), its muscle group and its
+ * equipment (so "legs" surfaces every leg exercise, "cable" every cable one).
+ * A name that starts with the query ranks first, then a muscle-group or
+ * equipment match, then a name that merely contains it; ties keep the
+ * catalog's alphabetical order.
  */
-export function searchExerciseCatalog(query: string, limit = 50): ExerciseCatalogEntry[] {
-  const needle = query.trim().toLowerCase()
-  if (!needle) return EXERCISE_CATALOG.slice(0, limit)
+export function filterExerciseCatalog(
+  { query = '', muscleGroup = null, equipment = null }: ExerciseFilter,
+  limit = 50,
+): ExerciseFilterResult {
+  const needle = normalizeSearchText(query)
 
   const nameStartsWith: ExerciseCatalogEntry[] = []
-  const groupMatch: ExerciseCatalogEntry[] = []
+  const tagMatch: ExerciseCatalogEntry[] = []
   const nameIncludes: ExerciseCatalogEntry[] = []
-  for (const entry of EXERCISE_CATALOG) {
-    const name = entry.name.toLowerCase()
-    const nameEs = entry.nameEs.toLowerCase()
-    if (name.startsWith(needle) || nameEs.startsWith(needle)) nameStartsWith.push(entry)
-    else if (entry.muscleGroup.toLowerCase().startsWith(needle)) groupMatch.push(entry)
-    else if (name.includes(needle) || nameEs.includes(needle)) nameIncludes.push(entry)
+  for (const item of SEARCH_INDEX) {
+    if (muscleGroup && item.entry.muscleGroup !== muscleGroup) continue
+    if (equipment && item.entry.equipment !== equipment) continue
+    if (!needle || item.name.startsWith(needle) || item.nameEs.startsWith(needle)) {
+      nameStartsWith.push(item.entry)
+    } else if (item.muscleGroup.startsWith(needle) || item.equipment.startsWith(needle)) {
+      tagMatch.push(item.entry)
+    } else if (item.name.includes(needle) || item.nameEs.includes(needle)) {
+      nameIncludes.push(item.entry)
+    }
   }
 
-  return [...nameStartsWith, ...groupMatch, ...nameIncludes].slice(0, limit)
+  const total = nameStartsWith.length + tagMatch.length + nameIncludes.length
+  return { results: [...nameStartsWith, ...tagMatch, ...nameIncludes].slice(0, limit), total }
+}
+
+/**
+ * Text-only search over {@link EXERCISE_CATALOG} — see
+ * {@link filterExerciseCatalog} for matching and ranking. An empty query
+ * returns the first `limit` entries alphabetically.
+ */
+export function searchExerciseCatalog(query: string, limit = 50): ExerciseCatalogEntry[] {
+  return filterExerciseCatalog({ query }, limit).results
 }
 
 /**
@@ -56,5 +130,5 @@ export function searchExerciseCatalog(query: string, limit = 50): ExerciseCatalo
 export function findCatalogEntryByName(name: string): ExerciseCatalogEntry | undefined {
   const needle = name.trim().toLowerCase()
   if (!needle) return undefined
-  return EXERCISE_CATALOG.find((entry) => entry.name.toLowerCase() === needle)
+  return EXACT_NAME_INDEX.get(needle)
 }
