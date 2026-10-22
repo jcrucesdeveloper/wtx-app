@@ -13,12 +13,13 @@ import { computeWeekStreak, toDateStr } from '@/lib/sessionStats'
 import { compareSessions } from '@/lib/sessionComparisons'
 
 /**
- * The History tab, in the order the question
- * gets more specific:
- *   1. Am I keeping it up?  — a headline and twelve weeks of bars.
- *   2. Am I getting stronger? — the best set on the lifts you do most.
- *   3. What did I do on a given day? — the month calendar, which filters…
- *   4. …the list of workouts, grouped by month, one line of facts each.
+ * The History tab, what you came for first:
+ *   1. What did I do on a given day? — the month calendar, which filters…
+ *   2. …the list of workouts, grouped by month, one line of facts each.
+ *      Only the most recent few until "show all", so the summary below
+ *      stays one short scroll away however long the history gets.
+ *   3. Am I keeping it up?  — a headline and twelve weeks of bars.
+ *   4. Am I getting stronger? — the best set on the lifts you do most.
  */
 const { t, locale } = useI18n()
 const sessions = useSessionsStore()
@@ -46,7 +47,7 @@ function mondayOf(date: Date): Date {
   return monday
 }
 
-// ----- 1. twelve weeks -----
+// ----- 3. twelve weeks -----
 const WEEKS = 12
 
 const weeks = computed(() => {
@@ -75,7 +76,7 @@ const weeks = computed(() => {
 
 const total12 = computed(() => weeks.value.reduce((sum, week) => sum + week.count, 0))
 
-// ----- 2. best sets on the most-trained lifts -----
+// ----- 4. best sets on the most-trained lifts -----
 const records = computed(() => {
   const byExercise = new Map<
     string,
@@ -114,9 +115,16 @@ const records = computed(() => {
     }))
 })
 
-// ----- 3 + 4. calendar and list -----
+// ----- 1 + 2. calendar and list -----
 /** A day tapped on the calendar — the list shows only its workouts until cleared. */
 const selectedDate = ref<string | null>(null)
+
+/** Workouts shown before "show all"; a day's workouts are always shown in full. */
+const RECENT = 8
+const showAll = ref(false)
+const hiddenCount = computed(() =>
+  selectedDate.value || showAll.value ? 0 : Math.max(0, items.value.length - RECENT),
+)
 
 const selectedDateLabel = computed(() =>
   selectedDate.value
@@ -147,7 +155,9 @@ const today = toDateStr(new Date())
 const groups = computed(() => {
   const visible = selectedDate.value
     ? items.value.filter((item) => item.session.date === selectedDate.value)
-    : items.value
+    : showAll.value
+      ? items.value
+      : items.value.slice(0, RECENT)
   const rows = visible.map(({ stored, session }) => {
     const date = parseDate(session.date)
     const delta = volumeDeltas.value.get(stored.id) ?? 0
@@ -183,6 +193,47 @@ const groups = computed(() => {
 
 <template>
   <div class="history">
+    <section>
+      <h2 class="heading">{{ t('history.workouts') }}</h2>
+      <TrainingCalendar :dates="dates" :selected="selectedDate" @select="selectedDate = $event" />
+
+      <div v-if="selectedDate" class="filter">
+        <span class="filter__label">{{ selectedDateLabel }}</span>
+        <button type="button" class="filter__clear" @click="selectedDate = null">
+          {{ t('sessions.showAll') }}
+          <X :size="14" :stroke-width="2.5" />
+        </button>
+      </div>
+
+      <div v-for="group in groups" :key="group.key" class="month">
+        <h3 class="month__label">{{ group.label }}</h3>
+        <ul class="plain">
+          <li v-for="row in group.rows" :key="row.id">
+            <RouterLink :to="`/sessions/${row.id}`" class="row">
+              <span class="row__main">
+                <span class="row__name">{{ row.name }}</span>
+                <span class="row__meta">
+                  {{ row.when }}
+                  <template v-if="row.partial"> · {{ t('sessions.partial') }}</template>
+                  <span v-if="row.deviceOnly" class="row__device">
+                    <Smartphone :size="11" :stroke-width="2.5" /> {{ t('sessions.deviceOnly') }}
+                  </span>
+                </span>
+              </span>
+              <span class="row__side">
+                <span class="row__facts">{{ row.facts }}</span>
+                <span v-if="row.delta" class="row__delta">{{ row.delta }}</span>
+              </span>
+            </RouterLink>
+          </li>
+        </ul>
+      </div>
+
+      <button v-if="hiddenCount" type="button" class="more" @click="showAll = true">
+        {{ t('history.showAllWorkouts', { count: items.length }) }}
+      </button>
+    </section>
+
     <section class="summary">
       <!-- With no run going, the headline is what you have, not what you lost. -->
       <h2 class="summary__headline">
@@ -219,43 +270,6 @@ const groups = computed(() => {
         </li>
       </ul>
     </section>
-
-    <section>
-      <h2 class="heading">{{ t('history.workouts') }}</h2>
-      <TrainingCalendar :dates="dates" :selected="selectedDate" @select="selectedDate = $event" />
-
-      <div v-if="selectedDate" class="filter">
-        <span class="filter__label">{{ selectedDateLabel }}</span>
-        <button type="button" class="filter__clear" @click="selectedDate = null">
-          {{ t('sessions.showAll') }}
-          <X :size="14" :stroke-width="2.5" />
-        </button>
-      </div>
-
-      <div v-for="group in groups" :key="group.key" class="month">
-        <h3 class="month__label">{{ group.label }}</h3>
-        <ul class="plain">
-          <li v-for="row in group.rows" :key="row.id">
-            <RouterLink :to="`/sessions/${row.id}`" class="row">
-              <span class="row__main">
-                <span class="row__name">{{ row.name }}</span>
-                <span class="row__meta">
-                  {{ row.when }}
-                  <template v-if="row.partial"> · {{ t('sessions.partial') }}</template>
-                  <span v-if="row.deviceOnly" class="row__device">
-                    <Smartphone :size="11" :stroke-width="2.5" /> {{ t('sessions.deviceOnly') }}
-                  </span>
-                </span>
-              </span>
-              <span class="row__side">
-                <span class="row__facts">{{ row.facts }}</span>
-                <span v-if="row.delta" class="row__delta">{{ row.delta }}</span>
-              </span>
-            </RouterLink>
-          </li>
-        </ul>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -280,7 +294,7 @@ const groups = computed(() => {
   padding: 0;
 }
 
-/* 1. The headline says it; the bars back it up. */
+/* 3. The headline says it; the bars back it up. */
 .summary__headline {
   font-size: 28px;
   font-weight: 800;
@@ -349,7 +363,7 @@ const groups = computed(() => {
   opacity: 0.7;
 }
 
-/* 2. Best sets. */
+/* 4. Best sets. */
 .record {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -381,7 +395,7 @@ const groups = computed(() => {
   font-size: 13px;
 }
 
-/* 3 + 4. Calendar, then the list it filters. */
+/* 1 + 2. Calendar, then the list it filters. */
 .filter {
   display: flex;
   align-items: center;
@@ -466,6 +480,20 @@ const groups = computed(() => {
   gap: 3px;
   margin-left: 6px;
   white-space: nowrap;
+}
+
+.more {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-heading);
+  background: var(--color-background-soft);
+  cursor: pointer;
 }
 
 .row__delta {

@@ -87,6 +87,7 @@
     "last12": "No workouts in the last 12 weeks | {count} workout in the last 12 weeks | {count} workouts in the last 12 weeks",
     "bestSets": "Best sets",
     "workouts": "Workouts",
+    "showAllWorkouts": "Show all {count} workouts",
     "today": "Today",
     "goTrain": "Start a workout"
   },
