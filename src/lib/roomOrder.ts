@@ -8,6 +8,9 @@
  * keeps its place when someone swaps the movement in it for another one.
  * Exercises a member added mid-workout have no slot — they are theirs alone
  * and stay where they put them, next to the exercise they followed.
+ *
+ * The host can also take a slot out of the routine for everyone: removed
+ * slots ride on the room next to the order, under the same version.
  */
 
 /** Anything that may sit in a routine slot — a session exercise, mostly. */
@@ -47,9 +50,21 @@ export function sameOrder(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && a.every((slot, i) => slot === b[i])
 }
 
-/** The routine's exercises in the room's order. */
-export function orderedRoutine<T>(routine: readonly T[], order: unknown): T[] {
-  return normalizeOrder(order, routine.length).map((slot) => routine[slot]!)
+/**
+ * The slots the host took out of the routine, made safe to use: in range,
+ * each once, ascending. Like the order, it comes from the server.
+ */
+export function normalizeRemoved(removed: unknown, count: number): number[] {
+  if (!Array.isArray(removed)) return []
+  return [...new Set(removed.filter((slot): slot is number => isSlot(slot, count)))].sort((a, b) => a - b)
+}
+
+/** The routine's exercises in the room's order, without the ones the host removed. */
+export function orderedRoutine<T>(routine: readonly T[], order: unknown, removed?: unknown): T[] {
+  const gone = new Set(normalizeRemoved(removed, routine.length))
+  return normalizeOrder(order, routine.length)
+    .filter((slot) => !gone.has(slot))
+    .map((slot) => routine[slot]!)
 }
 
 /**
@@ -122,6 +137,7 @@ export function needsReorder<T extends Slotted>(exercises: readonly T[], order: 
 /** The fields of a room row that carry its order. */
 export interface RoomOrderFields {
   exercise_order?: number[] | null
+  removed_slots?: number[] | null
   order_version?: number | null
 }
 
@@ -136,5 +152,36 @@ export function mergeRoomRow<T extends RoomOrderFields>(current: T | null, incom
   const have = current.order_version ?? 0
   const got = incoming.order_version ?? 0
   if (got >= have) return incoming
-  return { ...incoming, exercise_order: current.exercise_order, order_version: current.order_version }
+  return {
+    ...incoming,
+    exercise_order: current.exercise_order,
+    removed_slots: current.removed_slots,
+    order_version: current.order_version,
+  }
+}
+
+/** An exercise as far as the host's removals care: its slot and whether anything was logged on it. */
+export interface RemovableExercise extends Slotted {
+  loggedSets: readonly { completed: boolean }[]
+}
+
+/**
+ * What the host's removals do to a member's session. An exercise in a
+ * removed slot with nothing logged is dropped; one with sets logged keeps
+ * them — they were lifted, and belong in that member's history — and leaves
+ * the shared routine, staying as their own exercise.
+ */
+export function splitRemoved<T extends RemovableExercise>(
+  exercises: readonly T[],
+  removed: readonly number[],
+): { drop: T[]; keep: T[] } {
+  const gone = new Set(removed)
+  const drop: T[] = []
+  const keep: T[] = []
+  for (const exercise of exercises) {
+    if (exercise.slot === undefined || !gone.has(exercise.slot)) continue
+    if (exercise.loggedSets.some((s) => s.completed)) keep.push(exercise)
+    else drop.push(exercise)
+  }
+  return { drop, keep }
 }
