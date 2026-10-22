@@ -112,3 +112,120 @@ describe('routines store: favourites', () => {
     expect(zip).not.toMatch(/favou?rite/i)
   })
 })
+
+describe('routines store: sections', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('wtx:routines', '[]')
+    setActivePinia(createPinia())
+  })
+
+  it('starts with none, so a new library shows no sections', () => {
+    expect(useRoutinesStore().sections).toEqual([])
+  })
+
+  it('creates, renames, recolours and orders sections', () => {
+    const store = useRoutinesStore()
+    const ppl = store.addSection('  Push   Pull  Legs ')
+    const cardio = store.addSection('Cardio', '#F59E0B')
+    expect(ppl.name).toBe('Push Pull Legs')
+    expect(cardio.color).toBe('#f59e0b')
+    // Each new section gets a colour no other section has yet.
+    expect(ppl.color).not.toBe(cardio.color)
+
+    store.updateSection(ppl.id, { name: 'PPL', color: '#06b6d4' })
+    store.updateSection(ppl.id, { name: '   ', color: 'not a colour' })
+    expect(store.getSection(ppl.id)).toMatchObject({ name: 'PPL', color: '#06b6d4' })
+
+    store.reorderSections([cardio, ppl])
+    expect(store.sections.map((s) => s.name)).toEqual(['Cardio', 'PPL'])
+  })
+
+  it('refuses a blank name and caps a long one', () => {
+    const store = useRoutinesStore()
+    expect(() => store.addSection('   ')).toThrow('A section needs a name.')
+    expect(store.addSection('x'.repeat(100)).name).toHaveLength(40)
+  })
+
+  it('files a routine under a section and takes it out again', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const ppl = store.addSection('PPL')
+
+    store.moveToSection(legs.id, ppl.id)
+    expect(store.sectionOf(legs.id)?.id).toBe(ppl.id)
+
+    store.moveToSection(legs.id, 'missing')
+    expect(store.sectionOf(legs.id)).toBeUndefined()
+  })
+
+  it('a routine can be a favourite and in a section at once', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const ppl = store.addSection('PPL')
+    store.moveToSection(legs.id, ppl.id)
+    store.toggleFavorite(legs.id)
+    expect(store.isFavorite(legs.id)).toBe(true)
+    expect(store.sectionOf(legs.id)?.id).toBe(ppl.id)
+  })
+
+  it('deleting a section keeps its routines, unsorted', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const ppl = store.addSection('PPL')
+    store.moveToSection(legs.id, ppl.id)
+
+    store.removeSection(ppl.id)
+    expect(store.sections).toEqual([])
+    expect(store.getById(legs.id)).toBeDefined()
+    expect(store.getById(legs.id)?.sectionId).toBeUndefined()
+  })
+
+  it('applies a drag-and-drop layout in one go', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const pull = store.add(TEXT('Pull'), 'pull.wtt')
+    const push = store.add(TEXT('Push'), 'push.wtt')
+    const ppl = store.addSection('PPL')
+
+    store.arrange([
+      { sectionId: ppl.id, routineIds: [legs.id, push.id] },
+      { sectionId: null, routineIds: [pull.id] },
+    ])
+    expect(store.list.map((r) => r.id)).toEqual([legs.id, push.id, pull.id])
+    expect(store.list.map((r) => r.sectionId)).toEqual([ppl.id, ppl.id, undefined])
+  })
+
+  it('survives an app restart', async () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const ppl = store.addSection('PPL', '#10b981')
+    store.moveToSection(legs.id, ppl.id)
+    await nextTick()
+
+    const again = restart()
+    expect(again.sections).toEqual([ppl])
+    expect(again.sectionOf(legs.id)?.name).toBe('PPL')
+  })
+
+  it('a data reset clears the sections too', () => {
+    const store = useRoutinesStore()
+    store.addSection('PPL')
+    store.resetToDefaults()
+    expect(store.sections).toEqual([])
+  })
+
+  it('a synced copy moves routines to the renamed section and unfiles the dropped ones', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const push = store.add(TEXT('Push'), 'push.wtt')
+    const a = store.addSection('A')
+    const b = store.addSection('B')
+    store.moveToSection(legs.id, a.id)
+    store.moveToSection(push.id, b.id)
+
+    store.applyRemoteSections([{ ...a, id: 'remote-a' }], { [a.id]: 'remote-a' })
+    expect(store.getById(legs.id)?.sectionId).toBe('remote-a')
+    expect(store.getById(push.id)?.sectionId).toBeUndefined()
+  })
+})

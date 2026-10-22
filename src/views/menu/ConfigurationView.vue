@@ -15,7 +15,7 @@ import SettingsGroup from '@/components/settings/SettingsGroup.vue'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { useThemeStore } from '@/stores/theme'
 import { useSettingsStore } from '@/stores/settings'
-import { useRoutinesStore } from '@/stores/routines'
+import { cleanSectionName, useRoutinesStore } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useLocaleStore } from '@/stores/locale'
@@ -52,7 +52,7 @@ const activeSession = useActiveSessionStore()
 const exported = ref(false)
 
 async function exportData() {
-  const zip = buildDataExportZip(routines.routines, sessions.sessions)
+  const zip = buildDataExportZip(routines.routines, sessions.sessions, routines.sections)
   try {
     await downloadDataExport(zip)
   } catch (err) {
@@ -84,11 +84,22 @@ async function onImportFile(event: Event) {
     const bytes = new Uint8Array(await file.arrayBuffer())
     const parsed = parseDataExportZip(bytes)
 
+    /** A routine exported inside a section folder goes back into that section, made anew if need be. */
+    const sectionFor = (name: string | undefined) => {
+      const clean = name ? cleanSectionName(name) : ''
+      if (!clean) return null
+      const key = clean.toLocaleLowerCase()
+      const existing = routines.sections.find((s) => s.name.toLocaleLowerCase() === key)
+      return (existing ?? routines.addSection(clean)).id
+    }
+
     let routinesAdded = 0
-    for (const { filename, rawText } of parsed.routines) {
+    for (const { filename, rawText, section } of parsed.routines) {
       if (routines.findByText(rawText)) continue
       try {
-        routines.add(rawText, filename)
+        const added = routines.add(rawText, filename)
+        const sectionId = sectionFor(section)
+        if (sectionId) routines.moveToSection(added.id, sectionId)
         routinesAdded++
       } catch {
         /* not a valid .wtt — skip it */

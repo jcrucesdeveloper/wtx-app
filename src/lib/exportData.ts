@@ -1,5 +1,5 @@
 import { unzipSync, zipSync, type Zippable } from 'fflate'
-import type { StoredRoutine } from '@/stores/routines'
+import type { RoutineSection, StoredRoutine } from '@/stores/routines'
 import type { StoredSession } from '@/stores/sessions'
 import { saveFile } from '@/services/nativeShare'
 
@@ -22,18 +22,35 @@ function uniqueName(taken: Set<string>, filename: string): string {
   return candidate
 }
 
+/** A section name as a folder name: no path separators or characters file systems reject. */
+function folderName(name: string): string {
+  const printable = Array.from(name, (c) => (c < ' ' ? '' : c)).join('')
+  return printable.replace(/[\\/:*?"<>|]/g, '-').replace(/^\.+/, '').trim() || 'Section'
+}
+
 /**
  * Builds a `.zip` containing every stored routine and session as its
- * original `.wtt` / `.wts` file, under `routines/` and `sessions/`.
+ * original `.wtt` / `.wts` file, under `routines/` and `sessions/`. A routine
+ * filed under a section goes in a subfolder named after it
+ * (`routines/Push Pull Legs/push.wtt`), so the layout survives a round trip.
  */
-export function buildDataExportZip(routines: StoredRoutine[], sessions: StoredSession[]): Uint8Array {
+export function buildDataExportZip(
+  routines: StoredRoutine[],
+  sessions: StoredSession[],
+  sections: Pick<RoutineSection, 'id' | 'name'>[] = [],
+): Uint8Array {
   const files: Zippable = {}
   const encoder = new TextEncoder()
 
-  const routineNames = new Set<string>()
+  const folderNames = new Set<string>()
+  const folders = new Map(sections.map((s) => [s.id, `${uniqueName(folderNames, folderName(s.name))}/`]))
+  const namesByFolder = new Map<string, Set<string>>()
   for (const routine of routines) {
-    const name = uniqueName(routineNames, routine.filename || `${routine.id}.wtt`)
-    files[`routines/${name}`] = encoder.encode(routine.rawText)
+    const folder = (routine.sectionId && folders.get(routine.sectionId)) || ''
+    const taken = namesByFolder.get(folder) ?? new Set<string>()
+    namesByFolder.set(folder, taken)
+    const name = uniqueName(taken, routine.filename || `${routine.id}.wtt`)
+    files[`routines/${folder}${name}`] = encoder.encode(routine.rawText)
   }
 
   const sessionNames = new Set<string>()
@@ -60,6 +77,8 @@ export function downloadDataExport(zip: Uint8Array, filename = exportFilename())
 export interface ImportedFile {
   filename: string
   rawText: string
+  /** For a routine: the section folder it was exported in, if any. */
+  section?: string
 }
 
 /** The contents of a `.zip` built by {@link buildDataExportZip}. */
@@ -79,7 +98,10 @@ export function parseDataExportZip(bytes: Uint8Array): ParsedDataExport {
     if (path.endsWith('/')) continue
     const filename = path.slice(path.lastIndexOf('/') + 1)
     const rawText = decoder.decode(data)
-    if (path.startsWith('routines/')) routines.push({ filename, rawText })
+    if (path.startsWith('routines/')) {
+      const section = path.slice('routines/'.length, path.lastIndexOf('/')).split('/')[0]
+      routines.push(section ? { filename, rawText, section } : { filename, rawText })
+    }
     else if (path.startsWith('sessions/')) sessions.push({ filename, rawText })
   }
 

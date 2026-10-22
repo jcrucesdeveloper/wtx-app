@@ -5,6 +5,8 @@ import { parseTemplateText, type ParseResult } from '@/lib/parseRoutine'
 import { DEFAULT_TEMPLATES } from '@/lib/wtx/defaultTemplates'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
 import { track } from '@/services/analytics'
+import { ACCENT_COLORS } from '@/config/theme'
+import { SECTION_NAME_MAX } from '@/lib/supabase/limits'
 
 /** A `.wtt` template as stored in the library. Raw text is the source of truth. */
 export interface StoredRoutine {
@@ -15,9 +17,53 @@ export interface StoredRoutine {
   rawText: string
   /** Epoch millis when it was added. */
   addedAt: number
+  /**
+   * The {@link RoutineSection} it's filed under; unset means unsorted. Part of
+   * the routine (unlike favourites) because sections are the account's
+   * layout: they sync with the library, so every device shows the same one.
+   */
+  sectionId?: string
+}
+
+/** A user-made group of routines on the Train screen ("Push/Pull/Legs", "Deload"…). */
+export interface RoutineSection {
+  id: string
+  name: string
+  /** A `#rrggbb` from the theme palette. */
+  color: string
+  /** Epoch millis when it was created. */
+  addedAt: number
 }
 
 const STORAGE_KEY = 'wtx:routines'
+const SECTIONS_KEY = 'wtx:routineSections'
+const HEX_COLOR = /^#[0-9a-f]{6}$/i
+
+function readSections(): RoutineSection[] {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? '[]')
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(
+      (s): s is RoutineSection =>
+        s &&
+        typeof s.id === 'string' &&
+        typeof s.name === 'string' &&
+        typeof s.color === 'string' &&
+        typeof s.addedAt === 'number',
+    )
+  } catch {
+    return []
+  }
+}
+
+/** A section name as stored: trimmed, single-spaced, within the server's cap. */
+export function cleanSectionName(name: string): string {
+  return name.trim().replace(/\s+/g, ' ').slice(0, SECTION_NAME_MAX)
+}
+
+function cleanColor(color: string, fallback: string): string {
+  return HEX_COLOR.test(color) ? color.toLowerCase() : fallback
+}
 
 /**
  * Which routines are favourites, as a list of ids under its own key. It is a
@@ -111,6 +157,21 @@ export const useRoutinesStore = defineStore('routines', () => {
     { deep: true },
   )
 
+  const sections = ref<RoutineSection[]>(readSections())
+
+  watch(
+    sections,
+    (value) => {
+      try {
+        if (value.length) localStorage.setItem(SECTIONS_KEY, JSON.stringify(value))
+        else localStorage.removeItem(SECTIONS_KEY)
+      } catch {
+        /* storage unavailable — keep the in-memory sections */
+      }
+    },
+    { deep: true },
+  )
+
   function isFavorite(id: string): boolean {
     return favoriteIds.value.includes(id)
   }
@@ -127,6 +188,103 @@ export const useRoutinesStore = defineStore('routines', () => {
     if (favoriteIds.value.some((id) => !ids.has(id))) {
       favoriteIds.value = favoriteIds.value.filter((id) => ids.has(id))
     }
+  }
+
+  /** A routine never points at a section that's gone (deleted here or on another device). */
+  function pruneSectionIds() {
+    const ids = new Set(sections.value.map((s) => s.id))
+    for (const routine of routines.value) {
+      if (routine.sectionId !== undefined && !ids.has(routine.sectionId)) delete routine.sectionId
+    }
+  }
+
+  function getSection(id: string): RoutineSection | undefined {
+    return sections.value.find((s) => s.id === id)
+  }
+
+  /** The section a routine is filed under, if any. */
+  function sectionOf(routineId: string): RoutineSection | undefined {
+    const sectionId = getById(routineId)?.sectionId
+    return sectionId ? getSection(sectionId) : undefined
+  }
+
+  /**
+   * The palette colour fewest sections use, so each new one stands apart. The
+   * app's own accent comes last: it already means "the one thing to do".
+   */
+  function nextSectionColor(): string {
+    const palette = [...ACCENT_COLORS.slice(1), ...ACCENT_COLORS.slice(0, 1)]
+    const uses = (value: string) => sections.value.filter((s) => s.color === value).length
+    return palette.reduce((best, c) => (uses(c.value) < uses(best.value) ? c : best)).value
+  }
+
+  /**
+   * Adds a section at the end of the list.
+   *
+   * @throws If the name is blank.
+   */
+  function addSection(name: string, color?: string): RoutineSection {
+    const clean = cleanSectionName(name)
+    if (!clean) throw new Error('A section needs a name.')
+    const fallback = nextSectionColor()
+    const section: RoutineSection = {
+      id: newUuid(),
+      name: clean,
+      color: color ? cleanColor(color, fallback) : fallback,
+      addedAt: Date.now(),
+    }
+    sections.value.push(section)
+    return section
+  }
+
+  /** Renames and/or recolours a section. A blank name is ignored. */
+  function updateSection(id: string, changes: { name?: string; color?: string }) {
+    const section = getSection(id)
+    if (!section) return
+    const name = changes.name === undefined ? '' : cleanSectionName(changes.name)
+    if (name) section.name = name
+    if (changes.color !== undefined) section.color = cleanColor(changes.color, section.color)
+  }
+
+  /** Deletes a section. Its routines stay in the library, back among the unsorted ones. */
+  function removeSection(id: string) {
+    sections.value = sections.value.filter((s) => s.id !== id)
+    pruneSectionIds()
+  }
+
+  /** Replaces the order of the sections, e.g. after a drag-and-drop reorder. */
+  function reorderSections(newOrder: RoutineSection[]) {
+    sections.value = newOrder
+  }
+
+  /** Files a routine under a section, or (with `null`) takes it out of any. */
+  function moveToSection(routineId: string, sectionId: string | null) {
+    const routine = getById(routineId)
+    if (!routine) return
+    if (sectionId && getSection(sectionId)) routine.sectionId = sectionId
+    else delete routine.sectionId
+  }
+
+  /**
+   * Applies a whole drag-and-drop layout at once: each group's routines, in
+   * order, filed under that group's section (`null` = unsorted). Routines the
+   * layout leaves out keep their relative order after the ones it names.
+   */
+  function arrange(layout: { sectionId: string | null; routineIds: string[] }[]) {
+    const sectionIds = new Set(sections.value.map((s) => s.id))
+    const seen = new Set<string>()
+    const next: StoredRoutine[] = []
+    for (const group of layout) {
+      for (const id of group.routineIds) {
+        const routine = getById(id)
+        if (!routine || seen.has(id)) continue
+        seen.add(id)
+         
+        const { sectionId: _previous, ...rest } = routine
+        next.push(group.sectionId && sectionIds.has(group.sectionId) ? { ...rest, sectionId: group.sectionId } : rest)
+      }
+    }
+    routines.value = [...next, ...routines.value.filter((r) => !seen.has(r.id))]
   }
 
   /** Display order — newest first by default, but user-reorderable via {@link reorder}. */
@@ -193,15 +351,17 @@ export const useRoutinesStore = defineStore('routines', () => {
     pruneFavorites()
   }
 
-  /** Wipes the whole library, e.g. for a full data reset. Does not reseed defaults. */
+  /** Wipes the whole library and its sections, e.g. for a full data reset. Does not reseed defaults. */
   function clear() {
     routines.value = []
+    sections.value = []
     pruneFavorites()
   }
 
-  /** Wipes the library and reseeds the starter routines, so the user is never left with none. */
+  /** Wipes the library and its sections, then reseeds the starter routines so the user is never left with none. */
   function resetToDefaults() {
     routines.value = defaultRoutines()
+    sections.value = []
     pruneFavorites()
   }
 
@@ -217,12 +377,39 @@ export const useRoutinesStore = defineStore('routines', () => {
     favoriteIds.value = favoriteIds.value.map((id) => renamedIds[id] ?? id)
     // A routine deleted on another device takes its flag with it here too.
     pruneFavorites()
+    pruneSectionIds()
+  }
+
+  /**
+   * Replaces the sections with a synced copy. Only the sync layer calls this.
+   *
+   * @param renamedIds Old id → new id, when a local section was folded into
+   *   the account's one of the same name, so its routines follow it.
+   */
+  function applyRemoteSections(next: RoutineSection[], renamedIds: Record<string, string> = {}) {
+    sections.value = next
+    for (const routine of routines.value) {
+      const renamed = routine.sectionId && renamedIds[routine.sectionId]
+      if (renamed) routine.sectionId = renamed
+    }
+    pruneSectionIds()
   }
 
   return {
     routines,
     list,
     favoriteIds,
+    sections,
+    getSection,
+    sectionOf,
+    nextSectionColor,
+    addSection,
+    updateSection,
+    removeSection,
+    reorderSections,
+    moveToSection,
+    arrange,
+    applyRemoteSections,
     isFavorite,
     toggleFavorite,
     getById,
