@@ -253,6 +253,7 @@
       "resultCount": "Ningún ejercicio | {count} ejercicio | {count} ejercicios",
       "noResults": "Ningún ejercicio coincide con estos filtros.",
       "clearFilters": "Quitar filtros",
+      "showMore": "Ver más (quedan {count})",
       "useCustom": "Usar \"{query}\"",
       "previewAria": "Vista previa de {name}"
     },

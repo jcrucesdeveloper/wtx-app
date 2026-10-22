@@ -253,6 +253,7 @@
       "resultCount": "No exercises | {count} exercise | {count} exercises",
       "noResults": "No exercises match these filters.",
       "clearFilters": "Clear filters",
+      "showMore": "Show more ({count} left)",
       "useCustom": "Use \"{query}\"",
       "previewAria": "Preview {name}"
     },

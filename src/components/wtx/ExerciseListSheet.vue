@@ -15,7 +15,8 @@ import {
 } from '@/lib/exercises/exerciseCatalog'
 import { useExerciseName } from '@/composables/useExerciseName'
 
-const RESULT_LIMIT = 50
+/** Rows rendered per page; "Show more" adds another page. */
+const PAGE_SIZE = 50
 
 const props = defineProps<{
   open: boolean
@@ -88,11 +89,16 @@ function metaFor(entry: ExerciseCatalogEntry) {
 }
 
 const trimmedQuery = computed(() => query.value.trim())
+const limit = ref(PAGE_SIZE)
+// A new search or filter starts back at one page.
+watch([query, selectedGroup, selectedEquipment], () => {
+  limit.value = PAGE_SIZE
+})
 /** Query, muscle and equipment combine with AND, over the whole catalog. */
 const filtered = computed(() =>
   filterExerciseCatalog(
     { query: query.value, muscleGroup: selectedGroup.value, equipment: selectedEquipment.value },
-    RESULT_LIMIT,
+    limit.value,
   ),
 )
 
@@ -196,6 +202,11 @@ const previewName = ref<string | null>(null)
           <button type="button" class="picker__item" @click="choose(entry.name)">
             <span class="picker__name">{{ exerciseName(entry.name) }}</span>
             <span v-if="metaFor(entry)" class="picker__meta">{{ metaFor(entry) }}</span>
+          </button>
+        </li>
+        <li v-if="filtered.total > filtered.results.length" class="picker__more-row">
+          <button type="button" class="picker__clear" @click="limit += PAGE_SIZE">
+            {{ t('wtx.exercisePicker.showMore', { count: filtered.total - filtered.results.length }) }}
           </button>
         </li>
         <li v-if="filtered.total === 0" class="picker__empty">
@@ -370,6 +381,12 @@ const previewName = ref<string | null>(null)
   font-size: var(--text-small);
   opacity: 0.6;
   flex-shrink: 0;
+}
+
+.picker__more-row {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
 }
 
 .picker__empty {
