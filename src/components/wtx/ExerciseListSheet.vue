@@ -36,14 +36,6 @@ const selectedGroup = ref<MuscleGroup | null>(null)
 const selectedEquipment = ref<EquipmentType | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
 
-/** Lets a plain vertical mouse wheel scroll a chip row, since it has no vertical overflow of its own. */
-function onChipsWheel(event: WheelEvent) {
-  const row = event.currentTarget as HTMLElement | null
-  if (!row || event.deltaY === 0) return
-  event.preventDefault()
-  row.scrollLeft += event.deltaY
-}
-
 watch(
   () => props.open,
   async (open) => {
@@ -135,7 +127,6 @@ const previewName = ref<string | null>(null)
           class="picker__chips"
           role="group"
           aria-labelledby="picker-filter-muscle"
-          @wheel="onChipsWheel"
         >
           <button
             v-for="group in MUSCLE_GROUPS"
@@ -157,7 +148,6 @@ const previewName = ref<string | null>(null)
           class="picker__chips"
           role="group"
           aria-labelledby="picker-filter-equipment"
-          @wheel="onChipsWheel"
         >
           <button
             v-for="equipment in EQUIPMENT_TYPES"
@@ -243,13 +233,16 @@ const previewName = ref<string | null>(null)
   color: var(--color-text);
 }
 
-/* Label column + chip column, so both rows' chips start at the same x. */
+/* Each label sits above its chips, which wrap: every filter visible at once, no sideways scroll. */
 .picker__filters {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   flex-shrink: 0;
+}
+
+.picker__chips + .picker__filter-label {
+  margin-top: 6px;
 }
 
 .picker__filter-label {
@@ -262,16 +255,8 @@ const previewName = ref<string | null>(null)
 
 .picker__chips {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  min-width: 0;
-  scrollbar-width: none;
-  mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 16px), transparent);
-}
-
-.picker__chips::-webkit-scrollbar {
-  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .picker__chip {
