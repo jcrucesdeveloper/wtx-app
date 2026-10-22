@@ -21,6 +21,9 @@ export type RoomEvent = { id: string; at: number; from: string } & (
   | { kind: 'joined' }
   // The host put the exercises in a new order (`from` is the host).
   | { kind: 'order-changed' }
+  // The host took a routine exercise out for everyone; `kept` when this member
+  // had sets logged on it, which stay (`from` is the host).
+  | { kind: 'exercise-removed'; exercise: string; kept: boolean }
   // Team moments (`from` is '' — they belong to everyone).
   | { kind: 'team-cleared'; exercise: string }
   | { kind: 'team-finished' }
