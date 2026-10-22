@@ -1,8 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useSettingsStore } from '@/stores/settings'
 import { WorkoutParser } from '@/lib/wtx'
 import type { StoredRoutine } from '@/stores/routines'
+
+const { restOver } = vi.hoisted(() => ({ restOver: vi.fn<() => Promise<void>>(() => Promise.resolve()) }))
+vi.mock('@/services/haptics', () => ({
+  HapticsService: {
+    restOver,
+    light: vi.fn<() => void>(),
+    medium: vi.fn<() => void>(),
+    selection: vi.fn<() => void>(),
+  },
+}))
 
 const ROUTINE = { id: 'r1', filename: 'push-day.wtt' } as StoredRoutine
 
@@ -132,6 +143,40 @@ describe('activeSession rest timer', () => {
       store.adjustRestTimer(-15)
       expect(store.restRemainingSeconds).toBe(0)
       expect(store.session!.restDurationSeconds).toBe(80)
+    })
+  })
+
+  describe('vibrate when the rest ends', () => {
+    beforeEach(() => restOver.mockClear())
+
+    it('buzzes once as the rest runs out', () => {
+      const store = startWorkout()
+      logFirstSet(store, 0)
+      vi.advanceTimersByTime(89_000)
+      expect(restOver).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(2_000)
+      expect(restOver).toHaveBeenCalledTimes(1)
+      expect(store.session!.restEndsAt).toBeNull()
+    })
+
+    it('stays still when the setting is off', () => {
+      useSettingsStore().setVibrateOnRestEnd(false)
+      const store = startWorkout()
+      logFirstSet(store, 0)
+      vi.advanceTimersByTime(91_000)
+      expect(restOver).not.toHaveBeenCalled()
+      expect(store.session!.restEndsAt).toBeNull()
+    })
+
+    it('stays still for a rest that ended long before the app noticed', () => {
+      const store = startWorkout()
+      logFirstSet(store, 0)
+      // The app was asleep: no ticks ran, and the clock jumped past the deadline.
+      vi.setSystemTime(Date.now() + 120_000)
+      vi.advanceTimersByTime(1_000)
+      expect(restOver).not.toHaveBeenCalled()
+      expect(store.session!.restEndsAt).toBeNull()
     })
   })
 })

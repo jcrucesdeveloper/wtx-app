@@ -1220,6 +1220,8 @@
     "enableReminders": "Activar recordatorios",
     "remindersOn": "Recordatorios activados",
     "remindersDenied": "Las notificaciones de WTX están desactivadas en los ajustes de tu dispositivo.",
+    "vibrateRestEnd": "Vibrar al terminar el descanso",
+    "vibrateRestEndHint": "Una vibración cuando se acaba el descanso, incluso con el teléfono bloqueado.",
     "deleteAllData": "Eliminar todos los datos",
     "deleteAllConfirm": "¿Eliminar cada rutina y sesión? Esto no se puede deshacer.",
     "about": "Acerca de",

@@ -4,6 +4,7 @@ import { LocalNotifications } from '@capacitor/local-notifications'
 import type { Router } from 'vue-router'
 import { i18n } from '@/i18n'
 import { useActiveSessionStore } from '@/stores/activeSession'
+import { useSettingsStore } from '@/stores/settings'
 import {
   buildSessionNotification,
   type NotificationFace,
@@ -24,6 +25,8 @@ interface ShowOptions extends NotificationFace {
   lessLabel: string
   moreLabel: string
   skipLabel: string
+  /** Buzz when the rest runs out while the app is in the background (the setting). */
+  vibrateOnRestEnd: boolean
 }
 
 /** A rest action tapped in the notification; the native side has already redrawn it. */
@@ -58,7 +61,7 @@ function isSupported(): boolean {
   )
 }
 
-function toShowOptions(content: SessionNotificationContent): ShowOptions {
+function toShowOptions(content: SessionNotificationContent, vibrateOnRestEnd: boolean): ShowOptions {
   const t = i18n.global.t
   const face = (f: NotificationFace): NotificationFace => ({
     title: f.title,
@@ -76,6 +79,7 @@ function toShowOptions(content: SessionNotificationContent): ShowOptions {
     lessLabel: t('sessionNotification.less', { n: REST_STEP_SECONDS }),
     moreLabel: t('sessionNotification.more', { n: REST_STEP_SECONDS }),
     skipLabel: t('sessionNotification.skip'),
+    vibrateOnRestEnd,
   }
 }
 
@@ -110,6 +114,7 @@ export function initSessionNotification(router: Router) {
   if (!isSupported()) return
 
   const store = useActiveSessionStore()
+  const settings = useSettingsStore()
   let timer: ReturnType<typeof setTimeout> | undefined
   let lastSent = ''
   let shown = false
@@ -131,7 +136,7 @@ export function initSessionNotification(router: Router) {
       i18n.global.t(key, params ?? {}),
     )
     if (!content) return
-    const options = toShowOptions(content)
+    const options = toShowOptions(content, settings.vibrateOnRestEnd)
     const key = JSON.stringify(options)
     if (key === lastSent) return
     lastSent = key
@@ -144,7 +149,7 @@ export function initSessionNotification(router: Router) {
   }
 
   watch(
-    [() => store.session, () => i18n.global.locale.value],
+    [() => store.session, () => i18n.global.locale.value, () => settings.vibrateOnRestEnd],
     () => {
       if (!store.session) {
         clearTimeout(timer)

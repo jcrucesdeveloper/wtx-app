@@ -92,6 +92,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Rest end (SessionRestEnd): buzz when the rest runs out, and keep the CPU awake
+         through a rest so it ends on time with the screen locked. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Ads are off (VITE_ADS_ENABLED), so drop the advertising ID permissions the
          AdMob SDK merges in: Play Console then needs no advertising ID declaration.

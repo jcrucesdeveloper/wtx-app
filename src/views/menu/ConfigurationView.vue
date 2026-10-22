@@ -40,7 +40,7 @@ const theme = useThemeStore()
 const { accent, mode } = storeToRefs(theme)
 
 const settings = useSettingsStore()
-const { defaultUnit } = storeToRefs(settings)
+const { defaultUnit, vibrateOnRestEnd } = storeToRefs(settings)
 
 const localeStore = useLocaleStore()
 const { locale } = storeToRefs(localeStore)
@@ -255,6 +255,18 @@ async function toggleReminders() {
           <template v-if="remindersDenied" #below>
             <p class="msg msg--error">{{ t('settings.remindersDenied') }}</p>
           </template>
+        </SettingsRow>
+        <SettingsRow :label="t('settings.vibrateRestEnd')" :hint="t('settings.vibrateRestEndHint')">
+          <button
+            type="button"
+            class="switch"
+            role="switch"
+            :aria-checked="vibrateOnRestEnd"
+            :aria-label="t('settings.vibrateRestEnd')"
+            @click="settings.setVibrateOnRestEnd(!vibrateOnRestEnd)"
+          >
+            <i />
+          </button>
         </SettingsRow>
       </SettingsGroup>
 

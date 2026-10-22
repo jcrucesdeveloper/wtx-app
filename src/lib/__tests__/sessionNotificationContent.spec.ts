@@ -174,6 +174,23 @@ describe('buildSessionNotification', () => {
     expect(buildSessionNotification(s, t, NOW)).toMatchObject({ restEndsAt: null, afterRest: null })
   })
 
+  it('treats a rest ending this instant as over, so no countdown is sent to zero or below', () => {
+    const s = session([exercise('Squat', [set({ completed: true }), set()])], {
+      restEndsAt: NOW,
+      restExerciseIndex: 0,
+    })
+    expect(buildSessionNotification(s, t, NOW)).toMatchObject({
+      title: 'Squat',
+      restEndsAt: null,
+      afterRest: null,
+    })
+  })
+
+  it('counts a rest that is still running down to its deadline', () => {
+    const s = session([exercise('Squat', [set()])], { restEndsAt: NOW + 1, restExerciseIndex: 0 })
+    expect(buildSessionNotification(s, t, NOW)?.restEndsAt).toBe(NOW + 1)
+  })
+
   it('uses the session name when there are no exercises', () => {
     expect(buildSessionNotification(session([]), t, NOW)).toMatchObject({
       title: 'Push day',

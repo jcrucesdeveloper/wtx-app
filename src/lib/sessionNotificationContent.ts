@@ -6,9 +6,10 @@ import { formatClock } from '@/lib/format'
 export type Translate = (key: string, params?: Record<string, unknown>) => string
 
 /**
- * One state of the ongoing workout notification. The native side draws the
- * clock (rest countdown or workout time) big, with these lines around it:
- * `title` above, `body` under it, `detail` under that when expanded.
+ * One state of the ongoing workout notification: `title` first, `body` under
+ * it, `detail` under that when expanded. While resting the native side draws
+ * the countdown big under the title; otherwise the workout time goes small
+ * right after the title (the exercise), so only a rest gets a big number.
  */
 export interface NotificationFace {
   title: string
@@ -119,6 +120,7 @@ export function buildSessionNotification(
   const working = workingFace(session, t)
   const base = { startedAt: session.startedAt }
   const restEndsAt = session.restEndsAt
+  // A rest that is over (or ends this instant) is not drawn: a countdown to a past deadline would read negative.
   if (!restEndsAt || restEndsAt <= now) {
     return { ...base, ...working, restEndsAt: null, afterRest: null }
   }
