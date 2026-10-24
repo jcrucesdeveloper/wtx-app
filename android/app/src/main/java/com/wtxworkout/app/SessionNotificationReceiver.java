@@ -38,6 +38,8 @@ public class SessionNotificationReceiver extends BroadcastReceiver {
         if (full == null || !full.startsWith(PREFIX)) return;
         String action = full.substring(PREFIX.length());
         if (ACTION_DISMISSED.equals(action)) {
+            // A rest that has run out is ended (its face swapped) rather than put back past zero.
+            SessionRestEnd.checkNow();
             Notification notification = SessionNotificationPlugin.current;
             if (notification == null) return;
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
