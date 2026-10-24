@@ -1282,6 +1282,14 @@
     "after": "Descanso tras {name}"
   },
   "timedExercise": {
+    "target": "Objetivo {time}",
+    "last": "La última vez {time}",
+    "log": "Registrar tiempo",
+    "logged": "Registrado",
+    "edit": "Cambiar",
+    "add": "Añadir un tiempo",
+    "start": "Iniciar cronómetro",
+    "stop": "Detener cronómetro",
     "duration": "Duración",
     "time": "Tiempo",
     "minSec": "min:seg",
@@ -1292,7 +1300,7 @@
       "reps": "Registrar por peso y repeticiones"
     },
     "switchHint": {
-      "time": "Para una cinta, una plancha o un isométrico. Registra cuánto duró cada serie.",
+      "time": "Para una cinta, una plancha o un isométrico. Registra cuánto duró, una vez.",
       "reps": "Registra peso y repeticiones en cada serie."
     },
     "confirm": {

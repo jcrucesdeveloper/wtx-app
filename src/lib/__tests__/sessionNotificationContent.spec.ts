@@ -91,9 +91,9 @@ describe('buildSessionNotification', () => {
     expect(buildSessionNotification(s, t, NOW)?.body).toBe('Warm-up · 5')
   })
 
-  it('shows a time exercise as a clock', () => {
+  it('shows a time exercise as just its clock: it is logged once', () => {
     const s = session([exercise('Plank', [set({ reps: 90 })], { kind: 'time', weight: 0 })])
-    expect(buildSessionNotification(s, t, NOW)?.body).toBe('Set 1 of 1 · 1:30')
+    expect(buildSessionNotification(s, t, NOW)?.body).toBe('1:30')
   })
 
   it('says so when every set is logged', () => {

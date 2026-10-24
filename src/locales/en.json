@@ -1282,6 +1282,14 @@
     "after": "Rest after {name}"
   },
   "timedExercise": {
+    "target": "Target {time}",
+    "last": "Last time {time}",
+    "log": "Log time",
+    "logged": "Logged",
+    "edit": "Change",
+    "add": "Add a time",
+    "start": "Start timer",
+    "stop": "Stop timer",
     "duration": "Duration",
     "time": "Time",
     "minSec": "min:sec",
@@ -1292,7 +1300,7 @@
       "reps": "Track by weight and reps"
     },
     "switchHint": {
-      "time": "For a treadmill, a plank or a hold. Log how long each set lasted.",
+      "time": "For a treadmill, a plank or a hold. Log how long it lasted, once.",
       "reps": "Log weight and reps for each set."
     },
     "confirm": {

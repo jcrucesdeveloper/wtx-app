@@ -108,22 +108,6 @@ describe('FocusSession: tapping a number to edit it', () => {
     expect(document.activeElement).toBe(fields()[1]!.element)
   })
 
-  it("focuses a timed exercise's time field when its time is tapped", async () => {
-    const activeSession = startSession(pinia)
-    activeSession.setExerciseKind(0, 'time')
-    mountSession()
-
-    await rows()[1]!.findAll('.set__num')[1]!.trigger('click')
-    await nextTick()
-
-    expect(rows()[1]!.classes()).toContain('set--current')
-    // One field, the mm:ss time, in place of weight and reps.
-    expect(fields()).toHaveLength(1)
-    expect(document.activeElement).toBe(fields()[0]!.element)
-    expect(fields()[0]!.attributes('inputmode')).toBe('numeric')
-    expect(document.querySelectorAll('input[aria-hidden="true"]')).toHaveLength(0)
-  })
-
   it('only picks the set when the rest of the row is tapped', async () => {
     startSession(pinia)
     mountSession()
@@ -670,5 +654,110 @@ Dips | reps 3x10
     wrapper = mount(FocusSession, { attachTo: document.body, global: { plugins: [pinia, i18n] } })
     await nextTick()
     expect(shown()).toBe('Bench Press')
+  })
+})
+
+describe('FocusSession: a timed exercise is one entry', () => {
+  const TIMED = `# Core
+unit: kg
+
+Plank | time 1m
+Bench Press | reps 2x8 | 60
+`
+  let pinia: Pinia
+  let wrapper: VueWrapper | undefined
+
+  beforeEach(() => {
+    localStorage.clear()
+    i18n.global.locale.value = 'en'
+    pinia = createPinia()
+    setActivePinia(pinia)
+    Element.prototype.scrollIntoView = vi.fn<() => void>()
+  })
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+    vi.useRealTimers()
+  })
+
+  function start() {
+    const routines = useRoutinesStore()
+    const activeSession = useActiveSessionStore()
+    const routine = routines.add(TIMED, '')
+    const parsed = routines.parsed(routine.id)
+    if (!parsed?.ok) throw new Error('routine should parse')
+    activeSession.start(routine, parsed.template)
+    wrapper = mount(FocusSession, { attachTo: document.body, global: { plugins: [pinia, i18n] } })
+    return activeSession
+  }
+
+  const primary = () => wrapper!.find('.primary-action')
+  const plank = (store: ReturnType<typeof useActiveSessionStore>) =>
+    store.session!.draft.exercises[0]!
+
+  it('shows its time and target, with no list of sets, no add set and no set type', () => {
+    start()
+    const fields = wrapper!.findAll<HTMLInputElement>('.fields input')
+    expect(fields).toHaveLength(1)
+    expect(fields[0]!.element.value).toBe('1:00')
+    expect(fields[0]!.attributes('inputmode')).toBe('numeric')
+    expect(wrapper!.find('.now__set').text()).toBe('Target 1:00')
+    expect(wrapper!.find('.sets').exists()).toBe(false)
+    expect(wrapper!.find('.sets__add').exists()).toBe(false)
+    expect(wrapper!.find('.now__type').exists()).toBe(false)
+    expect(primary().text()).toBe('Log time')
+  })
+
+  it('logs once, then shows what was logged and moves on', async () => {
+    const store = start()
+    await primary().trigger('click')
+
+    expect(plank(store).loggedSets).toMatchObject([{ completed: true, reps: 60, weight: 0 }])
+    expect(wrapper!.find('.fields').exists()).toBe(false)
+    expect(wrapper!.find('.logged').text()).toContain('1:00')
+    expect(primary().text()).toBe('Next: Bench Press')
+  })
+
+  it('opens the logged time again to correct it', async () => {
+    const store = start()
+    await primary().trigger('click')
+    await wrapper!.find('.logged').trigger('click')
+
+    expect(wrapper!.findAll('.fields input')).toHaveLength(1)
+    expect(primary().text()).toBe('Done editing')
+    expect(plank(store).loggedSets[0]!.completed).toBe(true)
+  })
+
+  it('times it with the stopwatch, and logging stops it', async () => {
+    vi.useFakeTimers()
+    const store = start()
+    await wrapper!.find('.stopwatch').trigger('click')
+    expect(wrapper!.find('.stopwatch').text()).toBe('Stop timer')
+
+    vi.advanceTimersByTime(42_000)
+    await nextTick()
+    expect(wrapper!.find('[role="timer"]').text()).toBe('0:42')
+
+    await primary().trigger('click')
+    expect(plank(store).loggedSets).toMatchObject([{ completed: true, reps: 42 }])
+  })
+
+  it('puts the stopwatch time in the field when stopped, ready to log', async () => {
+    vi.useFakeTimers()
+    const store = start()
+    await wrapper!.find('.stopwatch').trigger('click')
+    vi.advanceTimersByTime(75_000)
+    await wrapper!.find('.stopwatch').trigger('click')
+
+    expect(wrapper!.find<HTMLInputElement>('.fields input').element.value).toBe('1:15')
+    expect(plank(store).loggedSets[0]!.completed).toBe(false)
+  })
+
+  it('has no delete-set in the exercise menu', async () => {
+    start()
+    await wrapper!.find('.now__more').trigger('click')
+    await nextTick()
+    expect(document.body.textContent).toContain('Track by weight and reps')
+    expect(document.body.textContent).not.toContain('Delete set')
   })
 })

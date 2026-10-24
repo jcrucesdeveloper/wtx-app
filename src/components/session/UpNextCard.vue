@@ -26,9 +26,10 @@ const summary = computed(() => {
   const first = open[0]
   const reps = first?.reps ?? first?.ghostReps ?? exercise.reps
   const weight = first?.weight ?? first?.ghostWeight ?? exercise.weight
-  const amount = exercise.kind === 'time' ? formatDurationInput(reps) : String(reps)
-  const parts = [open.length ? `${open.length} × ${amount}` : t('workout.noSets')]
-  if (exercise.kind !== 'time' && weight > 0) parts.push(`${weight} ${props.unit}`.trim())
+  // A timed exercise is one entry: its time is the whole plan.
+  if (exercise.kind === 'time') return open.length ? formatDurationInput(reps) : t('workout.noSets')
+  const parts = [open.length ? `${open.length} × ${reps}` : t('workout.noSets')]
+  if (weight > 0) parts.push(`${weight} ${props.unit}`.trim())
   return parts.join(' · ')
 })
 </script>
