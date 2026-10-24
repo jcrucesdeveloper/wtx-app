@@ -20,7 +20,11 @@ export interface NotificationFace {
 
 /** What the native side needs to draw the ongoing notification. */
 export interface SessionNotificationContent extends NotificationFace {
-  /** Workout start, for the count-up clock shown outside rest. */
+  /**
+   * Workout start, for the count-up clock shown outside rest. Never later
+   * than now: a start in the future (a clock set back since) would count up
+   * from below zero.
+   */
   startedAt: number
   /** Rest deadline (epoch ms) for a native countdown; `null` when not resting. */
   restEndsAt: number | null
@@ -118,7 +122,7 @@ export function buildSessionNotification(
 ): SessionNotificationContent | null {
   if (!session) return null
   const working = workingFace(session, t)
-  const base = { startedAt: session.startedAt }
+  const base = { startedAt: Math.min(session.startedAt, now) }
   const restEndsAt = session.restEndsAt
   // A rest that is over (or ends this instant) is not drawn: a countdown to a past deadline would read negative.
   if (!restEndsAt || restEndsAt <= now) {

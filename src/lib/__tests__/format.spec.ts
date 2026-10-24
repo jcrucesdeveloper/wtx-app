@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTimeOfDay, formatFileTimeStamp } from '../format'
+import { formatClock, formatTimeOfDay, formatFileTimeStamp } from '../format'
 
 describe('formatTimeOfDay', () => {
   it('formats morning, noon, and evening times with AM/PM', () => {
@@ -14,5 +14,23 @@ describe('formatFileTimeStamp', () => {
   it('pads hours and minutes into a sortable 24h HHmm stamp', () => {
     expect(formatFileTimeStamp(new Date(2026, 8, 20, 6, 5).getTime())).toBe('0605')
     expect(formatFileTimeStamp(new Date(2026, 8, 20, 18, 30).getTime())).toBe('1830')
+  })
+})
+
+describe('formatClock', () => {
+  it('formats m:ss and h:mm:ss', () => {
+    expect(formatClock(65)).toBe('1:05')
+    expect(formatClock(3723)).toBe('1:02:03')
+  })
+
+  it('never shows a negative time', () => {
+    expect(formatClock(-1)).toBe('0:00')
+    expect(formatClock(-0.4)).toBe('0:00')
+    expect(formatClock(-3600)).toBe('0:00')
+  })
+
+  it('shows 0:00 for a missing or broken duration', () => {
+    expect(formatClock(Number.NaN)).toBe('0:00')
+    expect(formatClock(Number.NEGATIVE_INFINITY)).toBe('0:00')
   })
 })
