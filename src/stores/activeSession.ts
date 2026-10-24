@@ -5,6 +5,7 @@ import {
   draftFromTemplate,
   newSetId,
   serializeSession,
+  singleTimedEntry,
   type SessionDraft,
   type SessionExerciseDraft,
   type SessionSetDraft,
@@ -57,6 +58,9 @@ function readStored(): ActiveSession | null {
     if (!parsed || typeof parsed !== 'object') return null
     for (const exercise of parsed.draft?.exercises ?? []) {
       for (const set of exercise.loggedSets ?? []) migrateSet(set)
+      // Saved before a timed exercise became one entry.
+      if (exercise.kind === 'time')
+        exercise.loggedSets = singleTimedEntry(exercise.loggedSets ?? [])
     }
     return parsed as ActiveSession
   } catch {
@@ -210,9 +214,14 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (found) found.set.completed = false
   }
 
+  /** A timed exercise is logged once: it only takes a set when it has none. */
   function addSet(exerciseIndex: number, opts?: { type?: SessionSetType }) {
     const exercise = session.value?.draft.exercises[exerciseIndex]
     if (!exercise) return
+    if (exercise.kind === 'time') {
+      if (exercise.loggedSets.length === 0) exercise.loggedSets = singleTimedEntry([])
+      return
+    }
     exercise.loggedSets.push({
       id: newSetId(),
       type: opts?.type ?? 'number',
@@ -222,10 +231,13 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     })
   }
 
-  /** Tapping a set's number cycles it through plain number → warm-up → drop set. */
+  /**
+   * Tapping a set's number cycles it through plain number → warm-up → drop
+   * set. A timed entry has no type to cycle: a warm-up plank is just a plank.
+   */
   function cycleSetType(exerciseIndex: number, setId: string) {
     const found = findSet(exerciseIndex, setId)
-    if (!found) return
+    if (!found || found.exercise.kind === 'time') return
     const set = found.set
     set.type = set.type === 'number' ? 'W' : set.type === 'W' ? 'D' : 'number'
   }
@@ -287,7 +299,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     }
     removedSet = null
     if (exercise.loggedSets.some((s) => s.id === setId)) return
-    exercise.loggedSets.splice(Math.min(removed.position, exercise.loggedSets.length), 0, removed.set)
+    exercise.loggedSets.splice(
+      Math.min(removed.position, exercise.loggedSets.length),
+      0,
+      removed.set,
+    )
 
     if (removed.rest && session.value.restEndsAt === null && removed.rest.endsAt > Date.now()) {
       session.value.restEndsAt = removed.rest.endsAt
@@ -379,9 +395,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
         weight: null,
         reps: null,
         completed: false,
-        ...(ghost
-          ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true }
-          : {}),
+        ...(ghost ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true } : {}),
       }
     })
   }
@@ -390,11 +404,16 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    * Switches how an exercise is tracked: weight × reps, or time (seconds go
    * where reps would). A session's exercise has one kind for all its sets —
    * that's how `.wts` stores it — so a set's numbers can't carry over: 80 kg
-   * × 8 is not 8 seconds. Every set keeps its place and type (warm-up, drop
-   * set) but comes back empty, prefilled with the last time this exercise was
-   * logged the same way, if it ever was. Callers own the confirmation when
-   * sets are logged. Only this session is affected — the routine it was
-   * started from is untouched.
+   * × 8 is not 8 seconds. Every set comes back empty, prefilled with the last
+   * time this exercise was logged the same way, if it ever was.
+   *
+   * Timed, it becomes one entry (see `singleTimedEntry`), ghosted with last
+   * time's longest. Its planned set count is kept, so switching back gives
+   * that many plain sets again — or last time's count, or 3, for an exercise
+   * planned by time. Warm-ups and drop sets don't survive the round trip.
+   *
+   * Callers own the confirmation when sets are logged. Only this session is
+   * affected — the routine it was started from is untouched.
    */
   function setExerciseKind(index: number, kind: 'reps' | 'time') {
     const exercise = session.value?.draft.exercises[index]
@@ -404,27 +423,26 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     const last = findLastLoggedExercise(useSessionsStore().sessions, exercise.name)
     const sameKind = last && isTimeExercise(last.note) === (kind === 'time') ? last : undefined
     const lastWorking = sameKind?.workingSets ?? []
-    const lastWarmup = sameKind?.warmupSets ?? []
-    let workingCursor = 0
-    let warmupCursor = 0
+    const ghosts =
+      kind === 'time'
+        ? [sameKind?.topSet]
+        : Array.from(
+            { length: exercise.sets > 1 ? exercise.sets : lastWorking.length || 3 },
+            (_, i) => lastWorking[Math.min(i, lastWorking.length - 1)],
+          )
 
     exercise.kind = kind
     exercise.reps = sameKind?.topSet?.reps ?? (kind === 'time' ? 60 : 10)
     exercise.weight = kind === 'time' ? 0 : (sameKind?.topSet?.weight ?? 0)
-    exercise.loggedSets = exercise.loggedSets.map((set) => {
-      const ghost =
-        set.type === 'W'
-          ? (lastWarmup[warmupCursor++] ?? lastWarmup[lastWarmup.length - 1])
-          : (lastWorking[workingCursor++] ?? lastWorking[lastWorking.length - 1])
-      return {
-        id: newSetId(),
-        type: set.type,
-        weight: null,
-        reps: null,
-        completed: false,
-        ...(ghost ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true } : {}),
-      }
-    })
+    if (kind === 'reps') exercise.sets = ghosts.length
+    exercise.loggedSets = ghosts.map((ghost) => ({
+      id: newSetId(),
+      type: 'number' as const,
+      weight: null,
+      reps: null,
+      completed: false,
+      ...(ghost ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true } : {}),
+    }))
   }
 
   /**
