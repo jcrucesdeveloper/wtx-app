@@ -592,3 +592,83 @@ Overhead Press | reps 3x10 | 40
     expect(shown()).toBe('Overhead Press')
   })
 })
+
+describe('FocusSession: in a group, the host moving on moves this screen', () => {
+  const THREE = `# Push Day
+unit: kg
+
+Bench Press | reps 3x8 | 60
+Overhead Press | reps 3x8 | 40
+Dips | reps 3x10
+`
+  let pinia: Pinia
+  let wrapper: VueWrapper | undefined
+
+  beforeEach(() => {
+    localStorage.clear()
+    i18n.global.locale.value = 'en'
+    pinia = createPinia()
+    setActivePinia(pinia)
+    Element.prototype.scrollIntoView = vi.fn<() => void>()
+  })
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+    vi.restoreAllMocks()
+  })
+
+  function start() {
+    const routines = useRoutinesStore()
+    const activeSession = useActiveSessionStore()
+    const routine = routines.add(THREE, '')
+    const parsed = routines.parsed(routine.id)
+    if (!parsed?.ok) throw new Error('routine should parse')
+    activeSession.start(routine, parsed.template, { roomId: 'room-1' })
+    wrapper = mount(FocusSession, { attachTo: document.body, global: { plugins: [pinia, i18n] } })
+    return activeSession
+  }
+
+  const shown = () => wrapper!.find('.now__name').text()
+
+  it('says which exercise is on screen', async () => {
+    const activeSession = start()
+    expect(activeSession.focusedExercise?.name).toBe('Bench Press')
+    await wrapper!.findAll('.where__step')[1]!.trigger('click')
+    expect(activeSession.focusedExercise?.name).toBe('Overhead Press')
+  })
+
+  it("goes to the host's exercise", async () => {
+    const activeSession = start()
+    activeSession.followRoomFocus(2)
+    await nextTick()
+    expect(shown()).toBe('Dips')
+    expect(activeSession.focusRequest).toBeNull()
+  })
+
+  it('waits for a number being typed, then goes', async () => {
+    const activeSession = start()
+    const weight = wrapper!.find<HTMLInputElement>('.fields input')
+    weight.element.focus()
+    await weight.trigger('focus')
+    activeSession.followRoomFocus(2)
+    await nextTick()
+    expect(shown()).toBe('Bench Press')
+
+    weight.element.blur()
+    await weight.trigger('blur')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await nextTick()
+    expect(shown()).toBe('Dips')
+  })
+
+  it('lets a member go back to another exercise afterwards', async () => {
+    const activeSession = start()
+    activeSession.followRoomFocus(2)
+    await nextTick()
+    // Remounting (leaving the screen and coming back) doesn't replay the move.
+    wrapper!.unmount()
+    wrapper = mount(FocusSession, { attachTo: document.body, global: { plugins: [pinia, i18n] } })
+    await nextTick()
+    expect(shown()).toBe('Bench Press')
+  })
+})
