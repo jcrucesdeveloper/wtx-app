@@ -1,4 +1,4 @@
-import type { WorkoutSession, WorkoutTemplate } from '@/lib/wtx'
+import type { WorkoutSession, WorkoutSessionExercise, WorkoutTemplate } from '@/lib/wtx'
 import { isTimeExercise, withTimeMarker } from '@/lib/sessionTime'
 import { newUuid } from '@/lib/uuid'
 
@@ -74,28 +74,39 @@ function todayLocal(): string {
   return `${y}-${m}-${d}`
 }
 
-/** The last logged working set for an exercise, matched by name (trimmed, case-insensitive). */
-function findLastExercise(lastSession: WorkoutSession | undefined, name: string) {
-  if (!lastSession) return undefined
-  const target = name.trim().toLowerCase()
-  return lastSession.exercises.find((e) => e.name.trim().toLowerCase() === target)
-}
-
 /**
  * Builds a fresh {@link SessionDraft} from a routine's parsed template, one
- * empty working-set row per planned set, ghosted with values from the most
- * recent matching session (if any) as a "last time" placeholder.
+ * empty row per planned set, ghosted as a "last time" placeholder set by set
+ * (warm-ups from warm-ups, working sets from working sets, in order).
+ *
+ * Each exercise is looked up in `lastSession` — the last time this routine
+ * was done — by name; a routine with the same exercise twice matches its
+ * first to that session's first, its second to the second. When the
+ * exercise isn't there (added to the routine since, or skipped that day),
+ * `lastLogged` supplies the last time it was logged anywhere. Without
+ * either, the routine's own plan is the placeholder.
  */
 export function draftFromTemplate(
   template: WorkoutTemplate,
   templateFilename: string,
   lastSession?: WorkoutSession,
+  lastLogged?: (name: string) => WorkoutSessionExercise | undefined,
 ): SessionDraft {
+  const seen = new Map<string, number>()
   const exercises: SessionExerciseDraft[] = template.exercises.map((exercise) => {
-    const found = findLastExercise(lastSession, exercise.name)
+    const key = exercise.name.trim().toLowerCase()
+    const occurrence = seen.get(key) ?? 0
+    seen.set(key, occurrence + 1)
+
     // Last time it was switched to the other kind: 8 reps are not 8 seconds, so no prefill.
-    const last =
-      found && isTimeExercise(found.note) === (exercise.kind === 'time') ? found : undefined
+    const usable = (e: WorkoutSessionExercise | undefined) =>
+      e && e.loggedSets.length > 0 && isTimeExercise(e.note) === (exercise.kind === 'time')
+        ? e
+        : undefined
+    const sameRoutine = lastSession?.exercises.filter((e) => e.name.trim().toLowerCase() === key)[
+      occurrence
+    ]
+    const last = usable(sameRoutine) ?? usable(lastLogged?.(exercise.name))
     const lastWorking = last?.workingSets ?? []
     const lastWarmup = last?.warmupSets ?? []
 

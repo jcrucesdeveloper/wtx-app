@@ -50,7 +50,7 @@ export function useFinishSession() {
     const elapsedSeconds = activeSession.elapsedSeconds
     const routine = current ? routines.getById(current.routineId) : undefined
 
-    const previousSession = routine ? sessions.lastForRoutine(routine) : undefined
+    const previousSession = routine ? sessions.lastForRoutine(routine, current?.draft.name) : undefined
     const pastSessions = sessions.list
       .map((s) => sessions.parsed(s.id))
       .filter((r): r is { ok: true; session: WorkoutSession } => r?.ok === true)
