@@ -40,7 +40,7 @@ export function clockTextFromDigits(digits: string): string {
 
 /** `m:ss` for a number of seconds, minutes unbounded (`3725` → `62:05`). */
 export function formatDurationInput(totalSeconds: number): string {
-  const seconds = Math.max(0, Math.round(totalSeconds))
+  const seconds = Number.isFinite(totalSeconds) ? Math.max(0, Math.round(totalSeconds)) : 0
   const m = Math.floor(seconds / 60)
   const s = seconds % 60
   return `${m}:${String(s).padStart(2, '0')}`

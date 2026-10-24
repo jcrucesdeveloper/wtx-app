@@ -87,5 +87,6 @@ describe('formatDurationInput', () => {
     expect(formatDurationInput(90)).toBe('1:30')
     expect(formatDurationInput(3725)).toBe('62:05')
     expect(formatDurationInput(-3)).toBe('0:00')
+    expect(formatDurationInput(Number.NaN)).toBe('0:00')
   })
 })
