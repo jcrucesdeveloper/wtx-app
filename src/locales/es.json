@@ -1248,7 +1248,7 @@
   },
   "restTimer": {
     "title": "Temporizador de descanso",
-    "hint": "Cuánto descansar tras cada serie de {name}, sin contar el calentamiento, en este entrenamiento.",
+    "hint": "Cuánto descansar tras cada serie de {name}, calentamiento incluido, en este entrenamiento.",
     "off": "Apagado",
     "presets": "Duraciones de descanso",
     "lessAria": "{n} segundos menos",

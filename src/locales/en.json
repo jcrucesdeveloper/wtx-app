@@ -1248,7 +1248,7 @@
   },
   "restTimer": {
     "title": "Rest timer",
-    "hint": "How long to rest after each set of {name}, warm-ups aside, in this workout.",
+    "hint": "How long to rest after each set of {name}, warm-ups included, in this workout.",
     "off": "Off",
     "presets": "Rest lengths",
     "lessAria": "{n} seconds less",
