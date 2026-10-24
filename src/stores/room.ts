@@ -21,7 +21,23 @@ import {
   type RoomEvent,
 } from '@/lib/roomEvents'
 import { newUuid } from '@/lib/uuid'
-import { hostOrder, mergeRoomRow, normalizeOrder, normalizeRemoved, orderedRoutine, sameOrder } from '@/lib/roomOrder'
+import {
+  ADDED_EXERCISES_MAX,
+  hostOrder,
+  mergeRoomRow,
+  missingAdded,
+  normalizeAdded,
+  normalizeFocus,
+  normalizeOrder,
+  normalizeRemoved,
+  normalizeSwaps,
+  orderedRoutine,
+  pendingSwaps,
+  roomSlots,
+  sameEdits,
+  sameOrder,
+  swapsRecord,
+} from '@/lib/roomOrder'
 import { isConflict, startVerdict, type WorkoutConflict } from '@/lib/workoutConflict'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
@@ -155,15 +171,28 @@ export const useRoomStore = defineStore('room', () => {
     return parsed?.ok ? parsed.template.exercises : []
   })
 
+  /** Exercises the host added mid-workout; each takes the next slot after the written routine's. */
+  const addedExercises = computed(() => normalizeAdded(room.value?.added_exercises))
+  /**
+   * The room's routine slot by slot: as written, then the host's additions,
+   * each under the movement the host swapped into it, if any.
+   */
+  const slots = computed<PlannedExercise[]>(() =>
+    roomSlots(baseRoutine.value, room.value?.added_exercises, room.value?.swapped_slots),
+  )
   /** The host's order of the routine's slots — the one order everyone follows. */
-  const order = computed(() => normalizeOrder(room.value?.exercise_order, baseRoutine.value.length))
+  const order = computed(() => normalizeOrder(room.value?.exercise_order, slots.value.length))
   const orderVersion = computed(() => room.value?.order_version ?? 0)
   /** Routine slots the host removed for everyone. */
-  const removedSlots = computed(() => normalizeRemoved(room.value?.removed_slots, baseRoutine.value.length))
+  const removedSlots = computed(() => normalizeRemoved(room.value?.removed_slots, slots.value.length))
+  /** Movements the host swapped into routine slots. */
+  const swaps = computed(() => normalizeSwaps(room.value?.swapped_slots, slots.value.length))
+  /** The slot the host is on. */
+  const focusSlot = computed(() => normalizeFocus(room.value?.focus_slot, slots.value.length))
 
   /** The room's routine, in the host's order, without the exercises the host removed. */
   const routineExercises = computed<PlannedExercise[]>(() =>
-    orderedRoutine(baseRoutine.value, room.value?.exercise_order, room.value?.removed_slots),
+    orderedRoutine(slots.value, room.value?.exercise_order, room.value?.removed_slots),
   )
 
   /** Planned working sets per exercise (by normalized name). */
@@ -496,6 +525,7 @@ export const useRoomStore = defineStore('room', () => {
     announcedRecords.clear()
     clearTimeout(orderRetryTimer)
     orderRetryTimer = undefined
+    routineRpcMissing = false
   }
 
   // --- Cheers and live PRs (Realtime Broadcast) -----------------------------
@@ -582,14 +612,41 @@ export const useRoomStore = defineStore('room', () => {
     const current = room.value
     if (!session || !current || session.roomId !== current.id || !myId.value || isHost.value) return
     const followedBefore = session.orderVersion
+    // A row older than the plan already followed has nothing new to add — and
+    // could bring back an exercise the host has since taken out.
+    const fresh = followedBefore === undefined || orderVersion.value >= followedBefore
     const { dropped, kept } = activeSession.followRoomRemovals(removedSlots.value)
+    const swapped = fresh
+      ? activeSession.followRoomSwaps(pendingSwaps(session.draft.exercises, swaps.value, session.roomSwaps))
+      : []
+    const added = fresh
+      ? activeSession.followRoomAdditions(
+          missingAdded(
+            baseRoutine.value.length,
+            addedExercises.value,
+            session.draft.exercises.map((e) => e.slot),
+            removedSlots.value,
+          ).map((slot) => ({ slot, name: slots.value[slot]!.name })),
+        )
+      : []
     const moved = activeSession.followRoomOrder(order.value, orderVersion.value)
+    const focus = focusSlot.value
+    const onScreen = activeSession.focusedExercise
+    const focused =
+      fresh && focus !== null && session.roomFocus !== focus ? activeSession.followRoomFocus(focus) : null
     // A session just started takes the room's routine silently; only a change mid-workout is news.
     if (!announce || followedBefore === undefined || !current.host_id) return
     const from = current.host_id
     for (const exercise of dropped) addEvent({ kind: 'exercise-removed', from, exercise, kept: false })
     for (const exercise of kept) addEvent({ kind: 'exercise-removed', from, exercise, kept: true })
-    if (moved) addEvent({ kind: 'order-changed', from })
+    for (const swap of swapped) {
+      addEvent({ kind: 'exercise-swapped', from, exercise: swap.from, to: swap.to, kept: swap.kept })
+    }
+    for (const exercise of added) addEvent({ kind: 'exercise-added', from, exercise })
+    // An exercise just added says enough about where things are; a reorder alone gets its own word.
+    if (moved && !added.length) addEvent({ kind: 'order-changed', from })
+    // Already there: nothing moves, nothing to say.
+    if (focused && focused !== onScreen) addEvent({ kind: 'focus-moved', from, exercise: focused.name })
   }
 
   watch(
@@ -599,6 +656,9 @@ export const useRoomStore = defineStore('room', () => {
       orderVersion,
       () => room.value?.exercise_order,
       () => room.value?.removed_slots,
+      () => room.value?.added_exercises,
+      () => room.value?.swapped_slots,
+      () => room.value?.focus_slot,
       isHost,
     ],
     () => followOrder(),
@@ -609,26 +669,79 @@ export const useRoomStore = defineStore('room', () => {
   let orderDirty = false
   let orderRetryTimer: ReturnType<typeof setTimeout> | undefined
 
+  /** What the host just changed, beyond what their session's order already says. */
+  interface HostEdit {
+    /** A routine slot the host took out — removed for everyone. */
+    removedSlot?: number
+    /** An exercise the host added: it takes the next slot. */
+    added?: string
+    /** A movement the host swapped into a slot. */
+    swap?: { slot: number; name: string }
+  }
+
   /**
-   * Host only: makes the order of the host's session the room's.
-   *
-   * @param removedSlot A routine slot the host just took out — removed for everyone.
+   * Host only: makes the host's session the room's plan — its order, what
+   * the host removed, added and swapped, and the exercise the host is on.
    */
-  function publishOrder(roomId: string, removedSlot?: number) {
+  function publishOrder(roomId: string, edit: HostEdit = {}) {
     const current = room.value
     const session = activeSession.session
     if (!current || current.id !== roomId || !session || current.status === 'finished') return
-    const count = baseRoutine.value.length
+    const added = edit.added ? [...addedExercises.value, edit.added] : addedExercises.value
+    const count = baseRoutine.value.length + added.length
+    const nextSwaps = new Map(swaps.value)
+    if (edit.swap) nextSwaps.set(edit.swap.slot, edit.swap.name)
     const next = hostOrder(
       current.exercise_order,
       session.draft.exercises.map((e) => e.slot),
       count,
     )
-    const removed = normalizeRemoved([...removedSlots.value, removedSlot], count)
-    if (sameOrder(next, order.value) && sameOrder(removed, removedSlots.value)) return
+    const removed = normalizeRemoved([...removedSlots.value, edit.removedSlot], count)
+    const focus = normalizeFocus(activeSession.focusedExercise?.slot, count) ?? focusSlot.value
+    const edits = { added, swaps: nextSwaps, focus }
+    const held = { added: addedExercises.value, swaps: swaps.value, focus: focusSlot.value }
+    if (sameOrder(next, order.value) && sameOrder(removed, removedSlots.value) && sameEdits(edits, held)) return
     // Shown here at once; the server's version for it comes back with the write.
-    room.value = { ...current, exercise_order: next, removed_slots: removed, order_version: orderVersion.value + 1 }
+    room.value = {
+      ...current,
+      exercise_order: next,
+      removed_slots: removed,
+      added_exercises: added,
+      swapped_slots: swapsRecord(nextSwaps),
+      focus_slot: focus,
+      order_version: orderVersion.value + 1,
+    }
     void sendOrder(roomId)
+  }
+
+  /** A server without `set_room_routine` yet: the host's order and removals still go through. */
+  let routineRpcMissing = false
+
+  /** The room's plan, through the newest call the server has that can carry it. */
+  async function writePlan(roomId: string, row: RoomRow) {
+    const sb = requireSupabase()
+    const order = row.exercise_order ?? []
+    const removed = row.removed_slots ?? []
+    const added = row.added_exercises ?? []
+    const swapped = row.swapped_slots ?? {}
+    const focus = row.focus_slot ?? null
+    if (!routineRpcMissing && (added.length || Object.keys(swapped).length || focus !== null)) {
+      const result = await sb.rpc('set_room_routine', {
+        p_room_id: roomId,
+        p_order: order,
+        p_removed: removed,
+        p_added: added,
+        p_swaps: swapped,
+        p_focus: focus,
+      })
+      // PGRST202: no such function — the migration isn't on this server yet.
+      if (result.error?.code !== 'PGRST202') return result
+      routineRpcMissing = true
+    }
+    // Nothing removed: the order alone, through the call every server has.
+    return removed.length
+      ? sb.rpc('set_room_plan', { p_room_id: roomId, p_order: order, p_removed: removed })
+      : sb.rpc('set_room_exercise_order', { p_room_id: roomId, p_order: order })
   }
 
   /** One write in flight at a time, always carrying the latest order; retried while offline. */
@@ -642,13 +755,9 @@ export const useRoomStore = defineStore('room', () => {
     try {
       do {
         orderDirty = false
-        const latest = room.value?.id === roomId ? room.value.exercise_order : null
-        if (!latest) return
-        const removed = room.value?.removed_slots ?? []
-        // Nothing removed: the order alone, through the call every server has.
-        const { data, error } = removed.length
-          ? await requireSupabase().rpc('set_room_plan', { p_room_id: roomId, p_order: latest, p_removed: removed })
-          : await requireSupabase().rpc('set_room_exercise_order', { p_room_id: roomId, p_order: latest })
+        const latest = room.value?.id === roomId ? room.value : null
+        if (!latest?.exercise_order) return
+        const { data, error } = await writePlan(roomId, latest)
         if (error) {
           // No code: the request never got there (offline) — try again shortly.
           if (!error.code) orderRetryTimer = setTimeout(() => void sendOrder(roomId), RETRY_MS)
@@ -656,13 +765,33 @@ export const useRoomStore = defineStore('room', () => {
           else await refreshRoom(roomId, { force: true }).catch(() => {})
           return
         }
-        // The host is the only writer: with nothing newer queued, the server's row is the truth.
-        if (data?.id && !orderDirty && room.value?.id === roomId) room.value = data
+        // The host is the only writer: with nothing newer queued, the server's row is the truth —
+        // all of it, unless the server can't hold the host's additions, swaps and focus yet.
+        if (data?.id && !orderDirty && room.value?.id === roomId) {
+          room.value = routineRpcMissing
+            ? {
+                ...data,
+                added_exercises: room.value.added_exercises,
+                swapped_slots: room.value.swapped_slots,
+                focus_slot: room.value.focus_slot,
+              }
+            : data
+        }
       } while (orderDirty)
     } finally {
       orderSending = false
     }
   }
+
+  // Where the host is, everyone goes: the host's move to another exercise is the room's.
+  watch(
+    [() => activeSession.focusedExercise?.slot, () => room.value?.id, () => room.value?.status, isHost],
+    () => {
+      const roomId = activeSession.session?.roomId
+      if (!roomId || !isHost.value || room.value?.id !== roomId || room.value.status !== 'active') return
+      publishOrder(roomId)
+    },
+  )
 
   // --- Pushing the active session's sets -----------------------------------
 
@@ -735,6 +864,20 @@ export const useRoomStore = defineStore('room', () => {
       return
     }
 
+    // The host's added exercise is everyone's: it takes the routine's next slot.
+    // A guest's stays theirs alone.
+    if (name === 'addExercise') {
+      after(() => {
+        const exercises = activeSession.session?.draft.exercises ?? []
+        const exercise = exercises[exercises.length - 1]
+        if (!isHost.value || !exercise || room.value?.id !== roomId) return
+        if (addedExercises.value.length >= ADDED_EXERCISES_MAX) return
+        exercise.slot = baseRoutine.value.length + addedExercises.value.length
+        publishOrder(roomId, { added: exercise.name.slice(0, EXERCISE_NAME_MAX) })
+      })
+      return
+    }
+
     if (!SET_ACTIONS.has(name)) return
     const exercises = activeSession.session?.draft.exercises ?? []
 
@@ -747,8 +890,10 @@ export const useRoomStore = defineStore('room', () => {
         // A removal the session refused (a guest's, of a routine exercise) changed nothing.
         if (name === 'removeExercise' && target && activeSession.session?.draft.exercises.includes(target)) return
         doneIds.forEach((id) => deleteSet(roomId, id))
-        // The host's removal of a routine exercise is everyone's.
-        if (name === 'removeExercise' && slot !== undefined && isHost.value) publishOrder(roomId, slot)
+        if (slot === undefined || !isHost.value) return
+        // The host's removal or swap of a routine exercise is everyone's.
+        if (name === 'removeExercise') publishOrder(roomId, { removedSlot: slot })
+        else publishOrder(roomId, { swap: { slot, name: String(args[1]).slice(0, EXERCISE_NAME_MAX) } })
       })
       return
     }
@@ -777,6 +922,8 @@ export const useRoomStore = defineStore('room', () => {
     order,
     orderVersion,
     removedSlots,
+    addedExercises,
+    focusSlot,
     progress,
     team,
     lastIn,
