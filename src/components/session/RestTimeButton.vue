@@ -8,8 +8,8 @@ import { formatClock } from '@/lib/format'
 
 /**
  * The exercise's rest, a chip beside the set's type: how long every set of it
- * rests (warm-ups aside), tapped to change it. One setting per exercise, so
- * it shows once, not on every set. It always shows the setting; a running
+ * rests, warm-ups and drop sets included, tapped to change it. One setting
+ * per exercise, so it shows once, not on every set. It always shows the setting; a running
  * rest counts down in the timer above the log button.
  */
 const props = defineProps<{ exerciseIndex: number }>()

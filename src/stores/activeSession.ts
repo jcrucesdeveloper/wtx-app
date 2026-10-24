@@ -200,7 +200,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     found.set.completed = true
     // A timed set has no weight: zero keeps it out of volume and weight records.
     if (found.exercise.kind === 'time') found.set.weight = 0
-    if (found.set.type !== 'W' && found.exercise.restSeconds) {
+    // Every logged set rests: warm-ups and drop sets too. A drop set's rest is
+    // simply cut short by logging the next one, and the last drop of a run
+    // needs its rest like any other set.
+    if (found.exercise.restSeconds) {
       startRestTimer(exerciseIndex, setId, found.exercise.restSeconds)
     }
   }
