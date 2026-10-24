@@ -158,8 +158,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    */
   function start(routine: StoredRoutine, template: WorkoutTemplate, opts?: { roomId?: string }) {
     const sessions = useSessionsStore()
-    const lastSession = sessions.lastForRoutine(routine)
-    const draft = draftFromTemplate(template, routine.filename, lastSession)
+    const lastSession = sessions.lastForRoutine(routine, template.name)
+    const draft = draftFromTemplate(template, routine.filename, lastSession, (name) =>
+      findLastLoggedExercise(sessions.sessions, name),
+    )
     // In a room, each exercise remembers its routine slot so the host's order can find it.
     if (opts?.roomId) draft.exercises.forEach((exercise, slot) => (exercise.slot = slot))
     session.value = {
