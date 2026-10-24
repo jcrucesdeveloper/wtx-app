@@ -492,6 +492,22 @@
     },
     "linkCopied": "Enlace copiado. Pégalo en el sticker de enlace de Instagram para que tus amigos encuentren WTX."
   },
+  "framedCamera": {
+    "title": "Cámara con el marco de tu entreno",
+    "close": "Cerrar cámara",
+    "frameAria": "Tu tarjeta de entreno, con la cámara en el espacio de la foto",
+    "starting": "Abriendo la cámara…",
+    "deniedTitle": "El acceso a la cámara está desactivado",
+    "deniedBody": "Permite que WTX use la cámara en los ajustes del teléfono, o elige una foto.",
+    "tryAgain": "Reintentar",
+    "hint": "Encuadra tu foto: tus números van debajo, tal como se ve.",
+    "reviewHint": "Así queda tu tarjeta. Usa la foto o haz otra.",
+    "retake": "Repetir",
+    "use": "Usar foto",
+    "gallery": "Elegir de la galería",
+    "shutter": "Hacer foto",
+    "flip": "Cambiar cámara"
+  },
   "sessionDetail": {
     "title": "Entrenamiento",
     "notFoundTitle": "Entrenamiento no encontrado",
