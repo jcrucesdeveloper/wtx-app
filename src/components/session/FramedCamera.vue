@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <p class="camera__hint">
+        <p v-if="state !== 'denied'" class="camera__hint">
           {{ t(state === 'captured' ? 'framedCamera.reviewHint' : 'framedCamera.hint') }}
         </p>
 
@@ -501,6 +501,11 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-items: center;
   gap: var(--space-4);
+  width: 100%;
+  max-width: 480px;
+  /* As tall with the review buttons as with the shutter: the card doesn't jump. */
+  min-height: calc(78px + var(--space-4) + var(--space-6));
+  margin: 0 auto;
   padding: var(--space-4) var(--space-6) var(--space-6);
 }
 
