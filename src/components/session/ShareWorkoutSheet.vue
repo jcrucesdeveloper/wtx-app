@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Camera, Download, Images, LayoutList, Share2, Sticker, X } from '@lucide/vue'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
+import FramedCamera from '@/components/session/FramedCamera.vue'
 import {
   paintWorkoutCard,
-  photoRect,
   renderWorkoutCard,
-  workoutCardFrame,
   TOP_LIFTS,
   type WorkoutCardData,
   type WorkoutCardFormat,
@@ -29,6 +28,8 @@ import {
 } from '@/services/nativeShare'
 import { installedTargets, sharePlatform, shareToTarget } from '@/services/shareTargets'
 import { canTakePhoto, pickPhoto, type PhotoSource } from '@/services/photoPicker'
+import { canStreamCamera, hasVideoInput } from '@/services/liveCamera'
+import { photoAreaPercent } from '@/lib/cameraFrame'
 import { publicRouteUrl } from '@/lib/publicUrl'
 import { track } from '@/services/analytics'
 import { HapticsService } from '@/services/haptics'
@@ -66,7 +67,14 @@ const STYLES: { id: WorkoutCardStyle; icon: typeof LayoutList }[] = [
 ]
 const FORMATS: WorkoutCardFormat[] = ['story', 'square']
 const saveRoute = imageSaveRoute()
-const offerCamera = canTakePhoto()
+const offerCamera = ref(canTakePhoto())
+// A computer with a webcam gets the framed camera too; a file input's
+// `capture` does nothing there, so it is only offered when one is listed.
+onMounted(async () => {
+  if (!offerCamera.value && (await hasVideoInput())) offerCamera.value = true
+})
+/** The in-app camera with the card's frame over it. */
+const cameraOpen = ref(false)
 const platform = sharePlatform()
 
 const installed = ref<InstalledTargets>({ instagram: false, whatsapp: false })
@@ -86,18 +94,7 @@ const needsPhoto = computed(() => style.value === 'photo' && !photo.value)
  * add or change it are laid over exactly that space, so it is plain what they
  * act on.
  */
-const photoArea = computed(() => {
-  if (!props.data) return {}
-  const frame = workoutCardFrame(format.value)
-  const rect = photoRect(props.data, format.value)
-  const pct = (value: number, of: number) => `${(value / of) * 100}%`
-  return {
-    left: pct(rect.x, frame.width),
-    top: pct(rect.y, frame.height),
-    width: pct(rect.width, frame.width),
-    height: pct(rect.height, frame.height),
-  }
-})
+const photoArea = computed(() => (props.data ? photoAreaPercent(props.data, format.value) : {}))
 const blocked = computed(() => !!busy.value || !props.data || needsPhoto.value)
 
 /** Every lift instead of the top few: only the Lifts look lists them. */
@@ -151,6 +148,16 @@ function pickFormat(next: WorkoutCardFormat) {
 // must not lock the sheet. The camera and the picker cover the app anyway.
 async function choosePhoto(source: PhotoSource) {
   notice.value = ''
+  // The camera is framed in the app where it can be: the system camera can't
+  // show the card over its viewfinder, so it is the fallback.
+  if (source === 'camera' && canStreamCamera()) {
+    cameraOpen.value = true
+    return
+  }
+  return systemPhoto(source)
+}
+
+async function systemPhoto(source: PhotoSource) {
   try {
     const image = await pickPhoto(source)
     if (image) {
@@ -161,6 +168,23 @@ async function choosePhoto(source: PhotoSource) {
     console.error('[share] photo failed', err)
     notice.value = t(source === 'camera' ? 'finishShare.cameraFailed' : 'finishShare.photoFailed')
   }
+}
+
+function usePhoto(image: HTMLImageElement) {
+  cameraOpen.value = false
+  photo.value = image
+  style.value = 'photo'
+}
+
+function cameraToGallery() {
+  cameraOpen.value = false
+  void systemPhoto('gallery')
+}
+
+/** The in-app camera couldn't start (no camera, busy, or no stream): the system camera instead. */
+function cameraUnavailable() {
+  cameraOpen.value = false
+  void systemPhoto('camera')
 }
 
 function removePhoto() {
@@ -443,6 +467,16 @@ function label(destination: ShareDestination): string {
     <p v-if="notice" class="notice" role="status">{{ notice }}</p>
     <p v-else-if="saveRoute === 'share-sheet'" class="notice">{{ t('finishShare.saveHint') }}</p>
   </BottomSheet>
+
+  <FramedCamera
+    v-model:format="format"
+    :open="open && cameraOpen"
+    :data="shown"
+    @close="cameraOpen = false"
+    @photo="usePhoto"
+    @gallery="cameraToGallery"
+    @unavailable="cameraUnavailable"
+  />
 </template>
 
 <style scoped>

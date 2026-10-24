@@ -492,6 +492,22 @@
     },
     "linkCopied": "Link copied. Paste it into Instagram's Link sticker so friends can find WTX."
   },
+  "framedCamera": {
+    "title": "Camera with your workout frame",
+    "close": "Close camera",
+    "frameAria": "Your workout card, with the camera in the photo space",
+    "starting": "Starting the camera…",
+    "deniedTitle": "Camera access is off",
+    "deniedBody": "Allow WTX to use the camera in your phone's settings, or choose a photo instead.",
+    "tryAgain": "Try again",
+    "hint": "Frame your shot: your numbers go below it, just as shown.",
+    "reviewHint": "This is your card. Use the photo, or take another.",
+    "retake": "Retake",
+    "use": "Use photo",
+    "gallery": "Choose from gallery",
+    "shutter": "Take photo",
+    "flip": "Switch camera"
+  },
   "sessionDetail": {
     "title": "Workout",
     "notFoundTitle": "Workout not found",
