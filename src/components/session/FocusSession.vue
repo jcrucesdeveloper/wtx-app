@@ -115,6 +115,9 @@ watch(
 )
 const current = computed(() => exercises.value[currentIndex.value])
 
+// The exercise on screen is where this member is — in a group, the host's is everyone's.
+watch(current, (exercise) => activeSession.setFocusedExercise(exercise ?? null), { immediate: true })
+
 /** Warm-ups/drop-sets show "W"/"D"; plain sets get sequential numbers, in array order. */
 const labeledSets = computed(() => {
   let workingIndex = 0
@@ -525,9 +528,44 @@ const segments = computed(() =>
   ),
 )
 
+/**
+ * In a group, the host moving on moves this screen too — but never from
+ * under a thumb: not while a number is being typed, nor while a menu or
+ * sheet for the exercise on screen is open (a swap picked there would land on
+ * the wrong exercise). It goes as soon as that's done.
+ */
+function typingHere(): boolean {
+  const el = document.activeElement
+  return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
+}
+
+function followHost() {
+  const request = activeSession.focusRequest
+  if (!request) return
+  if (editing.value || actionsOpen.value || swapOpen.value || menuSetId.value !== null || typingHere()) return
+  activeSession.clearFocusRequest(request.seq)
+  if (!exercises.value.includes(request.exercise)) return
+  pickedExercise.value = request.exercise
+  pickedSetId.value = null
+}
+
+watch(
+  [() => activeSession.focusRequest, editing, actionsOpen, swapOpen, menuSetId],
+  followHost,
+  { immediate: true },
+)
+
+// Leaving a field fires no state change of its own here (a set's note, a timed set's clock).
+function onFocusOut() {
+  setTimeout(followHost, 0)
+}
+document.addEventListener('focusout', onFocusOut)
+
 onBeforeUnmount(() => {
   clearTimeout(recordTimer)
   clearTimeout(undoTimer)
+  document.removeEventListener('focusout', onFocusOut)
+  activeSession.setFocusedExercise(null)
 })
 
 const showImage = ref(false)
