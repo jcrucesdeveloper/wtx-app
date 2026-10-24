@@ -52,7 +52,16 @@ export type RoomRow = {
    * the column still reads.
    */
   removed_slots?: number[] | null
-  /** Goes up with every reorder or removal; an older one is never applied over a newer one. */
+  /**
+   * Exercises the host added mid-workout, by name; each takes the next slot
+   * after the written routine's. Optional so a server without the column still reads.
+   */
+  added_exercises?: string[] | null
+  /** Slot (as text) → the movement the host swapped into it. Optional, like the above. */
+  swapped_slots?: Record<string, string> | null
+  /** The slot the host is on right now; members follow it. Optional, like the above. */
+  focus_slot?: number | null
+  /** Goes up with every change to the host's plan; an older one is never applied over a newer one. */
   order_version?: number
 }
 
@@ -385,6 +394,17 @@ export type Database = {
       }
       set_room_plan: {
         Args: { p_room_id: string; p_order: number[]; p_removed: number[] }
+        Returns: RoomRow
+      }
+      set_room_routine: {
+        Args: {
+          p_room_id: string
+          p_order: number[]
+          p_removed: number[]
+          p_added: string[]
+          p_swaps: Record<string, string>
+          p_focus: number | null
+        }
         Returns: RoomRow
       }
       join_room: {
