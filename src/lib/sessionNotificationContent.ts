@@ -20,7 +20,11 @@ export interface NotificationFace {
 
 /** What the native side needs to draw the ongoing notification. */
 export interface SessionNotificationContent extends NotificationFace {
-  /** Workout start, for the count-up clock shown outside rest. */
+  /**
+   * Workout start, for the count-up clock shown outside rest. Never later
+   * than now: a start in the future (a clock set back since) would count up
+   * from below zero.
+   */
   startedAt: number
   /** Rest deadline (epoch ms) for a native countdown; `null` when not resting. */
   restEndsAt: number | null
@@ -57,10 +61,14 @@ function setLoad(exercise: SessionExerciseDraft, set: SessionSetDraft, unit: str
   return t('sessionNotification.load', { weight: w, amount })
 }
 
-/** "Set 3 of 4 · 80 kg × 8" for the exercise's next set, or `null` when it has none left. */
+/**
+ * "Set 3 of 4 · 80 kg × 8" for the exercise's next set, or `null` when it has
+ * none left. A timed exercise is logged once, so it's just its time: "1:30".
+ */
 function nextSetLine(exercise: SessionExerciseDraft, unit: string, t: Translate): string | null {
   const set = exercise.loggedSets.find((s) => !s.completed)
   if (!set) return null
+  if (exercise.kind === 'time') return setLoad(exercise, set, unit, t)
   return t('sessionNotification.setLine', {
     position: setPosition(exercise, set, t),
     load: setLoad(exercise, set, unit, t),
@@ -93,12 +101,20 @@ function restFace(session: ActiveSession, t: Translate): NotificationFace {
     session.restExerciseIndex !== null ? exercises[session.restExerciseIndex] : undefined
   const sameExerciseNext = rested ? nextSetLine(rested, unit, t) : null
   if (rested && sameExerciseNext) {
-    return { title, body: t('sessionNotification.next', { next: sameExerciseNext }), detail: rested.name }
+    return {
+      title,
+      body: t('sessionNotification.next', { next: sameExerciseNext }),
+      detail: rested.name,
+    }
   }
   const upcoming = exercises[currentExerciseIndex(exercises)]
   const upcomingSet = upcoming ? nextSetLine(upcoming, unit, t) : null
   if (upcoming && upcomingSet) {
-    return { title, body: t('sessionNotification.next', { next: upcoming.name }), detail: upcomingSet }
+    return {
+      title,
+      body: t('sessionNotification.next', { next: upcoming.name }),
+      detail: upcomingSet,
+    }
   }
   return { title, body: t('sessionNotification.allDone'), detail: '' }
 }
@@ -118,7 +134,7 @@ export function buildSessionNotification(
 ): SessionNotificationContent | null {
   if (!session) return null
   const working = workingFace(session, t)
-  const base = { startedAt: session.startedAt }
+  const base = { startedAt: Math.min(session.startedAt, now) }
   const restEndsAt = session.restEndsAt
   // A rest that is over (or ends this instant) is not drawn: a countdown to a past deadline would read negative.
   if (!restEndsAt || restEndsAt <= now) {

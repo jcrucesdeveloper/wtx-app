@@ -91,9 +91,9 @@ describe('buildSessionNotification', () => {
     expect(buildSessionNotification(s, t, NOW)?.body).toBe('Warm-up · 5')
   })
 
-  it('shows a time exercise as a clock', () => {
+  it('shows a time exercise as just its clock: it is logged once', () => {
     const s = session([exercise('Plank', [set({ reps: 90 })], { kind: 'time', weight: 0 })])
-    expect(buildSessionNotification(s, t, NOW)?.body).toBe('Set 1 of 1 · 1:30')
+    expect(buildSessionNotification(s, t, NOW)?.body).toBe('1:30')
   })
 
   it('says so when every set is logged', () => {
@@ -189,6 +189,39 @@ describe('buildSessionNotification', () => {
   it('counts a rest that is still running down to its deadline', () => {
     const s = session([exercise('Squat', [set()])], { restEndsAt: NOW + 1, restExerciseIndex: 0 })
     expect(buildSessionNotification(s, t, NOW)?.restEndsAt).toBe(NOW + 1)
+  })
+
+  it('never starts the workout clock in the future, so it cannot count up from below zero', () => {
+    const s = session([exercise('Squat', [set()])], { startedAt: NOW + 5_000 })
+    expect(buildSessionNotification(s, t, NOW)?.startedAt).toBe(NOW)
+  })
+
+  it('keeps a start in the past as it is', () => {
+    const s = session([exercise('Squat', [set()])], { startedAt: NOW - 1_000 })
+    expect(buildSessionNotification(s, t, NOW)?.startedAt).toBe(NOW - 1_000)
+  })
+
+  it('clamps the start in the after-rest case too, with the rest still running', () => {
+    const s = session([exercise('Squat', [set({ completed: true }), set()])], {
+      startedAt: NOW + 60_000,
+      restEndsAt: NOW + 30_000,
+      restExerciseIndex: 0,
+    })
+    expect(buildSessionNotification(s, t, NOW)).toMatchObject({
+      startedAt: NOW,
+      restEndsAt: NOW + 30_000,
+      afterRest: { title: 'Squat' },
+    })
+  })
+
+  it('drops a rest extended and then cut back to before now', () => {
+    const s = session([exercise('Squat', [set()])], { restEndsAt: NOW - 15_000, restExerciseIndex: 0 })
+    expect(buildSessionNotification(s, t, NOW)?.restEndsAt).toBeNull()
+  })
+
+  it('sends no countdown once the rest is skipped', () => {
+    const s = session([exercise('Squat', [set()])], { restEndsAt: null, restExerciseIndex: null })
+    expect(buildSessionNotification(s, t, NOW)).toMatchObject({ restEndsAt: null, afterRest: null })
   })
 
   it('uses the session name when there are no exercises', () => {

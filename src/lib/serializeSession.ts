@@ -1,4 +1,4 @@
-import type { WorkoutSession, WorkoutTemplate } from '@/lib/wtx'
+import type { WorkoutSession, WorkoutSessionExercise, WorkoutTemplate } from '@/lib/wtx'
 import { isTimeExercise, withTimeMarker } from '@/lib/sessionTime'
 import { newUuid } from '@/lib/uuid'
 
@@ -65,6 +65,23 @@ export function newSetId(): string {
   return newUuid()
 }
 
+/**
+ * A timed exercise is logged once — how long the plank or the treadmill
+ * lasted — so it holds exactly one entry, a plain working set (a warm-up or
+ * drop set means nothing for a duration). Brings any other shape down to
+ * that one: the longest logged entry if any is logged, else the first; an
+ * empty list gets a blank entry. Sets already in that shape come back as-is.
+ */
+export function singleTimedEntry(sets: SessionSetDraft[]): SessionSetDraft[] {
+  if (sets.length === 1 && sets[0]!.type === 'number') return sets
+  const logged = sets.filter((s) => s.completed)
+  const keep = logged.length
+    ? logged.reduce((best, s) => ((s.reps ?? 0) > (best.reps ?? 0) ? s : best))
+    : sets[0]
+  if (!keep) return [{ id: newSetId(), type: 'number', weight: null, reps: null, completed: false }]
+  return [{ ...keep, type: 'number' }]
+}
+
 /** `YYYY-MM-DD` in local time (not `toISOString()`, which is UTC). */
 function todayLocal(): string {
   const now = new Date()
@@ -74,28 +91,39 @@ function todayLocal(): string {
   return `${y}-${m}-${d}`
 }
 
-/** The last logged working set for an exercise, matched by name (trimmed, case-insensitive). */
-function findLastExercise(lastSession: WorkoutSession | undefined, name: string) {
-  if (!lastSession) return undefined
-  const target = name.trim().toLowerCase()
-  return lastSession.exercises.find((e) => e.name.trim().toLowerCase() === target)
-}
-
 /**
  * Builds a fresh {@link SessionDraft} from a routine's parsed template, one
- * empty working-set row per planned set, ghosted with values from the most
- * recent matching session (if any) as a "last time" placeholder.
+ * empty row per planned set, ghosted as a "last time" placeholder set by set
+ * (warm-ups from warm-ups, working sets from working sets, in order).
+ *
+ * Each exercise is looked up in `lastSession` — the last time this routine
+ * was done — by name; a routine with the same exercise twice matches its
+ * first to that session's first, its second to the second. When the
+ * exercise isn't there (added to the routine since, or skipped that day),
+ * `lastLogged` supplies the last time it was logged anywhere. Without
+ * either, the routine's own plan is the placeholder.
  */
 export function draftFromTemplate(
   template: WorkoutTemplate,
   templateFilename: string,
   lastSession?: WorkoutSession,
+  lastLogged?: (name: string) => WorkoutSessionExercise | undefined,
 ): SessionDraft {
+  const seen = new Map<string, number>()
   const exercises: SessionExerciseDraft[] = template.exercises.map((exercise) => {
-    const found = findLastExercise(lastSession, exercise.name)
+    const key = exercise.name.trim().toLowerCase()
+    const occurrence = seen.get(key) ?? 0
+    seen.set(key, occurrence + 1)
+
     // Last time it was switched to the other kind: 8 reps are not 8 seconds, so no prefill.
-    const last =
-      found && isTimeExercise(found.note) === (exercise.kind === 'time') ? found : undefined
+    const usable = (e: WorkoutSessionExercise | undefined) =>
+      e && e.loggedSets.length > 0 && isTimeExercise(e.note) === (exercise.kind === 'time')
+        ? e
+        : undefined
+    const sameRoutine = lastSession?.exercises.filter((e) => e.name.trim().toLowerCase() === key)[
+      occurrence
+    ]
+    const last = usable(sameRoutine) ?? usable(lastLogged?.(exercise.name))
     const lastWorking = last?.workingSets ?? []
     const lastWarmup = last?.warmupSets ?? []
 
@@ -105,27 +133,33 @@ export function draftFromTemplate(
     let workingCursor = 0
     let warmupCursor = 0
 
-    const loggedSets: SessionSetDraft[] = Array.from({ length: exercise.sets }, (_, i) => {
-      const override = exercise.kind === 'reps' ? exercise.specificSets?.[i] : undefined
-      const type: SessionSetDraft['type'] =
-        override?.label === 'W' || override?.label === 'D' ? override.label : 'number'
+    // A timed exercise is one entry (see `singleTimedEntry`), ghosted with last time's longest.
+    const timed = exercise.kind === 'time'
+    const loggedSets: SessionSetDraft[] = Array.from(
+      { length: timed ? 1 : exercise.sets },
+      (_, i) => {
+        const override = timed ? undefined : exercise.specificSets?.[i]
+        const type: SessionSetDraft['type'] =
+          override?.label === 'W' || override?.label === 'D' ? override.label : 'number'
 
-      const ghost =
-        type === 'W'
-          ? (lastWarmup[warmupCursor++] ?? lastWarmup[lastWarmup.length - 1])
-          : (lastWorking[workingCursor++] ?? lastWorking[lastWorking.length - 1])
+        const ghost = timed
+          ? last?.topSet
+          : type === 'W'
+            ? (lastWarmup[warmupCursor++] ?? lastWarmup[lastWarmup.length - 1])
+            : (lastWorking[workingCursor++] ?? lastWorking[lastWorking.length - 1])
 
-      return {
-        id: newSetId(),
-        type,
-        weight: null,
-        reps: null,
-        completed: false,
-        ghostWeight: ghost?.weight ?? override?.weight ?? templateWeight,
-        ghostReps: ghost?.reps ?? override?.reps ?? templateReps,
-        ghostFromLast: ghost !== undefined,
-      }
-    })
+        return {
+          id: newSetId(),
+          type,
+          weight: null,
+          reps: null,
+          completed: false,
+          ghostWeight: ghost?.weight ?? override?.weight ?? templateWeight,
+          ghostReps: ghost?.reps ?? override?.reps ?? templateReps,
+          ghostFromLast: ghost !== undefined,
+        }
+      },
+    )
 
     return {
       name: exercise.name,
@@ -170,7 +204,9 @@ export function serializeSession(draft: SessionDraft): string {
     const weight = Number.isFinite(exercise.weight) ? exercise.weight : 0
     const note = exercise.kind === 'time' ? withTimeMarker(exercise.note) : exercise.note.trim()
 
-    const header = [name, `${exercise.sets}x${exercise.reps}`, String(weight)]
+    // A timed exercise is logged once, whatever its planned set count was before a switch.
+    const sets = exercise.kind === 'time' ? 1 : exercise.sets
+    const header = [name, `${sets}x${exercise.reps}`, String(weight)]
     if (note) header.push(note)
     lines.push(header.join(' | '))
 

@@ -173,9 +173,12 @@ export const useSessionsStore = defineStore('sessions', () => {
     })
   }
 
-  /** Most recent completed session for a routine, for "last time" prefill. */
-  function lastForRoutine(routine: StoredRoutine): WorkoutSession | undefined {
-    return findLastSessionForRoutine(sessions.value, routine)
+  /**
+   * Most recent completed session for a routine, for "last time" prefill: by
+   * its id, else by the routine's name (see {@link findLastSessionForRoutine}).
+   */
+  function lastForRoutine(routine: StoredRoutine, routineName?: string): WorkoutSession | undefined {
+    return findLastSessionForRoutine(sessions.value, routine, routineName)
   }
 
   return {

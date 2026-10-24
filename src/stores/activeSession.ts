@@ -5,6 +5,7 @@ import {
   draftFromTemplate,
   newSetId,
   serializeSession,
+  singleTimedEntry,
   type SessionDraft,
   type SessionExerciseDraft,
   type SessionSetDraft,
@@ -19,7 +20,7 @@ import { HapticsService } from '@/services/haptics'
 import { useSettingsStore } from '@/stores/settings'
 import { restJustEnded } from '@/lib/restTime'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
-import { applyOrder, needsReorder, splitRemoved } from '@/lib/roomOrder'
+import { applyOrder, needsReorder, splitRemoved, type PendingSwap } from '@/lib/roomOrder'
 
 /** The live, in-progress workout. Only one can be active at a time. */
 export interface ActiveSession {
@@ -30,6 +31,10 @@ export interface ActiveSession {
   roomId?: string
   /** The room order version (`rooms.order_version`) this session's exercises follow. */
   orderVersion?: number
+  /** The host's swaps this session has followed, slot → exercise name — each is followed once. */
+  roomSwaps?: Record<string, string>
+  /** The host's focus slot this session last followed, so it moves only when the host does. */
+  roomFocus?: number
   /** Epoch millis — elapsed time is always derived from this, never incremented. */
   startedAt: number
   /** Absolute deadline for the current rest timer; `null` when none is running. */
@@ -57,6 +62,9 @@ function readStored(): ActiveSession | null {
     if (!parsed || typeof parsed !== 'object') return null
     for (const exercise of parsed.draft?.exercises ?? []) {
       for (const set of exercise.loggedSets ?? []) migrateSet(set)
+      // Saved before a timed exercise became one entry.
+      if (exercise.kind === 'time')
+        exercise.loggedSets = singleTimedEntry(exercise.loggedSets ?? [])
     }
     return parsed as ActiveSession
   } catch {
@@ -138,6 +146,36 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     return !session.value?.roomId || exercise.slot === undefined || hostsRoom.value
   }
 
+  /**
+   * The exercise on screen, kept up to date by the session screen — never
+   * stored: the room store reads it to share where the group's host is.
+   */
+  const focusedExercise = ref<SessionExerciseDraft | null>(null)
+  function setFocusedExercise(exercise: SessionExerciseDraft | null) {
+    focusedExercise.value = exercise
+  }
+
+  /**
+   * An exercise the session screen should go to — the group's host moved
+   * there. The screen takes it when it is safe to (not mid-typing, no menu
+   * open on the exercise it is leaving). Each request is new, even for the
+   * same exercise.
+   */
+  const focusRequest = ref<{ exercise: SessionExerciseDraft; seq: number } | null>(null)
+  let focusSeq = 0
+  /** Records which host focus this session followed, and asks the screen to go there. */
+  function followRoomFocus(slot: number): SessionExerciseDraft | null {
+    if (!session.value) return null
+    session.value.roomFocus = slot
+    const exercise = session.value.draft.exercises.find((e) => e.slot === slot) ?? null
+    if (exercise) focusRequest.value = { exercise, seq: ++focusSeq }
+    return exercise
+  }
+  /** The screen went where it was asked to: the request is done. */
+  function clearFocusRequest(seq: number) {
+    if (focusRequest.value?.seq === seq) focusRequest.value = null
+  }
+
   /** Elapsed workout time, self-correcting after backgrounding/reload. */
   const elapsedSeconds = computed(() => {
     if (!session.value) return 0
@@ -158,8 +196,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    */
   function start(routine: StoredRoutine, template: WorkoutTemplate, opts?: { roomId?: string }) {
     const sessions = useSessionsStore()
-    const lastSession = sessions.lastForRoutine(routine)
-    const draft = draftFromTemplate(template, routine.filename, lastSession)
+    const lastSession = sessions.lastForRoutine(routine, template.name)
+    const draft = draftFromTemplate(template, routine.filename, lastSession, (name) =>
+      findLastLoggedExercise(sessions.sessions, name),
+    )
     // In a room, each exercise remembers its routine slot so the host's order can find it.
     if (opts?.roomId) draft.exercises.forEach((exercise, slot) => (exercise.slot = slot))
     session.value = {
@@ -173,6 +213,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       restSetId: null,
     }
     removedSet = null
+    focusRequest.value = null
     now.value = Date.now()
     void warmExerciseImages(template.exercises.map((e) => e.name))
   }
@@ -200,7 +241,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     found.set.completed = true
     // A timed set has no weight: zero keeps it out of volume and weight records.
     if (found.exercise.kind === 'time') found.set.weight = 0
-    if (found.set.type !== 'W' && found.exercise.restSeconds) {
+    // Every logged set rests: warm-ups and drop sets too. A drop set's rest is
+    // simply cut short by logging the next one, and the last drop of a run
+    // needs its rest like any other set.
+    if (found.exercise.restSeconds) {
       startRestTimer(exerciseIndex, setId, found.exercise.restSeconds)
     }
   }
@@ -210,9 +254,14 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (found) found.set.completed = false
   }
 
+  /** A timed exercise is logged once: it only takes a set when it has none. */
   function addSet(exerciseIndex: number, opts?: { type?: SessionSetType }) {
     const exercise = session.value?.draft.exercises[exerciseIndex]
     if (!exercise) return
+    if (exercise.kind === 'time') {
+      if (exercise.loggedSets.length === 0) exercise.loggedSets = singleTimedEntry([])
+      return
+    }
     exercise.loggedSets.push({
       id: newSetId(),
       type: opts?.type ?? 'number',
@@ -222,10 +271,13 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     })
   }
 
-  /** Tapping a set's number cycles it through plain number → warm-up → drop set. */
+  /**
+   * Tapping a set's number cycles it through plain number → warm-up → drop
+   * set. A timed entry has no type to cycle: a warm-up plank is just a plank.
+   */
   function cycleSetType(exerciseIndex: number, setId: string) {
     const found = findSet(exerciseIndex, setId)
-    if (!found) return
+    if (!found || found.exercise.kind === 'time') return
     const set = found.set
     set.type = set.type === 'number' ? 'W' : set.type === 'W' ? 'D' : 'number'
   }
@@ -287,7 +339,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     }
     removedSet = null
     if (exercise.loggedSets.some((s) => s.id === setId)) return
-    exercise.loggedSets.splice(Math.min(removed.position, exercise.loggedSets.length), 0, removed.set)
+    exercise.loggedSets.splice(
+      Math.min(removed.position, exercise.loggedSets.length),
+      0,
+      removed.set,
+    )
 
     if (removed.rest && session.value.restEndsAt === null && removed.rest.endsAt > Date.now()) {
       session.value.restEndsAt = removed.rest.endsAt
@@ -310,7 +366,12 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    */
   function addExercise(name: string) {
     if (!session.value) return
-    session.value.draft.exercises.push({
+    session.value.draft.exercises.push(newExercise(name))
+  }
+
+  /** An exercise added mid-workout: 3 empty sets of 10, the way the plan has nothing to say. */
+  function newExercise(name: string): SessionExerciseDraft {
+    return {
       name,
       kind: 'reps',
       sets: 3,
@@ -324,7 +385,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
         reps: null,
         completed: false,
       })),
-    })
+    }
   }
 
   /**
@@ -357,7 +418,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     const exercise = session.value?.draft.exercises[index]
     if (!session.value || !exercise) return
     if (session.value.restExerciseIndex === index) skipRestTimer()
+    swapInto(exercise, name)
+  }
 
+  /** Puts `name` in `exercise`'s place: same set shape, nothing logged, last time's numbers as hints. */
+  function swapInto(exercise: SessionExerciseDraft, name: string) {
     const last = findLastLoggedExercise(useSessionsStore().sessions, name)
     const lastWorking = last?.workingSets ?? []
     const lastWarmup = last?.warmupSets ?? []
@@ -379,9 +444,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
         weight: null,
         reps: null,
         completed: false,
-        ...(ghost
-          ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true }
-          : {}),
+        ...(ghost ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true } : {}),
       }
     })
   }
@@ -390,11 +453,16 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
    * Switches how an exercise is tracked: weight × reps, or time (seconds go
    * where reps would). A session's exercise has one kind for all its sets —
    * that's how `.wts` stores it — so a set's numbers can't carry over: 80 kg
-   * × 8 is not 8 seconds. Every set keeps its place and type (warm-up, drop
-   * set) but comes back empty, prefilled with the last time this exercise was
-   * logged the same way, if it ever was. Callers own the confirmation when
-   * sets are logged. Only this session is affected — the routine it was
-   * started from is untouched.
+   * × 8 is not 8 seconds. Every set comes back empty, prefilled with the last
+   * time this exercise was logged the same way, if it ever was.
+   *
+   * Timed, it becomes one entry (see `singleTimedEntry`), ghosted with last
+   * time's longest. Its planned set count is kept, so switching back gives
+   * that many plain sets again — or last time's count, or 3, for an exercise
+   * planned by time. Warm-ups and drop sets don't survive the round trip.
+   *
+   * Callers own the confirmation when sets are logged. Only this session is
+   * affected — the routine it was started from is untouched.
    */
   function setExerciseKind(index: number, kind: 'reps' | 'time') {
     const exercise = session.value?.draft.exercises[index]
@@ -404,27 +472,26 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     const last = findLastLoggedExercise(useSessionsStore().sessions, exercise.name)
     const sameKind = last && isTimeExercise(last.note) === (kind === 'time') ? last : undefined
     const lastWorking = sameKind?.workingSets ?? []
-    const lastWarmup = sameKind?.warmupSets ?? []
-    let workingCursor = 0
-    let warmupCursor = 0
+    const ghosts =
+      kind === 'time'
+        ? [sameKind?.topSet]
+        : Array.from(
+            { length: exercise.sets > 1 ? exercise.sets : lastWorking.length || 3 },
+            (_, i) => lastWorking[Math.min(i, lastWorking.length - 1)],
+          )
 
     exercise.kind = kind
     exercise.reps = sameKind?.topSet?.reps ?? (kind === 'time' ? 60 : 10)
     exercise.weight = kind === 'time' ? 0 : (sameKind?.topSet?.weight ?? 0)
-    exercise.loggedSets = exercise.loggedSets.map((set) => {
-      const ghost =
-        set.type === 'W'
-          ? (lastWarmup[warmupCursor++] ?? lastWarmup[lastWarmup.length - 1])
-          : (lastWorking[workingCursor++] ?? lastWorking[lastWorking.length - 1])
-      return {
-        id: newSetId(),
-        type: set.type,
-        weight: null,
-        reps: null,
-        completed: false,
-        ...(ghost ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true } : {}),
-      }
-    })
+    if (kind === 'reps') exercise.sets = ghosts.length
+    exercise.loggedSets = ghosts.map((ghost) => ({
+      id: newSetId(),
+      type: 'number' as const,
+      weight: null,
+      reps: null,
+      completed: false,
+      ...(ghost ? { ghostWeight: ghost.weight, ghostReps: ghost.reps, ghostFromLast: true } : {}),
+    }))
   }
 
   /**
@@ -495,6 +562,68 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       setExercises(exercises.filter((e) => !drop.includes(e)))
     }
     return { dropped: drop.map((e) => e.name), kept: keep.map((e) => e.name) }
+  }
+
+  /**
+   * Follows the group host's swaps of routine exercises. One with nothing
+   * logged on it just becomes the new movement, in place. One with sets
+   * logged keeps them — they were lifted on the old movement, and stay in
+   * this workout's history — as this member's own exercise, and the new
+   * movement goes in right after it, in the routine's slot, ready to do.
+   * Each swap is followed once, so a member's own later swap of that slot
+   * stands until the host swaps it again.
+   *
+   * @returns Each swap followed, and whether the member's old sets were kept.
+   */
+  function followRoomSwaps(
+    swaps: readonly PendingSwap<SessionExerciseDraft>[],
+  ): { from: string; to: string; kept: boolean }[] {
+    if (!session.value || !swaps.length) return []
+    const followed = { ...session.value.roomSwaps }
+    const result: { from: string; to: string; kept: boolean }[] = []
+    for (const { slot, name, exercise } of swaps) {
+      followed[slot] = name
+      const exercises = session.value.draft.exercises
+      if (!exercise || !exercises.includes(exercise)) continue
+      if (exercise.name.trim().toLowerCase() === name.trim().toLowerCase()) continue
+      const from = exercise.name
+      const index = exercises.indexOf(exercise)
+      if (!exercise.loggedSets.some((s) => s.completed)) {
+        if (session.value.restExerciseIndex === index) skipRestTimer()
+        swapInto(exercise, name)
+        result.push({ from, to: name, kept: false })
+        continue
+      }
+      const next: SessionExerciseDraft = {
+        ...exercise,
+        loggedSets: exercise.loggedSets.map((set) => ({ ...set })),
+        slot,
+      }
+      swapInto(next, name)
+      exercise.loggedSets = exercise.loggedSets.filter((s) => s.completed)
+      delete exercise.slot
+      setExercises([...exercises.slice(0, index + 1), next, ...exercises.slice(index + 1)])
+      result.push({ from, to: name, kept: true })
+    }
+    session.value.roomSwaps = followed
+    return result
+  }
+
+  /**
+   * Adds the exercises the group's host added, each in the routine slot the
+   * host gave it. Where they go is the room order's business.
+   *
+   * @returns The names added.
+   */
+  function followRoomAdditions(added: readonly { slot: number; name: string }[]): string[] {
+    if (!session.value || !added.length) return []
+    const exercises = [...session.value.draft.exercises]
+    for (const { slot, name } of added) {
+      if (exercises.some((e) => e.slot === slot)) continue
+      exercises.push({ ...newExercise(name), slot })
+    }
+    setExercises(exercises)
+    return added.map((a) => a.name)
   }
 
   function startRestTimer(exerciseIndex: number, setId: string, seconds: number) {
@@ -624,6 +753,13 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     reorderExercises,
     followRoomOrder,
     followRoomRemovals,
+    followRoomSwaps,
+    followRoomAdditions,
+    followRoomFocus,
+    focusedExercise,
+    setFocusedExercise,
+    focusRequest,
+    clearFocusRequest,
     hostsRoom,
     setHostsRoom,
     canReorder,

@@ -613,6 +613,8 @@ function drawCard(ctx: Ctx, data: WorkoutCardData, frame: WorkoutCardFrame) {
  * says it is a workout, and where it came from.
  */
 const FRAME_BORDER = 32
+/** The corner radius of the photo in the photo look. */
+const PHOTO_RADIUS = 28
 /** The frame's text is inset further than the photo, so it lines up inside the chin. */
 const CHIN_INSET = 72
 /** The story's chin is a little larger than the square's: it has the room, and a story is seen smaller. */
@@ -689,7 +691,7 @@ function drawPhotoCard(
 
   const rect = photoRect(data, format)
   ctx.save()
-  roundedRect(ctx, rect.x, rect.y, rect.width, rect.height, 28)
+  roundedRect(ctx, rect.x, rect.y, rect.width, rect.height, PHOTO_RADIUS)
   ctx.clip()
   if (photo) {
     const crop = coverCrop(photo.width, photo.height, rect.width, rect.height)
@@ -819,6 +821,26 @@ export function paintWorkoutCard(
   canvas.width = size.width
   canvas.height = size.height
   drawWorkoutCard(ctx, data, style, photo, format)
+}
+
+/**
+ * The photo look with nothing where the photo goes: the in-app camera lays it
+ * over the live preview, so the framing on screen is the framing on the card.
+ * The hole is the same rounded rect the photo is clipped to.
+ */
+export function paintPhotoFrame(
+  canvas: HTMLCanvasElement,
+  data: WorkoutCardData,
+  format: WorkoutCardFormat = 'story',
+): void {
+  paintWorkoutCard(canvas, data, 'photo', undefined, format)
+  const ctx = canvas.getContext('2d')!
+  const rect = photoRect(data, format)
+  ctx.save()
+  roundedRect(ctx, rect.x, rect.y, rect.width, rect.height, PHOTO_RADIUS)
+  ctx.clip()
+  ctx.clearRect(rect.x, rect.y, rect.width, rect.height)
+  ctx.restore()
 }
 
 /**
