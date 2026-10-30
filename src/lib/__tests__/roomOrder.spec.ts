@@ -4,12 +4,21 @@ import {
   hostOrder,
   identityOrder,
   mergeRoomRow,
+  missingAdded,
   needsReorder,
+  normalizeAdded,
+  normalizeFocus,
   normalizeOrder,
   normalizeRemoved,
+  normalizeSwaps,
   orderedRoutine,
+  pendingSwaps,
+  roomSlots,
+  sameEdits,
   sameOrder,
   splitRemoved,
+  swapsRecord,
+  type RoomOrderFields,
 } from '@/lib/roomOrder'
 
 const ex = (name: string, slot?: number) => ({ name, ...(slot === undefined ? {} : { slot }) })
@@ -166,5 +175,78 @@ describe('mergeRoomRow with removed slots', () => {
     const stale = { status: 'active', exercise_order: [0, 1], removed_slots: [], order_version: 3 }
     expect(mergeRoomRow(held, stale).removed_slots).toEqual([1])
     expect(mergeRoomRow(stale, held).removed_slots).toEqual([1])
+  })
+})
+
+describe("the host's additions, swaps and focus", () => {
+  it('keeps added exercises up to the first junk entry, so every slot keeps its meaning', () => {
+    expect(normalizeAdded(null)).toEqual([])
+    expect(normalizeAdded([' Push-up ', 'Curl'])).toEqual(['Push-up', 'Curl'])
+    expect(normalizeAdded(['Push-up', '', 'Curl'])).toEqual(['Push-up'])
+    expect(normalizeAdded(['a'.repeat(201)])).toEqual([])
+  })
+
+  it('keeps swaps for slots that exist, by their name', () => {
+    expect(normalizeSwaps(null, 3)).toEqual(new Map())
+    expect(normalizeSwaps(['x'], 3)).toEqual(new Map())
+    expect(normalizeSwaps({ '1': 'Arnold Press', '5': 'Far', '01': 'Odd', x: 'Junk', '2': '' }, 3)).toEqual(
+      new Map([[1, 'Arnold Press']]),
+    )
+  })
+
+  it('keeps a focus slot only when it is one', () => {
+    expect(normalizeFocus(2, 3)).toBe(2)
+    expect(normalizeFocus(3, 3)).toBeNull()
+    expect(normalizeFocus(null, 3)).toBeNull()
+    expect(normalizeFocus('1', 3)).toBeNull()
+  })
+
+  it('lays out the routine slot by slot: as written, then added, under swapped names', () => {
+    const routine = [
+      { name: 'Bench', kind: 'reps' as const, sets: 4 },
+      { name: 'Row', kind: 'reps' as const, sets: 3 },
+    ]
+    expect(roomSlots(routine, ['Push-up'], { '0': 'DB Bench', '2': 'Diamond Push-up' })).toEqual([
+      { name: 'DB Bench', kind: 'reps', sets: 4 },
+      { name: 'Row', kind: 'reps', sets: 3 },
+      { name: 'Diamond Push-up', kind: 'reps', sets: 3 },
+    ])
+  })
+
+  it('finds the added slots a session lacks, except the ones removed since', () => {
+    expect(missingAdded(3, ['a', 'b', 'c'], [0, 1, 2, 3, undefined], [5])).toEqual([4])
+    expect(missingAdded(3, [], [0, 1, 2], [])).toEqual([])
+  })
+
+  it('lists the swaps not followed yet, with the exercise in each slot', () => {
+    const a = ex('Bench', 0)
+    const b = ex('Row', 1)
+    const swaps = new Map([
+      [0, 'DB Bench'],
+      [1, 'Cable Row'],
+      [2, 'Dips'],
+    ])
+    expect(pendingSwaps([a, b], swaps, { '1': 'Cable Row' })).toEqual([
+      { slot: 0, name: 'DB Bench', exercise: a },
+      { slot: 2, name: 'Dips' },
+    ])
+  })
+
+  it('compares two plans by their additions, swaps and focus', () => {
+    const plan = { added: ['a'], swaps: new Map([[0, 'x']]), focus: 1 }
+    expect(sameEdits(plan, { added: ['a'], swaps: new Map([[0, 'x']]), focus: 1 })).toBe(true)
+    expect(sameEdits(plan, { ...plan, focus: 2 })).toBe(false)
+    expect(sameEdits(plan, { ...plan, added: ['b'] })).toBe(false)
+    expect(sameEdits(plan, { ...plan, swaps: new Map([[0, 'y']]) })).toBe(false)
+  })
+
+  it('stores swaps as a record keyed by slot', () => {
+    expect(swapsRecord(new Map([[2, 'b'], [0, 'a']]))).toEqual({ '0': 'a', '2': 'b' })
+  })
+
+  it('keeps the held additions, swaps and focus when the incoming row is stale', () => {
+    const held: RoomOrderFields = { added_exercises: ['a'], swapped_slots: { '0': 'x' }, focus_slot: 2, order_version: 4 }
+    const stale: RoomOrderFields = { added_exercises: [], swapped_slots: {}, focus_slot: 0, order_version: 3 }
+    expect(mergeRoomRow(held, stale)).toMatchObject({ added_exercises: ['a'], swapped_slots: { '0': 'x' }, focus_slot: 2 })
   })
 })

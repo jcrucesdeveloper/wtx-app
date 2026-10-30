@@ -53,6 +53,32 @@ describe('activeSession rest timer', () => {
     vi.useRealTimers()
   })
 
+  describe('completeSet', () => {
+    it.each([
+      ['a working set', 0],
+      ['a warm-up', 1],
+      ['a drop set', 2],
+    ])('starts the exercise’s rest after %s', (_label, cycles) => {
+      const store = startWorkout()
+      const setId = exercise(store, 0).loggedSets[0]!.id
+      for (let i = 0; i < cycles; i++) store.cycleSetType(0, setId)
+
+      store.completeSet(0, setId)
+      expect(store.session!.restSetId).toBe(setId)
+      expect(store.session!.restExerciseIndex).toBe(0)
+      expect(store.restRemainingSeconds).toBe(90)
+    })
+
+    it('starts no rest for an exercise without one, warm-up or not', () => {
+      const store = startWorkout()
+      const setId = exercise(store, 1).loggedSets[0]!.id
+      store.cycleSetType(1, setId)
+
+      store.completeSet(1, setId)
+      expect(store.session!.restEndsAt).toBeNull()
+    })
+  })
+
   describe('setRestSeconds', () => {
     it('changes the rest for the rest of this workout', () => {
       const store = startWorkout()

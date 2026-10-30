@@ -24,6 +24,13 @@ export type RoomEvent = { id: string; at: number; from: string } & (
   // The host took a routine exercise out for everyone; `kept` when this member
   // had sets logged on it, which stay (`from` is the host).
   | { kind: 'exercise-removed'; exercise: string; kept: boolean }
+  // The host added an exercise to the routine for everyone (`from` is the host).
+  | { kind: 'exercise-added'; exercise: string }
+  // The host swapped a routine exercise for another movement; `kept` when this
+  // member had sets logged on the old one, which stay as their own (`from` is the host).
+  | { kind: 'exercise-swapped'; exercise: string; to: string; kept: boolean }
+  // The host moved on to another exercise, and this member's screen with them (`from` is the host).
+  | { kind: 'focus-moved'; exercise: string }
   // Team moments (`from` is '' — they belong to everyone).
   | { kind: 'team-cleared'; exercise: string }
   | { kind: 'team-finished' }

@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Icon;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -34,6 +36,13 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  *
  * Held by {@link SessionNotificationService}, a foreground service, so the
  * process (and that timer) stays alive while the app is in the background.
+ *
+ * Times from JS (epoch ms) are turned into elapsed-realtime ms once, as they
+ * arrive: the Chronometer and {@link SessionRestEnd} both count on that
+ * clock, so the swap lands as the countdown reaches zero even if the wall
+ * clock moves. Plugin calls arrive on Capacitor's own thread and are handed
+ * to the main looper, where the rest actions and the rest end also run, so
+ * the rest state is only ever touched from one thread.
  */
 @CapacitorPlugin(name = "WtxSessionNotification")
 public class SessionNotificationPlugin extends Plugin {
@@ -51,6 +60,14 @@ public class SessionNotificationPlugin extends Plugin {
 
     /** The app's accent, for the small icon and action labels. */
     private static final int ACCENT = 0xFFE0263A;
+    /**
+     * With no foreground service holding it, a rest face is removed by the
+     * system this long after its deadline if nothing replaced it (the process
+     * died or was frozen): the countdown still reads 0:00 then, never below.
+     */
+    private static final long ORPHAN_TIMEOUT_SLACK_MS = 1000;
+
+    private static final Handler main = new Handler(Looper.getMainLooper());
 
     /** What the service shows when it starts, and what a dismissal puts back; `null` once the workout ends. */
     static volatile Notification current;
@@ -62,8 +79,10 @@ public class SessionNotificationPlugin extends Plugin {
 
     /** The latest options from JS, so a rest action can redraw without a round trip. */
     private JSObject lastOptions;
-    /** The rest deadline currently drawn (epoch ms); 0 when not resting. */
+    /** The rest deadline currently drawn ({@link SystemClock#elapsedRealtime()} ms); 0 when not resting. */
     private long restEndsAt;
+    /** The workout start ({@link SystemClock#elapsedRealtime()} ms), never later than when it arrived. */
+    private long startedAt;
 
     @Override
     public void load() {
@@ -103,18 +122,35 @@ public class SessionNotificationPlugin extends Plugin {
         return intent != null && intent.getBooleanExtra(EXTRA_OPEN_SESSION, false);
     }
 
+    /** Epoch ms from JS as elapsed-realtime ms, on the clock the Chronometer runs on. */
+    private static long toElapsed(long epochMs) {
+        return SystemClock.elapsedRealtime() + (epochMs - System.currentTimeMillis());
+    }
+
     @PluginMethod
     public void show(PluginCall call) {
         JSObject data = call.getData();
-        ensureChannel(getContext(), data.optString("channelName", "Workout"), data.optString("channelDescription", ""));
-        lastOptions = data;
-        restEndsAt = data.optLong("restEndsAt", 0);
-        render();
-        call.resolve();
+        main.post(() -> {
+            ensureChannel(getContext(), data.optString("channelName", "Workout"), data.optString("channelDescription", ""));
+            long now = System.currentTimeMillis();
+            lastOptions = data;
+            long restEpoch = data.optLong("restEndsAt", 0);
+            restEndsAt = restEpoch > now ? toElapsed(restEpoch) : 0;
+            startedAt = toElapsed(Math.min(data.optLong("startedAt", now), now));
+            render();
+            call.resolve();
+        });
     }
 
     @PluginMethod
     public void stop(PluginCall call) {
+        main.post(() -> {
+            stopNow();
+            call.resolve();
+        });
+    }
+
+    private void stopNow() {
         SessionRestEnd.cancel();
         current = null;
         lastOptions = null;
@@ -125,7 +161,6 @@ public class SessionNotificationPlugin extends Plugin {
         serviceStarted = false;
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) manager.cancel(NOTIFICATION_ID);
-        call.resolve();
     }
 
     @Override
@@ -146,7 +181,7 @@ public class SessionNotificationPlugin extends Plugin {
 
     private void applyRestAction(String action) {
         if (lastOptions == null) return;
-        long now = System.currentTimeMillis();
+        long now = SystemClock.elapsedRealtime();
         if (restEndsAt <= now) return;
         int step = lastOptions.optInt("restStep", 15);
         if (SessionNotificationReceiver.ACTION_SKIP.equals(action)) {
@@ -168,9 +203,7 @@ public class SessionNotificationPlugin extends Plugin {
     private void render() {
         if (lastOptions == null) return;
         Context context = getContext();
-        long startedAt = lastOptions.optLong("startedAt", System.currentTimeMillis());
-        long now = System.currentTimeMillis();
-        boolean resting = restEndsAt > now;
+        boolean resting = restEndsAt > SystemClock.elapsedRealtime();
         JSObject afterRest = lastOptions.getJSObject("afterRest");
 
         SessionRestEnd.settle();
@@ -207,8 +240,9 @@ public class SessionNotificationPlugin extends Plugin {
     }
 
     /**
-     * One face of the notification. {@code when} is the rest deadline when
-     * {@code countDown}, else the workout start the clock counts up from.
+     * One face of the notification. {@code when} (elapsed-realtime ms) is the
+     * rest deadline when {@code countDown}, else the workout start the clock
+     * counts up from.
      */
     private Notification build(Context context, JSObject face, long when, boolean countDown) {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
@@ -219,11 +253,11 @@ public class SessionNotificationPlugin extends Plugin {
         String body = face.optString("body", "");
         String detail = face.optString("detail", "");
 
-        // The clock runs on elapsed-realtime; a countdown is pushed by just under a second so it
-        // reads like the app's (rounded up) and shows 0:00 only as it ends.
+        // A countdown is pushed by just under a second so it reads like the app's (rounded up)
+        // and shows 0:00 only as it ends. A count-up never starts later than now: it would
+        // count up from below zero.
         long sinceBoot = SystemClock.elapsedRealtime();
-        long now = System.currentTimeMillis();
-        long base = countDown ? sinceBoot + (when - now) + 999 : sinceBoot - (now - when);
+        long base = countDown ? when + 999 : Math.min(when, sinceBoot);
 
         RemoteViews collapsed = new RemoteViews(context.getPackageName(), R.layout.notification_session_collapsed);
         RemoteViews expanded = new RemoteViews(context.getPackageName(), R.layout.notification_session_expanded);
@@ -274,6 +308,12 @@ public class SessionNotificationPlugin extends Plugin {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        }
+
+        if (countDown && !SessionNotificationService.running && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Only without the service: its own notification can't time out, and it's
+            // replaced at the deadline anyway. A plain one could outlive the process.
+            builder.setTimeoutAfter(Math.max(0, when - sinceBoot) + ORPHAN_TIMEOUT_SLACK_MS);
         }
 
         if (countDown) {

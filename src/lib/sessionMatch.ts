@@ -3,39 +3,43 @@ import type { StoredSession } from '@/stores/sessions'
 import { parseSessionText } from '@/lib/parseSession'
 import type { WorkoutSession, WorkoutSessionExercise } from '@/lib/wtx'
 
+/** How "last time" matches names everywhere: trimmed, case-insensitive. */
+function sameName(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase()
+}
+
 /**
  * Finds the most recent completed session for a routine, for "last time"
  * prefill.
  *
- * Matches primarily by `routineId` — app metadata that's never written into
- * the `.wts` text, so it's immune to the routine's filename or content
- * changing later. Falls back to the session's `template:` filename meta for
- * sessions that predate this link (hand-authored/imported `.wts` files) —
- * weaker, since filenames aren't guaranteed unique or stable, but it's the
- * best signal the format alone carries.
+ * Matches first by `routineId` — app metadata that's never written into the
+ * `.wts` text, so it's immune to the routine being renamed or edited later.
+ * Otherwise, the most recent session with the routine's name (`routineName`,
+ * trimmed, case-insensitive): the same workout re-imported, copied from a
+ * group room, or logged before sessions kept their routine. Sessions that
+ * name the routine's file in `template:` count as that name too.
  */
 export function findLastSessionForRoutine(
   sessions: StoredSession[],
   routine: StoredRoutine,
+  routineName?: string,
 ): WorkoutSession | undefined {
-  const byId = sessions
-    .filter((s) => s.routineId === routine.id)
-    .sort((a, b) => b.addedAt - a.addedAt)[0]
+  const newestFirst = [...sessions].sort((a, b) => b.addedAt - a.addedAt)
+
+  const byId = newestFirst.find((s) => s.routineId === routine.id)
   if (byId) {
     const parsed = parseSessionText(byId.rawText)
     if (parsed.ok) return parsed.session
   }
 
-  const byFilename = sessions
-    .filter((s) => !s.routineId)
-    .map((s) => ({ addedAt: s.addedAt, parsed: parseSessionText(s.rawText) }))
-    .filter(
-      (x): x is { addedAt: number; parsed: { ok: true; session: WorkoutSession } } =>
-        x.parsed.ok && x.parsed.session.template === routine.filename,
-    )
-    .sort((a, b) => b.addedAt - a.addedAt)[0]
-
-  return byFilename?.parsed.session
+  for (const stored of newestFirst) {
+    const parsed = parseSessionText(stored.rawText)
+    if (!parsed.ok) continue
+    const session = parsed.session
+    if (routineName?.trim() && sameName(session.name, routineName)) return session
+    if (!stored.routineId && session.template === routine.filename) return session
+  }
+  return undefined
 }
 
 /**
@@ -46,12 +50,11 @@ export function findLastLoggedExercise(
   sessions: StoredSession[],
   name: string,
 ): WorkoutSessionExercise | undefined {
-  const target = name.trim().toLowerCase()
   for (const stored of [...sessions].sort((a, b) => b.addedAt - a.addedAt)) {
     const parsed = parseSessionText(stored.rawText)
     if (!parsed.ok) continue
     const match = parsed.session.exercises.find(
-      (e) => e.name.trim().toLowerCase() === target && e.loggedSets.length > 0,
+      (e) => sameName(e.name, name) && e.loggedSets.length > 0,
     )
     if (match) return match
   }

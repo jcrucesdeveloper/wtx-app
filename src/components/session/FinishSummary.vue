@@ -127,7 +127,8 @@ const lines = computed(() =>
     )
     return {
       name: exerciseName(exercise.name),
-      sets: exercise.workingSets.length,
+      // A timed exercise is logged once: a count of "1 set" says nothing.
+      sets: timed ? null : exercise.workingSets.length,
       best: best ? formatSetValue(best, unit.value, timed) : '',
       isPr: prNames.value.has(exercise.name.trim().toLowerCase()),
     }
@@ -234,7 +235,9 @@ const lines = computed(() =>
             <span v-if="line.isPr" class="line__pr">PR</span>
           </span>
           <span class="line__best">{{ line.best }}</span>
-          <span class="line__sets">{{ t('sessions.sets', { count: line.sets }) }}</span>
+          <span v-if="line.sets !== null" class="line__sets">{{
+            t('sessions.sets', { count: line.sets })
+          }}</span>
         </li>
       </ul>
     </section>

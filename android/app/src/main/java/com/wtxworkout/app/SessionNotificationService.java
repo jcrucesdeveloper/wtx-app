@@ -16,8 +16,13 @@ import android.os.IBinder;
  */
 public class SessionNotificationService extends Service {
 
+    /** Whether the service holds the notification in the foreground right now. */
+    static volatile boolean running = false;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // A rest that ran out while this was starting ends first, so its countdown isn't shown past zero.
+        SessionRestEnd.checkNow();
         Notification notification = SessionNotificationPlugin.current;
         if (notification == null) {
             stopSelf();
@@ -33,7 +38,9 @@ public class SessionNotificationService extends Service {
             } else {
                 startForeground(SessionNotificationPlugin.NOTIFICATION_ID, notification);
             }
+            running = true;
         } catch (RuntimeException e) {
+            running = false;
             // Couldn't go foreground: still show the notification, just without the service.
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager != null) manager.notify(SessionNotificationPlugin.NOTIFICATION_ID, notification);
@@ -49,6 +56,12 @@ public class SessionNotificationService extends Service {
         SessionNotificationPlugin.current = null;
         stopSelf();
         super.onTaskRemoved(rootIntent);
+    }
+
+    @Override
+    public void onDestroy() {
+        running = false;
+        super.onDestroy();
     }
 
     @Override

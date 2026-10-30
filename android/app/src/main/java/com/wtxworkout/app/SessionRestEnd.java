@@ -1,5 +1,6 @@
 package com.wtxworkout.app;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -11,6 +12,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.os.VibrationAttributes;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -23,13 +25,19 @@ import android.os.VibratorManager;
  * so the countdown never runs past zero, and buzzes if the setting is on and
  * the app isn't on screen (in the app, JS buzzes instead).
  *
+ * The deadline is kept on the elapsed-realtime clock, the one the
+ * notification's Chronometer counts on, so changing the wall clock (or an
+ * automatic time sync) can't move the swap away from the moment the
+ * countdown reaches zero.
+ *
  * A Handler alone isn't enough: its delays stop counting while the CPU
  * sleeps (screen locked), so the countdown would read negative until the
- * phone woke. So while a rest runs this holds a partial wake lock (released
- * at the end, and with a timeout as a backstop), and on screen-on it checks
- * the wall clock again in case the deadline slipped by anyway.
+ * phone woke. So the end is armed four ways, whichever comes first: an exact
+ * wake-up alarm (with a listener, which needs no exact-alarm permission),
+ * the Handler, a partial wake lock through the rest so the Handler keeps
+ * time, and a recheck on screen-on in case all of them slipped.
  *
- * Main thread only.
+ * Main thread only: the plugin hands its calls over to the main looper.
  */
 final class SessionRestEnd {
 
@@ -40,10 +48,12 @@ final class SessionRestEnd {
 
     private static final Handler handler = new Handler(Looper.getMainLooper());
     private static final Runnable onDeadline = SessionRestEnd::checkNow;
+    private static final AlarmManager.OnAlarmListener onAlarm = SessionRestEnd::checkNow;
 
     private static Context appContext;
-    /** The pending rest's deadline (epoch ms); 0 when none is pending. */
+    /** The pending rest's deadline ({@link SystemClock#elapsedRealtime()} ms); 0 when none is pending. */
     private static long endsAt;
+    private static boolean alarmSet;
     private static Notification after;
     private static boolean vibrate;
     private static PowerManager.WakeLock wakeLock;
@@ -54,17 +64,26 @@ final class SessionRestEnd {
 
     private SessionRestEnd() {}
 
-    /** Arranges for {@code afterRest} to replace the notification at {@code deadline}, replacing any pending rest. */
+    /**
+     * Arranges for {@code afterRest} to replace the notification at
+     * {@code deadline} (elapsed-realtime ms), replacing any pending rest.
+     */
     static void schedule(Context context, long deadline, Notification afterRest, boolean vibrateAtEnd) {
         cancel();
         appContext = context.getApplicationContext();
         endsAt = deadline;
         after = afterRest;
         vibrate = vibrateAtEnd;
-        long delay = Math.max(0, deadline - System.currentTimeMillis());
+        long delay = Math.max(0, deadline - SystemClock.elapsedRealtime());
+        setAlarm(deadline);
         acquireWakeLock(delay + WAKE_LOCK_SLACK_MS);
         listenForScreenOn();
         handler.postDelayed(onDeadline, delay);
+    }
+
+    /** Whether a rest is pending whose deadline has passed: its countdown would read negative now. */
+    static boolean isOverdue() {
+        return endsAt > 0 && SystemClock.elapsedRealtime() >= endsAt;
     }
 
     /**
@@ -73,23 +92,28 @@ final class SessionRestEnd {
      * running is simply dropped, since the redraw schedules its own.
      */
     static void settle() {
-        if (endsAt > 0 && System.currentTimeMillis() >= endsAt) end(false);
+        if (isOverdue()) end(false);
         else cancel();
     }
 
     /** Drops the pending rest without ending it (the workout was finished or discarded). */
     static void cancel() {
         handler.removeCallbacks(onDeadline);
+        cancelAlarm();
         endsAt = 0;
         after = null;
         releaseWakeLock();
         stopListeningForScreenOn();
     }
 
-    /** Ends the rest if its deadline has passed, else waits again for what's left of it. */
-    private static void checkNow() {
+    /**
+     * Ends the rest if its deadline has passed, else waits again for what's
+     * left of it. Also what the service and the dismissal repost call before
+     * showing the notification, so neither puts back a countdown past zero.
+     */
+    static void checkNow() {
         if (endsAt == 0) return;
-        long left = endsAt - System.currentTimeMillis();
+        long left = endsAt - SystemClock.elapsedRealtime();
         if (left <= 0) {
             end(true);
         } else {
@@ -147,6 +171,35 @@ final class SessionRestEnd {
             }
         } catch (RuntimeException e) {
             // No vibration this time; the notification has still changed.
+        }
+    }
+
+    /**
+     * An exact wake-up at the deadline. The listener form needs no
+     * exact-alarm permission; it lives as long as the process, which the
+     * foreground service keeps.
+     */
+    private static void setAlarm(long deadline) {
+        AlarmManager alarms = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
+        if (alarms == null) return;
+        try {
+            alarms.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, deadline, "wtx:rest-end", onAlarm, handler);
+            alarmSet = true;
+        } catch (RuntimeException e) {
+            // Refused on this device: the Handler, the wake lock and the screen-on check remain.
+            alarmSet = false;
+        }
+    }
+
+    private static void cancelAlarm() {
+        if (!alarmSet || appContext == null) return;
+        alarmSet = false;
+        AlarmManager alarms = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
+        if (alarms == null) return;
+        try {
+            alarms.cancel(onAlarm);
+        } catch (RuntimeException e) {
+            // Nothing pending.
         }
     }
 

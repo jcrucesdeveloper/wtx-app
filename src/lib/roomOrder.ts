@@ -10,7 +10,9 @@
  * and stay where they put them, next to the exercise they followed.
  *
  * The host can also take a slot out of the routine for everyone: removed
- * slots ride on the room next to the order, under the same version.
+ * slots ride on the room next to the order, under the same version. So do
+ * the exercises the host added (new slots after the written routine's), the
+ * movements the host swapped into a slot, and the slot the host is on.
  */
 
 /** Anything that may sit in a routine slot — a session exercise, mostly. */
@@ -138,6 +140,9 @@ export function needsReorder<T extends Slotted>(exercises: readonly T[], order: 
 export interface RoomOrderFields {
   exercise_order?: number[] | null
   removed_slots?: number[] | null
+  added_exercises?: string[] | null
+  swapped_slots?: Record<string, string> | null
+  focus_slot?: number | null
   order_version?: number | null
 }
 
@@ -156,6 +161,9 @@ export function mergeRoomRow<T extends RoomOrderFields>(current: T | null, incom
     ...incoming,
     exercise_order: current.exercise_order,
     removed_slots: current.removed_slots,
+    added_exercises: current.added_exercises,
+    swapped_slots: current.swapped_slots,
+    focus_slot: current.focus_slot,
     order_version: current.order_version,
   }
 }
@@ -184,4 +192,141 @@ export function splitRemoved<T extends RemovableExercise>(
     else drop.push(exercise)
   }
   return { drop, keep }
+}
+
+// --- The host's edits to the routine: additions, swaps, focus --------------
+
+/** Most exercises a host can add to a group workout (`rooms_added_exercises_length`). */
+export const ADDED_EXERCISES_MAX = 100
+/** Longest exercise name the room keeps (`room_set_logs_exercise_name_length`). */
+const NAME_MAX = 200
+
+const isName = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim().length > 0 && value.length <= NAME_MAX
+
+/**
+ * The exercises the host added to the routine, made safe to use. Each takes
+ * the next slot after the written routine's — the first one added is slot
+ * `routine.length` — so a slot never changes meaning once handed out.
+ */
+export function normalizeAdded(added: unknown): string[] {
+  if (!Array.isArray(added)) return []
+  // Junk can't just be dropped: every later addition's slot depends on its place.
+  const result: string[] = []
+  for (const name of added.slice(0, ADDED_EXERCISES_MAX)) {
+    if (!isName(name)) break
+    result.push(name.trim())
+  }
+  return result
+}
+
+/** The movements the host swapped into routine slots, made safe to use: slot → exercise name. */
+export function normalizeSwaps(swaps: unknown, count: number): Map<number, string> {
+  const result = new Map<number, string>()
+  if (!swaps || typeof swaps !== 'object' || Array.isArray(swaps)) return result
+  for (const [key, name] of Object.entries(swaps as Record<string, unknown>)) {
+    const slot = Number(key)
+    if (isSlot(slot, count) && String(slot) === key && isName(name)) result.set(slot, name.trim())
+  }
+  return result
+}
+
+/** The slot the host is on, if it is one. */
+export function normalizeFocus(focus: unknown, count: number): number | null {
+  return isSlot(focus, count) ? focus : null
+}
+
+/** A routine exercise as the room plans it. */
+export interface PlannedSlot {
+  name: string
+  kind: 'reps' | 'time'
+  sets: number
+  specificSets?: { label: string }[]
+}
+
+/**
+ * The room's routine slot by slot, as the host has it now: the routine as
+ * written, then the exercises the host added (3 sets, like any exercise
+ * added mid-workout), each under the name of the movement the host swapped
+ * into it, if they did. Swapped slots keep their shape, as a swap does.
+ */
+export function roomSlots<T extends PlannedSlot>(
+  routine: readonly T[],
+  added: unknown,
+  swaps: unknown,
+): PlannedSlot[] {
+  const slots: PlannedSlot[] = [
+    ...routine,
+    ...normalizeAdded(added).map((name) => ({ name, kind: 'reps' as const, sets: 3 })),
+  ]
+  const swapped = normalizeSwaps(swaps, slots.length)
+  return slots.map((slot, i) => {
+    const name = swapped.get(i)
+    return name === undefined ? slot : { ...slot, name }
+  })
+}
+
+/**
+ * The slots the host added that a member's session doesn't hold yet — and
+ * that the host hasn't taken out again since.
+ *
+ * @param sessionSlots Every slot the member's session holds.
+ */
+export function missingAdded(
+  routineCount: number,
+  added: readonly string[],
+  sessionSlots: readonly (number | undefined)[],
+  removed: readonly number[],
+): number[] {
+  const have = new Set(sessionSlots)
+  const gone = new Set(removed)
+  const result: number[] = []
+  for (let slot = routineCount; slot < routineCount + added.length; slot++) {
+    if (!have.has(slot) && !gone.has(slot)) result.push(slot)
+  }
+  return result
+}
+
+/** A host's swap a member's session hasn't followed yet. */
+export interface PendingSwap<T> {
+  slot: number
+  name: string
+  /** The member's exercise in that slot; unset when they no longer hold it. */
+  exercise?: T
+}
+
+/**
+ * The host's swaps a member hasn't followed yet. Each swap is followed once:
+ * a member who later swaps that slot for something else themselves (their
+ * machine is taken too) keeps their own pick until the host swaps it again.
+ *
+ * @param followed The swap last followed per slot.
+ */
+export function pendingSwaps<T extends Slotted & { name: string }>(
+  exercises: readonly T[],
+  swaps: ReadonlyMap<number, string>,
+  followed: Readonly<Record<string, string>> | undefined,
+): PendingSwap<T>[] {
+  const result: PendingSwap<T>[] = []
+  for (const [slot, name] of swaps) {
+    if (followed?.[slot] === name) continue
+    const exercise = exercises.find((e) => e.slot === slot)
+    result.push(exercise ? { slot, name, exercise } : { slot, name })
+  }
+  return result
+}
+
+/** Whether two room plans' additions, swaps and focus are the same. */
+export function sameEdits(
+  a: { added: readonly string[]; swaps: ReadonlyMap<number, string>; focus: number | null },
+  b: { added: readonly string[]; swaps: ReadonlyMap<number, string>; focus: number | null },
+): boolean {
+  if (a.focus !== b.focus || a.added.length !== b.added.length || a.swaps.size !== b.swaps.size) return false
+  if (a.added.some((name, i) => name !== b.added[i])) return false
+  return [...a.swaps].every(([slot, name]) => b.swaps.get(slot) === name)
+}
+
+/** Swaps as the room stores them: `{ "slot": "name" }`. */
+export function swapsRecord(swaps: ReadonlyMap<number, string>): Record<string, string> {
+  return Object.fromEntries([...swaps].sort(([a], [b]) => a - b).map(([slot, name]) => [String(slot), name]))
 }

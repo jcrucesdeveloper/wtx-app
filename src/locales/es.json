@@ -492,6 +492,22 @@
     },
     "linkCopied": "Enlace copiado. Pégalo en el sticker de enlace de Instagram para que tus amigos encuentren WTX."
   },
+  "framedCamera": {
+    "title": "Cámara con el marco de tu entreno",
+    "close": "Cerrar cámara",
+    "frameAria": "Tu tarjeta de entreno, con la cámara en el espacio de la foto",
+    "starting": "Abriendo la cámara…",
+    "deniedTitle": "El acceso a la cámara está desactivado",
+    "deniedBody": "Permite que WTX use la cámara en los ajustes del teléfono, o elige una foto.",
+    "tryAgain": "Reintentar",
+    "hint": "Encuadra tu foto: tus números van debajo, tal como se ve.",
+    "reviewHint": "Así queda tu tarjeta. Usa la foto o haz otra.",
+    "retake": "Repetir",
+    "use": "Usar foto",
+    "gallery": "Elegir de la galería",
+    "shutter": "Hacer foto",
+    "flip": "Cambiar cámara"
+  },
   "sessionDetail": {
     "title": "Entrenamiento",
     "notFoundTitle": "Entrenamiento no encontrado",
@@ -833,6 +849,10 @@
       "orderChanged": "{name} cambió el orden de los ejercicios",
       "exerciseRemoved": "{name} quitó {exercise}",
       "exerciseRemovedKept": "{name} quitó {exercise}. Tus series registradas se mantienen.",
+      "exerciseAdded": "{name} añadió {exercise}",
+      "exerciseSwapped": "{name} cambió {exercise} por {to}",
+      "exerciseSwappedKept": "{name} cambió {exercise} por {to}. Tus series registradas se mantienen.",
+      "focusMoved": "{name} llevó al grupo a {exercise}",
       "cheerBackAria": "Enviar {emoji} a {name}",
       "sent": "¡Enviado!",
       "teamCleared": "El equipo completó {exercise} ✅",
@@ -1248,7 +1268,7 @@
   },
   "restTimer": {
     "title": "Temporizador de descanso",
-    "hint": "Cuánto descansar tras cada serie de {name}, sin contar el calentamiento, en este entrenamiento.",
+    "hint": "Cuánto descansar tras cada serie de {name}, calentamiento incluido, en este entrenamiento.",
     "off": "Apagado",
     "presets": "Duraciones de descanso",
     "lessAria": "{n} segundos menos",
@@ -1262,6 +1282,14 @@
     "after": "Descanso tras {name}"
   },
   "timedExercise": {
+    "target": "Objetivo {time}",
+    "last": "La última vez {time}",
+    "log": "Registrar tiempo",
+    "logged": "Registrado",
+    "edit": "Cambiar",
+    "add": "Añadir un tiempo",
+    "start": "Iniciar cronómetro",
+    "stop": "Detener cronómetro",
     "duration": "Duración",
     "time": "Tiempo",
     "minSec": "min:seg",
@@ -1272,7 +1300,7 @@
       "reps": "Registrar por peso y repeticiones"
     },
     "switchHint": {
-      "time": "Para una cinta, una plancha o un isométrico. Registra cuánto duró cada serie.",
+      "time": "Para una cinta, una plancha o un isométrico. Registra cuánto duró, una vez.",
       "reps": "Registra peso y repeticiones en cada serie."
     },
     "confirm": {

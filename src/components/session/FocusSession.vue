@@ -115,6 +115,9 @@ watch(
 )
 const current = computed(() => exercises.value[currentIndex.value])
 
+// The exercise on screen is where this member is — in a group, the host's is everyone's.
+watch(current, (exercise) => activeSession.setFocusedExercise(exercise ?? null), { immediate: true })
+
 /** Warm-ups/drop-sets show "W"/"D"; plain sets get sequential numbers, in array order. */
 const labeledSets = computed(() => {
   let workingIndex = 0
@@ -159,6 +162,27 @@ function shownReps(set: SessionSetDraft): number {
 }
 
 const isTime = computed(() => current.value?.kind === 'time')
+
+/**
+ * A timed exercise is logged once (see `singleTimedEntry`): its one entry,
+ * shown on its own with no list of sets under it.
+ */
+const timedEntry = computed(() => (isTime.value ? current.value?.loggedSets[0] : undefined))
+
+/** What a timed entry is measured against: the plan, and last time's. */
+const timedLine = computed(() => {
+  const exercise = current.value
+  const entry = timedEntry.value
+  if (!exercise || !entry) return ''
+  const parts: string[] = []
+  if (exercise.reps > 0) {
+    parts.push(t('timedExercise.target', { time: formatDurationInput(exercise.reps) }))
+  }
+  if (entry.ghostFromLast && entry.ghostReps != null) {
+    parts.push(t('timedExercise.last', { time: formatDurationInput(entry.ghostReps) }))
+  }
+  return parts.join(' · ') || t('timedExercise.time')
+})
 const weightStep = computed(() => (unit.value === 'lb' ? 5 : 2.5))
 const repsStep = computed(() => (isTime.value ? 5 : 1))
 
@@ -286,7 +310,9 @@ function pickSet(set: SessionSetDraft) {
 const weightInput = useTemplateRef<HTMLInputElement>('weightInput')
 const repsInput = useTemplateRef<HTMLInputElement>('repsInput')
 /** A timed exercise has one field, its mm:ss time, inside its own component. */
-const timedField = useTemplateRef<{ $el: Element }>('timedField')
+const timedField = useTemplateRef<{ $el: Element; running: boolean; stop: () => void }>(
+  'timedField',
+)
 
 /** Tapping a row's weight or reps: that set, with the number ready to type over. */
 function editField(set: SessionSetDraft, field: 'weight' | 'reps') {
@@ -335,7 +361,9 @@ const sharedRoutineExercise = computed(
 )
 const removeHint = computed(() => {
   if (!sharedRoutineExercise.value) return t('workout.removeExerciseHint')
-  return canRemove.value ? t('workout.removeExerciseHintGroup') : t('workout.removeExerciseHostOnly')
+  return canRemove.value
+    ? t('workout.removeExerciseHintGroup')
+    : t('workout.removeExerciseHostOnly')
 })
 
 function removeExercise() {
@@ -505,6 +533,8 @@ const primary = computed<'log' | 'edited' | 'add' | 'next' | 'finish'>(() => {
 })
 
 function onPrimary() {
+  // Logging while the stopwatch runs logs what it has counted.
+  if (timedField.value?.running) timedField.value.stop()
   if (primary.value === 'log') logSet()
   else if (primary.value === 'edited') pickedSetId.value = null
   else if (primary.value === 'add') activeSession.addSet(currentIndex.value)
@@ -525,9 +555,44 @@ const segments = computed(() =>
   ),
 )
 
+/**
+ * In a group, the host moving on moves this screen too — but never from
+ * under a thumb: not while a number is being typed, nor while a menu or
+ * sheet for the exercise on screen is open (a swap picked there would land on
+ * the wrong exercise). It goes as soon as that's done.
+ */
+function typingHere(): boolean {
+  const el = document.activeElement
+  return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
+}
+
+function followHost() {
+  const request = activeSession.focusRequest
+  if (!request) return
+  if (editing.value || actionsOpen.value || swapOpen.value || menuSetId.value !== null || typingHere()) return
+  activeSession.clearFocusRequest(request.seq)
+  if (!exercises.value.includes(request.exercise)) return
+  pickedExercise.value = request.exercise
+  pickedSetId.value = null
+}
+
+watch(
+  [() => activeSession.focusRequest, editing, actionsOpen, swapOpen, menuSetId],
+  followHost,
+  { immediate: true },
+)
+
+// Leaving a field fires no state change of its own here (a set's note, a timed set's clock).
+function onFocusOut() {
+  setTimeout(followHost, 0)
+}
+document.addEventListener('focusout', onFocusOut)
+
 onBeforeUnmount(() => {
   clearTimeout(recordTimer)
   clearTimeout(undoTimer)
+  document.removeEventListener('focusout', onFocusOut)
+  activeSession.setFocusedExercise(null)
 })
 
 const showImage = ref(false)
@@ -607,12 +672,14 @@ function onNoteInput(event: Event) {
       <template v-if="currentSet">
         <div class="now__meta">
           <p class="now__set">
-            {{ currentSetLine }}
+            {{ isTime ? timedLine : currentSetLine }}
           </p>
-          <!-- The exercise's rest beside the set's type: both describe the set you're on. -->
+          <!-- The exercise's rest beside the set's type: both describe the set you're on.
+               A timed entry has no type: a warm-up plank is just a plank. -->
           <div class="now__chips">
             <RestTimeButton :exercise-index="currentIndex" />
             <button
+              v-if="!isTime"
               type="button"
               class="now__type"
               :class="`now__type--${currentSet.set.type}`"
@@ -700,13 +767,25 @@ function onNoteInput(event: Event) {
           ref="timedField"
           :key="`time-${currentSet.set.id}`"
           :seconds="shownReps(currentSet.set)"
+          :target="current.reps"
           @update="update({ reps: $event })"
         />
       </template>
 
+      <!-- A timed exercise, logged: its one entry, tapped to correct it. -->
+      <button v-else-if="timedEntry" type="button" class="logged" @click="pickSet(timedEntry)">
+        <span class="logged__mark"><Check :size="18" :stroke-width="3" /></span>
+        <span class="logged__body">
+          <span class="logged__label">{{ t('timedExercise.logged') }}</span>
+          <span class="logged__time">{{ formatDurationInput(shownReps(timedEntry)) }}</span>
+        </span>
+        <span class="logged__edit">{{ t('timedExercise.edit') }}</span>
+      </button>
+
       <!-- Every set of this exercise, a row each: what it is, what you did last
-           time, what it is logged as, and whether it is done. -->
-      <div class="sets">
+           time, what it is logged as, and whether it is done. A timed exercise
+           is logged once, so it has none. -->
+      <div v-if="!isTime" class="sets">
         <div v-if="labeledSets.length" class="sets__head" aria-hidden="true">
           <span>{{ t('workout.setColumn') }}</span>
           <span>{{ t('workout.previousColumn') }}</span>
@@ -834,9 +913,11 @@ function onNoteInput(event: Event) {
         <template v-if="primary === 'log'">
           <Check :size="20" :stroke-width="3" />
           {{
-            currentSet?.set.type === 'number'
-              ? t('workout.logSet', { n: currentSet.label })
-              : t(`workout.logSetType.${currentSet?.set.type}`)
+            isTime
+              ? t('timedExercise.log')
+              : currentSet?.set.type === 'number'
+                ? t('workout.logSet', { n: currentSet.label })
+                : t(`workout.logSetType.${currentSet?.set.type}`)
           }}
         </template>
         <template v-else-if="primary === 'edited'">
@@ -845,7 +926,7 @@ function onNoteInput(event: Event) {
         </template>
         <template v-else-if="primary === 'add'">
           <Plus :size="20" :stroke-width="2.5" />
-          {{ t('session.activeExerciseCard.addSet') }}
+          {{ isTime ? t('timedExercise.add') : t('session.activeExerciseCard.addSet') }}
         </template>
         <template v-else-if="primary === 'next'">{{
           t('workout.nextExercise', { name: nextName })
@@ -883,7 +964,7 @@ function onNoteInput(event: Event) {
           @switched="((actionsOpen = false), (pickedSetId = null))"
         />
         <SettingsRow
-          v-if="currentSet"
+          v-if="currentSet && !isTime"
           action
           danger
           :label="deleteLabel(currentSet)"
@@ -1222,6 +1303,63 @@ button.where__now:active {
 
 .field__unit {
   font-size: 15px;
+  font-weight: var(--weight-medium);
+}
+
+/* A timed exercise's one entry, once logged: what it was, and a tap to fix it. */
+.logged {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 76px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-lg);
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-background-soft);
+  cursor: pointer;
+}
+
+.logged:active {
+  background: var(--color-background-mute);
+}
+
+.logged__mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+}
+
+.logged__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.logged__label {
+  font-size: var(--text-micro);
+  font-weight: var(--weight-medium);
+}
+
+.logged__time {
+  font-size: 28px;
+  font-weight: var(--weight-heavy);
+  letter-spacing: -0.02em;
+  color: var(--color-heading);
+  font-variant-numeric: tabular-nums;
+}
+
+.logged__edit {
+  font-size: var(--text-small);
   font-weight: var(--weight-medium);
 }
 

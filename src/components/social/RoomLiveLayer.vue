@@ -153,6 +153,32 @@ function handle(event: RoomEvent) {
       })
       return
     }
+    case 'exercise-added':
+      if (event.from === me) return
+      showToast({
+        ...base,
+        icon: '➕',
+        text: t('room.live.exerciseAdded', { name: fromName, exercise: exerciseName(event.exercise) }),
+      })
+      return
+    case 'exercise-swapped': {
+      if (event.from === me) return
+      const params = { name: fromName, exercise: exerciseName(event.exercise), to: exerciseName(event.to) }
+      showToast({
+        ...base,
+        icon: '🔁',
+        text: t(event.kept ? 'room.live.exerciseSwappedKept' : 'room.live.exerciseSwapped', params),
+      })
+      return
+    }
+    case 'focus-moved':
+      if (event.from === me) return
+      showToast({
+        ...base,
+        icon: '👉',
+        text: t('room.live.focusMoved', { name: fromName, exercise: exerciseName(event.exercise) }),
+      })
+      return
     case 'team-cleared':
       showToast({ ...base, team: true, icon: '✅', text: t('room.live.teamCleared', { exercise: exerciseName(event.exercise) }) })
       return

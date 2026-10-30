@@ -315,17 +315,18 @@ describe('room store: the host removes routine exercises for everyone', () => {
     expect(active.canRemoveExercise(0)).toBe(true)
   })
 
-  it("doesn't publish when the host removes an exercise they added", async () => {
+  it("removes the host's own added exercise for everyone, like any routine exercise", async () => {
     signIn('host')
     const room = useRoomStore()
     room.room = roomRow()
     startWorkout()
     await flush()
+    rpc.mockResolvedValue({ data: null, error: null })
     const active = useActiveSessionStore()
     active.addExercise('Push-up')
     active.removeExercise(3)
-    expect(rpc).not.toHaveBeenCalled()
-    expect(room.removedSlots).toEqual([])
+    expect(room.removedSlots).toEqual([3])
+    expect(room.routineExercises.map((e) => e.name)).toEqual(['Bench Press', 'Overhead Press', 'Dips'])
   })
 
   it("never lets a stale row bring back a guest's removed exercise", async () => {

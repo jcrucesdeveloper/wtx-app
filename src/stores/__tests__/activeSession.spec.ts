@@ -121,3 +121,52 @@ W | 12 | 15
     expect(store.session!.draft.exercises.map((e) => e.name)).toEqual(['Bench Press', 'Overhead Press'])
   })
 })
+
+describe('activeSession.start prefill', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+  })
+
+  it('prefills from the last session with the same routine name, else the last time anywhere', () => {
+    const sessions = useSessionsStore()
+    sessions.add(
+      `# Shoulders - 2026-09-01
+unit: kg
+
+Overhead Press | 2x10 | 35
+1 | 35 | 10
+2 | 35 | 9
+`,
+      'r9',
+      1000,
+    )
+    // Same name, but from a copy of the routine (a group room, a re-import).
+    sessions.add(
+      `# push day - 2026-09-02
+unit: kg
+
+Bench Press | 3x8 | 80
+W | 45 | 10
+1 | 80 | 8
+2 | 82.5 | 7
+`,
+      'room-copy',
+      2000,
+    )
+
+    const store = startWorkout()
+
+    expect(
+      exercise(store, 0).loggedSets.map((s) => [s.type, s.ghostWeight, s.ghostReps, s.ghostFromLast]),
+    ).toEqual([
+      ['W', 45, 10, true],
+      ['number', 80, 8, true],
+      ['number', 82.5, 7, true],
+    ])
+    expect(exercise(store, 1).loggedSets.map((s) => [s.ghostWeight, s.ghostReps])).toEqual([
+      [35, 10],
+      [35, 9],
+    ])
+  })
+})

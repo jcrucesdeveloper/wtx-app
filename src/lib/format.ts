@@ -21,7 +21,7 @@ export function formatCompactDuration(totalSeconds: number): string {
 
 /** Formats seconds as a live clock: `1:05`, `12:03`, `1:02:03`. */
 export function formatClock(totalSeconds: number): string {
-  const seconds = Math.max(0, Math.round(totalSeconds))
+  const seconds = Number.isFinite(totalSeconds) ? Math.max(0, Math.round(totalSeconds)) : 0
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
   const s = seconds % 60

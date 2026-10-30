@@ -59,20 +59,23 @@ const rows = computed(() => {
             {{ exerciseName(row.exercise.name) }}
             <span v-if="row.isRecord" class="exercise__pr">PR</span>
           </span>
+          <!-- A timed exercise is logged once: no count of sets, just that it's a time. -->
           <span class="exercise__meta">
-            {{
+            <template v-if="row.timed">{{ t('timedExercise.time') }}</template>
+            <template v-else>{{
               t('session.loggedExerciseList.setsProgress', {
                 done: row.exercise.workingSets.length,
                 total: row.exercise.sets,
               })
-            }}
+            }}</template>
             <template v-if="row.note"> · {{ row.note }}</template>
           </span>
         </div>
         <span v-if="row.best" class="exercise__best">{{ row.best }}</span>
       </div>
 
-      <ol v-if="row.exercise.loggedSets.length" class="sets">
+      <!-- Its one time is already the best on the right; several (an older log) still list. -->
+      <ol v-if="row.exercise.loggedSets.length > (row.timed ? 1 : 0)" class="sets">
         <li
           v-for="(set, j) in row.exercise.loggedSets"
           :key="j"

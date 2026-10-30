@@ -30,27 +30,25 @@ const activeSession = useActiveSessionStore()
 
 const unit = computed(() => activeSession.session?.draft.unit ?? '')
 
-/** Done: its best set. Started: how far in. Not started: the plan. */
+/**
+ * Done: its best set. Started: how far in. Not started: the plan. A timed
+ * exercise is one entry, so it's just a time: logged, else planned.
+ */
 function summary(exercise: SessionExerciseDraft): string {
   const done = exercise.loggedSets.filter((s) => s.completed)
+  if (exercise.kind === 'time') {
+    const longest = done.length ? Math.max(...done.map((s) => s.reps ?? 0)) : exercise.reps
+    return formatDurationInput(longest)
+  }
   if (done.length === exercise.loggedSets.length && done.length > 0) {
-    if (exercise.kind === 'time') {
-      const longest = Math.max(...done.map((s) => s.reps ?? 0))
-      return `${done.length} × ${formatDurationInput(longest)}`
-    }
     const top = done.reduce((best, s) => ((s.weight ?? 0) > (best.weight ?? 0) ? s : best))
     return `${done.length} × ${top.reps} · ${top.weight} ${unit.value}`.trim()
   }
   if (done.length > 0) {
     return t('activeSession.setsChip', { done: done.length, total: exercise.loggedSets.length })
   }
-  const plan =
-    exercise.kind === 'time'
-      ? `${exercise.loggedSets.length} × ${formatDurationInput(exercise.reps)}`
-      : `${exercise.loggedSets.length} × ${exercise.reps}`
-  return exercise.weight && exercise.kind === 'reps'
-    ? `${plan} · ${exercise.weight} ${unit.value}`.trim()
-    : plan
+  const plan = `${exercise.loggedSets.length} × ${exercise.reps}`
+  return exercise.weight ? `${plan} · ${exercise.weight} ${unit.value}`.trim() : plan
 }
 
 const items = computed(() =>

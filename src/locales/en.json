@@ -492,6 +492,22 @@
     },
     "linkCopied": "Link copied. Paste it into Instagram's Link sticker so friends can find WTX."
   },
+  "framedCamera": {
+    "title": "Camera with your workout frame",
+    "close": "Close camera",
+    "frameAria": "Your workout card, with the camera in the photo space",
+    "starting": "Starting the camera…",
+    "deniedTitle": "Camera access is off",
+    "deniedBody": "Allow WTX to use the camera in your phone's settings, or choose a photo instead.",
+    "tryAgain": "Try again",
+    "hint": "Frame your shot: your numbers go below it, just as shown.",
+    "reviewHint": "This is your card. Use the photo, or take another.",
+    "retake": "Retake",
+    "use": "Use photo",
+    "gallery": "Choose from gallery",
+    "shutter": "Take photo",
+    "flip": "Switch camera"
+  },
   "sessionDetail": {
     "title": "Workout",
     "notFoundTitle": "Workout not found",
@@ -833,6 +849,10 @@
       "orderChanged": "{name} changed the exercise order",
       "exerciseRemoved": "{name} removed {exercise}",
       "exerciseRemovedKept": "{name} removed {exercise}. Your logged sets stay.",
+      "exerciseAdded": "{name} added {exercise}",
+      "exerciseSwapped": "{name} swapped {exercise} for {to}",
+      "exerciseSwappedKept": "{name} swapped {exercise} for {to}. Your logged sets stay.",
+      "focusMoved": "{name} moved the group to {exercise}",
       "cheerBackAria": "Send {emoji} to {name}",
       "sent": "Sent!",
       "teamCleared": "Team cleared {exercise} ✅",
@@ -1248,7 +1268,7 @@
   },
   "restTimer": {
     "title": "Rest timer",
-    "hint": "How long to rest after each set of {name}, warm-ups aside, in this workout.",
+    "hint": "How long to rest after each set of {name}, warm-ups included, in this workout.",
     "off": "Off",
     "presets": "Rest lengths",
     "lessAria": "{n} seconds less",
@@ -1262,6 +1282,14 @@
     "after": "Rest after {name}"
   },
   "timedExercise": {
+    "target": "Target {time}",
+    "last": "Last time {time}",
+    "log": "Log time",
+    "logged": "Logged",
+    "edit": "Change",
+    "add": "Add a time",
+    "start": "Start timer",
+    "stop": "Stop timer",
     "duration": "Duration",
     "time": "Time",
     "minSec": "min:sec",
@@ -1272,7 +1300,7 @@
       "reps": "Track by weight and reps"
     },
     "switchHint": {
-      "time": "For a treadmill, a plank or a hold. Log how long each set lasted.",
+      "time": "For a treadmill, a plank or a hold. Log how long it lasted, once.",
       "reps": "Log weight and reps for each set."
     },
     "confirm": {

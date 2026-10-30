@@ -15,6 +15,11 @@ vi.mock('@/lib/workoutCard', () => ({
 }))
 const pickPhoto = vi.hoisted(() => vi.fn<(source: string) => Promise<unknown>>())
 vi.mock('@/services/photoPicker', () => ({ canTakePhoto: () => true, pickPhoto }))
+const streamable = vi.hoisted(() => ({ value: false }))
+vi.mock('@/services/liveCamera', () => ({
+  canStreamCamera: () => streamable.value,
+  hasVideoInput: () => Promise.resolve(false),
+}))
 vi.mock('@/services/shareTargets', () => ({
   installedTargets: () => Promise.resolve({ instagram: false, whatsapp: false }),
   sharePlatform: () => 'web',
@@ -26,6 +31,12 @@ vi.mock('@/services/haptics', () => ({
 }))
 
 const SheetStub = { name: 'BottomSheet', props: ['open'], template: '<div><slot /></div>' }
+const CameraStub = {
+  name: 'FramedCamera',
+  props: ['open', 'data', 'format'],
+  emits: ['close', 'photo', 'gallery', 'unavailable'],
+  template: '<div v-if="open" class="camera-stub" />',
+}
 
 function data(lifts: number): WorkoutCardData {
   return {
@@ -48,7 +59,7 @@ function mountSheet(
   i18n.global.locale.value = 'en'
   return mount(ShareWorkoutSheet, {
     props: { open: true, data: card, caption: '', style, photo },
-    global: { plugins: [i18n], stubs: { BottomSheet: SheetStub } },
+    global: { plugins: [i18n], stubs: { BottomSheet: SheetStub, FramedCamera: CameraStub } },
   })
 }
 
@@ -92,7 +103,10 @@ describe('ShareWorkoutSheet: how many lifts', () => {
 })
 
 describe('ShareWorkoutSheet: the photo', () => {
-  beforeEach(() => pickPhoto.mockReset().mockResolvedValue(null))
+  beforeEach(() => {
+    pickPhoto.mockReset().mockResolvedValue(null)
+    streamable.value = false
+  })
 
   const buttonNamed = (wrapper: ReturnType<typeof mountSheet>, name: string) =>
     wrapper.findAll('button').find((b) => b.text() === name || b.attributes('aria-label') === name)
@@ -124,5 +138,44 @@ describe('ShareWorkoutSheet: the photo', () => {
   it('has nothing about a photo on the card look', () => {
     const wrapper = mountSheet(data(2))
     expect(wrapper.find('.photo-slot').exists()).toBe(false)
+  })
+
+  it('takes the photo in the framed camera where the camera can be streamed', async () => {
+    streamable.value = true
+    const wrapper = mountSheet(data(2), 'photo')
+    await buttonNamed(wrapper, 'Take photo')!.trigger('click')
+    expect(pickPhoto).not.toHaveBeenCalled()
+    const camera = wrapper.findComponent({ name: 'FramedCamera' })
+    expect(camera.props('open')).toBe(true)
+    expect(camera.props('format')).toBe('story')
+
+    const image = { width: 10, height: 10 } as HTMLImageElement
+    camera.vm.$emit('photo', image)
+    await nextTick()
+    expect(camera.props('open')).toBe(false)
+    const updates = wrapper.emitted('update:photo') ?? []
+    expect(updates[updates.length - 1]).toEqual([image])
+  })
+
+  it('falls back to the system camera when the framed one cannot start', async () => {
+    streamable.value = true
+    const wrapper = mountSheet(data(2), 'photo')
+    await buttonNamed(wrapper, 'Take photo')!.trigger('click')
+    const camera = wrapper.findComponent({ name: 'FramedCamera' })
+    camera.vm.$emit('unavailable')
+    await nextTick()
+    expect(camera.props('open')).toBe(false)
+    expect(pickPhoto).toHaveBeenLastCalledWith('camera')
+  })
+
+  it('goes from the framed camera to the gallery', async () => {
+    streamable.value = true
+    const wrapper = mountSheet(data(2), 'photo')
+    await buttonNamed(wrapper, 'Take photo')!.trigger('click')
+    const camera = wrapper.findComponent({ name: 'FramedCamera' })
+    camera.vm.$emit('gallery')
+    await nextTick()
+    expect(camera.props('open')).toBe(false)
+    expect(pickPhoto).toHaveBeenLastCalledWith('gallery')
   })
 })
