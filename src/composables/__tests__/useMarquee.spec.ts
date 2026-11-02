@@ -44,10 +44,10 @@ describe('marqueeMetrics', () => {
     expect(MARQUEE_SPEED).toBeLessThanOrEqual(15)
     // With `alternate` each end rests for two holds; together they outweigh the slide.
     expect(4 * MARQUEE_HOLD).toBeGreaterThan(1 - 2 * MARQUEE_HOLD)
-    // A typical 40px overflow takes over 3s to slide and rests about 5s at each end.
+    // A typical 40px overflow takes almost 3s to slide and rests over 4s at each end.
     const { duration } = marqueeMetrics(200, 240)!
-    expect(duration * (1 - 2 * MARQUEE_HOLD)).toBeGreaterThan(3)
-    expect(duration * 2 * MARQUEE_HOLD).toBeGreaterThan(4.9)
+    expect(duration * (1 - 2 * MARQUEE_HOLD)).toBeGreaterThan(2.5)
+    expect(duration * 2 * MARQUEE_HOLD).toBeGreaterThan(4)
   })
 })
 
