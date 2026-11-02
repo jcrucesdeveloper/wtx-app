@@ -2,8 +2,11 @@
 import { useI18n } from 'vue-i18n'
 import { GripVertical, Star, Trash2 } from '@lucide/vue'
 
-/** One routine in the Train screen's edit mode: a handle to drag by, its star, and a bin. */
-defineProps<{ name: string; meta: string; favorite: boolean }>()
+/**
+ * One routine in the Train screen's edit mode: a handle to drag by, its star,
+ * and a bin — off for the routine of the workout in progress.
+ */
+defineProps<{ name: string; meta: string; favorite: boolean; training?: boolean }>()
 const emit = defineEmits<{ favorite: []; remove: [] }>()
 
 const { t } = useI18n()
@@ -32,6 +35,8 @@ const { t } = useI18n()
       type="button"
       class="row__delete"
       :aria-label="`${t('routineDetail.deleteRoutine')}: ${name}`"
+      :title="training ? t('routineDetail.deleteTraining') : undefined"
+      :disabled="training"
       @click="emit('remove')"
     >
       <Trash2 :size="18" :stroke-width="2" />
@@ -113,5 +118,10 @@ const { t } = useI18n()
   color: var(--color-heading);
   background: var(--color-background-mute);
   cursor: pointer;
+}
+
+.row__delete:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 </style>

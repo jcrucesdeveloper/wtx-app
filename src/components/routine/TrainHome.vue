@@ -236,9 +236,11 @@ async function commitLayout() {
   ])
 }
 
+/** Deletes at once; the undo bar offers it back. Not the routine being trained. */
 function removeRoutine(id: string) {
-  if (!confirm(t('routineDetail.deleteConfirm'))) return
+  if (activeSession.session?.routineId === id) return
   routines.remove(id)
+  void HapticsService.medium()
   if (!routines.list.length) editing.value = false
 }
 
@@ -348,6 +350,7 @@ function openSectionSheet(id: string | null) {
               :name="item.name"
               :meta="item.meta"
               :favorite="item.favorite"
+              :training="activeSession.session?.routineId === item.id"
               @favorite="toggleFavorite(item.id)"
               @remove="removeRoutine(item.id)"
             />
@@ -376,6 +379,7 @@ function openSectionSheet(id: string | null) {
           :name="item.name"
           :meta="item.meta"
           :favorite="item.favorite"
+          :training="activeSession.session?.routineId === item.id"
           @favorite="toggleFavorite(item.id)"
           @remove="removeRoutine(item.id)"
         />
