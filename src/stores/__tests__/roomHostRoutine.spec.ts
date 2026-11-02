@@ -247,26 +247,6 @@ describe('room store: the host adds and swaps exercises for everyone', () => {
     expect(names()).toEqual(['Diamond Push-up', 'Bench Press', 'Overhead Press', 'Dips'])
     expect(room.events).toEqual([])
   })
-
-  it("falls back to the order alone on a server that can't hold additions yet", async () => {
-    signIn('host')
-    const room = useRoomStore()
-    room.room = roomRow()
-    startWorkout()
-    await flush()
-    rpc.mockImplementation(async (fn) =>
-      fn === 'set_room_routine'
-        ? { data: null, error: { message: 'Could not find the function', code: 'PGRST202' } }
-        : { data: roomRow({ exercise_order: [0, 1, 2, 3], order_version: 1 }), error: null },
-    )
-    useActiveSessionStore().addExercise('Push-up')
-    await flush()
-    await flush()
-    expect(rpc).toHaveBeenLastCalledWith('set_room_exercise_order', { p_room_id: 'room-1', p_order: [0, 1, 2, 3] })
-    // The host's screen keeps what the server couldn't hold.
-    expect(room.addedExercises).toEqual(['Push-up'])
-    expect(room.room?.order_version).toBe(1)
-  })
 })
 
 describe('room store: where the host is, everyone goes', () => {

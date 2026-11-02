@@ -390,14 +390,6 @@ export type Database = {
         Args: { p_routine_wtt: string; p_routine_name: string; p_unit?: string | null }
         Returns: RoomRow
       }
-      set_room_exercise_order: {
-        Args: { p_room_id: string; p_order: number[] }
-        Returns: RoomRow
-      }
-      set_room_plan: {
-        Args: { p_room_id: string; p_order: number[]; p_removed: number[] }
-        Returns: RoomRow
-      }
       set_room_routine: {
         Args: {
           p_room_id: string
