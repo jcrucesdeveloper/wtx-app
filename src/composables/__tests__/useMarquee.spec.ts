@@ -2,7 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import MarqueeText from '@/components/ui/MarqueeText.vue'
-import { MARQUEE_HOLD, MARQUEE_SPEED, MARQUEE_TOLERANCE, marqueeMetrics } from '../useMarquee'
+import {
+  MARQUEE_HOLD,
+  MARQUEE_MIN_MOVE,
+  MARQUEE_SPEED,
+  MARQUEE_TOLERANCE,
+  marqueeMetrics,
+} from '../useMarquee'
 
 describe('marqueeMetrics', () => {
   it('leaves names that fit alone', () => {
@@ -31,7 +37,17 @@ describe('marqueeMetrics', () => {
 
   it('gives tiny overflows a readable minimum run', () => {
     const metrics = marqueeMetrics(200, 205)!
-    expect(metrics.duration).toBeCloseTo(1 / (1 - 2 * MARQUEE_HOLD), 2)
+    expect(metrics.duration).toBeCloseTo(MARQUEE_MIN_MOVE / (1 - 2 * MARQUEE_HOLD), 2)
+  })
+
+  it('stays calm: slow, and resting more than moving', () => {
+    expect(MARQUEE_SPEED).toBeLessThanOrEqual(15)
+    // With `alternate` each end rests for two holds; together they outweigh the slide.
+    expect(4 * MARQUEE_HOLD).toBeGreaterThan(1 - 2 * MARQUEE_HOLD)
+    // A typical 40px overflow takes over 3s to slide and rests about 5s at each end.
+    const { duration } = marqueeMetrics(200, 240)!
+    expect(duration * (1 - 2 * MARQUEE_HOLD)).toBeGreaterThan(3)
+    expect(duration * 2 * MARQUEE_HOLD).toBeGreaterThan(4.9)
   })
 })
 
