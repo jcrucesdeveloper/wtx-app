@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">WTX</string>
+
+    <!-- No phone / no session -->
+    <string name="searching_message">Buscando tu teléfono…</string>
+    <string name="no_host_title">Sin teléfono</string>
+    <string name="no_host_message">Abre WTX en tu teléfono, conectado a este reloj</string>
+    <string name="not_ready_message">Abre WTX en tu teléfono</string>
+    <string name="waiting_message">Inicia una sesión en tu teléfono</string>
+
+    <!-- Active session, no rest -->
+    <string name="active_title">En marcha</string>
+    <string name="active_no_rest">Sin descanso</string>
+    <string name="next_all_done">Todas las series registradas</string>
+
+    <!-- Rest -->
+    <string name="rest_title">Descanso</string>
+    <string name="rest_minus" translatable="false">−%1$d s</string>
+    <string name="rest_plus" translatable="false">+%1$d s</string>
+    <string name="rest_minus_description">Restar %1$d segundos</string>
+    <string name="rest_plus_description">Sumar %1$d segundos</string>
+    <string name="rest_pending">Enviando…</string>
+    <string name="unsynced">Sin sincronizar</string>
+
+    <!-- Commands that did not work -->
+    <string name="notice_rest_ended">El descanso ya terminó</string>
+    <string name="notice_rest_mismatch">Es otro descanso</string>
+    <string name="notice_session_changed">La sesión cambió</string>
+    <string name="notice_not_ready">El teléfono no está listo</string>
+    <string name="notice_rejected">El teléfono no lo aplicó</string>
+    <string name="notice_no_answer">El teléfono no respondió</string>
+    <string name="notice_not_sent">No se pudo enviar</string>
+
+    <!-- Session ended -->
+    <string name="ended_finished">Sesión finalizada</string>
+    <string name="ended_discarded">Sesión descartada</string>
+    <string name="ended_default">Sesión terminada</string>
+
+    <!-- Notification / Ongoing Activity -->
+    <string name="notif_channel_name">Descanso</string>
+    <string name="notif_channel_description">Cuenta regresiva del descanso entre series</string>
+    <string name="notif_rest_title">Descanso</string>
+    <string name="notif_all_done">Todas las series registradas</string>
+</resources>

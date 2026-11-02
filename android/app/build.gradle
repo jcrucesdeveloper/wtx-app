@@ -85,7 +85,11 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // Wearable Data Layer: the phone is the Wear OS app's host (WearHost).
+    implementation 'com.google.android.gms:play-services-wearable:19.0.0'
     testImplementation "junit:junit:$junitVersion"
+    // The Android SDK's org.json is a stub in JVM unit tests (WearProtocolTest).
+    testImplementation 'org.json:json:20251224'
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searching_message">Looking for your phone…</string>
+    <string name="no_host_title">No phone</string>
+    <string name="no_host_message">Open WTX on your phone, connected to this watch</string>
+    <string name="not_ready_message">Open WTX on your phone</string>
+    <string name="waiting_message">Start a session on your phone</string>
+
+    <string name="active_title">In progress</string>
+    <string name="active_no_rest">No rest</string>
+    <string name="next_all_done">All sets logged</string>
+
+    <string name="rest_title">Rest</string>
+    <string name="rest_minus_description">Subtract %1$d seconds</string>
+    <string name="rest_plus_description">Add %1$d seconds</string>
+    <string name="rest_pending">Sending…</string>
+    <string name="unsynced">Not synced</string>
+
+    <string name="notice_rest_ended">The rest already ended</string>
+    <string name="notice_rest_mismatch">That is another rest</string>
+    <string name="notice_session_changed">The session changed</string>
+    <string name="notice_not_ready">The phone is not ready</string>
+    <string name="notice_rejected">The phone did not apply it</string>
+    <string name="notice_no_answer">The phone did not answer</string>
+    <string name="notice_not_sent">Could not send</string>
+
+    <string name="ended_finished">Session finished</string>
+    <string name="ended_discarded">Session discarded</string>
+    <string name="ended_default">Session ended</string>
+
+    <string name="notif_channel_name">Rest</string>
+    <string name="notif_channel_description">Countdown for the rest between sets</string>
+    <string name="notif_rest_title">Rest</string>
+    <string name="notif_all_done">All sets logged</string>
+</resources>

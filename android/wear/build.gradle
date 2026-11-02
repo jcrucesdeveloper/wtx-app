@@ -1,0 +1,69 @@
+import groovy.json.JsonSlurper
+
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+
+// Same version scheme as :app (see app/build.gradle): package.json is the single
+// source of truth for versionName, and versionCode grows with it.
+def appVersionName = new JsonSlurper().parse(rootProject.file('../package.json')).version
+def appVersionParts = appVersionName.tokenize('.')*.toInteger()
+def appBuildNumber = (project.findProperty('buildNumber') ?: '0').toInteger()
+if (appVersionParts.size() != 3 || appVersionParts[1] > 99 || appVersionParts[2] > 99 || appBuildNumber > 99) {
+    throw new GradleException("Can't derive versionCode from version ${appVersionName} and buildNumber ${appBuildNumber}: expected X.Y.Z with Y, Z and buildNumber at most 99.")
+}
+def appVersionCode = appVersionParts[0] * 1_000_000 + appVersionParts[1] * 10_000 + appVersionParts[2] * 100 + appBuildNumber
+
+android {
+    // The code's namespace is the watch's own; the installed applicationId must
+    // equal :app's so the phone and the watch can find each other (Wearable Data
+    // Layer). :app has no debug suffix, so neither does this module — if one is
+    // ever added there, add the same one here.
+    namespace = "com.wtxworkout.wear"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.wtxworkout.app"
+        // Wear OS 4 (API 33) is what the Galaxy Watch6 Classic ships with.
+        minSdk 33
+        targetSdk rootProject.ext.targetSdkVersion
+        versionCode appVersionCode
+        versionName appVersionName
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    buildFeatures {
+        compose true
+    }
+}
+
+dependencies {
+    implementation "androidx.activity:activity-compose:$androidxActivityVersion"
+    implementation "androidx.core:core-ktx:$androidxCoreVersion"
+    // Wearable Data Layer: same version as :app, so both sides speak the same one.
+    implementation 'com.google.android.gms:play-services-wearable:19.0.0'
+    // Ongoing Activity: the countdown chip on the watch face while a rest runs.
+    implementation 'androidx.wear:wear-ongoing:1.1.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2'
+    implementation 'androidx.wear.compose:compose-material3:1.6.2'
+    implementation 'androidx.wear.compose:compose-foundation:1.6.2'
+    implementation 'androidx.wear.compose:compose-ui-tooling:1.6.2'
+    // Wear Compose 1.7+ pulls Compose 1.12, which needs AGP 9.1 and compileSdk 37;
+    // the BOM keeps Compose on a release this repo's AGP 8.13 / compileSdk 36 can build.
+    implementation platform('androidx.compose:compose-bom:2025.12.01')
+    debugImplementation platform('androidx.compose:compose-bom:2025.12.01')
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    testImplementation "junit:junit:$junitVersion"
+    // android.jar's org.json is a stub in JVM unit tests; the real one parses the contract fixtures.
+    testImplementation 'org.json:json:20251224'}

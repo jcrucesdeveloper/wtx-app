@@ -21,9 +21,13 @@ import { useSettingsStore } from '@/stores/settings'
 import { restJustEnded } from '@/lib/restTime'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
 import { applyOrder, needsReorder, splitRemoved, type PendingSwap } from '@/lib/roomOrder'
+import { newUuid } from '@/lib/uuid'
+import type { ConfirmedRest } from '@/lib/wearProtocol'
 
 /** The live, in-progress workout. Only one can be active at a time. */
 export interface ActiveSession {
+  /** Names this session to the watch and the native rest host; never reused. */
+  id: string
   draft: SessionDraft
   /** The routine this was started from. */
   routineId: string
@@ -43,6 +47,17 @@ export interface ActiveSession {
   restDurationSeconds: number | null
   restExerciseIndex: number | null
   restSetId: string | null
+  /**
+   * Names the running rest (a new one per rest); the native host and the watch address
+   * a rest by it. Kept after the rest ends only until the next one starts: 
+ull when none runs.
+   */
+  restId: string | null
+  /**
+   * Counts the changes made to the running rest, so a confirmed state older than the
+   * one JS holds is ignored (see pplyConfirmedRest). Starts at 0 with each rest.
+   */
+  restRev: number
 }
 
 const STORAGE_KEY = 'wtx:activeSession'
@@ -66,6 +81,10 @@ function readStored(): ActiveSession | null {
       if (exercise.kind === 'time')
         exercise.loggedSets = singleTimedEntry(exercise.loggedSets ?? [])
     }
+    // Saved before the watch integration: name the session and any rest it was running.
+    if (typeof parsed.id !== 'string') parsed.id = newUuid()
+    if (typeof parsed.restRev !== 'number') parsed.restRev = 0
+    if (typeof parsed.restId !== 'string') parsed.restId = parsed.restEndsAt ? newUuid() : null
     return parsed as ActiveSession
   } catch {
     return null
@@ -97,17 +116,45 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     { deep: true },
   )
 
+  /** A rest that ran out: stopped, and — on screen, just now — buzzed for. */
+  function endRestAtDeadline(endsAt: number) {
+    skipRestTimer()
+    // Only for a rest that just ran out with the app on screen; in the
+    // background the Android notification buzzes for it instead.
+    const onScreen = document.visibilityState === 'visible'
+    if (useSettingsStore().vibrateOnRestEnd && onScreen && restJustEnded(endsAt, now.value)) {
+      void HapticsService.restOver()
+    }
+  }
+
+  /**
+   * Asks the native rest host (when there is one) for the rest as it holds it, and
+   * adopts it: the host may have moved the deadline while this page was paused (a
+   * notification action, the watch). Set by the notification service.
+   */
+  let reconcileRest: (() => Promise<void>) | null = null
+  function setRestReconciler(fn: (() => Promise<void>) | null) {
+    reconcileRest = fn
+  }
+  let reconciling = false
+
   function tick() {
     now.value = Date.now()
     const endsAt = session.value?.restEndsAt
     if (endsAt && now.value >= endsAt) {
-      skipRestTimer()
-      // Only for a rest that just ran out with the app on screen; in the
-      // background the Android notification buzzes for it instead.
-      const onScreen = document.visibilityState === 'visible'
-      if (useSettingsStore().vibrateOnRestEnd && onScreen && restJustEnded(endsAt, now.value)) {
-        void HapticsService.restOver()
-      }
+      if (!reconcileRest) return endRestAtDeadline(endsAt)
+      // The deadline JS holds may be old (the host extended it while this page was
+      // paused): hear the host before ending the rest on its own say-so.
+      if (reconciling) return
+      reconciling = true
+      void reconcileRest()
+        .catch(() => {})
+        .then(() => {
+          reconciling = false
+          now.value = Date.now()
+          const current = session.value?.restEndsAt
+          if (current && now.value >= current) endRestAtDeadline(current)
+        })
     }
   }
   const tickTimer = setInterval(tick, 1000)
@@ -121,6 +168,12 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   })
 
   const isActive = computed(() => session.value !== null)
+
+  /**
+   * How the last session ended, for the watch ("finished" or "discarded"). In memory
+   * only: cleared when the next session starts.
+   */
+  const lastEnd = ref<{ sessionId: string; reason: 'finished' | 'discarded' } | null>(null)
 
   /**
    * Whether this device hosts the group workout this session is logged in —
@@ -203,6 +256,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     // In a room, each exercise remembers its routine slot so the host's order can find it.
     if (opts?.roomId) draft.exercises.forEach((exercise, slot) => (exercise.slot = slot))
     session.value = {
+      id: newUuid(),
       draft,
       routineId: routine.id,
       ...(opts?.roomId ? { roomId: opts.roomId } : {}),
@@ -211,7 +265,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       restDurationSeconds: null,
       restExerciseIndex: null,
       restSetId: null,
+      restId: null,
+      restRev: 0,
     }
+    lastEnd.value = null
     removedSet = null
     focusRequest.value = null
     now.value = Date.now()
@@ -292,7 +349,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     set: SessionSetDraft
     position: number
     /** The rest that was running after this set, if one was. */
-    rest: { endsAt: number; durationSeconds: number | null } | null
+    rest: { restId: string | null; endsAt: number; durationSeconds: number | null } | null
   } | null = null
 
   /**
@@ -317,7 +374,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       set,
       position,
       rest: restingAfterIt
-        ? { endsAt: session.value.restEndsAt!, durationSeconds: session.value.restDurationSeconds }
+        ? {
+            restId: session.value.restId,
+            endsAt: session.value.restEndsAt!,
+            durationSeconds: session.value.restDurationSeconds,
+          }
         : null,
     }
     if (restingAfterIt) skipRestTimer()
@@ -350,6 +411,9 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       session.value.restDurationSeconds = removed.rest.durationSeconds
       session.value.restExerciseIndex = exerciseIndex
       session.value.restSetId = setId
+      // A rest the host may have dropped when it was skipped: a new one, from the host's side.
+      session.value.restId = newUuid()
+      session.value.restRev = 0
       now.value = Date.now()
     }
   }
@@ -632,6 +696,8 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     session.value.restSetId = setId
     session.value.restEndsAt = Date.now() + seconds * 1000
     session.value.restDurationSeconds = seconds
+    session.value.restId = newUuid()
+    session.value.restRev = 0
     now.value = Date.now()
   }
 
@@ -641,16 +707,25 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     session.value.restDurationSeconds = null
     session.value.restExerciseIndex = null
     session.value.restSetId = null
+    session.value.restId = null
+    session.value.restRev = 0
   }
 
   /**
-   * Nudges the running rest timer; clamped so it never goes negative. The
-   * rest's length moves with it, so its progress stays a share of the whole.
+   * Nudges the running rest timer on this page's own clock; clamped so it never
+   * goes negative. The rest's length moves with it, so its progress stays a share
+   * of the whole.
+   *
+   * With the Android host present the controls don't call this: the host applies the
+   * change (it is the one place that does, for the phone, the notification and the
+   * watch) and JS adopts the result with {@link applyConfirmedRest}. This is the same
+   * rule, for the web and for a host that can't answer.
    */
   function adjustRestTimer(deltaSeconds: number) {
     if (!session.value?.restEndsAt) return
     const before = session.value.restEndsAt
     session.value.restEndsAt = Math.max(Date.now(), before + deltaSeconds * 1000)
+    session.value.restRev += 1
     const duration = session.value.restDurationSeconds
     if (duration !== null) {
       session.value.restDurationSeconds = Math.max(
@@ -658,6 +733,29 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
         duration + (session.value.restEndsAt - before) / 1000,
       )
     }
+  }
+
+  /**
+   * Adopts the rest as the native host confirmed it, replacing what JS holds
+   * rather than adding a delta to it, so a change is never applied twice. Ignored
+   * unless it is about the running rest of this session and newer than JS's copy.
+   * A confirmed end (`restEndsAt: null`: skipped, or cut back to zero) stops the rest.
+   *
+   * @returns Whether the rest changed.
+   */
+  function applyConfirmedRest(confirmed: ConfirmedRest): boolean {
+    const s = session.value
+    if (!s || s.id !== confirmed.sessionId || s.restId !== confirmed.restId) return false
+    if (confirmed.restRev <= s.restRev) return false
+    if (confirmed.restEndsAt === null) {
+      skipRestTimer()
+      return true
+    }
+    s.restEndsAt = confirmed.restEndsAt
+    if (confirmed.restDurationSeconds !== null) s.restDurationSeconds = confirmed.restDurationSeconds
+    s.restRev = confirmed.restRev
+    now.value = Date.now()
+    return true
   }
 
   /**
@@ -681,6 +779,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     const startedAt = endsAt - (session.value.restDurationSeconds ?? previous ?? next) * 1000
     session.value.restEndsAt = Math.max(Date.now(), startedAt + next * 1000)
     session.value.restDurationSeconds = (session.value.restEndsAt - startedAt) / 1000
+    session.value.restRev += 1
     now.value = Date.now()
   }
 
@@ -720,6 +819,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
       !opts.localOnly && opts.shareToFeed,
     )
 
+    lastEnd.value = { sessionId: session.value.id, reason: 'finished' }
     session.value = null
     removedSet = null
     persist()
@@ -728,6 +828,7 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
 
   /** Discards the in-progress session. Callers own any confirmation prompt. */
   function discard() {
+    if (session.value) lastEnd.value = { sessionId: session.value.id, reason: 'discarded' }
     session.value = null
     removedSet = null
     persist()
@@ -768,6 +869,9 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     startRestTimer,
     skipRestTimer,
     adjustRestTimer,
+    applyConfirmedRest,
+    setRestReconciler,
+    lastEnd,
     setRestSeconds,
     finish,
     discard,

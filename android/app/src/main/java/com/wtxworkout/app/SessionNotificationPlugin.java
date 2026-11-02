@@ -42,7 +42,15 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * clock, so the swap lands as the countdown reaches zero even if the wall
  * clock moves. Plugin calls arrive on Capacitor's own thread and are handed
  * to the main looper, where the rest actions and the rest end also run, so
- * the rest state is only ever touched from one thread.
+ * the notification is only ever drawn from one thread.
+ *
+ * The running rest's deadline is not kept here: {@link RestHostCore} (through
+ * {@link WearHost}) holds it, and is the one place it changes: from the rest
+ * panel ({@link #adjustRest}), from this notification's actions, and from the
+ * watch. This class draws what the host holds. Its state is static, because the
+ * notification outlives the activity: an action or a watch command that arrives
+ * with the activity gone still redraws it, and JS adopts the result when it
+ * is back (the {@code restState} event, or {@link #getRestState}).
  */
 @CapacitorPlugin(name = "WtxSessionNotification")
 public class SessionNotificationPlugin extends Plugin {
@@ -69,24 +77,26 @@ public class SessionNotificationPlugin extends Plugin {
 
     private static final Handler main = new Handler(Looper.getMainLooper());
 
+    /** Application context: the notification is drawn and updated without an activity. */
+    private static Context appContext;
+
     /** What the service shows when it starts, and what a dismissal puts back; `null` once the workout ends. */
     static volatile Notification current;
 
     /** The live plugin, for the notification's rest actions; `null` while there's no bridge. */
     private static SessionNotificationPlugin instance;
 
-    private boolean serviceStarted = false;
+    private static boolean serviceStarted = false;
 
     /** The latest options from JS, so a rest action can redraw without a round trip. */
-    private JSObject lastOptions;
-    /** The rest deadline currently drawn ({@link SystemClock#elapsedRealtime()} ms); 0 when not resting. */
-    private long restEndsAt;
+    private static JSObject lastOptions;
     /** The workout start ({@link SystemClock#elapsedRealtime()} ms), never later than when it arrived. */
-    private long startedAt;
+    private static long startedAt;
 
     @Override
     public void load() {
         instance = this;
+        appContext = getContext().getApplicationContext();
         SessionRestEnd.appInForeground = true;
         // Cold start from the notification: the event waits for the JS listener.
         Intent intent = getActivity().getIntent();
@@ -131,31 +141,97 @@ public class SessionNotificationPlugin extends Plugin {
     public void show(PluginCall call) {
         JSObject data = call.getData();
         main.post(() -> {
-            ensureChannel(getContext(), data.optString("channelName", "Workout"), data.optString("channelDescription", ""));
+            ensureChannel(appContext, data.optString("channelName", "Workout"), data.optString("channelDescription", ""));
             long now = System.currentTimeMillis();
             lastOptions = data;
-            long restEpoch = data.optLong("restEndsAt", 0);
-            restEndsAt = restEpoch > now ? toElapsed(restEpoch) : 0;
             startedAt = toElapsed(Math.min(data.optLong("startedAt", now), now));
+            // The rest JS holds goes to the host, which keeps the newer of its own and JS's.
+            long jsRestEpoch = data.optLong("jsRestEndsAt", 0);
+            boolean stale = WearHost.get(appContext).onJsShow(data, jsRestEpoch > now ? toElapsed(jsRestEpoch) : 0);
             render();
+            // JS's rest is older than the host's: tell it what the host holds.
+            if (stale) emitRestState();
             call.resolve();
         });
     }
 
     @PluginMethod
     public void stop(PluginCall call) {
+        String reason = call.getString("reason");
         main.post(() -> {
+            if (appContext == null) appContext = getContext().getApplicationContext();
+            WearHost.get(appContext).onJsStop(reason);
             stopNow();
             call.resolve();
         });
     }
 
-    private void stopNow() {
+    /**
+     * The one place the running rest's deadline is changed from the phone's own controls.
+     * Applied once, here; JS adopts the rest this answers with instead of adding the delta
+     * itself. Works with the web view paused. A refused command still says why, and which
+     * rest the host holds.
+     */
+    @PluginMethod
+    public void adjustRest(PluginCall call) {
+        String commandId = call.getString("commandId", "");
+        String sessionId = call.getString("sessionId", "");
+        String restId = call.getString("restId", "");
+        int delta = call.getInt("deltaSeconds", 0);
+        main.post(() -> {
+            RestHostCore.Outcome outcome = WearHost.get(appContext).adjust(commandId, sessionId, restId, delta);
+            if (outcome.changed) render();
+            JSObject result = restData(outcome.rest);
+            result.put("accepted", outcome.accepted);
+            if (outcome.reason != null) result.put("reason", outcome.reason);
+            call.resolve(result);
+        });
+    }
+
+    /** The rest as the host holds it (empty when none); JS calls it when the page comes back. */
+    @PluginMethod
+    public void getRestState(PluginCall call) {
+        main.post(() -> {
+            if (appContext == null) appContext = getContext().getApplicationContext();
+            call.resolve(restData(WearHost.get(appContext).core.currentRest()));
+        });
+    }
+
+    private static JSObject restData(RestHostCore.RestState rest) {
+        JSObject data = new JSObject();
+        org.json.JSONObject json = WearHost.restJson(rest);
+        java.util.Iterator<String> keys = json.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            data.put(key, json.opt(key));
+        }
+        return data;
+    }
+
+    /** Tells JS the rest the host holds, if the activity is up; if not, JS asks when it is back. */
+    private static void emitRestState() {
+        SessionNotificationPlugin plugin = instance;
+        if (plugin == null) return;
+        RestHostCore.RestState rest = WearHost.get(appContext).core.currentRest();
+        if (rest != null) plugin.notifyListeners("restState", restData(rest));
+    }
+
+    /**
+     * The host changed the rest on its own (a watch command): redraws the notification and
+     * tells JS. Any thread.
+     */
+    static void onHostChanged() {
+        main.post(() -> {
+            render();
+            emitRestState();
+        });
+    }
+
+    private static void stopNow() {
         SessionRestEnd.cancel();
         current = null;
         lastOptions = null;
-        restEndsAt = 0;
-        Context context = getContext();
+        Context context = appContext;
         // Always: after an activity restart this plugin instance may not be the one that started it.
         context.stopService(new Intent(context, SessionNotificationService.class));
         serviceStarted = false;
@@ -175,35 +251,26 @@ public class SessionNotificationPlugin extends Plugin {
      * so the session's rest moves the same way. Ignored once the rest is over.
      */
     static void onRestAction(String action) {
-        SessionNotificationPlugin plugin = instance;
-        if (plugin != null) plugin.applyRestAction(action);
-    }
-
-    private void applyRestAction(String action) {
-        if (lastOptions == null) return;
-        long now = SystemClock.elapsedRealtime();
-        if (restEndsAt <= now) return;
-        int step = lastOptions.optInt("restStep", 15);
+        if (lastOptions == null || appContext == null) return;
+        WearHost host = WearHost.get(appContext);
+        RestHostCore.Outcome outcome;
         if (SessionNotificationReceiver.ACTION_SKIP.equals(action)) {
-            restEndsAt = 0;
+            outcome = host.skipFromNotification();
         } else {
-            long delta = (SessionNotificationReceiver.ACTION_LESS.equals(action) ? -step : step) * 1000L;
-            restEndsAt = Math.max(now, restEndsAt + delta);
-            if (restEndsAt <= now) restEndsAt = 0;
+            int step = lastOptions.optInt("restStep", 15);
+            outcome = host.adjustFromNotification(SessionNotificationReceiver.ACTION_LESS.equals(action) ? -step : step);
         }
+        if (!outcome.changed) return;
         render();
-
-        JSObject event = new JSObject();
-        event.put("action", action);
-        event.put("seconds", step);
-        notifyListeners("restAction", event);
+        emitRestState();
     }
 
     /** Draws the latest options: the rest face (with its end scheduled) or the working face. */
-    private void render() {
-        if (lastOptions == null) return;
-        Context context = getContext();
-        boolean resting = restEndsAt > SystemClock.elapsedRealtime();
+    private static void render() {
+        if (lastOptions == null || appContext == null) return;
+        Context context = appContext;
+        long restEndsAt = WearHost.get(context).core.restEndsAt(SystemClock.elapsedRealtime());
+        boolean resting = restEndsAt > 0;
         JSObject afterRest = lastOptions.getJSObject("afterRest");
 
         SessionRestEnd.settle();
@@ -221,7 +288,7 @@ public class SessionNotificationPlugin extends Plugin {
     }
 
     /** The first post starts the foreground service; later ones update its notification in place. */
-    private void post(Context context, Notification notification) {
+    private static void post(Context context, Notification notification) {
         current = notification;
         if (!serviceStarted) {
             serviceStarted = true;
@@ -244,7 +311,7 @@ public class SessionNotificationPlugin extends Plugin {
      * rest deadline when {@code countDown}, else the workout start the clock
      * counts up from.
      */
-    private Notification build(Context context, JSObject face, long when, boolean countDown) {
+    private static Notification build(Context context, JSObject face, long when, boolean countDown) {
         Notification.Builder builder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
             ? new Notification.Builder(context, CHANNEL_ID)
             : new Notification.Builder(context);
@@ -336,7 +403,7 @@ public class SessionNotificationPlugin extends Plugin {
         ).build();
     }
 
-    private PendingIntent openSessionIntent(Context context) {
+    private static PendingIntent openSessionIntent(Context context) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         intent.putExtra(EXTRA_OPEN_SESSION, true);

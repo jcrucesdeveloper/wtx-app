@@ -1,0 +1,164 @@
+{
+  "_comment": "The phone <-> watch protocol, version 1. Checked by src/lib/__tests__/wearProtocol.spec.ts (TypeScript), android/app WearProtocolTest (Java) and android/wear WearProtocolTest (Kotlin): change a contract here and in all three.",
+  "version": 1,
+  "capability": "wtx_host_v1",
+  "paths": {
+    "state": "/wtx/v1/session/state",
+    "request": "/wtx/v1/session/request",
+    "adjust": "/wtx/v1/timer/adjust",
+    "result": "/wtx/v1/command/result"
+  },
+  "request": {
+    "valid": [{ "v": 1, "requestId": "req-1" }],
+    "invalid": [
+      { "name": "no id", "payload": { "v": 1 }, "reason": "invalid_payload" },
+      { "name": "empty id", "payload": { "v": 1, "requestId": "" }, "reason": "invalid_payload" },
+      { "name": "future version", "payload": { "v": 2, "requestId": "req-1" }, "reason": "unsupported_version" }
+    ]
+  },
+  "adjust": {
+    "valid": [
+      {
+        "name": "minus 15",
+        "payload": { "v": 1, "commandId": "c-1", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": -15 },
+        "expect": { "commandId": "c-1", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": -15 }
+      },
+      {
+        "name": "plus 15",
+        "payload": { "v": 1, "commandId": "c-2", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": 15 },
+        "expect": { "commandId": "c-2", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": 15 }
+      }
+    ],
+    "invalid": [
+      {
+        "name": "zero",
+        "payload": { "v": 1, "commandId": "c-3", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": 0 },
+        "reason": "invalid_payload",
+        "commandId": "c-3"
+      },
+      {
+        "name": "too big",
+        "payload": { "v": 1, "commandId": "c-4", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": 600 },
+        "reason": "invalid_payload",
+        "commandId": "c-4"
+      },
+      {
+        "name": "fractional",
+        "payload": { "v": 1, "commandId": "c-5", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": 7.5 },
+        "reason": "invalid_payload",
+        "commandId": "c-5"
+      },
+      {
+        "name": "text delta",
+        "payload": { "v": 1, "commandId": "c-6", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": "15" },
+        "reason": "invalid_payload",
+        "commandId": "c-6"
+      },
+      {
+        "name": "no rest id",
+        "payload": { "v": 1, "commandId": "c-7", "sessionId": "s-1", "deltaSeconds": 15 },
+        "reason": "invalid_payload",
+        "commandId": "c-7"
+      },
+      {
+        "name": "no command id",
+        "payload": { "v": 1, "sessionId": "s-1", "restId": "r-1", "deltaSeconds": 15 },
+        "reason": "invalid_payload",
+        "commandId": ""
+      },
+      {
+        "name": "future version",
+        "payload": { "v": 2, "commandId": "c-8", "sessionId": "s-1", "restId": "r-1", "deltaSeconds": 15 },
+        "reason": "unsupported_version",
+        "commandId": "c-8"
+      }
+    ]
+  },
+  "state": {
+    "resting": {
+      "v": 1,
+      "hostId": "host-1",
+      "revision": 42,
+      "inReplyTo": "req-1",
+      "status": "resting",
+      "sessionId": "s-1",
+      "rest": { "restId": "r-1", "remainingMs": 90000, "durationMs": 90000 },
+      "stepSeconds": 15,
+      "vibrate": true,
+      "sessionName": "Push day",
+      "next": { "kind": "set", "exercise": "Bench Press", "position": "Set 2 of 3", "load": "60 kg × 8" }
+    },
+    "idle": {
+      "v": 1,
+      "hostId": "host-1",
+      "revision": 43,
+      "status": "idle",
+      "sessionId": null,
+      "rest": null,
+      "stepSeconds": 15,
+      "vibrate": true,
+      "sessionName": "",
+      "next": null
+    },
+    "ended": {
+      "v": 1,
+      "hostId": "host-1",
+      "revision": 44,
+      "status": "ended",
+      "sessionId": "s-1",
+      "endedReason": "finished",
+      "rest": null,
+      "stepSeconds": 15,
+      "vibrate": true,
+      "sessionName": "",
+      "next": null
+    },
+    "invalid": [
+      { "name": "future version", "payload": { "v": 2, "hostId": "h", "revision": 1, "status": "idle", "sessionId": null, "rest": null, "stepSeconds": 15, "vibrate": true, "sessionName": "", "next": null } },
+      { "name": "unknown status", "payload": { "v": 1, "hostId": "h", "revision": 1, "status": "paused", "sessionId": null, "rest": null, "stepSeconds": 15, "vibrate": true, "sessionName": "", "next": null } },
+      { "name": "resting without a rest", "payload": { "v": 1, "hostId": "h", "revision": 1, "status": "resting", "sessionId": "s", "rest": null, "stepSeconds": 15, "vibrate": true, "sessionName": "", "next": null } },
+      { "name": "negative remaining time", "payload": { "v": 1, "hostId": "h", "revision": 1, "status": "resting", "sessionId": "s", "rest": { "restId": "r", "remainingMs": -5, "durationMs": 1000 }, "stepSeconds": 15, "vibrate": true, "sessionName": "", "next": null } },
+      { "name": "no revision", "payload": { "v": 1, "hostId": "h", "status": "idle", "sessionId": null, "rest": null, "stepSeconds": 15, "vibrate": true, "sessionName": "", "next": null } }
+    ]
+  },
+  "result": {
+    "accepted": {
+      "v": 1,
+      "commandId": "c-1",
+      "accepted": true,
+      "reason": null,
+      "duplicate": false,
+      "state": {
+        "v": 1,
+        "hostId": "host-1",
+        "revision": 45,
+        "status": "resting",
+        "sessionId": "s-1",
+        "rest": { "restId": "r-1", "remainingMs": 75000, "durationMs": 75000 },
+        "stepSeconds": 15,
+        "vibrate": true,
+        "sessionName": "Push day",
+        "next": { "kind": "set", "exercise": "Bench Press", "position": "Set 2 of 3", "load": "60 kg × 8" }
+      }
+    },
+    "rejected": {
+      "v": 1,
+      "commandId": "c-9",
+      "accepted": false,
+      "reason": "rest_mismatch",
+      "duplicate": false,
+      "state": {
+        "v": 1,
+        "hostId": "host-1",
+        "revision": 46,
+        "status": "active",
+        "sessionId": "s-1",
+        "rest": null,
+        "stepSeconds": 15,
+        "vibrate": true,
+        "sessionName": "Push day",
+        "next": { "kind": "set", "exercise": "Bench Press", "position": "Set 3 of 3", "load": "60 kg × 8" }
+      }
+    }
+  }
+}

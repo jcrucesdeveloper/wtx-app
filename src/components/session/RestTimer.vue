@@ -7,6 +7,7 @@ import { useExerciseName } from '@/composables/useExerciseName'
 import { formatClock } from '@/lib/format'
 import { REST_STEP_SECONDS, restProgress } from '@/lib/restTime'
 import { HapticsService } from '@/services/haptics'
+import { adjustRest } from '@/services/sessionNotification'
 
 /**
  * The rest between sets, in the dock: a panel above the one button, so it is
@@ -54,7 +55,8 @@ watch(resting, (now) => {
 onBeforeUnmount(() => clearTimeout(restOverTimer))
 
 function adjust(seconds: number) {
-  activeSession.adjustRestTimer(seconds)
+  // On Android the native host applies it (one place for the phone, the notification and the watch).
+  void adjustRest(seconds)
   void HapticsService.selection()
 }
 

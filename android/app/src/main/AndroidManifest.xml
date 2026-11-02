@@ -56,6 +56,20 @@
             android:name=".SessionNotificationReceiver"
             android:exported="false" />
 
+        <!-- The Wear OS app's messages (state requests, rest adjustments). The system starts
+             this for a message even with the app closed, so commands don't need a screen. -->
+        <service
+            android:name=".WearHostListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/wtx/v1/" />
+            </intent-filter>
+        </service>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

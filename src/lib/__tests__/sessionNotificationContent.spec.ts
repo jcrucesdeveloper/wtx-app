@@ -41,6 +41,7 @@ function session(
   partial: Partial<ActiveSession> = {},
 ): ActiveSession {
   return {
+    id: 'session-1',
     draft: { name: 'Push day', date: '2026-10-15', unit: 'kg', exercises },
     routineId: 'r1',
     startedAt: NOW - 600_000,
@@ -48,6 +49,8 @@ function session(
     restDurationSeconds: null,
     restExerciseIndex: null,
     restSetId: null,
+    restId: null,
+    restRev: 0,
     ...partial,
   }
 }

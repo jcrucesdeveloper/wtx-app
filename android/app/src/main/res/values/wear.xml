@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- What the Wear OS app looks for to find this app as its host (WearProtocol.CAPABILITY_HOST). -->
+    <string-array name="android_wear_capabilities">
+        <item>wtx_host_v1</item>
+    </string-array>
+</resources>

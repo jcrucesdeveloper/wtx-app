@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="wtx_background">#0F1012</color>
+    <color name="ic_launcher_background">#181818</color>
+
+    <!-- Shown while the activity starts, before Compose draws: WTX's dark background. -->
+    <style name="Theme.Wtx" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowBackground">@color/wtx_background</item>
+    </style>
+</resources>
