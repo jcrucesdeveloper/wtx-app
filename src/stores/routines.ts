@@ -6,7 +6,8 @@ import { DEFAULT_TEMPLATES } from '@/lib/wtx/defaultTemplates'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
 import { track } from '@/services/analytics'
 import { ACCENT_COLORS } from '@/config/theme'
-import { SECTION_NAME_MAX } from '@/lib/supabase/limits'
+import { ROUTINE_MAX, SECTION_NAME_MAX, canCreateRoutine, isNearRoutineLimit } from '@/lib/supabase/limits'
+import { i18n } from '@/i18n'
 
 /** A `.wtt` template as stored in the library. Raw text is the source of truth. */
 export interface StoredRoutine {
@@ -34,6 +35,25 @@ export interface RoutineSection {
   /** Epoch millis when it was created. */
   addedAt: number
 }
+
+/** Thrown by `add()` when the library already holds {@link ROUTINE_MAX} routines. Its message is translated. */
+export class RoutineLimitError extends Error {
+  constructor() {
+    super(i18n.global.t('routines.limit.reached', { max: ROUTINE_MAX }))
+    this.name = 'RoutineLimitError'
+  }
+}
+
+/** A routine just deleted, with where it was, while it can still be put back. */
+export interface RemovedRoutine {
+  routine: StoredRoutine
+  /** Its place in the library when it was deleted. */
+  index: number
+  favorite: boolean
+}
+
+/** How long a deleted routine can be put back — the same as a deleted set. */
+export const REMOVE_UNDO_MS = 8000
 
 const STORAGE_KEY = 'wtx:routines'
 const SECTIONS_KEY = 'wtx:routineSections'
@@ -172,6 +192,19 @@ export const useRoutinesStore = defineStore('routines', () => {
     { deep: true },
   )
 
+  /**
+   * The routine deleted last, while it can still be put back. Not persisted:
+   * after a restart the delete simply stands.
+   */
+  const removed = ref<RemovedRoutine | null>(null)
+  let removedTimer: ReturnType<typeof setTimeout> | undefined
+
+  /** Ends the chance to undo the last delete; the delete stands. */
+  function settleRemoval() {
+    clearTimeout(removedTimer)
+    removed.value = null
+  }
+
   function isFavorite(id: string): boolean {
     return favoriteIds.value.includes(id)
   }
@@ -290,6 +323,12 @@ export const useRoutinesStore = defineStore('routines', () => {
   /** Display order — newest first by default, but user-reorderable via {@link reorder}. */
   const list = computed(() => routines.value)
 
+  /** There's room for another routine (see {@link ROUTINE_MAX}). */
+  const canAdd = computed(() => canCreateRoutine(routines.value.length))
+
+  /** The library is close to (or at) {@link ROUTINE_MAX}. */
+  const nearLimit = computed(() => isNearRoutineLimit(routines.value.length))
+
   /** Replaces the display order, e.g. after a drag-and-drop reorder. */
   function reorder(newOrder: StoredRoutine[]) {
     routines.value = newOrder
@@ -313,9 +352,11 @@ export const useRoutinesStore = defineStore('routines', () => {
   /**
    * Adds a routine after checking it parses.
    *
+   * @throws {RoutineLimitError} If the library is full.
    * @throws The parser's error message if `rawText` is not a valid `.wtt`.
    */
   function add(rawText: string, filename: string): StoredRoutine {
+    if (!canAdd.value) throw new RoutineLimitError()
     const result = parseTemplateText(rawText)
     if (!result.ok) throw new Error(result.error)
 
@@ -325,6 +366,9 @@ export const useRoutinesStore = defineStore('routines', () => {
       rawText,
       addedAt: Date.now(),
     }
+    // Adding moves on from a delete: an undo now could take the library past
+    // the size it had, and any cap on it.
+    settleRemoval()
     routines.value.unshift(routine)
     track('routine_created')
     return routine
@@ -346,13 +390,38 @@ export const useRoutinesStore = defineStore('routines', () => {
     return routine
   }
 
+  /**
+   * Deletes a routine at once and keeps it for {@link REMOVE_UNDO_MS} so
+   * {@link restore} can put it back. The sync layer holds its tombstone back
+   * for as long as that's possible.
+   */
   function remove(id: string) {
+    const index = routines.value.findIndex((r) => r.id === id)
+    const routine = routines.value[index]
+    if (!routine) return
+    removed.value = { routine: { ...routine }, index, favorite: isFavorite(id) }
     routines.value = routines.value.filter((r) => r.id !== id)
     pruneFavorites()
+    clearTimeout(removedTimer)
+    removedTimer = setTimeout(settleRemoval, REMOVE_UNDO_MS)
+  }
+
+  /** Undoes the last {@link remove}: the routine returns where it was, with its star and section. */
+  function restore() {
+    const pending = removed.value
+    settleRemoval()
+    if (!pending || getById(pending.routine.id)) return
+    const { routine, index, favorite } = pending
+    const sectionId = routine.sectionId
+    const back: StoredRoutine = { ...routine }
+    if (sectionId !== undefined && !getSection(sectionId)) delete back.sectionId
+    routines.value.splice(Math.min(index, routines.value.length), 0, back)
+    if (favorite && !isFavorite(routine.id)) favoriteIds.value = [...favoriteIds.value, routine.id]
   }
 
   /** Wipes the whole library and its sections, e.g. for a full data reset. Does not reseed defaults. */
   function clear() {
+    settleRemoval()
     routines.value = []
     sections.value = []
     pruneFavorites()
@@ -360,6 +429,7 @@ export const useRoutinesStore = defineStore('routines', () => {
 
   /** Wipes the library and its sections, then reseeds the starter routines so the user is never left with none. */
   function resetToDefaults() {
+    settleRemoval()
     routines.value = defaultRoutines()
     sections.value = []
     pruneFavorites()
@@ -398,6 +468,8 @@ export const useRoutinesStore = defineStore('routines', () => {
   return {
     routines,
     list,
+    canAdd,
+    nearLimit,
     favoriteIds,
     sections,
     getSection,
@@ -418,6 +490,9 @@ export const useRoutinesStore = defineStore('routines', () => {
     add,
     update,
     remove,
+    removed,
+    restore,
+    settleRemoval,
     reorder,
     clear,
     resetToDefaults,

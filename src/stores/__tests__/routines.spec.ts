@@ -5,7 +5,8 @@ import { createPinia, setActivePinia } from 'pinia'
 vi.mock('@/lib/exercises/imageCache', () => ({ warmExerciseImages: () => Promise.resolve() }))
 vi.mock('@/services/analytics', () => ({ track: () => {} }))
 
-import { useRoutinesStore } from '@/stores/routines'
+import { REMOVE_UNDO_MS, RoutineLimitError, useRoutinesStore } from '@/stores/routines'
+import { ROUTINE_MAX, ROUTINE_WARN_AT } from '@/lib/supabase/limits'
 import { buildDataExportZip } from '@/lib/exportData'
 
 const FAVORITES_KEY = 'wtx:routineFavorites'
@@ -227,5 +228,125 @@ describe('routines store: sections', () => {
     store.applyRemoteSections([{ ...a, id: 'remote-a' }], { [a.id]: 'remote-a' })
     expect(store.getById(legs.id)?.sectionId).toBe('remote-a')
     expect(store.getById(push.id)?.sectionId).toBeUndefined()
+  })
+})
+
+describe('routines store: limit', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+  })
+
+  function fill(count: number) {
+    localStorage.setItem(
+      'wtx:routines',
+      JSON.stringify(
+        Array.from({ length: count }, (_, i) => ({ id: `r${i}`, filename: `r${i}.wtt`, rawText: TEXT(`R${i}`), addedAt: i })),
+      ),
+    )
+    return restart()
+  }
+
+  it('warns near the cap and refuses a routine past it', () => {
+    const store = fill(ROUTINE_WARN_AT - 1)
+    expect(store.nearLimit).toBe(false)
+    store.add(TEXT('One more'), '')
+    expect(store.nearLimit).toBe(true)
+
+    const full = fill(ROUTINE_MAX)
+    expect(full.canAdd).toBe(false)
+    expect(() => full.add(TEXT('Too many'), '')).toThrow(RoutineLimitError)
+    expect(() => full.add(TEXT('Too many'), '')).toThrow(String(ROUTINE_MAX))
+    expect(full.list).toHaveLength(ROUTINE_MAX)
+
+    full.remove('r0')
+    expect(full.canAdd).toBe(true)
+    expect(() => full.add(TEXT('Fits again'), '')).not.toThrow()
+  })
+})
+
+describe('routines store: undoable delete', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('wtx:routines', '[]')
+    setActivePinia(createPinia())
+  })
+
+  it('deletes at once and puts the routine back where it was, with its star and section', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const pull = store.add(TEXT('Pull'), 'pull.wtt')
+    const push = store.add(TEXT('Push'), 'push.wtt')
+    const ppl = store.addSection('PPL')
+    store.moveToSection(pull.id, ppl.id)
+    store.toggleFavorite(pull.id)
+
+    store.remove(pull.id)
+    expect(store.list.map((r) => r.id)).toEqual([push.id, legs.id])
+    expect(store.isFavorite(pull.id)).toBe(false)
+    expect(store.removed?.routine.id).toBe(pull.id)
+
+    store.restore()
+    expect(store.list.map((r) => r.id)).toEqual([push.id, pull.id, legs.id])
+    expect(store.isFavorite(pull.id)).toBe(true)
+    expect(store.sectionOf(pull.id)?.id).toBe(ppl.id)
+    expect(store.removed).toBeNull()
+  })
+
+  it('lets the undo go after a few seconds', () => {
+    vi.useFakeTimers()
+    try {
+      const store = useRoutinesStore()
+      const legs = store.add(TEXT('Legs'), 'legs.wtt')
+      store.remove(legs.id)
+      vi.advanceTimersByTime(REMOVE_UNDO_MS - 1)
+      expect(store.removed).not.toBeNull()
+      vi.advanceTimersByTime(1)
+      expect(store.removed).toBeNull()
+      store.restore()
+      expect(store.getById(legs.id)).toBeUndefined()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('offers back only the last delete', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const push = store.add(TEXT('Push'), 'push.wtt')
+    store.remove(legs.id)
+    store.remove(push.id)
+    store.restore()
+    expect(store.list.map((r) => r.id)).toEqual([push.id])
+  })
+
+  it('restores unfiled when its section went meanwhile', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    const ppl = store.addSection('PPL')
+    store.moveToSection(legs.id, ppl.id)
+    store.remove(legs.id)
+    store.removeSection(ppl.id)
+    store.restore()
+    expect(store.getById(legs.id)?.sectionId).toBeUndefined()
+  })
+
+  it('adding a routine drops the undo, so the library never outgrows what it was', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    store.remove(legs.id)
+    const push = store.add(TEXT('Push'), 'push.wtt')
+    expect(store.removed).toBeNull()
+    store.restore()
+    expect(store.list.map((r) => r.id)).toEqual([push.id])
+  })
+
+  it('a reset drops the undo', () => {
+    const store = useRoutinesStore()
+    const legs = store.add(TEXT('Legs'), 'legs.wtt')
+    store.remove(legs.id)
+    store.clear()
+    store.restore()
+    expect(store.list).toEqual([])
   })
 })

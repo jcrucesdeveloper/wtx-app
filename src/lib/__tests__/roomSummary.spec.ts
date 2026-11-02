@@ -110,6 +110,20 @@ describe('buildRoomSummary', () => {
     expect(summary.members[1]).toMatchObject({ seconds: null, currentExercise: 'Squat', done: 2 })
     expect(summary.moments.map((m) => m.kind)).toEqual(['cleared', 'finished'])
   })
+  it("times a late joiner from when they joined, not from the room's start", () => {
+    const summary = buildRoomSummary({
+      routine,
+      members: [
+        { ...member('jaco', 20), joinedAt: at(0) },
+        { ...member('ana', 22), joinedAt: at(10) },
+      ],
+      logs: allDone,
+      startedAt: at(1),
+    })
+    expect(summary.members.map((m) => m.seconds)).toEqual([19 * 60, 12 * 60])
+    // The group's time still runs from the start.
+    expect(summary.seconds).toBe(21 * 60)
+  })
 })
 
 describe('groupCelebrationTier', () => {

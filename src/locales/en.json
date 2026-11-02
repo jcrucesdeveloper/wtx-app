@@ -218,7 +218,12 @@
     "emptyTitle": "No routines yet",
     "emptyHint": "Load a {ext} template to get started.",
     "emptyBtn": "Load a routine",
-    "parseError": "Could not parse — tap to review"
+    "parseError": "Could not parse — tap to review",
+    "limit": {
+      "near": "{count} of {max} routines. Delete the ones you no longer use to keep room for new ones.",
+      "reached": "Your library is full ({max} routines). Delete one you no longer use to add another.",
+      "notBackedUp": "{count} routine isn't backed up — an account holds up to {max}. Delete some to back it up. | {count} routines aren't backed up — an account holds up to {max}. Delete some to back them up."
+    }
   },
   "routineDetail": {
     "notFoundTitle": "Routine not found",
@@ -233,7 +238,8 @@
     "favoriteAria": "Add to favourites",
     "unfavoriteAria": "Remove from favourites",
     "deleteRoutine": "Delete routine",
-    "deleteConfirm": "Remove this routine from your library?",
+    "deleted": "“{name}” deleted",
+    "deleteTraining": "You’re training it right now",
     "notFound": "This routine is no longer in your library.",
     "showSource": "Show source",
     "hideSource": "Hide source",
@@ -271,6 +277,11 @@
       "searchPlaceholder": "Search exercises, muscle or equipment",
       "muscleLabel": "Muscle",
       "equipmentLabel": "Equipment",
+      "filtersLabel": "Filters",
+      "hideFilters": "Hide",
+      "showFilters": "Show",
+      "hideFiltersAria": "Hide muscle and equipment filters",
+      "showFiltersAria": "Show muscle and equipment filters",
       "resultCount": "No exercises | {count} exercise | {count} exercises",
       "noResults": "No exercises match these filters.",
       "clearFilters": "Clear filters",
@@ -310,6 +321,7 @@
       "unnamedExercise": "Unnamed exercise",
       "dragAria": "Drag to reorder",
       "optionsAria": "Exercise options",
+      "howToAria": "How to do {name}",
       "changeExercise": "Change exercise",
       "removeExercise": "Remove exercise",
       "reps": "Reps",
@@ -580,6 +592,23 @@
       "notFound": "This workout isn't available — it may have been deleted or unshared.",
       "backAria": "Back"
     },
+    "likers": {
+      "title": "Kudos",
+      "openAria": "{count} person gave kudos, see who | {count} people gave kudos, see who",
+      "empty": "No kudos yet.",
+      "error": "Couldn't load who gave kudos.",
+      "retry": "Try again",
+      "you": "You"
+    },
+    "copyRoutine": {
+      "action": "Save to my library",
+      "suffix": " (from {'@'}{friend})",
+      "saved": "Saved to your library as “{name}”",
+      "open": "Open",
+      "failed": "Couldn't save this routine.",
+      "limitReached": "Your library is full. Delete a routine to save this one.",
+      "noRest": "Rest times weren't shared with this workout, so the copy has none."
+    },
     "profile": {
       "title": "Profile",
       "openMine": "Your profile",
@@ -804,6 +833,7 @@
     "host": "Host",
     "you": "You",
     "done": "Done",
+    "left": "Left",
     "start": "Start workout",
     "starting": "Starting…",
     "waitingForHost": "Waiting for {name} to start…",
@@ -812,6 +842,9 @@
     "leave": "Leave room",
     "end": "End for everyone",
     "endConfirm": "End this group workout for everyone?",
+    "leaveHostConfirm": "Leave the room? {name} will become the host.",
+    "leaveLastConfirm": "Leave the room? Nobody else is still training, so it ends.",
+    "lateJoinHint": "Already underway — you'll start where {name} is: {exercise}.",
     "finishedTitle": "This group workout is over",
     "viewRecap": "See group recap",
     "loading": "Loading room…",
@@ -853,6 +886,8 @@
       "exerciseSwapped": "{name} swapped {exercise} for {to}",
       "exerciseSwappedKept": "{name} swapped {exercise} for {to}. Your logged sets stay.",
       "focusMoved": "{name} moved the group to {exercise}",
+      "hostChanged": "{name} is now the host",
+      "youAreHost": "You're the host now — you can reorder and change the routine",
       "cheerBackAria": "Send {emoji} to {name}",
       "sent": "Sent!",
       "teamCleared": "Team cleared {exercise} ✅",
@@ -1233,10 +1268,13 @@
     "importedRoutines": "no routines | {count} routine | {count} routines",
     "importedSessions": "no sessions | {count} session | {count} sessions",
     "importNothing": "Nothing new to import — everything in that file is already here.",
+    "importLimit": "Your library is full ({max} routines), so {count} more couldn't be imported.",
     "importError": "Could not read that file — pick a .zip exported from WTX.",
     "dataDeleteHint": "Permanently erase every routine and session.",
     "deleteAllData": "Delete all data",
     "deleteAllConfirm": "Delete every routine and session? This cannot be undone.",
+    "restSound": "Rest timer sound",
+    "restSoundHint": "A chime when your rest is over. Stays quiet when your phone is on silent.",
     "reminders": "Reminders",
     "remindersHint": "A nudge if you haven't logged a workout by evening — never more than one a day.",
     "enableReminders": "Enable reminders",
@@ -1307,6 +1345,14 @@
       "time": "Track by time? The {count} set you logged will be cleared. | Track by time? The {count} sets you logged will be cleared.",
       "reps": "Track by weight and reps? The {count} set you logged will be cleared. | Track by weight and reps? The {count} sets you logged will be cleared."
     }
+  },
+  "forgotFinish": {
+    "channelName": "Workout left running",
+    "channelDescription": "Asks whether you forgot to finish a workout that has been running for hours.",
+    "title": "Did you forget to finish your workout?",
+    "body": "It has been running for over {hours} hours. Finish it to save it, or keep going.",
+    "finish": "Finish workout",
+    "keepGoing": "Keep going"
   },
   "sessionNotification": {
     "channelName": "Workout in progress",

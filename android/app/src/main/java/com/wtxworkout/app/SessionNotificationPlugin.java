@@ -25,7 +25,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * actions; otherwise the current exercise and next set over the workout
  * clock. The clock is a system-drawn Chronometer, so it keeps ticking without
  * the web view running; when the rest ends, {@link SessionRestEnd} swaps in
- * the "after rest" face JS sent along (and buzzes, if the setting is on).
+ * the "after rest" face JS sent along (and buzzes and chimes, per the settings).
  *
  * Only the rest countdown is drawn big. Outside rest the exercise is the
  * headline, with the workout time small beside it.
@@ -152,6 +152,7 @@ public class SessionNotificationPlugin extends Plugin {
 
     private void stopNow() {
         SessionRestEnd.cancel();
+        SessionRestEnd.releaseSound();
         current = null;
         lastOptions = null;
         restEndsAt = 0;
@@ -206,12 +207,18 @@ public class SessionNotificationPlugin extends Plugin {
         boolean resting = restEndsAt > SystemClock.elapsedRealtime();
         JSObject afterRest = lastOptions.getJSObject("afterRest");
 
-        SessionRestEnd.settle();
+        SessionRestEnd.settle(resting);
         Notification notification;
         if (resting) {
             notification = build(context, lastOptions, restEndsAt, true);
             Notification after = build(context, afterRest != null ? afterRest : lastOptions, startedAt, false);
-            SessionRestEnd.schedule(context, restEndsAt, after, lastOptions.optBoolean("vibrateOnRestEnd", true));
+            SessionRestEnd.schedule(
+                context,
+                restEndsAt,
+                after,
+                lastOptions.optBoolean("vibrateOnRestEnd", true),
+                lastOptions.optBoolean("restSound", false)
+            );
         } else {
             // A rest that ended (or was skipped) natively shows what comes after it.
             JSObject face = lastOptions.optLong("restEndsAt", 0) > 0 && afterRest != null ? afterRest : lastOptions;

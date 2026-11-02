@@ -223,6 +223,8 @@ export type Database = {
           user_id: string
           joined_at: string
           finished_at: string | null
+          /** When they left the running workout. Optional so a server without the column still reads. */
+          left_at?: string | null
         }
         Insert: never
         Update: {
@@ -411,6 +413,18 @@ export type Database = {
         Args: { p_code: string }
         Returns: RoomRow | EmptyRow<RoomRow>
       }
+      leave_room: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      room_host_beat: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      claim_room_host: {
+        Args: { p_room_id: string }
+        Returns: RoomRow
+      }
       follow_by_code: {
         Args: { p_code: string }
         Returns: ProfileCard | EmptyRow<ProfileCard>
@@ -441,6 +455,21 @@ export type Database = {
           follows_me: boolean
           trained_together: number
           workout_times: string[]
+        }[]
+      }
+      get_session_likers: {
+        Args: {
+          p_session_id: string
+          p_before?: string | null
+          p_before_user?: string | null
+          p_limit?: number
+        }
+        Returns: {
+          user_id: string
+          display_name: string
+          liked_at: string
+          i_follow: boolean
+          follows_me: boolean
         }[]
       }
       block_user: {

@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
 import { useRoutinesStore } from '@/stores/routines'
 import { useSettingsStore } from '@/stores/settings'
+import { ROUTINE_MAX } from '@/lib/supabase/limits'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { emptyDraft, serializeTemplate } from '@/lib/serializeRoutine'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
@@ -23,7 +24,7 @@ const submitError = ref('')
 
 const rawText = computed(() => serializeTemplate(draft.value))
 const result = computed(() => parseTemplateText(rawText.value))
-const canSubmit = computed(() => draft.value.name.trim().length > 0 && result.value.ok)
+const canSubmit = computed(() => routines.canAdd && draft.value.name.trim().length > 0 && result.value.ok)
 
 watch(createSheetOpen, (open) => {
   if (!open) {
@@ -46,6 +47,7 @@ function onSubmit() {
 
 <template>
   <BottomSheet :open="createSheetOpen" :title="t('wtx.createRoutine.title')" @close="ui.close()">
+    <p v-if="!routines.canAdd" class="limit" role="status">{{ t('routines.limit.reached', { max: ROUTINE_MAX }) }}</p>
     <RoutineForm v-model="draft" />
 
     <p v-if="!result.ok" class="error">{{ result.error }}</p>
@@ -58,6 +60,11 @@ function onSubmit() {
 </template>
 
 <style scoped>
+.limit {
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
 .error {
   font-size: 13px;
   color: var(--color-danger);

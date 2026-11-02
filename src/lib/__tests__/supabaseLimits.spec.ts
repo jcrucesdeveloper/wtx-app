@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { isRateLimited, jsonByteLength, rpcErrorCode } from '@/lib/supabase/limits'
+import {
+  ROUTINE_MAX,
+  ROUTINE_WARN_AT,
+  canCreateRoutine,
+  isNearRoutineLimit,
+  isRateLimited,
+  isRoutineLimit,
+  jsonByteLength,
+  routinesLeft,
+  rpcErrorCode,
+} from '@/lib/supabase/limits'
 
 describe('supabase limits', () => {
   it('finds the first known code in an error message', () => {
@@ -21,5 +31,28 @@ describe('supabase limits', () => {
   it('measures JSON in UTF-8 bytes', () => {
     expect(jsonByteLength({ a: 1 })).toBe(7)
     expect(jsonByteLength('ñ')).toBe(4)
+  })
+
+  it('has room for a routine until the library is full', () => {
+    expect(ROUTINE_WARN_AT).toBeLessThan(ROUTINE_MAX)
+    expect(canCreateRoutine(0)).toBe(true)
+    expect(canCreateRoutine(ROUTINE_MAX - 1)).toBe(true)
+    expect(canCreateRoutine(ROUTINE_MAX)).toBe(false)
+    expect(canCreateRoutine(ROUTINE_MAX - 2, 2)).toBe(true)
+    expect(canCreateRoutine(ROUTINE_MAX - 2, 3)).toBe(false)
+    expect(routinesLeft(ROUTINE_MAX - 5)).toBe(5)
+    expect(routinesLeft(ROUTINE_MAX + 5)).toBe(0)
+  })
+
+  it('warns from ROUTINE_WARN_AT on', () => {
+    expect(isNearRoutineLimit(ROUTINE_WARN_AT - 1)).toBe(false)
+    expect(isNearRoutineLimit(ROUTINE_WARN_AT)).toBe(true)
+  })
+
+  it('recognizes the routine cap', () => {
+    expect(isRoutineLimit({ message: 'routine_limit' })).toBe(true)
+    expect(isRoutineLimit(new Error('P0001: routine_limit'))).toBe(true)
+    expect(isRoutineLimit({ message: 'rate_limited' })).toBe(false)
+    expect(isRoutineLimit(null)).toBe(false)
   })
 })

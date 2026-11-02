@@ -347,3 +347,36 @@ describe('room store: where the host is, everyone goes', () => {
     expect(eventsOf('focus-moved')).toEqual([])
   })
 })
+
+describe('room store: joining a workout that has already started', () => {
+  it("starts a late joiner on the host's exercise, said before they jump in", () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow({ focus_slot: 2, order_version: 1 })
+    expect(room.startExercise).toBe('Dips')
+    // Before the host has moved: the routine's first, in the host's order.
+    room.room = roomRow({ exercise_order: [1, 0, 2], order_version: 1 })
+    expect(room.startExercise).toBe('Overhead Press')
+    // Never an exercise the host took out.
+    room.room = roomRow({ focus_slot: 1, removed_slots: [1], order_version: 2 })
+    expect(room.startExercise).toBe('Bench Press')
+  })
+
+  it('gives a late joiner everything the host changed, and puts them where the host is, quietly', async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow({
+      exercise_order: [2, 0, 1, 3],
+      removed_slots: [1],
+      added_exercises: ['Push-up'],
+      swapped_slots: { '0': 'Incline Bench Press' },
+      focus_slot: 3,
+      order_version: 6,
+    })
+    startWorkout()
+    await flush()
+    expect(names()).toEqual(['Dips', 'Incline Bench Press', 'Push-up'])
+    expect(useActiveSessionStore().focusRequest?.exercise.name).toBe('Push-up')
+    expect(room.events).toEqual([])
+  })
+})

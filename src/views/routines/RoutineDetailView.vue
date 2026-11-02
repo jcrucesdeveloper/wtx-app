@@ -14,6 +14,7 @@ import EditRoutineSheet from '@/components/wtx/EditRoutineSheet.vue'
 import GroupStartSheet from '@/components/routine/GroupStartSheet.vue'
 import MoveToSectionSheet from '@/components/routine/MoveToSectionSheet.vue'
 import { useRoutinesStore } from '@/stores/routines'
+import { useActiveSessionStore } from '@/stores/activeSession'
 import { useStartRoutine } from '@/composables/useStartRoutine'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { HapticsService } from '@/services/haptics'
@@ -22,6 +23,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const routines = useRoutinesStore()
+const activeSession = useActiveSessionStore()
 const { startRoutine } = useStartRoutine()
 
 const id = computed(() => String(route.params.id))
@@ -82,11 +84,19 @@ function onPlayWithFriends() {
   groupOpen.value = true
 }
 
+/**
+ * The routine of the workout in progress can't be deleted: the workout's Back
+ * lands here, with this menu where the workout's own (the one that deletes a
+ * set) was, so it is the one a tired thumb would hit.
+ */
+const training = computed(() => activeSession.session?.routineId === id.value)
+
+/** Deletes at once; the undo that follows is the safety net, not a question first. */
 function onDelete() {
   menuOpen.value = false
-  if (!routine.value) return
-  if (!confirm(t('routineDetail.deleteConfirm'))) return
+  if (!routine.value || training.value) return
   routines.remove(routine.value.id)
+  void HapticsService.medium()
   router.replace('/')
 }
 </script>
@@ -136,8 +146,16 @@ function onDelete() {
           <button type="button" class="menu__item" @click="onMove">
             {{ t('sections.moveTo') }}
           </button>
-          <button type="button" class="menu__item menu__item--danger" @click="onDelete">
+          <hr class="menu__rule" />
+          <button
+            type="button"
+            class="menu__item menu__item--danger"
+            :class="{ 'menu__item--hinted': training }"
+            :disabled="training"
+            @click="onDelete"
+          >
             {{ t('routineDetail.deleteRoutine') }}
+            <span v-if="training" class="menu__hint">{{ t('routineDetail.deleteTraining') }}</span>
           </button>
         </div>
       </div>
@@ -282,6 +300,31 @@ function onDelete() {
 
 .menu__item--danger {
   color: var(--color-danger);
+}
+
+/* The one destructive item sits apart from the rest. */
+.menu__rule {
+  margin: var(--space-1) var(--space-2);
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.menu__item--hinted {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--space-2);
+}
+
+.menu__item--hinted:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.menu__hint {
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+  color: var(--color-text);
 }
 
 .stack {
