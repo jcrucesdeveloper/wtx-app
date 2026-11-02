@@ -1309,6 +1309,14 @@
       "reps": "Track by weight and reps? The {count} set you logged will be cleared. | Track by weight and reps? The {count} sets you logged will be cleared."
     }
   },
+  "forgotFinish": {
+    "channelName": "Workout left running",
+    "channelDescription": "Asks whether you forgot to finish a workout that has been running for hours.",
+    "title": "Did you forget to finish your workout?",
+    "body": "It has been running for over {hours} hours. Finish it to save it, or keep going.",
+    "finish": "Finish workout",
+    "keepGoing": "Keep going"
+  },
   "sessionNotification": {
     "channelName": "Workout in progress",
     "channelDescription": "Shows the rest countdown and the next set during a workout.",

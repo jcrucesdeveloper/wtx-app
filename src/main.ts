@@ -14,6 +14,7 @@ import { supabaseAnalytics } from './services/supabaseAnalytics'
 import { NotificationService } from './services/notifications'
 import { initDeepLinks } from './services/deepLinks'
 import { initSessionNotification } from './services/sessionNotification'
+import { initForgotFinishReminder } from './services/forgotFinishReminder'
 import { useAuthStore } from './stores/auth'
 import { useRoomStore } from './stores/room'
 import { useSyncStore } from './stores/sync'
@@ -48,6 +49,8 @@ void auth.init()
 useRoomStore()
 // The ongoing "workout in progress" notification (Android), kept in step with the active session.
 initSessionNotification(router)
+// Asks, hours into a workout, whether it was left running by mistake.
+initForgotFinishReminder(router)
 
 setAnalyticsProvider(supabaseAnalytics)
 track('app_opened')

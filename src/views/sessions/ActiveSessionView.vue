@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, EllipsisVertical } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import FocusSession from '@/components/session/FocusSession.vue'
@@ -17,6 +17,7 @@ import { AdService } from '@/services/ads'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const activeSession = useActiveSessionStore()
 const { finishSession } = useFinishSession()
 
@@ -99,6 +100,23 @@ function onFinish() {
   menuOpen.value = false
   finishSheetOpen.value = true
 }
+
+/**
+ * `?finish=1` — "Finish workout" on the forgot-to-finish notification. It
+ * opens the same review sheet as the button, never finishes on its own; the
+ * query is dropped so going back or reloading doesn't open it again.
+ */
+watch(
+  () => route.query.finish,
+  (finish) => {
+    if (finish === undefined) return
+    const query = { ...route.query }
+    delete query.finish
+    void router.replace({ query })
+    if (draft.value) onFinish()
+  },
+  { immediate: true },
+)
 
 function onFinishSheetChoice(options: FinishSessionOptions) {
   finishSheetOpen.value = false
