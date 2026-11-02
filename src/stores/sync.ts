@@ -15,6 +15,7 @@ import {
 } from '@/lib/sync/rows'
 import type { Tables } from '@/lib/supabase/database.types'
 import { isUuid, newUuid } from '@/lib/uuid'
+import { ROUTINE_MAX, isRateLimited, isRoutineLimit } from '@/lib/supabase/limits'
 
 /**
  * What still has to reach the server, plus how far we've pulled. Persisted so
@@ -37,6 +38,12 @@ interface SyncState {
   /** The library is small, so any routine change re-uploads all of it (with positions). */
   routinesDirty: boolean
   deletedRoutineIds: string[]
+  /**
+   * Routines the server refused because the account already holds
+   * {@link ROUTINE_MAX}. Left out of uploads (so a refused write isn't retried
+   * forever) until a routine is deleted here or a sync is forced.
+   */
+  overLimitRoutineIds: string[]
   /** Same for the routine sections: any change re-uploads the whole list. */
   sectionsDirty: boolean
   deletedSectionIds: string[]
@@ -84,6 +91,7 @@ function emptyState(userId: string | null = null): SyncState {
     sessionsCursor: null,
     routinesDirty: false,
     deletedRoutineIds: [],
+    overLimitRoutineIds: [],
     sectionsDirty: false,
     deletedSectionIds: [],
     upsertSessionIds: [],
@@ -184,7 +192,14 @@ export const useSyncStore = defineStore('sync', () => {
       const sectionIdsBefore = routines.sections.map((s) => s.id)
       after(() => {
         const now = new Set(routines.routines.map((r) => r.id))
-        for (const id of before) if (!now.has(id)) addUnique(state.value.deletedRoutineIds, id)
+        let removed = false
+        for (const id of before) {
+          if (now.has(id)) continue
+          addUnique(state.value.deletedRoutineIds, id)
+          removed = true
+        }
+        // A delete makes room, so the routines the server refused get another go.
+        if (removed) state.value.overLimitRoutineIds = []
         state.value.routinesDirty = true
         // Routine edits leave the sections alone, so only a real change re-uploads them.
         if (JSON.stringify(routines.sections) !== sectionsBefore) {
@@ -257,6 +272,49 @@ export const useSyncStore = defineStore('sync', () => {
     if (active && routineMap[active.routineId]) active.routineId = routineMap[active.routineId]!
   }
 
+  async function upsertRoutines(rows: ReturnType<typeof routineToRow>[]) {
+    const sb = requireSupabase()
+    for (const batch of chunks(rows)) {
+      const { error } = await sb.from('routines').upsert(batch)
+      if (error) throw error
+    }
+  }
+
+  /**
+   * After the server refused the library with `routine_limit`: uploads every
+   * routine it already has, plus as many new ones (top of the library first)
+   * as still fit under {@link ROUTINE_MAX}, and parks the rest in
+   * `overLimitRoutineIds` instead of retrying them.
+   */
+  async function upsertRoutinesWithinLimit(rows: ReturnType<typeof routineToRow>[], uid: string) {
+    const sb = requireSupabase()
+    const live = new Map<string, boolean>()
+    for (const batch of chunks(rows.map((r) => r.id))) {
+      const { data, error } = await sb.from('routines').select('id, deleted_at').eq('user_id', uid).in('id', batch)
+      if (error) throw error
+      for (const row of data ?? []) live.set(row.id, row.deleted_at === null)
+    }
+    const { count, error } = await sb
+      .from('routines')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', uid)
+      .is('deleted_at', null)
+    if (error) throw error
+
+    let room = ROUTINE_MAX - (count ?? 0)
+    const send: typeof rows = []
+    const parked: string[] = []
+    for (const row of rows) {
+      if (live.get(row.id)) send.push(row)
+      else if (room > 0) {
+        send.push(row)
+        room--
+      } else parked.push(row.id)
+    }
+    await upsertRoutines(send)
+    state.value.overLimitRoutineIds = parked
+  }
+
   async function flush() {
     const uid = userId
     if (!uid) return
@@ -281,20 +339,11 @@ export const useSyncStore = defineStore('sync', () => {
       }
     }
 
-    if (state.value.routinesDirty) {
-      state.value.routinesDirty = false
-      const rows = routines.routines.map((r, i) => routineToRow(r, uid, i))
-      try {
-        for (const batch of chunks(rows)) {
-          const { error } = await sb.from('routines').upsert(batch)
-          if (error) throw error
-        }
-      } catch (e) {
-        state.value.routinesDirty = true
-        throw e
-      }
-    }
-
+    // Deletes go up before the library, so routines deleted offline make room
+    // (server-side) for the ones added alongside them. A routine that's back in
+    // the library isn't deleted after all.
+    const liveIds = new Set(routines.routines.map((r) => r.id))
+    state.value.deletedRoutineIds = state.value.deletedRoutineIds.filter((id) => !liveIds.has(id))
     const deletedRoutines = [...state.value.deletedRoutineIds]
     for (const batch of chunks(deletedRoutines)) {
       const { error } = await sb
@@ -303,6 +352,26 @@ export const useSyncStore = defineStore('sync', () => {
         .in('id', batch)
       if (error) throw error
       state.value.deletedRoutineIds = without(state.value.deletedRoutineIds, batch)
+    }
+
+    if (state.value.routinesDirty) {
+      state.value.routinesDirty = false
+      state.value.overLimitRoutineIds = state.value.overLimitRoutineIds.filter((id) => liveIds.has(id))
+      const parked = new Set(state.value.overLimitRoutineIds)
+      const rows = routines.routines
+        .map((r, i) => routineToRow(r, uid, i))
+        .filter((row) => !parked.has(row.id))
+      try {
+        try {
+          await upsertRoutines(rows)
+        } catch (e) {
+          if (!isRoutineLimit(e)) throw e
+          await upsertRoutinesWithinLimit(rows, uid)
+        }
+      } catch (e) {
+        state.value.routinesDirty = true
+        throw e
+      }
     }
 
     const deletedSections = [...state.value.deletedSectionIds]
@@ -498,6 +567,12 @@ export const useSyncStore = defineStore('sync', () => {
       status.value = typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'error'
       lastError.value = e instanceof Error ? e.message : String((e as { message?: string })?.message ?? e)
       clearTimeout(retryTimer)
+      // Refusals that a retry in a few seconds can't fix wait for the next trigger instead.
+      if (isRoutineLimit(e) || isRateLimited(e)) {
+        retries = 0
+        retryDelay = 2000
+        return
+      }
       if (++retries >= MAX_RETRIES) {
         retries = 0
         retryDelay = 2000
@@ -513,7 +588,14 @@ export const useSyncStore = defineStore('sync', () => {
    * `force` isn't set. Concurrent calls coalesce into one extra run.
    */
   function syncNow(opts: { force?: boolean } = {}): Promise<void> {
-    if (opts.force) forceNext = true
+    if (opts.force) {
+      forceNext = true
+      // An explicit sync gives the routines the server refused another go.
+      if (state.value.overLimitRoutineIds.length) {
+        state.value.overLimitRoutineIds = []
+        state.value.routinesDirty = true
+      }
+    }
     if (running) {
       rerun = true
       return running
@@ -572,6 +654,7 @@ export const useSyncStore = defineStore('sync', () => {
     () =>
       state.value.routinesDirty ||
       state.value.deletedRoutineIds.length > 0 ||
+      state.value.overLimitRoutineIds.length > 0 ||
       state.value.sectionsDirty ||
       state.value.deletedSectionIds.length > 0 ||
       state.value.upsertSessionIds.length > 0 ||
@@ -605,8 +688,12 @@ export const useSyncStore = defineStore('sync', () => {
     return sessions.filter((s) => queued.has(s.id)).map((s) => s.id)
   }
 
+  /** Routines on this device the account had no room for (see {@link ROUTINE_MAX}). */
+  const routinesNotBackedUp = computed(() => state.value.overLimitRoutineIds.length)
+
   return {
     status,
+    routinesNotBackedUp,
     lastSyncedAt,
     lastError,
     ownerId,
