@@ -1308,6 +1308,14 @@
       "reps": "¿Registrar por peso y repeticiones? Se borrará la {count} serie que registraste. | ¿Registrar por peso y repeticiones? Se borrarán las {count} series que registraste."
     }
   },
+  "forgotFinish": {
+    "channelName": "Entrenamiento sin terminar",
+    "channelDescription": "Te pregunta si olvidaste terminar un entrenamiento que lleva horas en curso.",
+    "title": "¿Olvidaste terminar tu entrenamiento?",
+    "body": "Lleva más de {hours} horas en curso. Termínalo para guardarlo, o sigue entrenando.",
+    "finish": "Terminar entrenamiento",
+    "keepGoing": "Seguir entrenando"
+  },
   "sessionNotification": {
     "channelName": "Entrenamiento en curso",
     "channelDescription": "Muestra la cuenta atrás del descanso y la siguiente serie durante un entrenamiento.",
