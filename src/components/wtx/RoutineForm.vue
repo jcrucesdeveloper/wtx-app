@@ -13,6 +13,8 @@ import { formatCompactDuration } from '@/lib/format'
 import { scrollFocusedIntoView } from '@/lib/scrollIntoViewOnFocus'
 import ExerciseListSheet from '@/components/wtx/ExerciseListSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
+import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
+import MarqueeText from '@/components/ui/MarqueeText.vue'
 import DurationInput from '@/components/session/DurationInput.vue'
 import { useExerciseName } from '@/composables/useExerciseName'
 
@@ -96,6 +98,15 @@ function openPicker(exercise: RoutineDraftExercise) {
 function onPickExercise(name: string) {
   if (pickerTarget.value) pickerTarget.value.name = name
   pickerOpen.value = false
+}
+
+/** Tapping an exercise's picture shows how it's done, without opening or dragging the card. */
+const howToName = ref<string | null>(null)
+
+function showHowTo(exercise: RoutineDraftExercise) {
+  if (!exercise.name.trim()) return
+  closeMenu()
+  howToName.value = exercise.name
 }
 
 function addExercise() {
@@ -273,11 +284,21 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
               <GripVertical :size="16" :stroke-width="2" />
             </button>
             <span class="exercise__index">{{ i + 1 }}</span>
-            <ExerciseThumb :name="exercise.name" />
+            <button
+              type="button"
+              class="exercise__thumb"
+              :disabled="!exercise.name.trim()"
+              :aria-label="t('wtx.routineForm.howToAria', { name: exerciseName(exercise.name) })"
+              @click.stop="showHowTo(exercise)"
+            >
+              <ExerciseThumb :name="exercise.name" />
+            </button>
 
             <div class="exercise__title">
               <button type="button" class="exercise__name-text" @click.stop="openPicker(exercise)">
-                {{ exercise.name ? exerciseName(exercise.name) : t('wtx.routineForm.unnamedExercise') }}
+                <MarqueeText
+                  :text="exercise.name ? exerciseName(exercise.name) : t('wtx.routineForm.unnamedExercise')"
+                />
               </button>
               <span v-if="!isExpanded(exercise)" class="exercise__summary">
                 {{ summaryFor(exercise) }}
@@ -412,6 +433,12 @@ function removeSet(exercise: RoutineDraftExercise, index: number) {
       @close="pickerOpen = false"
       @select="onPickExercise"
     />
+
+    <ExerciseImageSheet
+      :open="howToName !== null"
+      :name="howToName ?? ''"
+      @close="howToName = null"
+    />
   </div>
 </template>
 
@@ -543,10 +570,22 @@ textarea {
   min-width: 0;
 }
 
+.exercise__thumb {
+  display: flex;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+}
+
+.exercise__thumb:disabled {
+  cursor: default;
+}
+
 .exercise__name-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: block;
+  min-width: 0;
   font-weight: 600;
   color: var(--color-heading);
   max-width: 100%;
