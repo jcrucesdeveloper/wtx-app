@@ -443,6 +443,21 @@ export type Database = {
           workout_times: string[]
         }[]
       }
+      get_session_likers: {
+        Args: {
+          p_session_id: string
+          p_before?: string | null
+          p_before_user?: string | null
+          p_limit?: number
+        }
+        Returns: {
+          user_id: string
+          display_name: string
+          liked_at: string
+          i_follow: boolean
+          follows_me: boolean
+        }[]
+      }
       block_user: {
         Args: { p_user_id: string }
         Returns: undefined

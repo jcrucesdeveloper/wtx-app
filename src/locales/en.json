@@ -587,6 +587,23 @@
       "notFound": "This workout isn't available — it may have been deleted or unshared.",
       "backAria": "Back"
     },
+    "likers": {
+      "title": "Kudos",
+      "openAria": "{count} person gave kudos, see who | {count} people gave kudos, see who",
+      "empty": "No kudos yet.",
+      "error": "Couldn't load who gave kudos.",
+      "retry": "Try again",
+      "you": "You"
+    },
+    "copyRoutine": {
+      "action": "Save to my library",
+      "suffix": " (from {'@'}{friend})",
+      "saved": "Saved to your library as “{name}”",
+      "open": "Open",
+      "failed": "Couldn't save this routine.",
+      "limitReached": "Your library is full. Delete a routine to save this one.",
+      "noRest": "Rest times weren't shared with this workout, so the copy has none."
+    },
     "profile": {
       "title": "Profile",
       "openMine": "Your profile",

@@ -13,7 +13,31 @@ import type { SessionRecap } from '@/stores/sessionRecap'
 export type FeedSnapshot = Omit<SessionRecap, 'sessionId'> & {
   /** Display names of the other room members, when the workout was done in a room. */
   trainedWith?: string[]
+  /**
+   * The routine the workout followed, so a follower can save a copy of it
+   * ("Save to my library") with its rest times and per-set plan — a `.wts`
+   * session keeps neither. Absent for a workout started without a routine.
+   */
+  routine?: SharedRoutine
 }
+
+/** A routine riding along on a shared post. */
+export interface SharedRoutine {
+  /** The routine's `.wtt` text, as it was in the poster's library. */
+  wtt: string
+  /** The name of the section the poster filed it under, if any. */
+  section?: string
+}
+
+/**
+ * Longest routine text a snapshot carries. A big routine (30 exercises with
+ * per-set rows) is ~3k characters; this keeps the whole snapshot well under
+ * FEED_SNAPSHOT_MAX_BYTES even in multi-byte text.
+ */
+export const SHARED_ROUTINE_MAX_CHARS = 6000
+
+/** Section names are capped at 60 server-side (routine_sections.name). */
+const SHARED_SECTION_MAX = 60
 
 /** Most names a snapshot keeps — a room holds at most 8, so 7 partners. */
 const MAX_PARTNERS = 7
@@ -67,6 +91,20 @@ function parseTrainedWith(value: unknown): string[] | undefined {
   return names.length ? names : undefined
 }
 
+/** The routine to attach to a post, or undefined when it's too big to ride along. */
+export function toSharedRoutine(wtt: string | undefined, section?: string): SharedRoutine | undefined {
+  if (!wtt || wtt.length > SHARED_ROUTINE_MAX_CHARS) return undefined
+  const name = section?.trim()
+  return name && name.length <= SHARED_SECTION_MAX ? { wtt, section: name } : { wtt }
+}
+
+function parseSharedRoutine(value: unknown): SharedRoutine | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const r = value as Partial<Record<keyof SharedRoutine, unknown>>
+  if (!isShortString(r.wtt, SHARED_ROUTINE_MAX_CHARS)) return undefined
+  return isShortString(r.section, SHARED_SECTION_MAX) ? { wtt: r.wtt, section: r.section } : { wtt: r.wtt }
+}
+
 function parseMilestone(value: unknown): Milestone | undefined {
   if (value == null) return undefined
   const m = value as Partial<Milestone> | null
@@ -87,6 +125,7 @@ export function parseFeedSnapshot(value: unknown): FeedSnapshot | null {
 
   const personalRecords = s.personalRecords.map(parsePersonalRecord).filter((r): r is PersonalRecord => r !== null)
   const trainedWith = parseTrainedWith(s.trainedWith)
+  const routine = parseSharedRoutine(s.routine)
 
   return {
     personalRecords,
@@ -95,5 +134,6 @@ export function parseFeedSnapshot(value: unknown): FeedSnapshot | null {
     weekStreak: s.weekStreak,
     elapsedSeconds: s.elapsedSeconds,
     ...(trainedWith ? { trainedWith } : {}),
+    ...(routine ? { routine } : {}),
   }
 }
