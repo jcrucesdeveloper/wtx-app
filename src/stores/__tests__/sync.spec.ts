@@ -335,4 +335,71 @@ Squat | reps 3x5 | 100
     expect(db.tables.routines!.find((r) => r.id === legs.id)?.section_id).toBe(id(1))
     sync.stop()
   })
+
+  describe('an undoable routine delete', () => {
+    async function synced() {
+      const routines = useRoutinesStore()
+      const legs = routines.add(ROUTINE('Legs'), 'legs.wtt')
+      const push = routines.add(ROUTINE('Push'), 'push.wtt')
+      const sync = useSyncStore()
+      await sync.start(ME)
+      return { routines, sync, legs, push }
+    }
+    const serverRow = (rid: string) => db.tables.routines!.find((r) => r.id === rid)
+
+    it('keeps the tombstone off the server while the delete can be undone, then sends it', async () => {
+      const { routines, sync, legs } = await synced()
+
+      routines.remove(legs.id)
+      await sync.syncNow()
+      expect(serverRow(legs.id)?.deleted_at).toBeNull()
+      expect(sync.hasPending).toBe(true)
+
+      routines.settleRemoval()
+      await sync.syncNow()
+      expect(serverRow(legs.id)?.deleted_at).not.toBeNull()
+      expect(sync.isFullySynced()).toBe(true)
+      sync.stop()
+    })
+
+    it('an undo leaves the server row alive and nothing to delete', async () => {
+      const { routines, sync, legs, push } = await synced()
+
+      routines.remove(legs.id)
+      await sync.syncNow()
+      routines.restore()
+      await sync.syncNow()
+
+      expect(routines.list.map((r) => r.id)).toEqual([push.id, legs.id])
+      expect(serverRow(legs.id)?.deleted_at).toBeNull()
+      expect(sync.isFullySynced()).toBe(true)
+      sync.stop()
+    })
+
+    it("a pull meanwhile doesn't bring the deleted routine back", async () => {
+      const { routines, sync, legs } = await synced()
+
+      routines.remove(legs.id)
+      // The server row changed since the last pull (e.g. another device touched it).
+      Object.assign(serverRow(legs.id)!, { updated_at: new Date(Date.now() + 60_000).toISOString() })
+      await sync.syncNow({ force: true })
+
+      expect(routines.getById(legs.id)).toBeUndefined()
+      sync.stop()
+    })
+
+    it('an undo revives a tombstone that already went up', async () => {
+      const { routines, sync, legs } = await synced()
+      routines.remove(legs.id)
+      // As if it had been pushed: the server has the tombstone already.
+      Object.assign(serverRow(legs.id)!, { deleted_at: new Date().toISOString() })
+
+      routines.restore()
+      await sync.syncNow()
+
+      expect(serverRow(legs.id)?.deleted_at).toBeNull()
+      expect(sync.isFullySynced()).toBe(true)
+      sync.stop()
+    })
+  })
 })

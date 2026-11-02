@@ -62,6 +62,7 @@ const ROUTINE_MUTATIONS = new Set([
   'add',
   'update',
   'remove',
+  'restore',
   'reorder',
   'clear',
   'resetToDefaults',
@@ -185,6 +186,9 @@ export const useSyncStore = defineStore('sync', () => {
       after(() => {
         const now = new Set(routines.routines.map((r) => r.id))
         for (const id of before) if (!now.has(id)) addUnique(state.value.deletedRoutineIds, id)
+        // A routine back in the library (an undone delete) is no longer one to delete.
+        const back = state.value.deletedRoutineIds.filter((id) => now.has(id))
+        if (back.length) state.value.deletedRoutineIds = without(state.value.deletedRoutineIds, back)
         state.value.routinesDirty = true
         // Routine edits leave the sections alone, so only a real change re-uploads them.
         if (JSON.stringify(routines.sections) !== sectionsBefore) {
@@ -195,6 +199,14 @@ export const useSyncStore = defineStore('sync', () => {
         scheduleSync()
       })
     }, true)
+
+    // A delete's tombstone waits while it can be undone; once that's over, it goes.
+    watch(
+      () => routines.removed,
+      (removed) => {
+        if (!removed) scheduleSync()
+      },
+    )
 
     sessions.$onAction(({ name, after }) => {
       if (!SESSION_MUTATIONS.has(name)) return
@@ -295,7 +307,9 @@ export const useSyncStore = defineStore('sync', () => {
       }
     }
 
-    const deletedRoutines = [...state.value.deletedRoutineIds]
+    // Not a delete that can still be undone: the server hears of it once it stands.
+    const undoable = routines.removed?.routine.id
+    const deletedRoutines = state.value.deletedRoutineIds.filter((id) => id !== undoable)
     for (const batch of chunks(deletedRoutines)) {
       const { error } = await sb
         .from('routines')
@@ -386,7 +400,13 @@ export const useSyncStore = defineStore('sync', () => {
       routines.applyRemoteSections(mergedSections.items as RoutineSection[], mergedSections.remap)
     }
 
-    const mergedRoutines = mergeRoutines(routines.routines, routineRows.map(rowToRoutine), opts)
+    // A routine deleted here but not yet on the server stays deleted, whatever the server still has.
+    const pendingDeletes = new Set(state.value.deletedRoutineIds)
+    const mergedRoutines = mergeRoutines(
+      routines.routines,
+      routineRows.filter((r) => !pendingDeletes.has(r.id)).map(rowToRoutine),
+      opts,
+    )
     const remap = mergedRoutines.remap
     if (routineRows.length) routines.applyRemote(mergedRoutines.items as StoredRoutine[])
 
