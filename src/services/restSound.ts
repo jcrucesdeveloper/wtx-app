@@ -2,10 +2,12 @@ import { Capacitor } from '@capacitor/core'
 import { useSettingsStore } from '@/stores/settings'
 
 /**
- * Two rising chimes, ~1 s, 8.6 KB. "Interface Sounds" by Kenney (kenney.nl), CC0.
- * The same file is android/app/src/main/res/raw/rest_end.mp3.
+ * Two soft rising notes, G5 then C6, 360 ms in all: short enough to hear
+ * after every set without wearing thin, rising so it reads as "go". Sine
+ * tones peaking at −6 dBFS, synthesized for WTX. The same file is
+ * android/app/src/main/res/raw/rest_end.wav, so both play the same samples.
  */
-const SOUND_URL = `${import.meta.env.BASE_URL}sounds/rest-end.mp3`
+const SOUND_URL = `${import.meta.env.BASE_URL}sounds/rest-end.wav`
 
 type AudioSessionNavigator = Navigator & { audioSession?: { type: string } }
 type AudioWindow = Window & { webkitAudioContext?: typeof AudioContext }

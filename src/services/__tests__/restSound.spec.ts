@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { createPinia, setActivePinia } from 'pinia'
 
 const platform = vi.hoisted(() => ({ name: 'web', plugin: false }))
@@ -66,5 +68,23 @@ describe('settings.restSoundEnabled', () => {
 
     setActivePinia(createPinia())
     expect(useSettingsStore().restSoundEnabled).toBe(false)
+  })
+})
+
+describe('the rest-end sound file', () => {
+  const web = readFileSync(resolve(__dirname, '../../../public/sounds/rest-end.wav'))
+  const android = readFileSync(
+    resolve(__dirname, '../../../android/app/src/main/res/raw/rest_end.wav'),
+  )
+
+  it('is the same file on the web and on Android', () => {
+    expect(web.equals(android)).toBe(true)
+  })
+
+  it('is short enough to hear after every set (under 400 ms)', () => {
+    expect(web.toString('ascii', 0, 4)).toBe('RIFF')
+    const byteRate = web.readUInt32LE(28)
+    const dataBytes = web.readUInt32LE(40)
+    expect((dataBytes / byteRate) * 1000).toBeLessThan(400)
   })
 })

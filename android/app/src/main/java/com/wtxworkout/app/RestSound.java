@@ -10,15 +10,15 @@ import android.os.Handler;
 import android.os.Looper;
 
 /**
- * The rest-end chime (res/raw/rest_end.mp3, the same file the web app plays),
+ * The rest-end chime (res/raw/rest_end.wav, the same file the web app plays),
  * played natively so it sounds with the screen locked. It stays quiet unless
  * the ringer is on (silent and vibrate are respected), uses the notification
  * volume, and briefly ducks other audio so music doesn't drown it out.
  */
 final class RestSound {
 
-    /** The chime is about a second; give the ducked music back a little after. */
-    private static final long DUCK_MS = 1300;
+    /** The chime is 360 ms; give the ducked music back right after, never leave it low. */
+    private static final long DUCK_MS = 600;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final AudioAttributes attributes = new AudioAttributes.Builder()
