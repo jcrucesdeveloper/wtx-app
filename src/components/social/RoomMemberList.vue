@@ -8,6 +8,8 @@ export interface MemberRow {
   userId: string
   displayName: string
   finishedAt: string | null
+  /** They left the running workout. */
+  leftAt?: string | null
   online: boolean
   sets: number
   currentExercise: string | null
@@ -54,6 +56,7 @@ const { exerciseName } = useExerciseName()
           <span v-if="showProgress && m.currentExercise" class="member__sub">{{ exerciseName(m.currentExercise) }}</span>
         </span>
         <span v-if="m.finishedAt" class="badge badge--done">{{ t('room.done') }}</span>
+        <span v-else-if="m.leftAt" class="badge">{{ t('room.left') }}</span>
         <span v-else-if="showProgress" class="badge">{{ t('room.setsDone', { count: m.sets }) }}</span>
         <ChevronRight v-if="selectable" :size="16" class="member__chevron" aria-hidden="true" />
       </component>

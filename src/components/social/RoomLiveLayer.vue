@@ -12,7 +12,8 @@ import type { ReactionEmoji, RoomEvent } from '@/lib/roomEvents'
 
 /**
  * Live social layer for the current room, on every screen: toasts when a
- * friend sets a PR / finishes an exercise / finishes / joins, team moments
+ * friend sets a PR / finishes an exercise / finishes / joins, when the host
+ * role passes to someone else, team moments
  * (an exercise cleared by everyone, the whole team finishing), and a burst of
  * floating emojis when someone cheers you on. Muting silences all of it.
  */
@@ -177,6 +178,13 @@ function handle(event: RoomEvent) {
         ...base,
         icon: '👉',
         text: t('room.live.focusMoved', { name: fromName, exercise: exerciseName(event.exercise) }),
+      })
+      return
+    case 'host-changed':
+      showToast({
+        ...base,
+        icon: '👑',
+        text: event.from === me ? t('room.live.youAreHost') : t('room.live.hostChanged', { name: fromName }),
       })
       return
     case 'team-cleared':

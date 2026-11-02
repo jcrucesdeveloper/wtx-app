@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useRoutinesStore } from '@/stores/routines'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useStartRoutine } from '@/composables/useStartRoutine'
+import { useExerciseName } from '@/composables/useExerciseName'
 import { buildJoinUrl } from '@/lib/roomCode'
 
 const { t } = useI18n()
@@ -23,6 +24,7 @@ const auth = useAuthStore()
 const routines = useRoutinesStore()
 const activeSession = useActiveSessionStore()
 const { startRoutine } = useStartRoutine()
+const { exerciseName } = useExerciseName()
 
 const id = computed(() => String(route.params.id))
 const loading = ref(true)
@@ -40,6 +42,16 @@ const joinUrl = computed(() =>
   current.value ? buildJoinUrl(current.value.code, router.resolve({ name: 'room-join' }).href) : '',
 )
 const inThisWorkout = computed(() => activeSession.session?.roomId === id.value)
+
+/**
+ * A late joiner starts where the host is (the session follows the host's
+ * focus), so the group stays together — earlier exercises stay in the list.
+ */
+const lateJoinHint = computed(() => {
+  if (current.value?.status !== 'active' || inThisWorkout.value || me.value?.finishedAt || room.isHost) return null
+  const exercise = room.startExercise
+  return exercise ? t('room.lateJoinHint', { name: hostName.value, exercise: exerciseName(exercise) }) : null
+})
 
 onMounted(async () => {
   try {
@@ -113,7 +125,19 @@ async function onEnd() {
   }
 }
 
+/** What leaving does to everyone else, when it does something: the host role moves, or the room ends. */
+const leaveWarning = computed(() => {
+  const r = current.value
+  if (!r || r.status === 'finished') return null
+  const stillIn = me.value && !me.value.finishedAt && !me.value.leftAt
+  if (!stillIn) return null
+  const next = room.successor
+  if (!next) return t('room.leaveLastConfirm')
+  return room.isHost ? t('room.leaveHostConfirm', { name: next.displayName }) : null
+})
+
 async function onLeave() {
+  if (leaveWarning.value && !confirm(leaveWarning.value)) return
   await room.leave().catch(() => {})
   router.replace('/social')
 }
@@ -163,6 +187,8 @@ function goBack() {
         </template>
 
         <template v-else>
+          <!-- Joining a workout that's already going: say where you'll land before you jump in. -->
+          <p v-if="lateJoinHint" class="waiting">{{ lateJoinHint }}</p>
           <button v-if="!me?.finishedAt" type="button" class="primary" @click="startWorkout">
             {{ t('room.goToWorkout') }}
           </button>
