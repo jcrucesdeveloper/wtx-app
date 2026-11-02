@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import QrScanner from 'qr-scanner'
 import { useUiStore } from '@/stores/ui'
 import { useRoutinesStore } from '@/stores/routines'
+import { ROUTINE_MAX } from '@/lib/supabase/limits'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { readScannedRoutine } from '@/lib/share'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
@@ -208,8 +209,11 @@ onBeforeUnmount(stopScanner)
     </div>
 
     <p v-if="submitError" class="error">{{ submitError }}</p>
+    <p v-else-if="!routines.canAdd" class="error" role="status">
+      {{ t('routines.limit.reached', { max: ROUTINE_MAX }) }}
+    </p>
 
-    <button type="button" class="primary" :disabled="!result?.ok" @click="onSubmit">
+    <button type="button" class="primary" :disabled="!result?.ok || !routines.canAdd" @click="onSubmit">
       {{ t('load.addToLibrary') }}
     </button>
   </BottomSheet>

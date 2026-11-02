@@ -11,6 +11,8 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore, type RoutineSection } from '@/stores/routines'
 import { useSessionsStore } from '@/stores/sessions'
 import { useUiStore } from '@/stores/ui'
+import { useSyncStore } from '@/stores/sync'
+import { ROUTINE_MAX } from '@/lib/supabase/limits'
 import { useStartRoutine } from '@/composables/useStartRoutine'
 import { parseTemplateText } from '@/lib/parseRoutine'
 import { formatClock } from '@/lib/format'
@@ -36,7 +38,16 @@ const routines = useRoutinesStore()
 const sessions = useSessionsStore()
 const activeSession = useActiveSessionStore()
 const ui = useUiStore()
+const sync = useSyncStore()
 const { startRoutine } = useStartRoutine()
+
+/** Said once the library nears the cap, or when the account had no room for some of it. */
+const limitNotice = computed(() => {
+  const notBackedUp = sync.routinesNotBackedUp
+  if (notBackedUp) return t('routines.limit.notBackedUp', { count: notBackedUp, max: ROUTINE_MAX }, notBackedUp)
+  if (routines.nearLimit) return t('routines.limit.near', { count: routines.list.length, max: ROUTINE_MAX })
+  return ''
+})
 
 const dateStrs = computed(() => sessionDateStrs(sessions))
 const streak = computed(() => computeWeekStreak(dateStrs.value))
@@ -298,6 +309,8 @@ function openSectionSheet(id: string | null) {
       </button>
     </RouterLink>
 
+    <p v-if="limitNotice" class="limit" role="status">{{ limitNotice }}</p>
+
     <section v-if="editing" class="edit">
       <div class="heading-row">
         <h2 class="heading">{{ t('routines.title') }}</h2>
@@ -471,6 +484,15 @@ function openSectionSheet(id: string | null) {
 }
 
 /* Status, not a section: no box, so it never reads as an empty panel. */
+.limit {
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
 .week {
   display: flex;
   flex-direction: column;

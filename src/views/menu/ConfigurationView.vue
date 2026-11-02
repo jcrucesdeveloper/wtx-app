@@ -26,6 +26,7 @@ import { NotificationService } from '@/services/notifications'
 import { sessionDateStrs } from '@/lib/sessionDates'
 import { SUPPORT_EMAIL } from '@/config/legal'
 import { parseSessionText } from '@/lib/parseSession'
+import { ROUTINE_MAX } from '@/lib/supabase/limits'
 import {
   buildDataExportZip,
   downloadDataExport,
@@ -94,8 +95,13 @@ async function onImportFile(event: Event) {
     }
 
     let routinesAdded = 0
+    let routinesOverLimit = 0
     for (const { filename, rawText, section } of parsed.routines) {
       if (routines.findByText(rawText)) continue
+      if (!routines.canAdd) {
+        routinesOverLimit++
+        continue
+      }
       try {
         const added = routines.add(rawText, filename)
         const sectionId = sectionFor(section)
@@ -125,6 +131,9 @@ async function onImportFile(event: Event) {
             sessions: t('settings.importedSessions', { count: sessionsAdded }, sessionsAdded),
           })
         : t('settings.importNothing')
+    if (routinesOverLimit) {
+      importError.value = t('settings.importLimit', { max: ROUTINE_MAX, count: routinesOverLimit })
+    }
   } catch {
     importError.value = t('settings.importError')
   } finally {

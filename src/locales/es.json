@@ -218,7 +218,12 @@
     "emptyTitle": "Aún no hay rutinas",
     "emptyHint": "Carga una plantilla {ext} para empezar.",
     "emptyBtn": "Cargar una rutina",
-    "parseError": "No se pudo interpretar — toca para revisar"
+    "parseError": "No se pudo interpretar — toca para revisar",
+    "limit": {
+      "near": "{count} de {max} rutinas. Borra las que ya no uses para dejar espacio a nuevas.",
+      "reached": "Tu biblioteca está llena ({max} rutinas). Borra una que ya no uses para añadir otra.",
+      "notBackedUp": "{count} rutina no tiene copia en tu cuenta — una cuenta guarda hasta {max}. Borra algunas para respaldarla. | {count} rutinas no tienen copia en tu cuenta — una cuenta guarda hasta {max}. Borra algunas para respaldarlas."
+    }
   },
   "routineDetail": {
     "notFoundTitle": "Rutina no encontrada",
@@ -1233,6 +1238,7 @@
     "importedRoutines": "ninguna rutina | {count} rutina | {count} rutinas",
     "importedSessions": "ninguna sesión | {count} sesión | {count} sesiones",
     "importNothing": "Nada nuevo que importar — todo en ese archivo ya está aquí.",
+    "importLimit": "Tu biblioteca está llena ({max} rutinas), así que {count} más no se pudieron importar.",
     "importError": "No se pudo leer ese archivo — elige un .zip exportado desde WTX.",
     "dataDeleteHint": "Borra permanentemente cada rutina y sesión.",
     "reminders": "Recordatorios",

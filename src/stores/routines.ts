@@ -6,7 +6,8 @@ import { DEFAULT_TEMPLATES } from '@/lib/wtx/defaultTemplates'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
 import { track } from '@/services/analytics'
 import { ACCENT_COLORS } from '@/config/theme'
-import { SECTION_NAME_MAX } from '@/lib/supabase/limits'
+import { ROUTINE_MAX, SECTION_NAME_MAX, canCreateRoutine, isNearRoutineLimit } from '@/lib/supabase/limits'
+import { i18n } from '@/i18n'
 
 /** A `.wtt` template as stored in the library. Raw text is the source of truth. */
 export interface StoredRoutine {
@@ -33,6 +34,14 @@ export interface RoutineSection {
   color: string
   /** Epoch millis when it was created. */
   addedAt: number
+}
+
+/** Thrown by `add()` when the library already holds {@link ROUTINE_MAX} routines. Its message is translated. */
+export class RoutineLimitError extends Error {
+  constructor() {
+    super(i18n.global.t('routines.limit.reached', { max: ROUTINE_MAX }))
+    this.name = 'RoutineLimitError'
+  }
 }
 
 const STORAGE_KEY = 'wtx:routines'
@@ -290,6 +299,12 @@ export const useRoutinesStore = defineStore('routines', () => {
   /** Display order — newest first by default, but user-reorderable via {@link reorder}. */
   const list = computed(() => routines.value)
 
+  /** There's room for another routine (see {@link ROUTINE_MAX}). */
+  const canAdd = computed(() => canCreateRoutine(routines.value.length))
+
+  /** The library is close to (or at) {@link ROUTINE_MAX}. */
+  const nearLimit = computed(() => isNearRoutineLimit(routines.value.length))
+
   /** Replaces the display order, e.g. after a drag-and-drop reorder. */
   function reorder(newOrder: StoredRoutine[]) {
     routines.value = newOrder
@@ -313,9 +328,11 @@ export const useRoutinesStore = defineStore('routines', () => {
   /**
    * Adds a routine after checking it parses.
    *
+   * @throws {RoutineLimitError} If the library is full.
    * @throws The parser's error message if `rawText` is not a valid `.wtt`.
    */
   function add(rawText: string, filename: string): StoredRoutine {
+    if (!canAdd.value) throw new RoutineLimitError()
     const result = parseTemplateText(rawText)
     if (!result.ok) throw new Error(result.error)
 
@@ -398,6 +415,8 @@ export const useRoutinesStore = defineStore('routines', () => {
   return {
     routines,
     list,
+    canAdd,
+    nearLimit,
     favoriteIds,
     sections,
     getSection,

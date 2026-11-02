@@ -218,7 +218,12 @@
     "emptyTitle": "No routines yet",
     "emptyHint": "Load a {ext} template to get started.",
     "emptyBtn": "Load a routine",
-    "parseError": "Could not parse — tap to review"
+    "parseError": "Could not parse — tap to review",
+    "limit": {
+      "near": "{count} of {max} routines. Delete the ones you no longer use to keep room for new ones.",
+      "reached": "Your library is full ({max} routines). Delete one you no longer use to add another.",
+      "notBackedUp": "{count} routine isn't backed up — an account holds up to {max}. Delete some to back it up. | {count} routines aren't backed up — an account holds up to {max}. Delete some to back them up."
+    }
   },
   "routineDetail": {
     "notFoundTitle": "Routine not found",
@@ -1233,6 +1238,7 @@
     "importedRoutines": "no routines | {count} routine | {count} routines",
     "importedSessions": "no sessions | {count} session | {count} sessions",
     "importNothing": "Nothing new to import — everything in that file is already here.",
+    "importLimit": "Your library is full ({max} routines), so {count} more couldn't be imported.",
     "importError": "Could not read that file — pick a .zip exported from WTX.",
     "dataDeleteHint": "Permanently erase every routine and session.",
     "deleteAllData": "Delete all data",
