@@ -310,6 +310,7 @@
       "unnamedExercise": "Unnamed exercise",
       "dragAria": "Drag to reorder",
       "optionsAria": "Exercise options",
+      "howToAria": "How to do {name}",
       "changeExercise": "Change exercise",
       "removeExercise": "Remove exercise",
       "reps": "Reps",
