@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ChevronDown } from '@lucide/vue'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
@@ -18,6 +19,8 @@ import { useExerciseName } from '@/composables/useExerciseName'
 
 /** Rows rendered per page; "Show more" adds another page. */
 const PAGE_SIZE = 50
+/** Remembers, on this device only, whether the filter chips were hidden. */
+const CHIPS_HIDDEN_KEY = 'wtx:exercisePicker:chipsHidden'
 
 const props = defineProps<{
   open: boolean
@@ -36,6 +39,27 @@ const query = ref('')
 const selectedGroup = ref<MuscleGroup | null>(null)
 const selectedEquipment = ref<EquipmentType | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
+
+function readChipsHidden() {
+  try {
+    return localStorage.getItem(CHIPS_HIDDEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** The muscle and equipment chips fold away to leave more room for the list. */
+const chipsHidden = ref(readChipsHidden())
+
+function toggleChips() {
+  chipsHidden.value = !chipsHidden.value
+  try {
+    if (chipsHidden.value) localStorage.setItem(CHIPS_HIDDEN_KEY, '1')
+    else localStorage.removeItem(CHIPS_HIDDEN_KEY)
+  } catch {
+    // Storage unavailable: the choice just lasts until the sheet closes.
+  }
+}
 
 watch(
   () => props.open,
@@ -64,6 +88,16 @@ function clearFilters() {
 }
 
 const hasChipFilter = computed(() => selectedGroup.value !== null || selectedEquipment.value !== null)
+
+/** With the chips folded away, the active filters stay named so they aren't forgotten. */
+const activeFilterText = computed(() =>
+  [
+    selectedGroup.value && groupLabel(selectedGroup.value),
+    selectedEquipment.value && equipmentLabel(selectedEquipment.value),
+  ]
+    .filter(Boolean)
+    .join(' · '),
+)
 
 function groupLabel(group: MuscleGroup) {
   return t(`wtx.muscleGroups.${group.toLowerCase()}`)
@@ -121,46 +155,74 @@ const previewName = ref<string | null>(null)
       />
 
       <div class="picker__filters">
-        <span id="picker-filter-muscle" class="picker__filter-label">
-          {{ t('wtx.exercisePicker.muscleLabel') }}
-        </span>
-        <div
-          class="picker__chips"
-          role="group"
-          aria-labelledby="picker-filter-muscle"
-        >
+        <div class="picker__filter-head">
+          <span id="picker-filter-muscle" class="picker__filter-label">
+            {{ chipsHidden ? t('wtx.exercisePicker.filtersLabel') : t('wtx.exercisePicker.muscleLabel') }}
+          </span>
+          <span v-if="chipsHidden && activeFilterText" class="picker__filter-active">
+            {{ activeFilterText }}
+          </span>
           <button
-            v-for="group in MUSCLE_GROUPS"
-            :key="group"
             type="button"
-            class="picker__chip"
-            :class="{ active: selectedGroup === group }"
-            :aria-pressed="selectedGroup === group"
-            @click="toggleGroup(group)"
+            class="picker__chips-toggle"
+            data-test="chips-toggle"
+            :aria-expanded="!chipsHidden"
+            aria-controls="picker-chip-rows"
+            :aria-label="
+              chipsHidden
+                ? t('wtx.exercisePicker.showFiltersAria')
+                : t('wtx.exercisePicker.hideFiltersAria')
+            "
+            @click="toggleChips"
           >
-            {{ groupLabel(group) }}
+            {{ chipsHidden ? t('wtx.exercisePicker.showFilters') : t('wtx.exercisePicker.hideFilters') }}
+            <ChevronDown
+              :size="14"
+              :stroke-width="2.5"
+              class="picker__chips-chevron"
+              :class="{ 'picker__chips-chevron--up': !chipsHidden }"
+            />
           </button>
         </div>
-
-        <span id="picker-filter-equipment" class="picker__filter-label">
-          {{ t('wtx.exercisePicker.equipmentLabel') }}
-        </span>
-        <div
-          class="picker__chips"
-          role="group"
-          aria-labelledby="picker-filter-equipment"
-        >
-          <button
-            v-for="equipment in EQUIPMENT_TYPES"
-            :key="equipment"
-            type="button"
-            class="picker__chip"
-            :class="{ active: selectedEquipment === equipment }"
-            :aria-pressed="selectedEquipment === equipment"
-            @click="toggleEquipment(equipment)"
+        <div v-show="!chipsHidden" id="picker-chip-rows" class="picker__chip-rows">
+          <div
+            class="picker__chips"
+            role="group"
+            aria-labelledby="picker-filter-muscle"
           >
-            {{ equipmentLabel(equipment) }}
-          </button>
+            <button
+              v-for="group in MUSCLE_GROUPS"
+              :key="group"
+              type="button"
+              class="picker__chip"
+              :class="{ active: selectedGroup === group }"
+              :aria-pressed="selectedGroup === group"
+              @click="toggleGroup(group)"
+            >
+              {{ groupLabel(group) }}
+            </button>
+          </div>
+
+          <span id="picker-filter-equipment" class="picker__filter-label">
+            {{ t('wtx.exercisePicker.equipmentLabel') }}
+          </span>
+          <div
+            class="picker__chips"
+            role="group"
+            aria-labelledby="picker-filter-equipment"
+          >
+            <button
+              v-for="equipment in EQUIPMENT_TYPES"
+              :key="equipment"
+              type="button"
+              class="picker__chip"
+              :class="{ active: selectedEquipment === equipment }"
+              :aria-pressed="selectedEquipment === equipment"
+              @click="toggleEquipment(equipment)"
+            >
+              {{ equipmentLabel(equipment) }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -242,8 +304,65 @@ const previewName = ref<string | null>(null)
   flex-shrink: 0;
 }
 
+.picker__chip-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .picker__chips + .picker__filter-label {
   margin-top: 6px;
+}
+
+/* The first label shares its line with the show/hide toggle. */
+.picker__filter-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.picker__filter-active {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-small);
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.picker__chips-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  /* A 44px-tall tap target without growing the row. */
+  margin-block: -10px;
+  min-height: 44px;
+  padding: 0 4px 0 12px;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--text-small);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.picker__chips-chevron {
+  transition: transform 0.15s ease;
+}
+
+.picker__chips-chevron--up {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker__chips-chevron {
+    transition: none;
+  }
 }
 
 .picker__filter-label {
