@@ -246,7 +246,7 @@ Both are optional and off by default.
   or `share-post`. Labels are limited to `[a-z0-9_-]`, 32 characters.
 - **"Get the app" banner** (`src/components/GetAppBanner.vue`). The web build
   shows it on phones once that platform's store ID is set
-  (`VITE_APP_STORE_ID`, `VITE_PLAY_STORE_ID` — see `.env.example`), and the
+  (`VITE_APP_STORE_ID`, `VITE_PLAY_STORE_ID`), and the
   store link it opens carries the source, so the store consoles can
   attribute the install. Never shown inside the native apps.
 - **Rating prompt** (`src/services/appReview.ts`). Leaving the finish screen
