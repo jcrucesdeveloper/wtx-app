@@ -223,6 +223,8 @@ export type Database = {
           user_id: string
           joined_at: string
           finished_at: string | null
+          /** When they left the running workout. Optional so a server without the column still reads. */
+          left_at?: string | null
         }
         Insert: never
         Update: {
@@ -410,6 +412,18 @@ export type Database = {
       join_room: {
         Args: { p_code: string }
         Returns: RoomRow | EmptyRow<RoomRow>
+      }
+      leave_room: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      room_host_beat: {
+        Args: { p_room_id: string }
+        Returns: undefined
+      }
+      claim_room_host: {
+        Args: { p_room_id: string }
+        Returns: RoomRow
       }
       follow_by_code: {
         Args: { p_code: string }

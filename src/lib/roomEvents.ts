@@ -31,6 +31,9 @@ export type RoomEvent = { id: string; at: number; from: string } & (
   | { kind: 'exercise-swapped'; exercise: string; to: string; kept: boolean }
   // The host moved on to another exercise, and this member's screen with them (`from` is the host).
   | { kind: 'focus-moved'; exercise: string }
+  // The host role passed to someone else — the host left, finished or went
+  // silent (`from` is the new host).
+  | { kind: 'host-changed' }
   // Team moments (`from` is '' — they belong to everyone).
   | { kind: 'team-cleared'; exercise: string }
   | { kind: 'team-finished' }

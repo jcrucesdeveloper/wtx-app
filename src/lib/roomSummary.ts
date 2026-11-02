@@ -1,6 +1,7 @@
 import { buildMemberSession, type MemberSetLog, type PlannedExercise } from '@/lib/memberSession'
 import { buildRoomRecap, type BestSet, type ExerciseComparison } from '@/lib/roomRecap'
 import { clearedExercises, teamProgress, type TeamMember } from '@/lib/teamProgress'
+import { memberStart } from '@/lib/roomHost'
 
 /**
  * What a group workout added up to, for the "Together" recap and the team
@@ -25,7 +26,7 @@ export interface SummaryMember {
   /** Every working set, extras included. */
   sets: number
   volume: number
-  /** From the room's start to their Finish, once they've finished. */
+  /** From their start (the room's, or when they joined if later) to their Finish, once they've finished. */
   seconds: number | null
   /** Exercise of their latest set: what they're on, while they're still going. */
   currentExercise: string | null
@@ -58,8 +59,8 @@ export interface RoomSummary {
 export interface RoomSummaryInput {
   /** The routine in the room's current order. */
   routine: PlannedExercise[]
-  /** In join order. */
-  members: TeamMember[]
+  /** In join order. `joinedAt` times someone who came in after the start from when they came. */
+  members: (TeamMember & { joinedAt?: string | null })[]
   logs: MemberSetLog[]
   startedAt: string | null
 }
@@ -125,7 +126,7 @@ export function buildRoomSummary({ routine, members, logs, startedAt }: RoomSumm
       planned: progress.plannedPerMember,
       sets: totals.sets,
       volume: totals.volume,
-      seconds: secondsBetween(startedAt, m.finishedAt),
+      seconds: secondsBetween(memberStart(startedAt, m.joinedAt), m.finishedAt),
       currentExercise: session.currentExercise,
       highlight: highlightOf(m.userId, recap.exercises),
     }

@@ -18,6 +18,7 @@ import { useActiveSessionStore } from '@/stores/activeSession'
 import { useRoutinesStore } from '@/stores/routines'
 import { useAuthStore } from '@/stores/auth'
 import type { RoomRow } from '@/lib/supabase/database.types'
+import { CLAIM_STAGGER_MS, HOST_GRACE_MS } from '@/lib/roomHost'
 
 const ROUTINE = `# Push Day
 unit: kg
@@ -339,5 +340,179 @@ describe('room store: the host removes routine exercises for everyone', () => {
     room.room = roomRow({ removed_slots: [], order_version: 1 })
     await flush()
     expect(names()).toEqual(['Overhead Press', 'Dips'])
+  })
+})
+
+describe('room store: the host role passes on', () => {
+  let routineId: string
+
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('wtx:routines', '[]')
+    setActivePinia(createPinia())
+    rpc.mockReset()
+    routineId = useRoutinesStore().add(ROUTINE, 'push-day.wtt').id
+  })
+
+  function signIn(id: string) {
+    useAuthStore().session = { user: { id } } as unknown as Session
+  }
+
+  function startWorkout() {
+    const routines = useRoutinesStore()
+    const parsed = routines.parsed(routineId)
+    if (!parsed?.ok) throw new Error('routine did not parse')
+    useActiveSessionStore().start(routines.getById(routineId)!, parsed.template, { roomId: 'room-1' })
+  }
+
+  const names = () => useActiveSessionStore().session!.draft.exercises.map((e) => e.name)
+  const hostChanges = () => useRoomStore().events.filter((e) => e.kind === 'host-changed')
+  const at = (minute: number) => new Date(Date.UTC(2026, 10, 1, 18, minute)).toISOString()
+  const member = (userId: string, minute: number) => ({
+    userId,
+    displayName: userId,
+    joinedAt: at(minute),
+    finishedAt: null,
+    leftAt: null as string | null,
+  })
+
+  it('hands a guest the routine when the room makes them host, without moving anyone', async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow({ exercise_order: [2, 0, 1], order_version: 3, focus_slot: 2 })
+    startWorkout()
+    await flush()
+    const active = useActiveSessionStore()
+    active.setFocusedExercise(active.session!.draft.exercises[1]!)
+    await flush()
+    expect(active.canReorder).toBe(false)
+
+    room.room = roomRow({ exercise_order: [2, 0, 1], order_version: 3, focus_slot: 2, host_id: 'guest' })
+    await flush()
+    expect(room.isHost).toBe(true)
+    expect(active.canReorder).toBe(true)
+    expect(active.canRemoveExercise(0)).toBe(true)
+    // Getting the role isn't a move: nobody is pulled to the new host's exercise.
+    expect(rpc).not.toHaveBeenCalled()
+    expect(hostChanges()).toMatchObject([{ from: 'guest' }])
+
+    // Their next reorder is the room's.
+    rpc.mockResolvedValue({ data: null, error: null })
+    const [dips, bench, ohp] = active.session!.draft.exercises
+    active.reorderExercises([bench!, dips!, ohp!])
+    expect(rpc).toHaveBeenLastCalledWith(
+      'set_room_routine',
+      expect.objectContaining({ p_room_id: 'room-1', p_order: [0, 2, 1] }),
+    )
+  })
+
+  it('puts the old host in line with the room, and tells them who leads now', async () => {
+    signIn('host')
+    const room = useRoomStore()
+    room.room = roomRow()
+    startWorkout()
+    await flush()
+    const active = useActiveSessionStore()
+    expect(active.canReorder).toBe(true)
+
+    room.room = roomRow({ host_id: 'ana', exercise_order: [1, 0, 2], order_version: 1 })
+    await flush()
+    expect(room.isHost).toBe(false)
+    expect(active.canReorder).toBe(false)
+    expect(names()).toEqual(['Overhead Press', 'Bench Press', 'Dips'])
+    expect(hostChanges()).toMatchObject([{ from: 'ana' }])
+  })
+
+  it('says nothing when another room opens', async () => {
+    signIn('guest')
+    const room = useRoomStore()
+    room.room = roomRow()
+    await flush()
+    room.room = roomRow({ id: 'room-2', host_id: 'someone-else' })
+    await flush()
+    expect(hostChanges()).toEqual([])
+  })
+
+  it('knows who would lead next: whoever joined earliest of those still working out', () => {
+    signIn('host')
+    const room = useRoomStore()
+    room.room = roomRow()
+    room.members = [member('host', 0), { ...member('ben', 1), leftAt: at(9) }, member('ana', 2), member('cleo', 3)]
+    expect(room.successor?.userId).toBe('ana')
+    room.members = [member('host', 0)]
+    expect(room.successor).toBeNull()
+  })
+
+  it('leaves through the server, which passes the host role on', async () => {
+    signIn('host')
+    const room = useRoomStore()
+    room.room = roomRow()
+    rpc.mockResolvedValue({ data: null, error: null })
+    await room.leave()
+    expect(rpc).toHaveBeenCalledWith('leave_room', { p_room_id: 'room-1' })
+    expect(room.room).toBeNull()
+  })
+
+  it('takes over from a host who has been gone past the grace period', async () => {
+    signIn('ana')
+    const room = useRoomStore()
+    room.room = roomRow()
+    room.members = [member('host', 0), member('ana', 1), member('ben', 2)]
+    room.onlineIds = ['ana', 'ben']
+    rpc.mockResolvedValue({ data: roomRow({ host_id: 'ana' }), error: null })
+
+    const t0 = Date.now()
+    await room.checkHost('room-1', t0)
+    await room.checkHost('room-1', t0 + HOST_GRACE_MS - 1)
+    expect(rpc).not.toHaveBeenCalled()
+    await room.checkHost('room-1', t0 + HOST_GRACE_MS)
+    expect(rpc).toHaveBeenCalledWith('claim_room_host', { p_room_id: 'room-1' })
+    expect(room.isHost).toBe(true)
+    await flush()
+    expect(hostChanges()).toMatchObject([{ from: 'ana' }])
+  })
+
+  it('waits its turn in line, and not at all while the host is there', async () => {
+    signIn('ben')
+    const room = useRoomStore()
+    room.room = roomRow()
+    room.members = [member('host', 0), member('ana', 1), member('ben', 2)]
+    room.onlineIds = ['ana', 'ben']
+    rpc.mockResolvedValue({ data: roomRow({ host_id: 'ben' }), error: null })
+
+    const t0 = Date.now()
+    await room.checkHost('room-1', t0)
+    await room.checkHost('room-1', t0 + HOST_GRACE_MS)
+    expect(rpc).not.toHaveBeenCalled()
+
+    // The host is back: the clock starts over.
+    room.onlineIds = ['host', 'ana', 'ben']
+    await room.checkHost('room-1', t0 + HOST_GRACE_MS + 1000)
+    room.onlineIds = ['ana', 'ben']
+    const t1 = t0 + HOST_GRACE_MS + 2000
+    await room.checkHost('room-1', t1)
+    await room.checkHost('room-1', t1 + HOST_GRACE_MS)
+    expect(rpc).not.toHaveBeenCalled()
+    await room.checkHost('room-1', t1 + HOST_GRACE_MS + CLAIM_STAGGER_MS)
+    expect(rpc).toHaveBeenCalledTimes(1)
+  })
+
+  it('backs off when the server has seen the host more recently', async () => {
+    signIn('ana')
+    const room = useRoomStore()
+    room.room = roomRow()
+    room.members = [member('host', 0), member('ana', 1)]
+    room.onlineIds = ['ana']
+    rpc.mockResolvedValue({ data: null, error: { message: 'host_present', code: 'P0001' } })
+
+    const t0 = Date.now()
+    await room.checkHost('room-1', t0)
+    await room.checkHost('room-1', t0 + HOST_GRACE_MS)
+    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(room.isHost).toBe(false)
+    await room.checkHost('room-1', t0 + HOST_GRACE_MS + 30_000)
+    expect(rpc).toHaveBeenCalledTimes(1)
+    await room.checkHost('room-1', t0 + HOST_GRACE_MS + 60_000)
+    expect(rpc).toHaveBeenCalledTimes(2)
   })
 })
