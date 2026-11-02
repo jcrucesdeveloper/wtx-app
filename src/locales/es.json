@@ -580,6 +580,23 @@
       "notFound": "Este entrenamiento no está disponible: puede que se haya eliminado o dejado de compartir.",
       "backAria": "Volver"
     },
+    "likers": {
+      "title": "Ánimos",
+      "openAria": "{count} persona dio ánimo, ver quién | {count} personas dieron ánimo, ver quiénes",
+      "empty": "Todavía no hay ánimos.",
+      "error": "No se pudo cargar quién dio ánimo.",
+      "retry": "Reintentar",
+      "you": "Tú"
+    },
+    "copyRoutine": {
+      "action": "Guardar en mi biblioteca",
+      "suffix": " (de {'@'}{friend})",
+      "saved": "Guardada en tu biblioteca como «{name}»",
+      "open": "Abrir",
+      "failed": "No se pudo guardar esta rutina.",
+      "limitReached": "Tu biblioteca está llena. Elimina una rutina para guardar esta.",
+      "noRest": "Este entrenamiento no compartió los descansos, así que la copia no los tiene."
+    },
     "profile": {
       "title": "Perfil",
       "openMine": "Tu perfil",
