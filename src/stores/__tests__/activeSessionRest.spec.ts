@@ -15,6 +15,9 @@ vi.mock('@/services/haptics', () => ({
   },
 }))
 
+const { restEnded } = vi.hoisted(() => ({ restEnded: vi.fn<() => void>() }))
+vi.mock('@/services/restSound', () => ({ RestSoundService: { restEnded } }))
+
 const ROUTINE = { id: 'r1', filename: 'push-day.wtt' } as StoredRoutine
 
 const TEMPLATE = `# Push Day
@@ -203,6 +206,29 @@ describe('activeSession rest timer', () => {
       vi.advanceTimersByTime(1_000)
       expect(restOver).not.toHaveBeenCalled()
       expect(store.session!.restEndsAt).toBeNull()
+    })
+  })
+
+  describe('chime when the rest ends', () => {
+    beforeEach(() => restEnded.mockClear())
+
+    it('chimes once as the rest runs out, vibration on or off', () => {
+      useSettingsStore().setVibrateOnRestEnd(false)
+      const store = startWorkout()
+      logFirstSet(store, 0)
+      vi.advanceTimersByTime(89_000)
+      expect(restEnded).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(2_000)
+      expect(restEnded).toHaveBeenCalledTimes(1)
+    })
+
+    it('stays quiet for a rest that ended long before the app noticed', () => {
+      const store = startWorkout()
+      logFirstSet(store, 0)
+      vi.setSystemTime(Date.now() + 120_000)
+      vi.advanceTimersByTime(1_000)
+      expect(restEnded).not.toHaveBeenCalled()
     })
   })
 })

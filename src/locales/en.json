@@ -1238,6 +1238,8 @@
     "dataDeleteHint": "Permanently erase every routine and session.",
     "deleteAllData": "Delete all data",
     "deleteAllConfirm": "Delete every routine and session? This cannot be undone.",
+    "restSound": "Rest timer sound",
+    "restSoundHint": "A chime when your rest is over. Stays quiet when your phone is on silent.",
     "reminders": "Reminders",
     "remindersHint": "A nudge if you haven't logged a workout by evening — never more than one a day.",
     "enableReminders": "Enable reminders",

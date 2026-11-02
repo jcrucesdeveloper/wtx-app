@@ -15,6 +15,7 @@ import { NotificationService } from './services/notifications'
 import { initDeepLinks } from './services/deepLinks'
 import { initSessionNotification } from './services/sessionNotification'
 import { initForgotFinishReminder } from './services/forgotFinishReminder'
+import { RestSoundService } from './services/restSound'
 import { useAuthStore } from './stores/auth'
 import { useRoomStore } from './stores/room'
 import { useSyncStore } from './stores/sync'
@@ -51,6 +52,8 @@ useRoomStore()
 initSessionNotification(router)
 // Asks, hours into a workout, whether it was left running by mistake.
 initForgotFinishReminder(router)
+// Keeps web audio unlocked so the rest-end chime can play (Android plays it natively instead).
+RestSoundService.init()
 
 setAnalyticsProvider(supabaseAnalytics)
 track('app_opened')

@@ -1236,6 +1236,8 @@
     "importNothing": "Nada nuevo que importar — todo en ese archivo ya está aquí.",
     "importError": "No se pudo leer ese archivo — elige un .zip exportado desde WTX.",
     "dataDeleteHint": "Borra permanentemente cada rutina y sesión.",
+    "restSound": "Sonido del descanso",
+    "restSoundHint": "Un aviso sonoro cuando termina tu descanso. No suena si tu teléfono está en silencio.",
     "reminders": "Recordatorios",
     "remindersHint": "Un aviso si no has registrado un entrenamiento para la tarde — nunca más de uno por día.",
     "enableReminders": "Activar recordatorios",
