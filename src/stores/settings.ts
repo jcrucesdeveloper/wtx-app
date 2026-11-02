@@ -28,12 +28,15 @@ function readStoredSaveTarget(): SessionSaveTarget {
   }
 }
 
-/** Defaults on: only people who already chose to follow you ever see a shared session. */
+/**
+ * Defaults off — privacy by default (Chile's Ley 21.719): a workout reaches the
+ * feed only after the user ticks the box once; their last choice is kept after that.
+ */
 function readStoredShareToFeedDefault(): boolean {
   try {
-    return localStorage.getItem(SHARE_TO_FEED_STORAGE_KEY) !== '0'
+    return localStorage.getItem(SHARE_TO_FEED_STORAGE_KEY) === '1'
   } catch {
-    return true
+    return false
   }
 }
 
