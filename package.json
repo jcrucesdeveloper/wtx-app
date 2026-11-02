@@ -9,6 +9,7 @@
     "build:legal": "node scripts/build-legal.mjs",
     "preview": "vite preview",
     "test:unit": "vitest",
+    "test:db": "bash supabase/tests/run.sh",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "run-s \"lint:*\"",

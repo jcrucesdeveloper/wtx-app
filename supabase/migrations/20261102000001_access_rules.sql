@@ -23,6 +23,22 @@ create schema private;
 revoke all on schema private from public;
 grant usage on schema private to authenticated;
 
+-- ===== Safe defaults for everything created later =====
+
+-- Out of the box, Postgres lets everyone execute every new function, and
+-- Supabase gives signed-out users (anon) full access to every new table in
+-- public. These change the defaults for everything migrations create from
+-- here on (they run as `postgres`): a new table or function is closed to
+-- signed-out users until a migration grants it on purpose, and a new
+-- function in `private` is closed to everyone. A forgotten grant then shows
+-- up as an error in the app instead of an open door.
+-- Signed-in users keep Supabase's defaults, so a new table still needs row
+-- level security — supabase/tests checks that every table has it.
+alter default privileges for role postgres revoke execute on functions from public;
+alter default privileges for role postgres in schema public revoke execute on functions from anon;
+alter default privileges for role postgres in schema public revoke all on tables from anon;
+alter default privileges for role postgres in schema public revoke all on sequences from anon;
+
 -- ===== Rooms =====
 
 -- Is the caller a member of this room?

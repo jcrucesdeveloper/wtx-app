@@ -63,7 +63,8 @@ create table public.routines (
 );
 
 create index routines_user_updated on public.routines (user_id, updated_at);
-create index routines_section on public.routines (section_id) where section_id is not null;
+-- Covers the (section_id, user_id) foreign key.
+create index routines_section on public.routines (section_id, user_id);
 
 create trigger routines_updated_at
   before insert or update on public.routines
@@ -112,14 +113,28 @@ create trigger sessions_updated_at
 alter table public.sessions enable row level security;
 revoke all on public.sessions from anon;
 
-create policy "sessions: own rows" on public.sessions
-  for all to authenticated
+-- Read: your own sessions, and the ones people you follow shared. One read
+-- policy (two permissive ones would each run on every row).
+create policy "sessions: read own and followees' shared" on public.sessions
+  for select to authenticated
+  using (
+    user_id = (select auth.uid())
+    or (shared and deleted_at is null and private.follows_user(user_id))
+  );
+
+-- Write: only your own.
+create policy "sessions: insert own" on public.sessions
+  for insert to authenticated
+  with check (user_id = (select auth.uid()));
+
+create policy "sessions: update own" on public.sessions
+  for update to authenticated
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
-create policy "sessions: followers read shared" on public.sessions
-  for select to authenticated
-  using (shared and deleted_at is null and private.follows_user(user_id));
+create policy "sessions: delete own" on public.sessions
+  for delete to authenticated
+  using (user_id = (select auth.uid()));
 
 -- ===== Storage budget =====
 
@@ -140,7 +155,12 @@ alter table private.account_usage enable row level security;
 revoke all on private.account_usage from public, anon, authenticated;
 
 -- A row's size is its JSON text, the same measure for all three tables.
--- user_id can't change (the "own rows" policies pin it to the caller).
+-- user_id can't change (the write policies pin it to the caller).
+--
+-- Every write is counted, but only a write from the app (a signed-in
+-- request, auth.uid() set) is refused: a migration or the dashboard never
+-- fails on the limit. After a migration that rewrites these rows in bulk,
+-- run `select private.recount_account_usage();` to rebuild the totals.
 create function private.track_account_usage()
 returns trigger
 language plpgsql
@@ -177,7 +197,7 @@ begin
     returning bytes into v_total;
   end if;
 
-  if v_new > v_old and v_total > v_limit then
+  if v_new > v_old and v_total > v_limit and auth.uid() is not null then
     raise exception 'storage_quota_exceeded' using hint = 'This account has reached its storage limit.';
   end if;
   return null;
@@ -185,6 +205,36 @@ end;
 $$;
 
 revoke execute on function private.track_account_usage() from public, anon, authenticated;
+
+-- Rebuilds every account's total from the rows themselves. For after a
+-- migration that adds a column with a default or rewrites rows in bulk; the
+-- running total can't see those. Returns how many accounts it counted.
+create function private.recount_account_usage()
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_count integer;
+begin
+  delete from private.account_usage;
+  insert into private.account_usage (user_id, bytes)
+  select user_id, sum(bytes)
+  from (
+    select user_id, octet_length(to_jsonb(t)::text) as bytes from public.routine_sections t
+    union all
+    select user_id, octet_length(to_jsonb(t)::text) from public.routines t
+    union all
+    select user_id, octet_length(to_jsonb(t)::text) from public.sessions t
+  ) rows
+  group by user_id;
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$;
+
+revoke execute on function private.recount_account_usage() from public, anon, authenticated;
 
 create trigger routine_sections_account_usage
   after insert or update or delete on public.routine_sections

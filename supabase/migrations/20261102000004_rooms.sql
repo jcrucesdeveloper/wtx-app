@@ -186,10 +186,12 @@ create table public.room_set_logs (
   constraint room_set_logs_exercise_name_length check (char_length(exercise_name) <= 200)
 );
 
-create index room_set_logs_room on public.room_set_logs (room_id);
+-- Covers the (room_id, user_id) foreign key, reads by room and the set limit below.
+create index room_set_logs_room_user on public.room_set_logs (room_id, user_id);
 
 -- At most 500 sets per person per room (a long workout logs ~40), so a
 -- member can't flood the table — or everyone's screens over Realtime.
+-- Only app requests are limited (auth.uid() set), never a migration.
 create function private.room_set_logs_limit()
 returns trigger
 language plpgsql
@@ -197,7 +199,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if (
+  if auth.uid() is not null and (
     select count(*) from public.room_set_logs
     where room_id = new.room_id and user_id = new.user_id
   ) >= 500 then

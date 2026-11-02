@@ -179,20 +179,17 @@ revoke execute on function private.profiles_content_filter() from public, anon, 
 alter table public.profiles enable row level security;
 revoke all on public.profiles from anon;
 
--- Permissive policies for the same command are OR'd together...
-create policy "profiles: read self and roommates" on public.profiles
+-- One read policy (several permissive ones would each run on every row)...
+create policy "profiles: read self, roommates, followees and followers" on public.profiles
   for select to authenticated
-  using (id = (select auth.uid()) or private.shares_room_with(id));
+  using (
+    id = (select auth.uid())
+    or private.shares_room_with(id)
+    or private.follows_user(id)
+    or private.is_followed_by(id)
+  );
 
-create policy "profiles: read followees" on public.profiles
-  for select to authenticated
-  using (private.follows_user(id));
-
-create policy "profiles: read followers" on public.profiles
-  for select to authenticated
-  using (private.is_followed_by(id));
-
--- ...and a restrictive one is AND'd with them: a blocked person stays hidden
+-- ...and a restrictive one, AND'd with it: a blocked person stays hidden
 -- even through a room you once shared.
 create policy "profiles: hidden across a block" on public.profiles
   as restrictive

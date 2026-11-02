@@ -143,7 +143,10 @@ group workouts. To enable it:
    For future schema changes, scaffold a new timestamped file with
    `npx supabase migration new <description>`, write the SQL by hand, commit
    it, then `npx supabase db push` again. Never edit a migration that's
-   already been applied — add a new one instead.
+   already been applied — add a new one instead. Before pushing, run
+   `pnpm test:db` (needs Docker): it builds a throwaway database from the
+   migrations and checks the security rules every change must keep, then
+   what real users can and can't do.
 3. Deploy the account-deletion function with the project's secret key
    (`sb_secret_…`, never shipped in the app):
    ```sh
