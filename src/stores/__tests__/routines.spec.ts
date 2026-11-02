@@ -5,7 +5,8 @@ import { createPinia, setActivePinia } from 'pinia'
 vi.mock('@/lib/exercises/imageCache', () => ({ warmExerciseImages: () => Promise.resolve() }))
 vi.mock('@/services/analytics', () => ({ track: () => {} }))
 
-import { useRoutinesStore } from '@/stores/routines'
+import { RoutineLimitError, useRoutinesStore } from '@/stores/routines'
+import { ROUTINE_MAX, ROUTINE_WARN_AT } from '@/lib/supabase/limits'
 import { buildDataExportZip } from '@/lib/exportData'
 
 const FAVORITES_KEY = 'wtx:routineFavorites'
@@ -227,5 +228,39 @@ describe('routines store: sections', () => {
     store.applyRemoteSections([{ ...a, id: 'remote-a' }], { [a.id]: 'remote-a' })
     expect(store.getById(legs.id)?.sectionId).toBe('remote-a')
     expect(store.getById(push.id)?.sectionId).toBeUndefined()
+  })
+})
+
+describe('routines store: limit', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+  })
+
+  function fill(count: number) {
+    localStorage.setItem(
+      'wtx:routines',
+      JSON.stringify(
+        Array.from({ length: count }, (_, i) => ({ id: `r${i}`, filename: `r${i}.wtt`, rawText: TEXT(`R${i}`), addedAt: i })),
+      ),
+    )
+    return restart()
+  }
+
+  it('warns near the cap and refuses a routine past it', () => {
+    const store = fill(ROUTINE_WARN_AT - 1)
+    expect(store.nearLimit).toBe(false)
+    store.add(TEXT('One more'), '')
+    expect(store.nearLimit).toBe(true)
+
+    const full = fill(ROUTINE_MAX)
+    expect(full.canAdd).toBe(false)
+    expect(() => full.add(TEXT('Too many'), '')).toThrow(RoutineLimitError)
+    expect(() => full.add(TEXT('Too many'), '')).toThrow(String(ROUTINE_MAX))
+    expect(full.list).toHaveLength(ROUTINE_MAX)
+
+    full.remove('r0')
+    expect(full.canAdd).toBe(true)
+    expect(() => full.add(TEXT('Fits again'), '')).not.toThrow()
   })
 })

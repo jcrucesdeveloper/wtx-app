@@ -10,7 +10,7 @@ import MemberSessionSheet from '@/components/social/MemberSessionSheet.vue'
 import TogetherCountdown from '@/components/social/TogetherCountdown.vue'
 import { RoomError, useRoomStore } from '@/stores/room'
 import { useAuthStore } from '@/stores/auth'
-import { useRoutinesStore } from '@/stores/routines'
+import { RoutineLimitError, useRoutinesStore } from '@/stores/routines'
 import { useActiveSessionStore } from '@/stores/activeSession'
 import { useStartRoutine } from '@/composables/useStartRoutine'
 import { buildJoinUrl } from '@/lib/roomCode'
@@ -63,8 +63,9 @@ function startWorkout() {
   if (!routine) {
     try {
       routine = routines.add(r.routine_wtt, `${r.routine_name}.wtt`)
-    } catch {
-      error.value = t('room.errors.unknown')
+    } catch (e) {
+      // A full library says so; anything else is the room's routine failing to parse.
+      error.value = e instanceof RoutineLimitError ? e.message : t('room.errors.unknown')
       return
     }
   }
