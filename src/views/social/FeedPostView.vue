@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Ban, BookmarkPlus, EllipsisVertical, Flag } from '@lucide/vue'
@@ -26,7 +26,7 @@ const id = computed(() => String(route.params.id))
 const post = computed(() => feed.getPost(id.value))
 const loading = ref(false)
 
-// ⋯ on someone else's post → report it, or block its author. Kept here rather
+// ⋯ on someone else's post → save its routine, report it, or block its author. Kept here rather
 // than on every feed card so the feed stays uncluttered; every card opens this page.
 const isMine = computed(() => post.value?.posterId === auth.user?.id)
 const menuOpen = ref(false)
@@ -56,8 +56,18 @@ function openBlock() {
 const { saveCopy } = useSaveRoutineCopy()
 const saved = ref<SaveRoutineCopyResult | null>(null)
 
+/** The result line under the post, brought into view when the save came from the ⋯ menu. */
+const copyEl = ref<HTMLElement | null>(null)
+
 function saveToLibrary() {
   if (post.value) saved.value = saveCopy(post.value)
+}
+
+async function saveFromMenu() {
+  menuOpen.value = false
+  saveToLibrary()
+  await nextTick()
+  copyEl.value?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
 }
 
 function openSaved() {
@@ -133,7 +143,7 @@ function goBack() {
 
       <FeedKudosButton :post="post" />
 
-      <div v-if="!isMine" class="copy">
+      <div v-if="!isMine" ref="copyEl" class="copy">
         <button
           v-if="saved?.status !== 'saved'"
           type="button"
@@ -163,6 +173,16 @@ function goBack() {
 
     <BottomSheet :open="menuOpen" :title="author.name" @close="menuOpen = false">
       <div class="sheet">
+        <button
+          v-if="saved?.status !== 'saved'"
+          type="button"
+          class="sheet__row"
+          data-test="menu-save"
+          @click="saveFromMenu"
+        >
+          <BookmarkPlus :size="18" :stroke-width="2.25" />
+          {{ t('social.copyRoutine.action') }}
+        </button>
         <button type="button" class="sheet__row" @click="openReport">
           <Flag :size="18" :stroke-width="2.25" />
           {{ t('social.moderation.reportPost') }}
