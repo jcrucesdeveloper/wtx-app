@@ -50,9 +50,11 @@ create table public.rooms (
 create unique index rooms_open_code on public.rooms (code) where status <> 'finished';
 -- For the stale-room sweep at the end of this file.
 create index rooms_open_created_at on public.rooms (created_at) where status <> 'finished';
+-- Foreign key: deleting an account looks up the rooms it hosted.
+create index rooms_host on public.rooms (host_id);
 
 -- Keeps status moving forward only and stamps started_at / finished_at.
-create function public.room_status_transition()
+create function private.room_status_transition()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -77,16 +79,16 @@ $$;
 
 create trigger rooms_status_transition
   before update of status on public.rooms
-  for each row execute function public.room_status_transition();
+  for each row execute function private.room_status_transition();
 
-revoke execute on function public.room_status_transition() from public, anon, authenticated;
+revoke execute on function private.room_status_transition() from public, anon, authenticated;
 
 alter table public.rooms enable row level security;
 revoke all on public.rooms from anon;
 
 create policy "rooms: members read" on public.rooms
   for select to authenticated
-  using (public.is_room_member(id));
+  using (private.is_room_member(id));
 
 create policy "rooms: host updates" on public.rooms
   for update to authenticated
@@ -113,7 +115,7 @@ create index room_members_user on public.room_members (user_id);
 -- Closes the room once every member has finished their workout. Training
 -- together counts as introducing yourselves: every pair of members then
 -- follows each other, unless either has blocked the other.
-create function public.finish_room_when_done()
+create function private.finish_room_when_done()
 returns trigger
 language plpgsql
 security definer
@@ -133,7 +135,7 @@ begin
       from public.room_members a
       join public.room_members b on b.room_id = a.room_id and b.user_id <> a.user_id
       where a.room_id = new.room_id
-        and not public.is_blocked_between(a.user_id, b.user_id)
+        and not private.is_blocked_between(a.user_id, b.user_id)
       on conflict do nothing;
     end if;
   end if;
@@ -143,16 +145,16 @@ $$;
 
 create trigger room_members_finish_room
   after update of finished_at on public.room_members
-  for each row execute function public.finish_room_when_done();
+  for each row execute function private.finish_room_when_done();
 
-revoke execute on function public.finish_room_when_done() from public, anon, authenticated;
+revoke execute on function private.finish_room_when_done() from public, anon, authenticated;
 
 alter table public.room_members enable row level security;
 revoke all on public.room_members from anon;
 
 create policy "room_members: members read" on public.room_members
   for select to authenticated
-  using (public.is_room_member(room_id));
+  using (private.is_room_member(room_id));
 
 create policy "room_members: update self" on public.room_members
   for update to authenticated
@@ -186,25 +188,50 @@ create table public.room_set_logs (
 
 create index room_set_logs_room on public.room_set_logs (room_id);
 
+-- At most 500 sets per person per room (a long workout logs ~40), so a
+-- member can't flood the table — or everyone's screens over Realtime.
+create function private.room_set_logs_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if (
+    select count(*) from public.room_set_logs
+    where room_id = new.room_id and user_id = new.user_id
+  ) >= 500 then
+    raise exception 'room_set_limit' using hint = 'Too many sets logged in this room.';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger room_set_logs_limit
+  before insert on public.room_set_logs
+  for each row execute function private.room_set_logs_limit();
+
+revoke execute on function private.room_set_logs_limit() from public, anon, authenticated;
+
 alter table public.room_set_logs enable row level security;
 revoke all on public.room_set_logs from anon;
 
 create policy "room_set_logs: members read" on public.room_set_logs
   for select to authenticated
-  using (public.is_room_member(room_id));
+  using (private.is_room_member(room_id));
 
 create policy "room_set_logs: insert own while active" on public.room_set_logs
   for insert to authenticated
-  with check (user_id = (select auth.uid()) and public.is_room_active(room_id));
+  with check (user_id = (select auth.uid()) and private.is_room_active(room_id));
 
 create policy "room_set_logs: update own while active" on public.room_set_logs
   for update to authenticated
-  using (user_id = (select auth.uid()) and public.is_room_active(room_id))
-  with check (user_id = (select auth.uid()) and public.is_room_active(room_id));
+  using (user_id = (select auth.uid()) and private.is_room_active(room_id))
+  with check (user_id = (select auth.uid()) and private.is_room_active(room_id));
 
 create policy "room_set_logs: delete own while active" on public.room_set_logs
   for delete to authenticated
-  using (user_id = (select auth.uid()) and public.is_room_active(room_id));
+  using (user_id = (select auth.uid()) and private.is_room_active(room_id));
 
 alter publication supabase_realtime add table public.room_set_logs;
 
@@ -227,7 +254,7 @@ begin
     raise exception 'not_authenticated';
   end if;
 
-  perform public.enforce_rate_limit(v_uid, 'room_create', 20, interval '1 hour');
+  perform private.enforce_rate_limit(v_uid, 'room_create', 20, interval '1 hour');
 
   for attempt in 1..10 loop
     v_code := '';
@@ -250,7 +277,7 @@ begin
   end if;
 
   insert into public.room_members (room_id, user_id) values (v_room.id, v_uid);
-  perform public.record_rate_limit_event(v_uid, 'room_create');
+  perform private.record_rate_limit_event(v_uid, 'room_create');
   return v_room;
 end;
 $$;
@@ -271,7 +298,7 @@ begin
     raise exception 'not_authenticated';
   end if;
 
-  perform public.enforce_rate_limit(v_uid, 'room_code_miss', 10, interval '10 minutes');
+  perform private.enforce_rate_limit(v_uid, 'room_code_miss', 10, interval '10 minutes');
 
   select * into v_room
   from public.rooms
@@ -279,7 +306,7 @@ begin
   for update;
 
   if v_room.id is null then
-    perform public.record_rate_limit_event(v_uid, 'room_code_miss');
+    perform private.record_rate_limit_event(v_uid, 'room_code_miss');
     return null;
   end if;
 
@@ -291,90 +318,10 @@ begin
     raise exception 'room_full';
   end if;
 
-  perform public.enforce_rate_limit(v_uid, 'room_join', 30, interval '1 hour');
+  perform private.enforce_rate_limit(v_uid, 'room_join', 30, interval '1 hour');
 
   insert into public.room_members (room_id, user_id) values (v_room.id, v_uid);
-  perform public.record_rate_limit_event(v_uid, 'room_join');
-  return v_room;
-end;
-$$;
-
--- The host sets the room's order (bumping its version). Only the host, and
--- only while the room is still open.
-create function public.set_room_exercise_order(p_room_id uuid, p_order smallint[])
-returns public.rooms
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_uid  uuid := auth.uid();
-  v_room public.rooms;
-begin
-  if v_uid is null then
-    raise exception 'not_authenticated';
-  end if;
-
-  if p_order is null
-     or cardinality(p_order) > 200
-     or exists (select 1 from unnest(p_order) s where s is null or s < 0)
-     or (select count(distinct s) from unnest(p_order) s) <> cardinality(p_order) then
-    raise exception 'invalid_order';
-  end if;
-
-  update public.rooms
-  set exercise_order = p_order,
-      order_version = order_version + 1
-  where id = p_room_id and host_id = v_uid and status <> 'finished'
-  returning * into v_room;
-
-  if v_room.id is null then
-    raise exception 'room_not_found';
-  end if;
-  return v_room;
-end;
-$$;
-
--- The host sets the room's order and removed slots together (bumping the
--- version). Only the host, and only while the room is still open.
-create function public.set_room_plan(p_room_id uuid, p_order smallint[], p_removed smallint[])
-returns public.rooms
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_uid  uuid := auth.uid();
-  v_room public.rooms;
-begin
-  if v_uid is null then
-    raise exception 'not_authenticated';
-  end if;
-
-  if p_order is null
-     or cardinality(p_order) > 200
-     or exists (select 1 from unnest(p_order) s where s is null or s < 0)
-     or (select count(distinct s) from unnest(p_order) s) <> cardinality(p_order) then
-    raise exception 'invalid_order';
-  end if;
-
-  if p_removed is null
-     or cardinality(p_removed) > 200
-     or exists (select 1 from unnest(p_removed) s where s is null or s < 0)
-     or (select count(distinct s) from unnest(p_removed) s) <> cardinality(p_removed) then
-    raise exception 'invalid_order';
-  end if;
-
-  update public.rooms
-  set exercise_order = p_order,
-      removed_slots = p_removed,
-      order_version = order_version + 1
-  where id = p_room_id and host_id = v_uid and status <> 'finished'
-  returning * into v_room;
-
-  if v_room.id is null then
-    raise exception 'room_not_found';
-  end if;
+  perform private.record_rate_limit_event(v_uid, 'room_join');
   return v_room;
 end;
 $$;
@@ -461,12 +408,48 @@ revoke execute on function public.create_room(text, text, text) from public, ano
 grant execute on function public.create_room(text, text, text) to authenticated;
 revoke execute on function public.join_room(text) from public, anon;
 grant execute on function public.join_room(text) to authenticated;
-revoke execute on function public.set_room_exercise_order(uuid, smallint[]) from public, anon;
-grant execute on function public.set_room_exercise_order(uuid, smallint[]) to authenticated;
-revoke execute on function public.set_room_plan(uuid, smallint[], smallint[]) from public, anon;
-grant execute on function public.set_room_plan(uuid, smallint[], smallint[]) to authenticated;
 revoke execute on function public.set_room_routine(uuid, smallint[], smallint[], text[], jsonb, smallint) from public, anon;
 grant execute on function public.set_room_routine(uuid, smallint[], smallint[], text[], jsonb, smallint) to authenticated;
+
+-- ===== The room's live channel =====
+
+-- Each room has one private Realtime channel, `room:<room id>`, carrying
+-- presence (who's online) and broadcasts (cheers, live PRs) — neither of
+-- which goes through a table, so the table policies above don't cover them.
+-- Realtime checks these policies on realtime.messages when someone joins a
+-- private channel: only the room's members may listen (select) or send and
+-- track presence (insert). Row changes on the channel still follow the table
+-- policies.
+
+-- The room id in a `room:<uuid>` topic, or null for any other topic.
+create function private.room_topic_id(p_topic text)
+returns uuid
+language sql
+immutable
+set search_path = ''
+as $$
+  select case
+    when p_topic ~ '^room:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    then substr(p_topic, 6)::uuid
+  end
+$$;
+
+revoke execute on function private.room_topic_id(text) from public, anon, authenticated;
+grant execute on function private.room_topic_id(text) to authenticated;
+
+create policy "room channels: members listen" on realtime.messages
+  for select to authenticated
+  using (
+    realtime.messages.extension in ('broadcast', 'presence')
+    and private.is_room_member(private.room_topic_id((select realtime.topic())))
+  );
+
+create policy "room channels: members send" on realtime.messages
+  for insert to authenticated
+  with check (
+    realtime.messages.extension in ('broadcast', 'presence')
+    and private.is_room_member(private.room_topic_id((select realtime.topic())))
+  );
 
 -- ===== Stale rooms =====
 

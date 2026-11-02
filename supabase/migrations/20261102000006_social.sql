@@ -61,14 +61,14 @@ begin
     raise exception 'not_authenticated';
   end if;
 
-  perform public.enforce_rate_limit(v_uid, 'invite_code_miss', 10, interval '10 minutes');
+  perform private.enforce_rate_limit(v_uid, 'invite_code_miss', 10, interval '10 minutes');
 
   select p.id, p.display_name, p.bio into v_profile
   from public.profiles p
   where p.invite_code = upper(regexp_replace(p_code, '\s', '', 'g'));
 
-  if v_profile.id is null or public.is_blocked_between(v_uid, v_profile.id) then
-    perform public.record_rate_limit_event(v_uid, 'invite_code_miss');
+  if v_profile.id is null or private.is_blocked_between(v_uid, v_profile.id) then
+    perform private.record_rate_limit_event(v_uid, 'invite_code_miss');
     return null;
   end if;
 
@@ -77,10 +77,10 @@ begin
   end if;
 
   if not exists (select 1 from public.follows where follower_id = v_uid and followee_id = v_profile.id) then
-    perform public.enforce_rate_limit(v_uid, 'follow', 60, interval '1 hour');
+    perform private.enforce_rate_limit(v_uid, 'follow', 60, interval '1 hour');
     insert into public.follows (follower_id, followee_id) values (v_uid, v_profile.id)
     on conflict do nothing;
-    perform public.record_rate_limit_event(v_uid, 'follow');
+    perform private.record_rate_limit_event(v_uid, 'follow');
   end if;
 
   return v_profile;
@@ -106,17 +106,17 @@ begin
   if p_user_id = v_uid then
     raise exception 'cannot_follow_self';
   end if;
-  if not public.can_view_profile(p_user_id) then
+  if not private.can_view_profile(p_user_id) then
     raise exception 'not_found';
   end if;
 
   select p.id, p.display_name, p.bio into v_profile from public.profiles p where p.id = p_user_id;
 
   if not exists (select 1 from public.follows where follower_id = v_uid and followee_id = p_user_id) then
-    perform public.enforce_rate_limit(v_uid, 'follow', 60, interval '1 hour');
+    perform private.enforce_rate_limit(v_uid, 'follow', 60, interval '1 hour');
     insert into public.follows (follower_id, followee_id) values (v_uid, p_user_id)
     on conflict do nothing;
-    perform public.record_rate_limit_event(v_uid, 'follow');
+    perform private.record_rate_limit_event(v_uid, 'follow');
   end if;
 
   return v_profile;
@@ -161,11 +161,11 @@ begin
   if v_uid is null then
     raise exception 'not_authenticated';
   end if;
-  if not public.can_view_profile(p_user_id) then
+  if not private.can_view_profile(p_user_id) then
     raise exception 'not_found';
   end if;
 
-  v_can_see := p_user_id = v_uid or public.follows_user(p_user_id);
+  v_can_see := p_user_id = v_uid or private.follows_user(p_user_id);
 
   return query
   select
@@ -177,8 +177,8 @@ begin
       where s.user_id = p.id and s.shared and s.deleted_at is null),
     (select count(*)::int from public.follows f where f.followee_id = p.id),
     (select count(*)::int from public.follows f where f.follower_id = p.id),
-    public.follows_user(p.id),
-    public.is_followed_by(p.id),
+    private.follows_user(p.id),
+    private.is_followed_by(p.id),
     case when p.id = v_uid then 0 else (
       select count(distinct me.room_id)::int
       from public.room_members me
@@ -208,18 +208,20 @@ create table public.session_kudos (
   primary key (session_id, user_id)
 );
 
-create index session_kudos_session on public.session_kudos (session_id);
+-- The primary key already serves lookups by session; this one serves
+-- deleting an account (the user_id foreign key).
+create index session_kudos_user on public.session_kudos (user_id);
 
 alter table public.session_kudos enable row level security;
 revoke all on public.session_kudos from anon;
 
 create policy "session_kudos: read on a visible session" on public.session_kudos
   for select to authenticated
-  using (public.can_view_session(session_id));
+  using (private.can_view_session(session_id));
 
 create policy "session_kudos: give on a visible session" on public.session_kudos
   for insert to authenticated
-  with check (user_id = (select auth.uid()) and public.can_view_session(session_id));
+  with check (user_id = (select auth.uid()) and private.can_view_session(session_id));
 
 create policy "session_kudos: take back your own" on public.session_kudos
   for delete to authenticated

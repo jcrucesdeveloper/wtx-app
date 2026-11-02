@@ -35,7 +35,7 @@ revoke all on public.rate_limit_events from anon, authenticated;
 -- Raises `rate_limited` once p_user_id has p_max `p_action` events inside the
 -- sliding window. A count, then the caller's own write: two racing calls can
 -- overshoot by one, which is fine for a throttle.
-create function public.enforce_rate_limit(p_user_id uuid, p_action text, p_max integer, p_window interval)
+create function private.enforce_rate_limit(p_user_id uuid, p_action text, p_max integer, p_window interval)
 returns void
 language plpgsql
 stable
@@ -51,7 +51,7 @@ begin
 end;
 $$;
 
-create function public.record_rate_limit_event(p_user_id uuid, p_action text)
+create function private.record_rate_limit_event(p_user_id uuid, p_action text)
 returns void
 language plpgsql
 set search_path = ''
@@ -62,8 +62,8 @@ end;
 $$;
 
 -- Only ever called from other (security definer) functions.
-revoke execute on function public.enforce_rate_limit(uuid, text, integer, interval) from public, anon, authenticated;
-revoke execute on function public.record_rate_limit_event(uuid, text) from public, anon, authenticated;
+revoke execute on function private.enforce_rate_limit(uuid, text, integer, interval) from public, anon, authenticated;
+revoke execute on function private.record_rate_limit_event(uuid, text) from public, anon, authenticated;
 
 -- The longest window is a day; keep two. pg_cron is off by default on a new
 -- Supabase project, and cron.schedule() fails without it.

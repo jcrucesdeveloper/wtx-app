@@ -19,12 +19,12 @@ create table public.profiles (
 
 create trigger profiles_updated_at
   before insert or update on public.profiles
-  for each row execute function public.set_updated_at();
+  for each row execute function private.set_updated_at();
 
 -- ===== Invite codes =====
 
 -- 8 characters without the look-alikes 0 O 1 I L.
-create function public.generate_invite_code()
+create function private.generate_invite_code()
 returns text
 language plpgsql
 security definer
@@ -78,10 +78,10 @@ begin
     raise exception 'not_authenticated';
   end if;
 
-  perform public.enforce_rate_limit(v_uid, 'invite_rotate', 10, interval '1 day');
+  perform private.enforce_rate_limit(v_uid, 'invite_rotate', 10, interval '1 day');
 
   for attempt in 1..10 loop
-    v_code := public.generate_invite_code();
+    v_code := private.generate_invite_code();
     begin
       update public.profiles set invite_code = v_code where id = v_uid;
       exit;
@@ -94,12 +94,12 @@ begin
     raise exception 'invite_code_exhausted';
   end if;
 
-  perform public.record_rate_limit_event(v_uid, 'invite_rotate');
+  perform private.record_rate_limit_event(v_uid, 'invite_rotate');
   return v_code;
 end;
 $$;
 
-revoke execute on function public.generate_invite_code() from public, anon, authenticated;
+revoke execute on function private.generate_invite_code() from public, anon, authenticated;
 revoke execute on function public.my_invite_code() from public, anon;
 grant execute on function public.my_invite_code() to authenticated;
 revoke execute on function public.rotate_invite_code() from public, anon;
@@ -108,7 +108,7 @@ grant execute on function public.rotate_invite_code() to authenticated;
 -- ===== Sign-up =====
 
 -- Creates the profile from the `display_name` sent with sign-up.
-create function public.handle_new_user()
+create function private.handle_new_user()
 returns trigger
 language plpgsql
 security definer
@@ -126,7 +126,7 @@ begin
       ),
       24
     ),
-    public.generate_invite_code()
+    private.generate_invite_code()
   );
   return new;
 end;
@@ -134,9 +134,9 @@ $$;
 
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute function public.handle_new_user();
+  for each row execute function private.handle_new_user();
 
-revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function private.handle_new_user() from public, anon, authenticated;
 
 -- ===== Word filter =====
 
@@ -145,23 +145,23 @@ revoke execute on function public.handle_new_user() from public, anon, authentic
 -- would fail the whole sign-up with an opaque error, so an insert falls back
 -- to a neutral name instead; an edit is refused outright (the app checks
 -- first, so this only catches a bypassed client).
-create function public.profiles_content_filter()
+create function private.profiles_content_filter()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
   if tg_op = 'INSERT' then
-    if public.contains_blocked_terms(new.display_name) then
+    if private.contains_blocked_terms(new.display_name) then
       new.display_name := 'Athlete';
     end if;
-    if public.contains_blocked_terms(new.bio) then
+    if private.contains_blocked_terms(new.bio) then
       new.bio := '';
     end if;
   -- Only the fields being changed, so an older name that predates this
   -- filter doesn't lock someone out of editing their bio.
-  elsif (new.display_name is distinct from old.display_name and public.contains_blocked_terms(new.display_name))
-     or (new.bio is distinct from old.bio and public.contains_blocked_terms(new.bio)) then
+  elsif (new.display_name is distinct from old.display_name and private.contains_blocked_terms(new.display_name))
+     or (new.bio is distinct from old.bio and private.contains_blocked_terms(new.bio)) then
     raise exception 'objectionable_content' using errcode = 'check_violation';
   end if;
   return new;
@@ -170,9 +170,9 @@ $$;
 
 create trigger profiles_content_filter
   before insert or update of display_name, bio on public.profiles
-  for each row execute function public.profiles_content_filter();
+  for each row execute function private.profiles_content_filter();
 
-revoke execute on function public.profiles_content_filter() from public, anon, authenticated;
+revoke execute on function private.profiles_content_filter() from public, anon, authenticated;
 
 -- ===== Row level security =====
 
@@ -182,22 +182,22 @@ revoke all on public.profiles from anon;
 -- Permissive policies for the same command are OR'd together...
 create policy "profiles: read self and roommates" on public.profiles
   for select to authenticated
-  using (id = (select auth.uid()) or public.shares_room_with(id));
+  using (id = (select auth.uid()) or private.shares_room_with(id));
 
 create policy "profiles: read followees" on public.profiles
   for select to authenticated
-  using (public.follows_user(id));
+  using (private.follows_user(id));
 
 create policy "profiles: read followers" on public.profiles
   for select to authenticated
-  using (public.is_followed_by(id));
+  using (private.is_followed_by(id));
 
 -- ...and a restrictive one is AND'd with them: a blocked person stays hidden
 -- even through a room you once shared.
 create policy "profiles: hidden across a block" on public.profiles
   as restrictive
   for select to authenticated
-  using (id = (select auth.uid()) or not public.is_blocked_with(id));
+  using (id = (select auth.uid()) or not private.is_blocked_with(id));
 
 create policy "profiles: update self" on public.profiles
   for update to authenticated

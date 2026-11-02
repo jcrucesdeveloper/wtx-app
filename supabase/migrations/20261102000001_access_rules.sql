@@ -8,13 +8,25 @@
 -- name tables that later files create.
 --
 -- Every one is relative to the caller (auth.uid()), except the few marked
--- "internal", which take any two ids and so are callable only from other
+-- "internal", which take any ids and so are callable only from other
 -- security definer functions.
+--
+-- The `private` schema: everything that isn't meant to be called by the app
+-- lives here — these rules, trigger functions and other internals. Supabase's
+-- API only exposes `public`, so nothing in `private` can be called as an RPC
+-- (an exposed is_blocked_with() would tell anyone who has blocked them).
+-- `public` holds only the tables and the RPCs the app calls.
+-- Policies run as the caller, so signed-in users get USAGE on the schema
+-- and EXECUTE on just the functions their policies use.
+
+create schema private;
+revoke all on schema private from public;
+grant usage on schema private to authenticated;
 
 -- ===== Rooms =====
 
 -- Is the caller a member of this room?
-create function public.is_room_member(p_room_id uuid)
+create function private.is_room_member(p_room_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -30,7 +42,7 @@ end;
 $$;
 
 -- Is this room in progress (sets can only be logged while it is)?
-create function public.is_room_active(p_room_id uuid)
+create function private.is_room_active(p_room_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -46,7 +58,7 @@ end;
 $$;
 
 -- Has the caller ever been in a room with this person?
-create function public.shares_room_with(p_user_id uuid)
+create function private.shares_room_with(p_user_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -66,7 +78,7 @@ $$;
 -- ===== Follows =====
 
 -- Does the caller follow this person?
-create function public.follows_user(p_user_id uuid)
+create function private.follows_user(p_user_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -82,7 +94,7 @@ end;
 $$;
 
 -- Does this person follow the caller?
-create function public.is_followed_by(p_user_id uuid)
+create function private.is_followed_by(p_user_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -100,7 +112,7 @@ $$;
 -- ===== Blocks =====
 
 -- Internal. Either direction counts: a block hides both people from each other.
-create function public.is_blocked_between(p_a uuid, p_b uuid)
+create function private.is_blocked_between(p_a uuid, p_b uuid)
 returns boolean
 language plpgsql
 stable
@@ -117,7 +129,7 @@ end;
 $$;
 
 -- The caller-relative form, for policies.
-create function public.is_blocked_with(p_user_id uuid)
+create function private.is_blocked_with(p_user_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -125,7 +137,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  return public.is_blocked_between(auth.uid(), p_user_id);
+  return private.is_blocked_between(auth.uid(), p_user_id);
 end;
 $$;
 
@@ -134,7 +146,7 @@ $$;
 -- Internal (used by RPCs, never by a policy). Who may see a profile: yourself,
 -- anyone you follow or who follows you, and anyone you've shared a room with
 -- — never across a block. The profiles policies spell out the same rule.
-create function public.can_view_profile(p_user_id uuid)
+create function private.can_view_profile(p_user_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -145,18 +157,18 @@ begin
   if p_user_id = auth.uid() then
     return true;
   end if;
-  if public.is_blocked_between(auth.uid(), p_user_id) then
+  if private.is_blocked_between(auth.uid(), p_user_id) then
     return false;
   end if;
-  return public.follows_user(p_user_id)
-    or public.is_followed_by(p_user_id)
-    or public.shares_room_with(p_user_id);
+  return private.follows_user(p_user_id)
+    or private.is_followed_by(p_user_id)
+    or private.shares_room_with(p_user_id);
 end;
 $$;
 
 -- Who may see a session: its owner, or a follower once it's shared. The
 -- same rule as the sessions policies, so session_kudos enforces it identically.
-create function public.can_view_session(p_session_id uuid)
+create function private.can_view_session(p_session_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -168,7 +180,7 @@ begin
     select 1 from public.sessions
     where id = p_session_id
       and deleted_at is null
-      and (user_id = auth.uid() or (shared and public.follows_user(user_id)))
+      and (user_id = auth.uid() or (shared and private.follows_user(user_id)))
   );
 end;
 $$;
@@ -176,7 +188,7 @@ $$;
 -- You can report someone you can see — or someone you've blocked, since
 -- blocking first and reporting second is a natural order. A reported
 -- session has to be theirs and visible to you (or theirs, once blocked).
-create function public.can_report(p_user_id uuid, p_session_id uuid)
+create function private.can_report(p_user_id uuid, p_session_id uuid)
 returns boolean
 language plpgsql
 stable
@@ -189,7 +201,7 @@ declare
     where blocker_id = auth.uid() and blocked_id = p_user_id
   );
 begin
-  if not (v_blocked_by_me or public.can_view_profile(p_user_id)) then
+  if not (v_blocked_by_me or private.can_view_profile(p_user_id)) then
     return false;
   end if;
   if p_session_id is null then
@@ -198,7 +210,7 @@ begin
   return exists (
     select 1 from public.sessions
     where id = p_session_id and user_id = p_user_id and shared
-  ) and (v_blocked_by_me or public.can_view_session(p_session_id));
+  ) and (v_blocked_by_me or private.can_view_session(p_session_id));
 end;
 $$;
 
@@ -208,7 +220,7 @@ $$;
 -- and Spanish), matched as whole words after light normalization. It's a
 -- floor, not a moderation system — reports cover the rest. Mirrored in
 -- src/lib/contentFilter.ts; keep the two lists and normalizations in sync.
-create function public.contains_blocked_terms(p_text text)
+create function private.contains_blocked_terms(p_text text)
 returns boolean
 language plpgsql
 immutable
@@ -254,7 +266,7 @@ $$;
 
 -- Server-owned `updated_at`, so a device with a wrong clock can't break the
 -- "changed since" sync cursor.
-create function public.set_updated_at()
+create function private.set_updated_at()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -267,29 +279,16 @@ $$;
 
 -- ===== Who can call these =====
 
--- Supabase grants EXECUTE on every new public function to anon and
--- authenticated by default. Policies run as the caller, so the helpers they
--- use stay executable by authenticated; nobody signed out needs any of them.
-revoke execute on function public.is_room_member(uuid) from public, anon;
-revoke execute on function public.is_room_active(uuid) from public, anon;
-revoke execute on function public.shares_room_with(uuid) from public, anon;
-revoke execute on function public.follows_user(uuid) from public, anon;
-revoke execute on function public.is_followed_by(uuid) from public, anon;
-revoke execute on function public.is_blocked_with(uuid) from public, anon;
-revoke execute on function public.can_view_session(uuid) from public, anon;
-revoke execute on function public.can_report(uuid, uuid) from public, anon;
-revoke execute on function public.contains_blocked_terms(text) from public, anon;
-grant execute on function public.is_room_member(uuid) to authenticated;
-grant execute on function public.is_room_active(uuid) to authenticated;
-grant execute on function public.shares_room_with(uuid) to authenticated;
-grant execute on function public.follows_user(uuid) to authenticated;
-grant execute on function public.is_followed_by(uuid) to authenticated;
-grant execute on function public.is_blocked_with(uuid) to authenticated;
-grant execute on function public.can_view_session(uuid) to authenticated;
-grant execute on function public.can_report(uuid, uuid) to authenticated;
-grant execute on function public.contains_blocked_terms(text) to authenticated;
-
--- Internal ones and the trigger.
-revoke execute on function public.is_blocked_between(uuid, uuid) from public, anon, authenticated;
-revoke execute on function public.can_view_profile(uuid) from public, anon, authenticated;
-revoke execute on function public.set_updated_at() from public, anon, authenticated;
+-- Postgres grants EXECUTE on every new function to everyone: take it all
+-- back, then give signed-in users only what their policies call (and the
+-- word filter, which the profiles trigger runs as the caller).
+revoke execute on all functions in schema private from public, anon, authenticated;
+grant execute on function private.is_room_member(uuid) to authenticated;
+grant execute on function private.is_room_active(uuid) to authenticated;
+grant execute on function private.shares_room_with(uuid) to authenticated;
+grant execute on function private.follows_user(uuid) to authenticated;
+grant execute on function private.is_followed_by(uuid) to authenticated;
+grant execute on function private.is_blocked_with(uuid) to authenticated;
+grant execute on function private.can_view_session(uuid) to authenticated;
+grant execute on function private.can_report(uuid, uuid) to authenticated;
+grant execute on function private.contains_blocked_terms(text) to authenticated;

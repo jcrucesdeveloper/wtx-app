@@ -4,7 +4,7 @@
  * workouts shared to the feed. It's a floor, not a moderation system —
  * reporting and blocking cover the rest.
  *
- * Mirrors `public.contains_blocked_terms()` in
+ * Mirrors `private.contains_blocked_terms()` in
  * `supabase/migrations/20261102000001_access_rules.sql`, which enforces the same
  * rule on profiles server-side. Keep the two lists and normalizations in sync.
  */

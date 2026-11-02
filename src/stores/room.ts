@@ -315,12 +315,17 @@ export const useRoomStore = defineStore('room', () => {
     setLogs.value = setLogs.value.filter((l) => l.id !== id)
   }
 
-  function subscribe(roomId: string) {
+  async function subscribe(roomId: string) {
     const sb = requireSupabase()
     const filter = `room_id=eq.${roomId}`
+    // Private: only the room's members may join, see who's online or broadcast
+    // (the realtime.messages policies in 20261102000004_rooms.sql). The socket
+    // has to carry the signed-in user's token before it joins.
+    await sb.realtime.setAuth()
+    if (currentRoomId.value !== roomId) return
     channel = sb
       .channel(`room:${roomId}`, {
-        config: { presence: { key: myId.value ?? '' }, broadcast: { self: false } },
+        config: { private: true, presence: { key: myId.value ?? '' }, broadcast: { self: false } },
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` }, (p) => {
         if (room.value?.id === roomId) room.value = mergeRoomRow(room.value, p.new as RoomRow)
@@ -409,7 +414,7 @@ export const useRoomStore = defineStore('room', () => {
     setLogs.value = logs.data ?? []
     clearedSeen = new Set(cleared.value)
     // A finished room can't change again — recap views need no live connection.
-    if (data.status !== 'finished') subscribe(roomId)
+    if (data.status !== 'finished') await subscribe(roomId)
   }
 
   /**
@@ -525,7 +530,6 @@ export const useRoomStore = defineStore('room', () => {
     announcedRecords.clear()
     clearTimeout(orderRetryTimer)
     orderRetryTimer = undefined
-    routineRpcMissing = false
   }
 
   // --- Cheers and live PRs (Realtime Broadcast) -----------------------------
@@ -714,34 +718,16 @@ export const useRoomStore = defineStore('room', () => {
     void sendOrder(roomId)
   }
 
-  /** A server without `set_room_routine` yet: the host's order and removals still go through. */
-  let routineRpcMissing = false
-
-  /** The room's plan, through the newest call the server has that can carry it. */
-  async function writePlan(roomId: string, row: RoomRow) {
-    const sb = requireSupabase()
-    const order = row.exercise_order ?? []
-    const removed = row.removed_slots ?? []
-    const added = row.added_exercises ?? []
-    const swapped = row.swapped_slots ?? {}
-    const focus = row.focus_slot ?? null
-    if (!routineRpcMissing && (added.length || Object.keys(swapped).length || focus !== null)) {
-      const result = await sb.rpc('set_room_routine', {
-        p_room_id: roomId,
-        p_order: order,
-        p_removed: removed,
-        p_added: added,
-        p_swaps: swapped,
-        p_focus: focus,
-      })
-      // PGRST202: no such function — the migration isn't on this server yet.
-      if (result.error?.code !== 'PGRST202') return result
-      routineRpcMissing = true
-    }
-    // Nothing removed: the order alone, through the call every server has.
-    return removed.length
-      ? sb.rpc('set_room_plan', { p_room_id: roomId, p_order: order, p_removed: removed })
-      : sb.rpc('set_room_exercise_order', { p_room_id: roomId, p_order: order })
+  /** The room's whole plan — order, removals, additions, swaps and focus — in one write. */
+  function writePlan(roomId: string, row: RoomRow) {
+    return requireSupabase().rpc('set_room_routine', {
+      p_room_id: roomId,
+      p_order: row.exercise_order ?? [],
+      p_removed: row.removed_slots ?? [],
+      p_added: row.added_exercises ?? [],
+      p_swaps: row.swapped_slots ?? {},
+      p_focus: row.focus_slot ?? null,
+    })
   }
 
   /** One write in flight at a time, always carrying the latest order; retried while offline. */
@@ -765,18 +751,8 @@ export const useRoomStore = defineStore('room', () => {
           else await refreshRoom(roomId, { force: true }).catch(() => {})
           return
         }
-        // The host is the only writer: with nothing newer queued, the server's row is the truth —
-        // all of it, unless the server can't hold the host's additions, swaps and focus yet.
-        if (data?.id && !orderDirty && room.value?.id === roomId) {
-          room.value = routineRpcMissing
-            ? {
-                ...data,
-                added_exercises: room.value.added_exercises,
-                swapped_slots: room.value.swapped_slots,
-                focus_slot: room.value.focus_slot,
-              }
-            : data
-        }
+        // The host is the only writer: with nothing newer queued, the server's row is the truth.
+        if (data?.id && !orderDirty && room.value?.id === roomId) room.value = data
       } while (orderDirty)
     } finally {
       orderSending = false

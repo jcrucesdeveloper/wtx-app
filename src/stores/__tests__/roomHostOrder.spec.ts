@@ -143,7 +143,7 @@ describe('room store: the host owns the exercise order', () => {
     active.reorderExercises([c!, a!, b!])
 
     expect(room.room?.exercise_order).toEqual([2, 0, 1])
-    expect(rpc).toHaveBeenCalledWith('set_room_exercise_order', { p_room_id: 'room-1', p_order: [2, 0, 1] })
+    expect(rpc).toHaveBeenCalledWith('set_room_routine', expect.objectContaining({ p_room_id: 'room-1', p_order: [2, 0, 1], p_removed: [] }))
     await flush()
     expect(room.room?.order_version).toBe(3)
     // The host's own session is the source: never rewritten from the room.
@@ -159,12 +159,12 @@ describe('room store: the host owns the exercise order', () => {
     rpc.mockResolvedValue({ data: null, error: null })
     const active = useActiveSessionStore()
     active.removeExercise(1) // Overhead Press
-    expect(rpc).toHaveBeenLastCalledWith('set_room_plan', { p_room_id: 'room-1', p_order: [0, 1, 2], p_removed: [1] })
+    expect(rpc).toHaveBeenLastCalledWith('set_room_routine', expect.objectContaining({ p_room_id: 'room-1', p_order: [0, 1, 2], p_removed: [1] }))
     await flush()
     const [a, c] = active.session!.draft.exercises
     active.reorderExercises([c!, a!])
     await flush()
-    expect(rpc).toHaveBeenLastCalledWith('set_room_plan', { p_room_id: 'room-1', p_order: [2, 0, 1], p_removed: [1] })
+    expect(rpc).toHaveBeenLastCalledWith('set_room_routine', expect.objectContaining({ p_room_id: 'room-1', p_order: [2, 0, 1], p_removed: [1] }))
     expect(room.routineExercises.map((e) => e.name)).toEqual(['Dips', 'Bench Press'])
   })
 
@@ -192,7 +192,7 @@ describe('room store: the host owns the exercise order', () => {
     await flush()
     await flush()
     expect(rpc).toHaveBeenCalledTimes(2)
-    expect(rpc).toHaveBeenLastCalledWith('set_room_exercise_order', { p_room_id: 'room-1', p_order: [2, 1, 0] })
+    expect(rpc).toHaveBeenLastCalledWith('set_room_routine', expect.objectContaining({ p_room_id: 'room-1', p_order: [2, 1, 0], p_removed: [] }))
     expect(room.room?.exercise_order).toEqual([2, 1, 0])
     expect(room.room?.order_version).toBe(2)
   })

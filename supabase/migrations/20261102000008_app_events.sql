@@ -49,7 +49,7 @@ create policy "app_events: insert" on public.app_events
 --   everyone anonymous:   300 events / minute, shared — the anon key is
 --                         public, so there is no caller to key on; this only
 --                         bounds how fast a script can grow the table.
-create function public.app_events_throttle()
+create function private.app_events_throttle()
 returns trigger
 language plpgsql
 security definer
@@ -76,6 +76,6 @@ $$;
 
 create trigger app_events_throttle
   before insert on public.app_events
-  for each row execute function public.app_events_throttle();
+  for each row execute function private.app_events_throttle();
 
-revoke execute on function public.app_events_throttle() from public, anon, authenticated;
+revoke execute on function private.app_events_throttle() from public, anon, authenticated;

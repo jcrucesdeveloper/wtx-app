@@ -59,10 +59,10 @@ begin
   end if;
 
   if not exists (select 1 from public.user_blocks where blocker_id = v_uid and blocked_id = p_user_id) then
-    perform public.enforce_rate_limit(v_uid, 'block', 30, interval '1 hour');
+    perform private.enforce_rate_limit(v_uid, 'block', 30, interval '1 hour');
     insert into public.user_blocks (blocker_id, blocked_id) values (v_uid, p_user_id)
     on conflict do nothing;
-    perform public.record_rate_limit_event(v_uid, 'block');
+    perform private.record_rate_limit_event(v_uid, 'block');
   end if;
 
   delete from public.follows
@@ -114,6 +114,9 @@ create table public.content_reports (
 
 create index content_reports_open on public.content_reports (created_at) where status = 'open';
 create index content_reports_reporter_created on public.content_reports (reporter_id, created_at);
+-- Foreign keys: deleting an account or a session updates its reports.
+create index content_reports_reported_user on public.content_reports (reported_user_id);
+create index content_reports_session on public.content_reports (session_id) where session_id is not null;
 
 alter table public.content_reports enable row level security;
 revoke all on public.content_reports from anon, authenticated;
@@ -125,12 +128,12 @@ create policy "content_reports: file a report" on public.content_reports
     reporter_id = (select auth.uid())
     and reported_user_id is not null
     and status = 'open'
-    and public.can_report(reported_user_id, session_id)
+    and private.can_report(reported_user_id, session_id)
   );
 
 -- 20 reports a day per reporter. Reports are inserted straight into the
 -- table, so the limit is a trigger rather than a rate_limit_events count.
-create function public.content_reports_rate_limit()
+create function private.content_reports_rate_limit()
 returns trigger
 language plpgsql
 security definer
@@ -149,6 +152,6 @@ $$;
 
 create trigger content_reports_rate_limit
   before insert on public.content_reports
-  for each row execute function public.content_reports_rate_limit();
+  for each row execute function private.content_reports_rate_limit();
 
-revoke execute on function public.content_reports_rate_limit() from public, anon, authenticated;
+revoke execute on function private.content_reports_rate_limit() from public, anon, authenticated;

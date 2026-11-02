@@ -172,7 +172,7 @@ Store guideline 1.2 and Google Play's UGC policy ask for
   path (code, "Follow back", finishing a room together). The other person
   isn't notified. Your blocked list is under your own profile → ⋯ → Blocked
   accounts.
-- **Word filter** — `public.contains_blocked_terms()` (mirrored in
+- **Word filter** — `private.contains_blocked_terms()` (mirrored in
   `src/lib/contentFilter.ts`, keep them in sync) rejects a short list of
   slurs and explicit terms in display names and bios, and the app won't
   share a workout to the feed whose name, notes or exercise names contain
