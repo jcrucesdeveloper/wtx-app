@@ -10,7 +10,7 @@ import { detectMilestone } from '@/lib/sessionMilestones'
 import { computeWeekStreak } from '@/lib/sessionStats'
 import { sessionDateStrs } from '@/lib/sessionDates'
 import { countWorkoutDays, plateLevel } from '@/lib/plateLevel'
-import { toFeedSnapshot } from '@/lib/feedSnapshot'
+import { toFeedSnapshot, toSharedRoutine } from '@/lib/feedSnapshot'
 import { track } from '@/services/analytics'
 import { NotificationService } from '@/services/notifications'
 import { useNotificationsStore } from '@/stores/notifications'
@@ -107,6 +107,11 @@ export function useFinishSession() {
               .filter((m) => m.userId !== useAuthStore().user?.id)
               .map((m) => m.displayName)
           : []
+      // The routine rides along so a follower can save a copy of it.
+      const followed = stored.routineId ? routines.getById(stored.routineId) : undefined
+      const sharedRoutine = followed
+        ? toSharedRoutine(followed.rawText, routines.sectionOf(followed.id)?.name)
+        : undefined
       sessions.setFeedSnapshot(
         stored.id,
         toFeedSnapshot({
@@ -116,6 +121,7 @@ export function useFinishSession() {
           weekStreak,
           elapsedSeconds,
           ...(trainedWith.length ? { trainedWith } : {}),
+          ...(sharedRoutine ? { routine: sharedRoutine } : {}),
         }),
       )
       track('session_shared')

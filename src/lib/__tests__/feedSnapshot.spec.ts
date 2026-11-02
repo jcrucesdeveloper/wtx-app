@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { parseFeedSnapshot, toFeedSnapshot, type FeedSnapshot } from '../feedSnapshot'
+import {
+  parseFeedSnapshot,
+  SHARED_ROUTINE_MAX_CHARS,
+  toFeedSnapshot,
+  toSharedRoutine,
+  type FeedSnapshot,
+} from '../feedSnapshot'
 
 const full: FeedSnapshot = {
   personalRecords: [{ exerciseName: 'Bench Press', weight: 100, reps: 5, previousWeight: 95, previousReps: 5 }],
@@ -26,6 +32,23 @@ describe('feed snapshot', () => {
     expect(parseFeedSnapshot(JSON.parse(JSON.stringify(withPartners)))).toEqual(withPartners)
     expect(parseFeedSnapshot({ ...full, trainedWith: ['Ana', 42, ''] })?.trainedWith).toEqual(['Ana'])
     expect(parseFeedSnapshot({ ...full, trainedWith: 'Ana' })).not.toHaveProperty('trainedWith')
+  })
+
+  it('round-trips the routine the workout followed, and drops a malformed one', () => {
+    const routine = { wtt: '# Push\n\nBench | reps 3x8 | 60 | rest 90s\n', section: 'PPL' }
+    expect(parseFeedSnapshot(JSON.parse(JSON.stringify({ ...full, routine })))).toEqual({ ...full, routine })
+    expect(parseFeedSnapshot({ ...full, routine: { wtt: routine.wtt, section: 7 } })?.routine).toEqual({
+      wtt: routine.wtt,
+    })
+    expect(parseFeedSnapshot({ ...full, routine: { wtt: '' } })).not.toHaveProperty('routine')
+    expect(parseFeedSnapshot({ ...full, routine: 'Push' })).not.toHaveProperty('routine')
+  })
+
+  it('only attaches a routine small enough to ride along', () => {
+    expect(toSharedRoutine('# Push\n', ' PPL ')).toEqual({ wtt: '# Push\n', section: 'PPL' })
+    expect(toSharedRoutine('# Push\n', '')).toEqual({ wtt: '# Push\n' })
+    expect(toSharedRoutine(undefined)).toBeUndefined()
+    expect(toSharedRoutine('x'.repeat(SHARED_ROUTINE_MAX_CHARS + 1))).toBeUndefined()
   })
 
   it('rejects malformed input rather than throwing', () => {
