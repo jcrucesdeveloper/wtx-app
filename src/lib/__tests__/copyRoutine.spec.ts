@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  canCreateRoutine,
   copiedRoutineFilename,
   copiedRoutineName,
   routineCopyFromPost,
@@ -125,11 +124,5 @@ describe('routineDraftFromLoggedSession', () => {
     expect(draft.exercises[0]).toMatchObject({ kind: 'reps', sets: 2, reps: 6, weight: 62.5 })
     expect(draft.exercises[0]?.restSeconds).toBeUndefined()
     expect(draft.exercises[1]).toMatchObject({ kind: 'time', durationSeconds: 50 })
-  })
-})
-
-describe('canCreateRoutine', () => {
-  it('allows a new routine until the routine limit is wired in', () => {
-    expect(canCreateRoutine(0)).toBe(true)
   })
 })

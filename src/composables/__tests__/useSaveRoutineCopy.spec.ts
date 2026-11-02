@@ -6,6 +6,7 @@ import { i18n } from '@/i18n'
 import { useRoutinesStore } from '@/stores/routines'
 import { parseSessionText } from '@/lib/parseSession'
 import type { FeedPost } from '@/stores/feed'
+import { ROUTINE_MAX } from '@/lib/supabase/limits'
 import { useSaveRoutineCopy } from '../useSaveRoutineCopy'
 
 vi.mock('@/services/analytics', () => ({ track: vi.fn<(event: string) => void>() }))
@@ -90,5 +91,23 @@ describe('useSaveRoutineCopy', () => {
     expect(deload).toBeDefined()
     expect(second.status === 'saved' && second.routine.sectionId).toBe(deload!.id)
     expect(routines.sections).toHaveLength(2)
+  })
+
+  it('refuses at the routine limit and leaves the library alone', () => {
+    localStorage.setItem(
+      'wtx:routines',
+      JSON.stringify(
+        Array.from({ length: ROUTINE_MAX }, (_, i) => ({
+          id: `r${i}`,
+          filename: `r${i}.wtt`,
+          rawText: WTT.replace('Push Day', `R${i}`),
+          addedAt: i,
+        })),
+      ),
+    )
+    const routines = useRoutinesStore()
+    expect(routines.routines).toHaveLength(ROUTINE_MAX)
+    expect(setup(pinia).saveCopy(post()).status).toBe('limit')
+    expect(routines.routines).toHaveLength(ROUTINE_MAX)
   })
 })

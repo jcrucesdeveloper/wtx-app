@@ -107,16 +107,3 @@ export function routineCopyFromPost(
     fromRoutine,
   }
 }
-
-/**
- * Whether the library has room for one more routine.
- *
- * TODO(routine-limit): workstream H is adding a per-user routine cap
- * (`ROUTINE_MAX` or similar in src/lib/supabase/limits.ts). Wire it here at
- * merge — `return count < ROUTINE_MAX` — and the "Save to my library" action
- * already shows `social.copyRoutine.limitReached` when this returns false.
- */
-export function canCreateRoutine(count: number): boolean {
-  void count
-  return true
-}

@@ -1,6 +1,6 @@
 import { useI18n } from 'vue-i18n'
-import { useRoutinesStore, cleanSectionName, type StoredRoutine } from '@/stores/routines'
-import { canCreateRoutine, routineCopyFromPost } from '@/lib/copyRoutine'
+import { useRoutinesStore, cleanSectionName, RoutineLimitError, type StoredRoutine } from '@/stores/routines'
+import { routineCopyFromPost } from '@/lib/copyRoutine'
 import type { FeedPost } from '@/stores/feed'
 
 export type SaveRoutineCopyResult =
@@ -29,15 +29,16 @@ export function useSaveRoutineCopy() {
   }
 
   function saveCopy(post: FeedPost): SaveRoutineCopyResult {
-    if (!canCreateRoutine(routines.routines.length)) return { status: 'limit' }
+    // The library is full (ROUTINE_MAX): say so instead of a generic failure.
+    if (!routines.canAdd) return { status: 'limit' }
     try {
       const copy = routineCopyFromPost(post, t('social.copyRoutine.suffix', { friend: post.posterName }))
       const routine = routines.add(copy.rawText, copy.filename)
       const section = copy.sectionName ? sectionNamed(copy.sectionName) : undefined
       if (section) routines.moveToSection(routine.id, section.id)
       return { status: 'saved', routine, name: copy.name, fromRoutine: copy.fromRoutine }
-    } catch {
-      return { status: 'failed' }
+    } catch (e) {
+      return { status: e instanceof RoutineLimitError ? 'limit' : 'failed' }
     }
   }
 
