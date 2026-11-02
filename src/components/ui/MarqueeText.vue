@@ -54,10 +54,10 @@ const { metrics, visible, style } = useMarquee(box, toRef(props, 'text'))
 /* Keep in step with MARQUEE_HOLD in useMarquee.ts. */
 @keyframes marquee-slide {
   0%,
-  20% {
+  30% {
     transform: translateX(0);
   }
-  80%,
+  70%,
   100% {
     transform: translateX(calc(-1 * var(--marquee-distance, 0px)));
   }
