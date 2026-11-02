@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="listing/visuals/png/icon.png" alt="wtx icon" width="96" height="96">
+  <img src="docs/images/icon.png" alt="wtx icon" width="96" height="96">
 
   # wtx
 
@@ -35,15 +35,15 @@ routine in the URL.
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/en/01-log.png" alt="Logging a workout" width="220"><br>
+      <img src="docs/images/log.png" alt="Logging a workout" width="220"><br>
       <sub>Log a workout</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/en/02-records.png" alt="Finish screen with a personal record" width="220"><br>
+      <img src="docs/images/records.png" alt="Finish screen with a personal record" width="220"><br>
       <sub>Records and streaks</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/en/06-share.png" alt="Share a routine via QR" width="220"><br>
+      <img src="docs/images/share-qr.png" alt="Share a routine via QR" width="220"><br>
       <sub>Share via QR</sub>
     </td>
   </tr>
@@ -132,8 +132,9 @@ group workouts. To enable it:
 1. Create a Supabase project. In **Authentication → Providers**, enable Email
    (turn off "Confirm email" for quick testing).
 2. Apply the schema. `supabase/migrations/` holds the standard, hand-written
-   Supabase CLI migrations. Either paste `20260925000000_accounts_sync_rooms.sql`
-   into the SQL editor, or use the CLI:
+   Supabase CLI migrations, one file per area (access rules, profiles, rooms,
+   synced library, social, moderation, analytics). Either paste each file into
+   the SQL editor in order, or use the CLI:
    ```sh
    npx supabase init        # once; keeps the existing migrations
    npx supabase link --project-ref <ref>
@@ -142,7 +143,10 @@ group workouts. To enable it:
    For future schema changes, scaffold a new timestamped file with
    `npx supabase migration new <description>`, write the SQL by hand, commit
    it, then `npx supabase db push` again. Never edit a migration that's
-   already been applied — add a new one instead.
+   already been applied — add a new one instead. Before pushing, run
+   `pnpm test:db` (needs Docker): it builds a throwaway database from the
+   migrations and checks the security rules every change must keep, then
+   what real users can and can't do.
 3. Deploy the account-deletion function with the project's secret key
    (`sb_secret_…`, never shipped in the app):
    ```sh
@@ -160,7 +164,7 @@ everything else keeps working locally.
 
 The social feed is user-generated content, so the app ships the tools App
 Store guideline 1.2 and Google Play's UGC policy ask for
-(`supabase/migrations/20260930000000_moderation.sql`):
+(`supabase/migrations/20261102000007_moderation.sql`):
 
 - **Report** — the ⋯ menu on someone's profile (Report account) or on a
   shared workout (Report post) files a row in `content_reports` with a reason
@@ -171,7 +175,7 @@ Store guideline 1.2 and Google Play's UGC policy ask for
   path (code, "Follow back", finishing a room together). The other person
   isn't notified. Your blocked list is under your own profile → ⋯ → Blocked
   accounts.
-- **Word filter** — `public.contains_blocked_terms()` (mirrored in
+- **Word filter** — `private.contains_blocked_terms()` (mirrored in
   `src/lib/contentFilter.ts`, keep them in sync) rejects a short list of
   slurs and explicit terms in display names and bios, and the app won't
   share a workout to the feed whose name, notes or exercise names contain

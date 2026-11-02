@@ -28,7 +28,12 @@ function readStoredSaveTarget(): SessionSaveTarget {
   }
 }
 
-/** Defaults on: only people who already chose to follow you ever see a shared session. */
+/**
+ * Defaults on: sharing to followers is a core feature, and creating an account
+ * accepts it (Terms → Sharing workouts; also said on the sign-up form). Only
+ * people who chose to follow you see a shared workout, and the user's last
+ * choice is kept after that.
+ */
 function readStoredShareToFeedDefault(): boolean {
   try {
     return localStorage.getItem(SHARE_TO_FEED_STORAGE_KEY) !== '0'

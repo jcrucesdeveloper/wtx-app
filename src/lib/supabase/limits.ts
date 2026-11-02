@@ -1,5 +1,5 @@
 /**
- * Server-side caps (see `supabase/migrations/20261001000000_abuse_hardening.sql`)
+ * Server-side caps (see the constraints in `supabase/migrations/`)
  * that the client has to stay under, or a sync / set push would be refused
  * and retried forever.
  */
@@ -7,7 +7,7 @@
 /** `routines_filename_length`. */
 export const ROUTINE_FILENAME_MAX = 255
 
-/** `routine_sections.name` allows 60 characters (20261022000000_routine_sections.sql); the editor stops short of it. */
+/** `routine_sections.name` allows 60 characters (20261102000005_library.sql); the editor stops short of it. */
 export const SECTION_NAME_MAX = 40
 
 /** `room_set_logs_exercise_name_length`. */

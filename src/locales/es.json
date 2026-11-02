@@ -750,7 +750,7 @@
     }
   },
   "consent": {
-    "text": "Al crear una cuenta, tus rutinas y sesiones de entrenamiento se subirán y guardarán en nuestros servidores para mantenerlas sincronizadas y poder entrenar con amigos. Puedes eliminar tu cuenta y todos sus datos cuando quieras desde Configuración.",
+    "text": "Al crear una cuenta, tus rutinas y sesiones de entrenamiento se subirán y guardarán en nuestros servidores para mantenerlas sincronizadas y poder entrenar con amigos. Puedes eliminar tu cuenta y todos sus datos cuando quieras desde Configuración. Los entrenamientos que terminas se comparten con tus seguidores por defecto; desmarca «Compartir en el feed» para mantener uno privado.",
     "accept": "Tengo 16 años o más y acepto los {terms} y la {privacy}",
     "terms": "Términos",
     "privacy": "Política de privacidad"
@@ -984,7 +984,7 @@
   },
   "legal": {
     "back": "Volver",
-    "updated": "Última actualización: 2 de octubre de 2026",
+    "updated": "Última actualización: 2 de noviembre de 2026",
     "fallback": {
       "controller": "el desarrollador independiente de WTX (indicado en sus páginas de App Store y Google Play)",
       "contactEmail": "el correo de contacto que aparece en las páginas de WTX en App Store y Google Play"
@@ -1016,6 +1016,13 @@
           "body": [
             "Tus rutinas, entrenamientos, notas, nombre visible y biografía son tuyos. Nos otorgas una licencia limitada, mundial, no exclusiva y gratuita para almacenarlos, copiarlos y mostrarlos solo en la medida necesaria para operar WTX; por ejemplo, para sincronizarlos entre tus dispositivos y mostrar a tus seguidores los entrenamientos que compartes. Esta licencia termina cuando eliminas el contenido o tu cuenta.",
             "Eres responsable de lo que publicas y confirmas que tienes derecho a publicarlo."
+          ]
+        },
+        {
+          "heading": "Compartir entrenamientos",
+          "body": [
+            "Compartir tus entrenamientos terminados con tus seguidores es una parte central de una cuenta de WTX. Al crear una cuenta, aceptas que cada entrenamiento que terminas se comparta con tus seguidores por defecto.",
+            "Tú decides cada vez: desmarca «Compartir en el feed» al terminar un entrenamiento para mantenerlo privado. WTX recuerda tu última elección. Para quitar un entrenamiento que ya compartiste, elimínalo."
           ]
         },
         {
@@ -1107,7 +1114,7 @@
         {
           "heading": "En resumen",
           "body": [
-            "Sin cuenta, tus rutinas y entrenamientos se quedan en tu dispositivo. Con una cuenta, se guardan en nuestros servidores para sincronizarse, y tú decides qué compartes con otras personas.",
+            "Sin cuenta, tus rutinas y entrenamientos se quedan en tu dispositivo. Con una cuenta, se guardan en nuestros servidores para sincronizarse, y cada entrenamiento que terminas se comparte con tus seguidores a menos que desmarques «Compartir en el feed».",
             "La app gratuita muestra anuncios de Google AdMob. Te pedimos tu consentimiento cuando la ley lo exige, y en iPhone y iPad tú eliges si WTX puede rastrearte.",
             "No vendemos tus datos personales."
           ]
@@ -1139,7 +1146,7 @@
           "body": [
             "Solo tú puedes ver tu correo, tus rutinas, los entrenamientos que no compartes y tus ajustes.",
             "Las personas que te siguen pueden ver tu nombre visible, tu biografía, la fecha en que te uniste, tus números de seguidores y seguidos, y los entrenamientos que compartes, completos: ejercicios, series, notas, estadísticas, récords, cantidad de kudos y los nombres de las personas con las que entrenaste. Tu perfil también les muestra las fechas de tus entrenamientos compartidos.",
-            "Cualquier persona con tu código de invitación, enlace o código QR puede seguirte sin tu aprobación, así que compártelo solo con personas de confianza. Puedes quitar un seguidor o bloquear a alguien en cualquier momento, y puedes desactivar la opción de compartir al terminar un entrenamiento. Para quitar un entrenamiento que ya compartiste, elimínalo.",
+            "Cualquier persona con tu código de invitación, enlace o código QR puede seguirte sin tu aprobación, así que compártelo solo con personas de confianza. Puedes quitar un seguidor o bloquear a alguien en cualquier momento, y cada entrenamiento que terminas se comparte con ellos por defecto: desmarca «Compartir en el feed» para mantenerlo privado. Para quitar un entrenamiento que ya compartiste, elimínalo.",
             "En una sala (hasta 8 personas), los demás miembros ven tu nombre visible, la rutina que se entrena y cada serie que completas, en vivo. Cuando una sala termina, todos sus miembros pasan a seguirse automáticamente.",
             "Las personas que sigues y con las que entrenaste en una sala pueden ver tu nombre visible, tu biografía y los números de tu perfil, incluido cuántas veces han entrenado juntos, pero no tus entrenamientos a menos que te sigan.",
             "WTX no tiene perfiles públicos ni buscador de personas: tu perfil solo es visible para las personas descritas aquí."
