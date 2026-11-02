@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
 import ExerciseThumb from '@/components/exercise/ExerciseThumb.vue'
 import ExerciseImageSheet from '@/components/exercise/ExerciseImageSheet.vue'
+import MarqueeText from '@/components/ui/MarqueeText.vue'
 import {
   EQUIPMENT_TYPES,
   MUSCLE_GROUPS,
@@ -190,7 +191,7 @@ const previewName = ref<string | null>(null)
             <ExerciseThumb :name="entry.name" />
           </button>
           <button type="button" class="picker__item" @click="choose(entry.name)">
-            <span class="picker__name">{{ exerciseName(entry.name) }}</span>
+            <MarqueeText class="picker__name" :text="exerciseName(entry.name)" />
             <span v-if="metaFor(entry)" class="picker__meta">{{ metaFor(entry) }}</span>
           </button>
         </li>
@@ -355,11 +356,9 @@ const previewName = ref<string | null>(null)
 }
 
 .picker__name {
+  flex: 1;
   font-weight: 600;
   color: var(--color-heading);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .picker__meta {
