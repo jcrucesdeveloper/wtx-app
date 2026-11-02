@@ -498,9 +498,15 @@ Squat | reps 3x5 | 100
     expect(sent).toContain(newer.id)
     expect(sent).not.toContain(older.id)
 
-    // Deleting one makes room, and the parked routine goes up.
+    // Deleting one makes room, and the parked routine goes up — but only once the
+    // delete can no longer be undone and has reached the server.
     routines.remove(newer.id)
     await sync.syncNow()
+    expect(db.tables.routines!.find((r) => r.id === newer.id)?.deleted_at).toBeFalsy()
+    expect(sync.routinesNotBackedUp).toBe(1)
+    routines.settleRemoval()
+    await sync.syncNow()
+    expect(db.tables.routines!.find((r) => r.id === newer.id)?.deleted_at).toBeTruthy()
     expect(db.tables.routines!.find((r) => r.id === older.id)?.deleted_at).toBeNull()
     expect(sync.routinesNotBackedUp).toBe(0)
     expect(sync.isFullySynced()).toBe(true)

@@ -367,6 +367,12 @@ export const useSyncStore = defineStore('sync', () => {
       if (error) throw error
       state.value.deletedRoutineIds = without(state.value.deletedRoutineIds, batch)
     }
+    // A delete the server has now heard of makes room (it may have been held back
+    // for its undo), so the routines it refused before get another go.
+    if (deletedRoutines.length && state.value.overLimitRoutineIds.length) {
+      state.value.overLimitRoutineIds = []
+      state.value.routinesDirty = true
+    }
 
     if (state.value.routinesDirty) {
       state.value.routinesDirty = false
