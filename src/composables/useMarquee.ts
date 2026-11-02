@@ -1,7 +1,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 
 /** Scroll speed of an overflowing name, in px per second: slow enough to read along, not to catch the eye. */
-export const MARQUEE_SPEED = 12
+export const MARQUEE_SPEED = 14
 /** Shortest slide, in seconds, so a name cut off by a few px drifts instead of flicking. */
 export const MARQUEE_MIN_MOVE = 2
 /** Overflow below this many px is rounding noise, not a cut-off name. */
