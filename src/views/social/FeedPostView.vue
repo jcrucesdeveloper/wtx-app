@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Ban, EllipsisVertical, Flag } from '@lucide/vue'
+import { ArrowLeft, Ban, BookmarkPlus, EllipsisVertical, Flag } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import QuietState from '@/components/ui/QuietState.vue'
 import BottomSheet from '@/components/ui/BottomSheet.vue'
@@ -13,6 +13,7 @@ import ReportSheet from '@/components/social/ReportSheet.vue'
 import BlockConfirmSheet from '@/components/social/BlockConfirmSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useFeedStore } from '@/stores/feed'
+import { useSaveRoutineCopy, type SaveRoutineCopyResult } from '@/composables/useSaveRoutineCopy'
 import { formatPostedAt } from '@/lib/format'
 
 const { t, locale } = useI18n()
@@ -25,7 +26,7 @@ const id = computed(() => String(route.params.id))
 const post = computed(() => feed.getPost(id.value))
 const loading = ref(false)
 
-// ⋯ on someone else's post → report it, or block its author. Kept here rather
+// ⋯ on someone else's post → save its routine, report it, or block its author. Kept here rather
 // than on every feed card so the feed stays uncluttered; every card opens this page.
 const isMine = computed(() => post.value?.posterId === auth.user?.id)
 const menuOpen = ref(false)
@@ -50,6 +51,32 @@ function openBlock() {
   reportOpen.value = false
   blockOpen.value = true
 }
+
+// "Save to my library" on someone else's post: a copy of the routine they followed.
+const { saveCopy } = useSaveRoutineCopy()
+const saved = ref<SaveRoutineCopyResult | null>(null)
+
+/** The result line under the post, brought into view when the save came from the ⋯ menu. */
+const copyEl = ref<HTMLElement | null>(null)
+
+function saveToLibrary() {
+  if (post.value) saved.value = saveCopy(post.value)
+}
+
+async function saveFromMenu() {
+  menuOpen.value = false
+  saveToLibrary()
+  await nextTick()
+  copyEl.value?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' })
+}
+
+function openSaved() {
+  if (saved.value?.status === 'saved') {
+    router.push({ name: 'routine-detail', params: { id: saved.value.routine.id } })
+  }
+}
+
+watch(id, () => (saved.value = null))
 
 // Opened from the feed the post is already loaded; on a deep link or reload, fetch it.
 watch(
@@ -115,10 +142,47 @@ function goBack() {
       <LoggedExerciseList :exercises="post.session.exercises" :unit="post.session.unit" />
 
       <FeedKudosButton :post="post" />
+
+      <div v-if="!isMine" ref="copyEl" class="copy">
+        <button
+          v-if="saved?.status !== 'saved'"
+          type="button"
+          class="copy__btn"
+          @click="saveToLibrary"
+        >
+          <BookmarkPlus :size="18" :stroke-width="2.25" />
+          {{ t('social.copyRoutine.action') }}
+        </button>
+        <p v-if="saved?.status === 'saved'" class="copy__done" role="status">
+          <span>{{ t('social.copyRoutine.saved', { name: saved.name }) }}</span>
+          <button type="button" class="copy__open" @click="openSaved">
+            {{ t('social.copyRoutine.open') }}
+          </button>
+        </p>
+        <p v-if="saved?.status === 'saved' && !saved.fromRoutine" class="copy__hint">
+          {{ t('social.copyRoutine.noRest') }}
+        </p>
+        <p v-else-if="saved?.status === 'limit'" class="copy__error" role="alert">
+          {{ t('social.copyRoutine.limitReached') }}
+        </p>
+        <p v-else-if="saved?.status === 'failed'" class="copy__error" role="alert">
+          {{ t('social.copyRoutine.failed') }}
+        </p>
+      </div>
     </div>
 
     <BottomSheet :open="menuOpen" :title="author.name" @close="menuOpen = false">
       <div class="sheet">
+        <button
+          v-if="saved?.status !== 'saved'"
+          type="button"
+          class="sheet__row"
+          data-test="menu-save"
+          @click="saveFromMenu"
+        >
+          <BookmarkPlus :size="18" :stroke-width="2.25" />
+          {{ t('social.copyRoutine.action') }}
+        </button>
         <button type="button" class="sheet__row" @click="openReport">
           <Flag :size="18" :stroke-width="2.25" />
           {{ t('social.moderation.reportPost') }}
@@ -236,6 +300,68 @@ function goBack() {
 .byline__date {
   font-size: 12px;
   opacity: 0.6;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.copy__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-md);
+  background: var(--color-background-soft);
+  color: var(--color-heading);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.copy__btn:active {
+  background: var(--color-background-mute);
+}
+
+.copy__done {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 4px 0 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-background-mute);
+  color: var(--color-heading);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.copy__open {
+  min-height: 40px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  color: var(--color-heading);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.copy__hint {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.copy__error {
+  font-size: 13px;
+  color: var(--color-danger);
 }
 
 .notes {

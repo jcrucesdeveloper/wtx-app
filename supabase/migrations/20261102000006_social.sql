@@ -208,8 +208,10 @@ create table public.session_kudos (
   primary key (session_id, user_id)
 );
 
--- The primary key already serves lookups by session; this one serves
--- deleting an account (the user_id foreign key).
+-- One session's likers, newest first, paged by (created_at, user_id).
+create index session_kudos_session_recent
+  on public.session_kudos (session_id, created_at desc, user_id desc);
+-- By who gave them: liked_visible_session() and deleting an account.
 create index session_kudos_user on public.session_kudos (user_id);
 
 alter table public.session_kudos enable row level security;
@@ -226,3 +228,64 @@ create policy "session_kudos: give on a visible session" on public.session_kudos
 create policy "session_kudos: take back your own" on public.session_kudos
   for delete to authenticated
   using (user_id = (select auth.uid()));
+
+-- RPC: one page of a session's likers, newest kudos first, with a name per
+-- liker. The kudos rows are already readable on any session the caller can
+-- see, but the likers' names aren't (profiles only shows self, roommates,
+-- followees and followers), so this returns just the name. Pass the last
+-- row's (liked_at, user_id) as (p_before, p_before_user) for the next page.
+-- A session the caller can't see is `not_found`, like one that doesn't
+-- exist; anyone blocked either way is left out.
+create function public.get_session_likers(
+  p_session_id  uuid,
+  p_before      timestamptz default null,
+  p_before_user uuid default null,
+  p_limit       integer default 30
+)
+returns table (
+  user_id      uuid,
+  display_name text,
+  liked_at     timestamptz,
+  i_follow     boolean,
+  follows_me   boolean
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_uid   uuid := auth.uid();
+  v_limit integer := least(greatest(coalesce(p_limit, 30), 1), 50);
+begin
+  if v_uid is null then
+    raise exception 'not_authenticated';
+  end if;
+  if not private.can_view_session(p_session_id) then
+    raise exception 'not_found';
+  end if;
+
+  return query
+  select
+    k.user_id,
+    p.display_name,
+    k.created_at,
+    private.follows_user(k.user_id),
+    private.is_followed_by(k.user_id)
+  from public.session_kudos k
+  join public.profiles p on p.id = k.user_id
+  where k.session_id = p_session_id
+    and (k.user_id = v_uid or not private.is_blocked_between(v_uid, k.user_id))
+    and (
+      p_before is null
+      or k.created_at < p_before
+      or (k.created_at = p_before and p_before_user is not null and k.user_id < p_before_user)
+    )
+  order by k.created_at desc, k.user_id desc
+  limit v_limit;
+end;
+$$;
+
+revoke execute on function public.get_session_likers(uuid, timestamptz, uuid, integer) from public, anon;
+grant execute on function public.get_session_likers(uuid, timestamptz, uuid, integer) to authenticated;

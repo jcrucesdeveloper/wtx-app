@@ -268,6 +268,8 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function checkLogout(): Promise<LogoutCheck> {
     const sync = useSyncStore()
+    // Logging out moves on from a routine just deleted: the delete stands and goes up now.
+    useRoutinesStore().settleRemoval()
     await sync.syncNow()
     const synced = sync.isFullySynced()
     return {

@@ -12,6 +12,10 @@ const db = vi.hoisted(() => ({
   followed: new Set<string>(),
   tables: { routines: [] as Row[], routine_sections: [] as Row[], sessions: [] as Row[] } as Record<string, Row[]>,
   upserts: [] as { table: string; rows: Row[] }[],
+  /** Live routines the server allows per account, like `routines_limit_insert`. */
+  routineMax: Infinity,
+  /** An error message the next upsert fails with. */
+  failNextUpsert: '' as string,
 }))
 
 vi.mock('@/services/supabase', () => {
@@ -19,10 +23,29 @@ vi.mock('@/services/supabase', () => {
     if (row.user_id === db.me) return true
     return table === 'sessions' && !!row.shared && !row.deleted_at && db.followed.has(row.user_id)
   }
-  function run(table: string, mode: 'select' | 'upsert' | 'update', payload: unknown, filters: ((r: Row) => boolean)[]) {
+  function run(
+    table: string,
+    mode: 'select' | 'upsert' | 'update',
+    payload: unknown,
+    filters: ((r: Row) => boolean)[],
+    countOnly: boolean,
+  ) {
     const rows = db.tables[table]!
     if (mode === 'upsert') {
       const incoming = payload as Row[]
+      if (db.failNextUpsert) {
+        const message = db.failNextUpsert
+        db.failNextUpsert = ''
+        return { data: null, error: { message } }
+      }
+      if (table === 'routines') {
+        // The whole statement fails (and nothing is written) once a new or revived row passes the cap.
+        const live = new Set(rows.filter((r) => r.user_id === db.me && !r.deleted_at).map((r) => r.id))
+        for (const r of incoming) if (!r.deleted_at) live.add(r.id)
+        if (live.size > db.routineMax) {
+          return { data: null, error: { message: 'routine_limit' } }
+        }
+      }
       db.upserts.push({ table, rows: incoming })
       for (const r of incoming) {
         const i = rows.findIndex((x) => x.id === r.id)
@@ -37,17 +60,20 @@ vi.mock('@/services/supabase', () => {
       return { data: null, error: null }
     }
     const data = rows.filter((r) => visible(table, r) && filters.every((f) => f(r)))
+    if (countOnly) return { data: null, count: data.length, error: null }
     return { data: data.map((r) => ({ ...r })), error: null }
   }
   function from(table: string) {
     const filters: ((r: Row) => boolean)[] = []
     let mode: 'select' | 'upsert' | 'update' = 'select'
     let payload: unknown
+    let countOnly = false
     // Awaitable like supabase-js's builder: the query runs a microtask later,
     // after the synchronous `.eq().in()…` chain has added its filters.
-    const result = Promise.resolve().then(() => run(table, mode, payload, filters))
+    const result = Promise.resolve().then(() => run(table, mode, payload, filters, countOnly))
     const builder = Object.assign(result, {
-      select: () => builder,
+      select: (_cols?: string, opts?: { head?: boolean }) => ((countOnly = !!opts?.head), builder),
+      is: (col: string, v: unknown) => (filters.push((r) => (r[col] ?? null) === v), builder),
       order: () => builder,
       range: () => builder,
       eq: (col: string, v: unknown) => (filters.push((r) => r[col] === v), builder),
@@ -71,6 +97,7 @@ vi.mock('@/services/analytics', () => ({ track: () => {} }))
 import { useSyncStore } from '@/stores/sync'
 import { useSessionsStore } from '@/stores/sessions'
 import { useRoutinesStore } from '@/stores/routines'
+import { ROUTINE_MAX } from '@/lib/supabase/limits'
 
 const ME = '00000000-0000-4000-8000-00000000000a'
 const FRIEND = '00000000-0000-4000-8000-00000000000b'
@@ -105,6 +132,8 @@ describe('sync store', () => {
     db.followed = new Set([FRIEND])
     db.tables = { routines: [], routine_sections: [], sessions: [] }
     db.upserts = []
+    db.routineMax = Infinity
+    db.failNextUpsert = ''
   })
 
   it("never pulls a followee's shared sessions into your own log", async () => {
@@ -249,6 +278,8 @@ Squat | reps 3x5 | 100
     db.followed = new Set()
     db.tables = { routines: [], routine_sections: [], sessions: [] }
     db.upserts = []
+    db.routineMax = Infinity
+    db.failNextUpsert = ''
   })
 
   it('uploads sections before the routines filed under them', async () => {
@@ -333,6 +364,187 @@ Squat | reps 3x5 | 100
     expect(routines.getById(legs.id)?.sectionId).toBe(id(1))
     expect(db.tables.routine_sections!.map((r) => r.id)).toEqual([id(1)])
     expect(db.tables.routines!.find((r) => r.id === legs.id)?.section_id).toBe(id(1))
+    sync.stop()
+  })
+
+  describe('an undoable routine delete', () => {
+    async function synced() {
+      const routines = useRoutinesStore()
+      const legs = routines.add(ROUTINE('Legs'), 'legs.wtt')
+      const push = routines.add(ROUTINE('Push'), 'push.wtt')
+      const sync = useSyncStore()
+      await sync.start(ME)
+      return { routines, sync, legs, push }
+    }
+    const serverRow = (rid: string) => db.tables.routines!.find((r) => r.id === rid)
+
+    it('keeps the tombstone off the server while the delete can be undone, then sends it', async () => {
+      const { routines, sync, legs } = await synced()
+
+      routines.remove(legs.id)
+      await sync.syncNow()
+      expect(serverRow(legs.id)?.deleted_at).toBeNull()
+      expect(sync.hasPending).toBe(true)
+
+      routines.settleRemoval()
+      await sync.syncNow()
+      expect(serverRow(legs.id)?.deleted_at).not.toBeNull()
+      expect(sync.isFullySynced()).toBe(true)
+      sync.stop()
+    })
+
+    it('an undo leaves the server row alive and nothing to delete', async () => {
+      const { routines, sync, legs, push } = await synced()
+
+      routines.remove(legs.id)
+      await sync.syncNow()
+      routines.restore()
+      await sync.syncNow()
+
+      expect(routines.list.map((r) => r.id)).toEqual([push.id, legs.id])
+      expect(serverRow(legs.id)?.deleted_at).toBeNull()
+      expect(sync.isFullySynced()).toBe(true)
+      sync.stop()
+    })
+
+    it("a pull meanwhile doesn't bring the deleted routine back", async () => {
+      const { routines, sync, legs } = await synced()
+
+      routines.remove(legs.id)
+      // The server row changed since the last pull (e.g. another device touched it).
+      Object.assign(serverRow(legs.id)!, { updated_at: new Date(Date.now() + 60_000).toISOString() })
+      await sync.syncNow({ force: true })
+
+      expect(routines.getById(legs.id)).toBeUndefined()
+      sync.stop()
+    })
+
+    it('an undo revives a tombstone that already went up', async () => {
+      const { routines, sync, legs } = await synced()
+      routines.remove(legs.id)
+      // As if it had been pushed: the server has the tombstone already.
+      Object.assign(serverRow(legs.id)!, { deleted_at: new Date().toISOString() })
+
+      routines.restore()
+      await sync.syncNow()
+
+      expect(serverRow(legs.id)?.deleted_at).toBeNull()
+      expect(sync.isFullySynced()).toBe(true)
+      sync.stop()
+    })
+  })
+})
+
+describe('sync store: routine limit', () => {
+  const ROUTINE = (name: string) => `# ${name}
+unit: kg
+
+Squat | reps 3x5 | 100
+`
+
+  function routineRow(n: number): Row {
+    return {
+      id: id(n),
+      user_id: ME,
+      section_id: null,
+      filename: `r${n}.wtt`,
+      raw_text: ROUTINE(`R${n}`),
+      position: 0,
+      created_at: '2026-09-01T10:00:00.000Z',
+      updated_at: '2026-09-01T10:00:00.000Z',
+      deleted_at: null,
+    }
+  }
+
+  beforeEach(() => {
+    localStorage.clear()
+    localStorage.setItem('wtx:routines', '[]')
+    setActivePinia(createPinia())
+    db.me = ME
+    db.followed = new Set()
+    db.tables = { routines: [], routine_sections: [], sessions: [] }
+    db.upserts = []
+    db.routineMax = ROUTINE_MAX
+    db.failNextUpsert = ''
+  })
+
+  it('uploads what fits, parks the rest instead of retrying it, and says so', async () => {
+    const sync = useSyncStore()
+    await sync.start(ME)
+    // Another device filled the account up to one short of the cap (not pulled yet).
+    for (let n = 1; n < ROUTINE_MAX; n++) db.tables.routines!.push(routineRow(1000 + n))
+
+    const routines = useRoutinesStore()
+    const older = routines.add(ROUTINE('Older'), '')
+    const newer = routines.add(ROUTINE('Newer'), '')
+    await sync.syncNow()
+
+    const live = db.tables.routines!.filter((r) => !r.deleted_at)
+    expect(live).toHaveLength(ROUTINE_MAX)
+    // The top of the library got the last slot.
+    expect(live.some((r) => r.id === newer.id)).toBe(true)
+    expect(live.some((r) => r.id === older.id)).toBe(false)
+    expect(sync.status).toBe('idle')
+    expect(sync.routinesNotBackedUp).toBe(1)
+    // Not lost: logging out now would warn.
+    expect(sync.hasPending).toBe(true)
+    expect(sync.isFullySynced()).toBe(false)
+
+    // Editing the library re-uploads it, but never the refused routine again.
+    db.upserts = []
+    routines.update(newer.id, ROUTINE('Newer v2'))
+    await sync.syncNow()
+    const sent = db.upserts.flatMap((u) => u.rows.map((r) => r.id))
+    expect(sent).toContain(newer.id)
+    expect(sent).not.toContain(older.id)
+
+    // Deleting one makes room, and the parked routine goes up — but only once the
+    // delete can no longer be undone and has reached the server.
+    routines.remove(newer.id)
+    await sync.syncNow()
+    expect(db.tables.routines!.find((r) => r.id === newer.id)?.deleted_at).toBeFalsy()
+    expect(sync.routinesNotBackedUp).toBe(1)
+    routines.settleRemoval()
+    await sync.syncNow()
+    expect(db.tables.routines!.find((r) => r.id === newer.id)?.deleted_at).toBeTruthy()
+    expect(db.tables.routines!.find((r) => r.id === older.id)?.deleted_at).toBeNull()
+    expect(sync.routinesNotBackedUp).toBe(0)
+    expect(sync.isFullySynced()).toBe(true)
+    sync.stop()
+  })
+
+  it('sends deletes before the library, so swapping a routine at the cap fits', async () => {
+    for (let n = 1; n <= ROUTINE_MAX; n++) db.tables.routines!.push(routineRow(n))
+    const sync = useSyncStore()
+    await sync.start(ME)
+    const routines = useRoutinesStore()
+    expect(routines.list).toHaveLength(ROUTINE_MAX)
+
+    routines.remove(id(1))
+    const added = routines.add(ROUTINE('Swap'), '')
+    await sync.syncNow()
+
+    expect(db.tables.routines!.find((r) => r.id === added.id)?.deleted_at).toBeNull()
+    expect(db.tables.routines!.find((r) => r.id === id(1))?.deleted_at).not.toBeNull()
+    expect(sync.routinesNotBackedUp).toBe(0)
+    expect(sync.isFullySynced()).toBe(true)
+    sync.stop()
+  })
+
+  it("doesn't back off and retry a throttled upload", async () => {
+    const sync = useSyncStore()
+    await sync.start(ME)
+    const timeout = vi.spyOn(globalThis, 'setTimeout')
+    db.failNextUpsert = 'rate_limited'
+    useRoutinesStore().add(ROUTINE('Burst'), '')
+    timeout.mockClear()
+    await sync.syncNow()
+
+    expect(sync.status).toBe('error')
+    expect(sync.lastError).toContain('rate_limited')
+    expect(timeout).not.toHaveBeenCalledWith(expect.any(Function), 2000)
+    expect(sync.hasPending).toBe(true)
+    timeout.mockRestore()
     sync.stop()
   })
 })

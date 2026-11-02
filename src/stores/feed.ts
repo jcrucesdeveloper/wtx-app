@@ -25,6 +25,23 @@ export interface FeedPost {
   kudosByMe: boolean
 }
 
+/** One person who gave a post kudos, as the likers list shows them. */
+export interface Liker {
+  id: string
+  displayName: string
+  likedAt: string
+  iFollow: boolean
+  followsMe: boolean
+}
+
+/** Where the next likers page starts: the last row's (likedAt, id). */
+export interface LikersCursor {
+  likedAt: string
+  id: string
+}
+
+export const LIKERS_PAGE_SIZE = 30
+
 export interface FollowedUser {
   id: string
   displayName: string
@@ -271,6 +288,39 @@ export const useFeedStore = defineStore('feed', () => {
     }
   }
 
+  /**
+   * One page of a post's likers, newest kudos first (keyset-paged on
+   * `(likedAt, id)`). The server only answers for a post the caller can see
+   * and leaves out anyone blocked either way; accounts hidden here are
+   * dropped too. `next` is null once the last page is in.
+   */
+  async function fetchLikers(
+    sessionId: string,
+    after?: LikersCursor | null,
+  ): Promise<{ likers: Liker[]; next: LikersCursor | null }> {
+    const { data, error } = await requireSupabase().rpc('get_session_likers', {
+      p_session_id: sessionId,
+      p_before: after?.likedAt ?? null,
+      p_before_user: after?.id ?? null,
+      p_limit: LIKERS_PAGE_SIZE,
+    })
+    if (error) throw error
+    const rows = data ?? []
+    const last = rows[rows.length - 1]
+    return {
+      likers: rows
+        .filter((r) => !isHidden(r.user_id))
+        .map((r) => ({
+          id: r.user_id,
+          displayName: r.display_name,
+          likedAt: r.liked_at,
+          iFollow: r.i_follow,
+          followsMe: r.follows_me,
+        })),
+      next: rows.length === LIKERS_PAGE_SIZE && last ? { likedAt: last.liked_at, id: last.user_id } : null,
+    }
+  }
+
   /** Who this account follows, newest first — skipped if loaded recently, unless `force` is set. */
   async function loadFollowing(opts: { force?: boolean } = {}) {
     const uid = myId()
@@ -362,6 +412,7 @@ export const useFeedStore = defineStore('feed', () => {
     getPost,
     loadPost,
     toggleKudos,
+    fetchLikers,
     loadFollowing,
     followByCode,
     followUser,

@@ -159,9 +159,33 @@ $$;
 
 -- ===== Profiles and sessions =====
 
--- Internal (used by RPCs, never by a policy). Who may see a profile: yourself,
--- anyone you follow or who follows you, and anyone you've shared a room with
--- — never across a block. The profiles policies spell out the same rule.
+-- Internal. Did this person like a session the caller can see (their own,
+-- or a shared one by someone they follow)? Then the caller can find them in
+-- that post's likers list (get_session_likers).
+create function private.liked_visible_session(p_user_id uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  return exists (
+    select 1
+    from public.session_kudos k
+    join public.sessions s on s.id = k.session_id
+    where k.user_id = p_user_id
+      and s.deleted_at is null
+      and (s.user_id = auth.uid() or (s.shared and private.follows_user(s.user_id)))
+  );
+end;
+$$;
+
+-- Internal (used by RPCs, never by a policy). Whose profile header the caller
+-- may open and follow: yourself, anyone you follow or who follows you, anyone
+-- you've shared a room with, and anyone who liked a post you can see — never
+-- across a block. Their workouts stay follower-only (get_profile gates those).
+-- The profiles policies cover the same people minus the likers.
 create function private.can_view_profile(p_user_id uuid)
 returns boolean
 language plpgsql
@@ -178,7 +202,8 @@ begin
   end if;
   return private.follows_user(p_user_id)
     or private.is_followed_by(p_user_id)
-    or private.shares_room_with(p_user_id);
+    or private.shares_room_with(p_user_id)
+    or private.liked_visible_session(p_user_id);
 end;
 $$;
 

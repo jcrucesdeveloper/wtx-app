@@ -8,6 +8,8 @@
 --   follow             60 / hour    new follow edges (by code or by id)
 --   block              30 / hour    new blocks
 --   invite_rotate      10 / day     rotate_invite_code()
+--   routine_create  1,000 / day     new routine rows (05_library, next to the
+--                                   300 live routines cap)
 --   content_reports    20 / day     counted from content_reports itself (07_moderation)
 --   app_events         a separate throttle (08_app_events)
 --

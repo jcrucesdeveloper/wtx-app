@@ -5,9 +5,14 @@
 --   rooms           created by create_room(); the host moves the status and
 --                   sets the plan (set_room_routine); nothing else.
 --   room_members    created by create_room() / join_room(); you can mark
---                   yourself finished or leave.
+--                   yourself finished, and leave with leave_room().
 --   room_set_logs   your own sets, only while the room is active.
 -- All three are on Realtime, so members get every change live.
+--
+-- A workout outlives its host: when the host leaves or finishes, the role
+-- passes to whoever joined earliest of those still working out, and a host
+-- whose phone went silent for 5 minutes is replaced by a member who claims
+-- the role (claim_room_host). With nobody left working out, the room ends.
 
 -- ===== rooms =====
 
@@ -107,14 +112,17 @@ create table public.room_members (
   user_id     uuid not null references public.profiles (id) on delete cascade,
   joined_at   timestamptz not null default now(),
   finished_at timestamptz,
+  -- Left a running room: the row (and the sets hanging off it) stays for the
+  -- recap; they just aren't in the workout any more. Rejoining clears it.
+  left_at     timestamptz,
   primary key (room_id, user_id)
 );
 
 create index room_members_user on public.room_members (user_id);
 
--- Closes the room once every member has finished their workout. Training
--- together counts as introducing yourselves: every pair of members then
--- follows each other, unless either has blocked the other.
+-- Closes the room once every member has finished their workout or left.
+-- Training together counts as introducing yourselves: every pair of members
+-- then follows each other, unless either has blocked the other.
 create function private.finish_room_when_done()
 returns trigger
 language plpgsql
@@ -122,9 +130,9 @@ security definer
 set search_path = ''
 as $$
 begin
-  if new.finished_at is not null and not exists (
+  if (new.finished_at is not null or new.left_at is not null) and not exists (
     select 1 from public.room_members
-    where room_id = new.room_id and finished_at is null
+    where room_id = new.room_id and finished_at is null and left_at is null
   ) then
     update public.rooms set status = 'finished'
     where id = new.room_id and status = 'active';
@@ -144,10 +152,97 @@ end;
 $$;
 
 create trigger room_members_finish_room
-  after update of finished_at on public.room_members
+  after update of finished_at, left_at on public.room_members
   for each row execute function private.finish_room_when_done();
 
 revoke execute on function private.finish_room_when_done() from public, anon, authenticated;
+
+-- When the host was last seen (room_host_beat). Written and read only by the
+-- functions here, and outside the Realtime publication, so a heartbeat
+-- doesn't wake every member's app.
+create table private.room_host_beats (
+  room_id uuid primary key references public.rooms (id) on delete cascade,
+  seen_at timestamptz not null default now()
+);
+
+alter table private.room_host_beats enable row level security;
+revoke all on private.room_host_beats from public, anon, authenticated;
+
+-- Makes sure an open room's host is someone still working out in it: else
+-- the role goes to whoever joined earliest of those who are, and with nobody
+-- left the room ends. Runs under a row lock on the room, so two people
+-- leaving at once can never leave two hosts — or a host who has gone.
+create function private.pass_room_host(p_room_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_room public.rooms;
+  v_next uuid;
+begin
+  -- The lock: every handoff of this room waits for the one before it, then
+  -- reads the host it left behind.
+  select * into v_room from public.rooms where id = p_room_id for update;
+  if v_room.id is null or v_room.status = 'finished' then
+    return;
+  end if;
+
+  if v_room.host_id is not null and exists (
+    select 1 from public.room_members
+    where room_id = p_room_id and user_id = v_room.host_id
+      and left_at is null and finished_at is null
+  ) then
+    return;
+  end if;
+
+  select user_id into v_next
+  from public.room_members
+  where room_id = p_room_id and left_at is null and finished_at is null
+  order by joined_at, user_id
+  limit 1;
+
+  if v_next is null then
+    -- Nobody left to work out with: the room is over.
+    update public.rooms set status = 'finished' where id = p_room_id;
+    return;
+  end if;
+
+  update public.rooms set host_id = v_next where id = p_room_id;
+  -- The new host's grace period starts now.
+  insert into private.room_host_beats (room_id, seen_at) values (p_room_id, now())
+  on conflict (room_id) do update set seen_at = excluded.seen_at;
+end;
+$$;
+
+create function private.room_members_pass_host()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'DELETE' then
+    perform private.pass_room_host(old.room_id);
+    return old;
+  end if;
+  if (new.finished_at is not null and old.finished_at is null)
+     or (new.left_at is not null and old.left_at is null) then
+    perform private.pass_room_host(new.room_id);
+  end if;
+  return new;
+end;
+$$;
+
+-- Fires after room_members_finish_room (triggers run in name order): a room
+-- that just finished needs no host.
+create trigger room_members_pass_host
+  after update of finished_at, left_at or delete on public.room_members
+  for each row execute function private.room_members_pass_host();
+
+revoke execute on function private.pass_room_host(uuid) from public, anon, authenticated;
+revoke execute on function private.room_members_pass_host() from public, anon, authenticated;
 
 alter table public.room_members enable row level security;
 revoke all on public.room_members from anon;
@@ -160,10 +255,6 @@ create policy "room_members: update self" on public.room_members
   for update to authenticated
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
-
-create policy "room_members: leave" on public.room_members
-  for delete to authenticated
-  using (user_id = (select auth.uid()));
 
 revoke insert, update on public.room_members from authenticated;
 grant update (finished_at) on public.room_members to authenticated;
@@ -284,8 +375,9 @@ begin
 end;
 $$;
 
--- Joins an open room by its code (joining twice is a no-op; max 8 people).
--- An unknown code returns an all-null row (see 03_rate_limits).
+-- Joins an open room by its code (max 8 people). Joining twice is a no-op,
+-- and someone who left comes back into the workout. An unknown code returns
+-- an all-null row (see 03_rate_limits).
 create function public.join_room(p_code text)
 returns public.rooms
 language plpgsql
@@ -313,6 +405,8 @@ begin
   end if;
 
   if exists (select 1 from public.room_members where room_id = v_room.id and user_id = v_uid) then
+    update public.room_members set left_at = null
+    where room_id = v_room.id and user_id = v_uid and left_at is not null;
     return v_room;
   end if;
 
@@ -406,12 +500,125 @@ begin
 end;
 $$;
 
+-- Leaves a room: the one way to leave. Before it starts the membership goes;
+-- once it's running the member is marked as left, keeping their sets in the
+-- recap. Either way room_members_pass_host passes the host role on if it was
+-- theirs.
+create function public.leave_room(p_room_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid    uuid := auth.uid();
+  v_status text;
+begin
+  if v_uid is null then
+    raise exception 'not_authenticated';
+  end if;
+
+  select status into v_status from public.rooms where id = p_room_id;
+  if v_status is null or not exists (
+    select 1 from public.room_members where room_id = p_room_id and user_id = v_uid
+  ) then
+    raise exception 'room_not_found';
+  end if;
+
+  if v_status = 'lobby' then
+    delete from public.room_members where room_id = p_room_id and user_id = v_uid;
+  elsif v_status = 'active' then
+    update public.room_members set left_at = now()
+    where room_id = p_room_id and user_id = v_uid and left_at is null;
+  end if;
+end;
+$$;
+
+-- The host's app says it's still here (every 30 s while open).
+create function public.room_host_beat(p_room_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then
+    raise exception 'not_authenticated';
+  end if;
+  if not exists (
+    select 1 from public.rooms
+    where id = p_room_id and host_id = v_uid and status <> 'finished'
+  ) then
+    return;
+  end if;
+  insert into private.room_host_beats (room_id, seen_at) values (p_room_id, now())
+  on conflict (room_id) do update set seen_at = excluded.seen_at;
+end;
+$$;
+
+-- A member still working out takes over from a host who has been silent for
+-- 5 minutes (longer than a heavy set's rest, so a host resting with the
+-- screen off keeps the role) or is no longer working out. The first claim
+-- wins; the ones after it find a host seen just now and get `host_present`.
+create function public.claim_room_host(p_room_id uuid)
+returns public.rooms
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid  uuid := auth.uid();
+  v_room public.rooms;
+  v_seen timestamptz;
+begin
+  if v_uid is null then
+    raise exception 'not_authenticated';
+  end if;
+
+  select * into v_room from public.rooms where id = p_room_id for update;
+  if v_room.id is null or v_room.status = 'finished' or not exists (
+    select 1 from public.room_members
+    where room_id = p_room_id and user_id = v_uid and left_at is null and finished_at is null
+  ) then
+    raise exception 'room_not_found';
+  end if;
+
+  if v_room.host_id = v_uid then
+    return v_room;
+  end if;
+
+  if v_room.host_id is not null and exists (
+    select 1 from public.room_members
+    where room_id = p_room_id and user_id = v_room.host_id
+      and left_at is null and finished_at is null
+  ) then
+    select seen_at into v_seen from private.room_host_beats where room_id = p_room_id;
+    if coalesce(v_seen, v_room.started_at, v_room.created_at) > now() - interval '5 minutes' then
+      raise exception 'host_present';
+    end if;
+  end if;
+
+  update public.rooms set host_id = v_uid where id = p_room_id returning * into v_room;
+  insert into private.room_host_beats (room_id, seen_at) values (p_room_id, now())
+  on conflict (room_id) do update set seen_at = excluded.seen_at;
+  return v_room;
+end;
+$$;
+
 revoke execute on function public.create_room(text, text, text) from public, anon;
 grant execute on function public.create_room(text, text, text) to authenticated;
 revoke execute on function public.join_room(text) from public, anon;
 grant execute on function public.join_room(text) to authenticated;
 revoke execute on function public.set_room_routine(uuid, smallint[], smallint[], text[], jsonb, smallint) from public, anon;
 grant execute on function public.set_room_routine(uuid, smallint[], smallint[], text[], jsonb, smallint) to authenticated;
+revoke execute on function public.leave_room(uuid) from public, anon;
+grant execute on function public.leave_room(uuid) to authenticated;
+revoke execute on function public.room_host_beat(uuid) from public, anon;
+grant execute on function public.room_host_beat(uuid) to authenticated;
+revoke execute on function public.claim_room_host(uuid) from public, anon;
+grant execute on function public.claim_room_host(uuid) to authenticated;
 
 -- ===== The room's live channel =====
 

@@ -7,6 +7,7 @@ import LoadRoutineSheet from './components/load/LoadRoutineSheet.vue'
 import CreateRoutineSheet from './components/wtx/CreateRoutineSheet.vue'
 import StartTrainingSheet from './components/routine/StartTrainingSheet.vue'
 import ResumeSessionBanner from './components/session/ResumeSessionBanner.vue'
+import RoutineUndoBar from './components/routine/RoutineUndoBar.vue'
 import RoomLiveLayer from './components/social/RoomLiveLayer.vue'
 import ShareProfileSheet from './components/social/ShareProfileSheet.vue'
 import { useThemeStore } from './stores/theme'
@@ -35,6 +36,7 @@ const showChrome = computed(() => !BARE_ROUTES.includes(String(route.name)))
       <RouterView />
     </main>
     <template v-if="showChrome">
+      <RoutineUndoBar />
       <ResumeSessionBanner />
       <AppTabBar />
     </template>

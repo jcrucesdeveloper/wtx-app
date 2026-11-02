@@ -22,8 +22,10 @@ import android.os.VibratorManager;
  * The end of a rest, kept apart from the plugin so it still happens after
  * the activity is gone (the foreground service keeps the process alive).
  * When the rest runs out it swaps the notification to its "after rest" face,
- * so the countdown never runs past zero, and buzzes if the setting is on and
- * the app isn't on screen (in the app, JS buzzes instead).
+ * so the countdown never runs past zero, buzzes if the setting is on and
+ * the app isn't on screen (in the app, JS buzzes instead), and plays the
+ * rest-end chime ({@link RestSound}) if that setting is on, on screen or not
+ * (on Android the web view never plays it, so it can't sound twice).
  *
  * The deadline is kept on the elapsed-realtime clock, the one the
  * notification's Chronometer counts on, so changing the wall clock (or an
@@ -45,6 +47,12 @@ final class SessionRestEnd {
     private static final long[] PATTERN = { 0, 400, 200, 400 };
     /** Extra time the wake lock is held past the deadline, in case the end runs a little late. */
     private static final long WAKE_LOCK_SLACK_MS = 10_000;
+    /**
+     * A redraw that drops the rest this close to its deadline still ends it properly: the
+     * app's own tick (and the epoch-to-elapsed conversion) can land a few
+     * hundred ms either side of it, and the chime shouldn't be lost to that.
+     */
+    private static final long SETTLE_SLACK_MS = 1000;
 
     private static final Handler handler = new Handler(Looper.getMainLooper());
     private static final Runnable onDeadline = SessionRestEnd::checkNow;
@@ -56,6 +64,8 @@ final class SessionRestEnd {
     private static boolean alarmSet;
     private static Notification after;
     private static boolean vibrate;
+    private static boolean chime;
+    private static final RestSound sound = new RestSound();
     private static PowerManager.WakeLock wakeLock;
     private static BroadcastReceiver screenOn;
 
@@ -68,12 +78,15 @@ final class SessionRestEnd {
      * Arranges for {@code afterRest} to replace the notification at
      * {@code deadline} (elapsed-realtime ms), replacing any pending rest.
      */
-    static void schedule(Context context, long deadline, Notification afterRest, boolean vibrateAtEnd) {
+    static void schedule(Context context, long deadline, Notification afterRest, boolean vibrateAtEnd, boolean chimeAtEnd) {
         cancel();
         appContext = context.getApplicationContext();
         endsAt = deadline;
         after = afterRest;
         vibrate = vibrateAtEnd;
+        chime = chimeAtEnd;
+        // Decoded ahead of time: a SoundPool sound can't play until it has loaded.
+        if (chime) sound.prepare(appContext);
         long delay = Math.max(0, deadline - SystemClock.elapsedRealtime());
         setAlarm(deadline);
         acquireWakeLock(delay + WAKE_LOCK_SLACK_MS);
@@ -89,10 +102,13 @@ final class SessionRestEnd {
     /**
      * Before the notification is redrawn: a rest that has already run out
      * still ends properly (its buzz isn't lost to the redraw); one still
-     * running is simply dropped, since the redraw schedules its own.
+     * running is simply dropped, since the redraw schedules its own. When the
+     * redraw takes the rest away ({@code stillResting} false) a rest within
+     * {@link #SETTLE_SLACK_MS} of its deadline counts as run out too.
      */
-    static void settle() {
-        if (isOverdue()) end(false);
+    static void settle(boolean stillResting) {
+        long slack = stillResting ? 0 : SETTLE_SLACK_MS;
+        if (endsAt > 0 && SystemClock.elapsedRealtime() >= endsAt - slack) end(false);
         else cancel();
     }
 
@@ -102,6 +118,7 @@ final class SessionRestEnd {
         cancelAlarm();
         endsAt = 0;
         after = null;
+        chime = false;
         releaseWakeLock();
         stopListeningForScreenOn();
     }
@@ -122,11 +139,17 @@ final class SessionRestEnd {
         }
     }
 
-    /** Shows the "after rest" face (when {@code post}) and buzzes, then lets go of everything. */
+    /** The workout ended: frees the decoded chime (it's loaded again on the next rest). */
+    static void releaseSound() {
+        sound.release();
+    }
+
+    /** Shows the "after rest" face (when {@code post}), buzzes and chimes, then lets go of everything. */
     private static void end(boolean post) {
         Context context = appContext;
         Notification face = after;
         boolean buzz = vibrate;
+        boolean ring = chime;
         cancel();
         if (context == null) return;
         // `current` is null once the workout ended; then there's nothing to update or buzz for.
@@ -137,6 +160,7 @@ final class SessionRestEnd {
             if (manager != null) manager.notify(SessionNotificationPlugin.NOTIFICATION_ID, face);
         }
         if (buzz && !appInForeground) vibrate(context);
+        if (ring) sound.play(context);
     }
 
     /**

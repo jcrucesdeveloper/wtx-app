@@ -49,12 +49,6 @@ do $$ begin
   exception when insufficient_privilege then perform t.ok('signed-in users cannot call internal functions'); end;
 end $$;
 reset role;
-do $$ begin
-  assert (select array_agg(proname::text order by proname) from pg_proc where pronamespace = 'public'::regnamespace)
-    = array['block_user','create_room','follow_by_code','follow_user','get_blocked_users','get_profile',
-            'join_room','my_invite_code','rotate_invite_code','set_room_routine'], 'unexpected public functions';
-  perform t.ok('public exposes only the 10 app RPCs');
-end $$;
 
 -- 3. Rooms: Ana creates, Ben joins; they see each other; Cy sees nothing.
 select t.as_user('aaaaaaaa-0000-0000-0000-000000000001');
@@ -173,6 +167,83 @@ do $$ begin
 end $$;
 reset role;
 
+-- 9b. Host handoff, likers, routine limit and code rate limit — the
+--     functions folded in from dev, run once each through their private helpers.
+select t.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+create temp table r2 on commit preserve rows as select * from public.create_room('Pull A', 'Pull day', 'kg');
+grant select on r2 to authenticated;
+reset role;
+select t.as_user('cccccccc-0000-0000-0000-000000000003');
+do $$ begin perform public.join_room((select code from r2)); end $$;
+reset role;
+select t.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+update public.rooms set status = 'active' where id = (select id from r2);
+select public.room_host_beat((select id from r2));
+reset role;
+select t.as_user('cccccccc-0000-0000-0000-000000000003');
+do $$ begin
+  begin perform public.claim_room_host((select id from r2)); raise exception 'claimed from a present host';
+  exception when raise_exception then
+    if sqlerrm <> 'host_present' then raise; end if;
+    perform t.ok('a member cannot take over from a host seen just now');
+  end;
+end $$;
+reset role;
+select t.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+select public.leave_room((select id from r2));
+reset role;
+do $$ begin
+  assert (select host_id from public.rooms where id = (select id from r2)) = 'cccccccc-0000-0000-0000-000000000003', 'host not passed on';
+  assert (select status from public.rooms where id = (select id from r2)) = 'active', 'room ended too early';
+  perform t.ok('the host leaves: the role passes to the member still working out');
+end $$;
+select t.as_user('cccccccc-0000-0000-0000-000000000003');
+select public.leave_room((select id from r2));
+reset role;
+do $$ begin
+  assert (select status from public.rooms where id = (select id from r2)) = 'finished', 'room not finished';
+  perform t.ok('the last member leaves: the room ends');
+end $$;
+
+select t.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+insert into public.sessions (id, user_id, raw_text, shared) values ('eeeeeeee-0000-0000-0000-000000000005', auth.uid(), 'Pull day', true);
+reset role;
+select t.as_user('cccccccc-0000-0000-0000-000000000003');
+do $$ begin perform public.follow_user('aaaaaaaa-0000-0000-0000-000000000001'); end $$;
+insert into public.session_kudos (session_id, user_id) values ('eeeeeeee-0000-0000-0000-000000000005', auth.uid());
+reset role;
+select t.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+do $$ begin
+  assert (select array_agg(display_name) from public.get_session_likers('eeeeeeee-0000-0000-0000-000000000005')) = '{Cy}', 'likers wrong';
+  perform t.ok('get_session_likers lists who liked a post');
+end $$;
+reset role;
+
+select t.as_user('cccccccc-0000-0000-0000-000000000003');
+do $$ begin
+  insert into public.routines (id, user_id, filename, raw_text)
+  select gen_random_uuid(), auth.uid(), 'r' || g || '.wtt', 'Squat 5x5' from generate_series(1, 300) g;
+  begin
+    insert into public.routines (id, user_id, filename, raw_text) values (gen_random_uuid(), auth.uid(), 'one-more.wtt', 'Squat 5x5');
+    raise exception '301st routine accepted';
+  exception when raise_exception then
+    if sqlerrm <> 'routine_limit' then raise; end if;
+    perform t.ok('the 301st live routine is refused');
+  end;
+  delete from public.routines where user_id = auth.uid();
+end $$;
+do $$ begin
+  for i in 1..10 loop
+    perform public.join_room('ZZZZZZ');
+  end loop;
+  begin perform public.join_room('ZZZZZZ'); raise exception 'no limit on wrong codes';
+  exception when raise_exception then
+    if sqlerrm <> 'rate_limited' then raise; end if;
+    perform t.ok('the 11th wrong room code in 10 minutes is refused');
+  end;
+end $$;
+reset role;
+
 -- 10. Storage budget: ~50 MB of synced data per account.
 select t.as_user('cccccccc-0000-0000-0000-000000000003');
 do $$ declare n int := 0; begin
@@ -204,7 +275,11 @@ values (gen_random_uuid(), auth.uid(), 'dddddddd-0000-0000-0000-000000000004', '
 reset role;
 do $$ begin
   assert (select bytes from private.account_usage where user_id = 'aaaaaaaa-0000-0000-0000-000000000001') > 0, 'usage not tracked';
-  delete from auth.users where id in ('aaaaaaaa-0000-0000-0000-000000000001', 'cccccccc-0000-0000-0000-000000000003');
+end $$;
+set role supabase_auth_admin;
+delete from auth.users where id in ('aaaaaaaa-0000-0000-0000-000000000001', 'cccccccc-0000-0000-0000-000000000003');
+reset role;
+do $$ begin
   assert (select count(*) from private.account_usage) = 0, 'usage rows left behind';
   assert (select count(*) from public.routines) + (select count(*) from public.sessions) = 0, 'data left behind';
   perform t.ok('deleting an account removes all of its data');

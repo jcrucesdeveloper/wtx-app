@@ -218,7 +218,12 @@
     "emptyTitle": "Aún no hay rutinas",
     "emptyHint": "Carga una plantilla {ext} para empezar.",
     "emptyBtn": "Cargar una rutina",
-    "parseError": "No se pudo interpretar — toca para revisar"
+    "parseError": "No se pudo interpretar — toca para revisar",
+    "limit": {
+      "near": "{count} de {max} rutinas. Borra las que ya no uses para dejar espacio a nuevas.",
+      "reached": "Tu biblioteca está llena ({max} rutinas). Borra una que ya no uses para añadir otra.",
+      "notBackedUp": "{count} rutina no tiene copia en tu cuenta — una cuenta guarda hasta {max}. Borra algunas para respaldarla. | {count} rutinas no tienen copia en tu cuenta — una cuenta guarda hasta {max}. Borra algunas para respaldarlas."
+    }
   },
   "routineDetail": {
     "notFoundTitle": "Rutina no encontrada",
@@ -233,7 +238,8 @@
     "favoriteAria": "Añadir a favoritas",
     "unfavoriteAria": "Quitar de favoritas",
     "deleteRoutine": "Eliminar rutina",
-    "deleteConfirm": "¿Quitar esta rutina de tu biblioteca?",
+    "deleted": "“{name}” eliminada",
+    "deleteTraining": "La estás entrenando ahora",
     "notFound": "Esta rutina ya no está en tu biblioteca.",
     "showSource": "Mostrar fuente",
     "hideSource": "Ocultar fuente",
@@ -271,6 +277,11 @@
       "searchPlaceholder": "Buscar ejercicio, músculo o equipo",
       "muscleLabel": "Músculo",
       "equipmentLabel": "Equipo",
+      "filtersLabel": "Filtros",
+      "hideFilters": "Ocultar",
+      "showFilters": "Mostrar",
+      "hideFiltersAria": "Ocultar filtros de músculo y equipo",
+      "showFiltersAria": "Mostrar filtros de músculo y equipo",
       "resultCount": "Ningún ejercicio | {count} ejercicio | {count} ejercicios",
       "noResults": "Ningún ejercicio coincide con estos filtros.",
       "clearFilters": "Quitar filtros",
@@ -581,6 +592,23 @@
       "notFound": "Este entrenamiento no está disponible: puede que se haya eliminado o dejado de compartir.",
       "backAria": "Volver"
     },
+    "likers": {
+      "title": "Ánimos",
+      "openAria": "{count} persona dio ánimo, ver quién | {count} personas dieron ánimo, ver quiénes",
+      "empty": "Todavía no hay ánimos.",
+      "error": "No se pudo cargar quién dio ánimo.",
+      "retry": "Reintentar",
+      "you": "Tú"
+    },
+    "copyRoutine": {
+      "action": "Guardar en mi biblioteca",
+      "suffix": " (de {'@'}{friend})",
+      "saved": "Guardada en tu biblioteca como «{name}»",
+      "open": "Abrir",
+      "failed": "No se pudo guardar esta rutina.",
+      "limitReached": "Tu biblioteca está llena. Elimina una rutina para guardar esta.",
+      "noRest": "Este entrenamiento no compartió los descansos, así que la copia no los tiene."
+    },
     "profile": {
       "title": "Perfil",
       "openMine": "Tu perfil",
@@ -805,6 +833,7 @@
     "host": "Anfitrión",
     "you": "Tú",
     "done": "Listo",
+    "left": "Se fue",
     "start": "Empezar entrenamiento",
     "starting": "Empezando…",
     "waitingForHost": "Esperando a que {name} empiece…",
@@ -813,6 +842,9 @@
     "leave": "Salir de la sala",
     "end": "Terminar para todos",
     "endConfirm": "¿Terminar este entrenamiento en grupo para todos?",
+    "leaveHostConfirm": "¿Salir de la sala? {name} pasará a dirigir el grupo.",
+    "leaveLastConfirm": "¿Salir de la sala? Nadie más sigue entrenando, así que terminará.",
+    "lateJoinHint": "Ya empezó: empezarás donde está {name}, en {exercise}.",
     "finishedTitle": "Este entrenamiento en grupo terminó",
     "viewRecap": "Ver resumen del grupo",
     "loading": "Cargando sala…",
@@ -854,6 +886,8 @@
       "exerciseSwapped": "{name} cambió {exercise} por {to}",
       "exerciseSwappedKept": "{name} cambió {exercise} por {to}. Tus series registradas se mantienen.",
       "focusMoved": "{name} llevó al grupo a {exercise}",
+      "hostChanged": "{name} ahora dirige el grupo",
+      "youAreHost": "Ahora diriges tú el grupo: puedes reordenar y cambiar la rutina",
       "cheerBackAria": "Enviar {emoji} a {name}",
       "sent": "¡Enviado!",
       "teamCleared": "El equipo completó {exercise} ✅",
@@ -1234,8 +1268,11 @@
     "importedRoutines": "ninguna rutina | {count} rutina | {count} rutinas",
     "importedSessions": "ninguna sesión | {count} sesión | {count} sesiones",
     "importNothing": "Nada nuevo que importar — todo en ese archivo ya está aquí.",
+    "importLimit": "Tu biblioteca está llena ({max} rutinas), así que {count} más no se pudieron importar.",
     "importError": "No se pudo leer ese archivo — elige un .zip exportado desde WTX.",
     "dataDeleteHint": "Borra permanentemente cada rutina y sesión.",
+    "restSound": "Sonido del descanso",
+    "restSoundHint": "Un aviso sonoro cuando termina tu descanso. No suena si tu teléfono está en silencio.",
     "reminders": "Recordatorios",
     "remindersHint": "Un aviso si no has registrado un entrenamiento para la tarde — nunca más de uno por día.",
     "enableReminders": "Activar recordatorios",
@@ -1308,6 +1345,14 @@
       "time": "¿Registrar por tiempo? Se borrará la {count} serie que registraste. | ¿Registrar por tiempo? Se borrarán las {count} series que registraste.",
       "reps": "¿Registrar por peso y repeticiones? Se borrará la {count} serie que registraste. | ¿Registrar por peso y repeticiones? Se borrarán las {count} series que registraste."
     }
+  },
+  "forgotFinish": {
+    "channelName": "Entrenamiento sin terminar",
+    "channelDescription": "Te pregunta si olvidaste terminar un entrenamiento que lleva horas en curso.",
+    "title": "¿Olvidaste terminar tu entrenamiento?",
+    "body": "Lleva más de {hours} horas en curso. Termínalo para guardarlo, o sigue entrenando.",
+    "finish": "Terminar entrenamiento",
+    "keepGoing": "Seguir entrenando"
   },
   "sessionNotification": {
     "channelName": "Entrenamiento en curso",

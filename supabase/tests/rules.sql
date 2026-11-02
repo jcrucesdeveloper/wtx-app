@@ -56,8 +56,9 @@ select pg_temp.check('public functions are exactly the app''s RPCs', array(
     select p.proname::text as a from pg_proc p where p.pronamespace = 'public'::regnamespace
   ) actual
   full join unnest(array[
-    'block_user', 'create_room', 'follow_by_code', 'follow_user', 'get_blocked_users', 'get_profile',
-    'join_room', 'my_invite_code', 'rotate_invite_code', 'set_room_routine'
+    'block_user', 'claim_room_host', 'create_room', 'follow_by_code', 'follow_user',
+    'get_blocked_users', 'get_profile', 'get_session_likers', 'join_room', 'leave_room',
+    'my_invite_code', 'room_host_beat', 'rotate_invite_code', 'set_room_routine'
   ]) e on e = a
   where a is null or e is null
   order by 1));

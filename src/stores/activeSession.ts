@@ -19,6 +19,7 @@ import type { WorkoutTemplate } from '@/lib/wtx'
 import { HapticsService } from '@/services/haptics'
 import { useSettingsStore } from '@/stores/settings'
 import { restJustEnded } from '@/lib/restTime'
+import { RestSoundService } from '@/services/restSound'
 import { warmExerciseImages } from '@/lib/exercises/imageCache'
 import { applyOrder, needsReorder, splitRemoved, type PendingSwap } from '@/lib/roomOrder'
 
@@ -103,10 +104,11 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     if (endsAt && now.value >= endsAt) {
       skipRestTimer()
       // Only for a rest that just ran out with the app on screen; in the
-      // background the Android notification buzzes for it instead.
+      // background the Android notification buzzes and chimes for it instead.
       const onScreen = document.visibilityState === 'visible'
-      if (useSettingsStore().vibrateOnRestEnd && onScreen && restJustEnded(endsAt, now.value)) {
-        void HapticsService.restOver()
+      if (onScreen && restJustEnded(endsAt, now.value)) {
+        if (useSettingsStore().vibrateOnRestEnd) void HapticsService.restOver()
+        RestSoundService.restEnded()
       }
     }
   }

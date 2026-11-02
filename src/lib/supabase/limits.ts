@@ -20,6 +20,40 @@ export const EXERCISE_NAME_MAX = 200
  */
 export const FEED_SNAPSHOT_MAX_BYTES = 32 * 1024
 
+/**
+ * Most routines one account can hold (`routines_limit_insert` in
+ * 20261101080000_routine_limit.sql, which raises {@link ROUTINE_LIMIT}). The
+ * app enforces it for everyone, signed in or not, so a library always fits
+ * the account it signs into.
+ */
+export const ROUTINE_MAX = 300
+
+/** From this many routines on, the library says how close it is to {@link ROUTINE_MAX}. */
+export const ROUTINE_WARN_AT = 270
+
+/** The error the server raises for a routine past {@link ROUTINE_MAX}. */
+export const ROUTINE_LIMIT = 'routine_limit'
+
+/** Whether a library of `count` routines has room for `adding` more. */
+export function canCreateRoutine(count: number, adding = 1): boolean {
+  return count + adding <= ROUTINE_MAX
+}
+
+/** How many more routines fit in a library of `count`. */
+export function routinesLeft(count: number): number {
+  return Math.max(0, ROUTINE_MAX - count)
+}
+
+/** Whether a library of `count` routines is close enough to the cap to say so. */
+export function isNearRoutineLimit(count: number): boolean {
+  return count >= ROUTINE_WARN_AT
+}
+
+export function isRoutineLimit(error: unknown): boolean {
+  const message = (error as { message?: unknown } | null | undefined)?.message
+  return typeof message === 'string' && message.includes(ROUTINE_LIMIT)
+}
+
 /** The error every throttled RPC (and the reports trigger) raises. */
 export const RATE_LIMITED = 'rate_limited'
 

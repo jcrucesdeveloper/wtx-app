@@ -38,6 +38,7 @@ import {
   sameOrder,
   swapsRecord,
 } from '@/lib/roomOrder'
+import { HOST_BEAT_MS, claimDelayMs, nextHost } from '@/lib/roomHost'
 import { isConflict, startVerdict, type WorkoutConflict } from '@/lib/workoutConflict'
 import type { WorkoutSession } from '@/lib/wtx'
 import type { RoomRow, Tables } from '@/lib/supabase/database.types'
@@ -51,6 +52,8 @@ export interface RoomMember {
   displayName: string
   joinedAt: string
   finishedAt: string | null
+  /** When they left the running workout; their sets stay in the recap. */
+  leftAt?: string | null
 }
 
 /** A room error the UI can translate: `room.errors.<code>`. */
@@ -73,6 +76,10 @@ const CURRENT_KEY = 'wtx:currentRoom'
 const MUTED_KEY = 'wtx:roomAlertsMuted'
 const RETRY_MS = 5000
 const MAX_EVENTS = 30
+/** How often a member checks whether a silent host should be taken over from. */
+const CLAIM_CHECK_MS = 15_000
+/** After a refused claim (the server saw the host more recently), look again this much later. */
+const CLAIM_RETRY_MS = 60_000
 /** Minimum gap between two cheers from this device, so a tap-spree can't flood the room. */
 const REACTION_THROTTLE_MS = 400
 
@@ -165,6 +172,20 @@ export const useRoomStore = defineStore('room', () => {
 
   const isMember = (userId: string) => members.value.some((m) => m.userId === userId)
 
+  // The host role moved — the host left, finished, or went silent and someone
+  // took over: say who leads now. Opening another room is not a change.
+  watch(
+    () => [room.value?.id, room.value?.host_id] as const,
+    ([id, host], [prevId, prevHost]) => {
+      if (!id || id !== prevId || host === prevHost) return
+      hostMissingSince = null
+      if (host && prevHost) addEvent({ kind: 'host-changed', from: host })
+    },
+  )
+
+  /** Who'd lead if the host left now; `null` when nobody would be left (the room would end). */
+  const successor = computed(() => nextHost(members.value, room.value?.host_id ?? null))
+
   /** The room's routine as written — everyone follows the same snapshot. */
   const baseRoutine = computed<PlannedExercise[]>(() => {
     const parsed = room.value ? parseTemplateText(room.value.routine_wtt) : undefined
@@ -194,6 +215,20 @@ export const useRoomStore = defineStore('room', () => {
   const routineExercises = computed<PlannedExercise[]>(() =>
     orderedRoutine(slots.value, room.value?.exercise_order, room.value?.removed_slots),
   )
+
+  /**
+   * Where someone starting now begins: the exercise the host is on, so a late
+   * joiner lands next to the group — or the routine's first, before the host
+   * has moved.
+   */
+  const startExercise = computed<string | null>(() => {
+    const focus = focusSlot.value
+    if (focus !== null && !removedSlots.value.includes(focus)) {
+      const name = slots.value[focus]?.name
+      if (name) return name
+    }
+    return routineExercises.value[0]?.name ?? null
+  })
 
   /** Planned working sets per exercise (by normalized name). */
   const plannedByName = computed(
@@ -236,7 +271,8 @@ export const useRoomStore = defineStore('room', () => {
   async function fetchMembers(roomId: string) {
     const { data, error } = await requireSupabase()
       .from('room_members')
-      .select('room_id, user_id, joined_at, finished_at, profiles(display_name)')
+      // `*`, not a column list: a server without left_at yet still answers.
+      .select('*, profiles(display_name)')
       .eq('room_id', roomId)
       .order('joined_at')
     if (error) throw error
@@ -246,6 +282,7 @@ export const useRoomStore = defineStore('room', () => {
       displayName: (row.profiles as { display_name: string } | null)?.display_name ?? '—',
       joinedAt: row.joined_at,
       finishedAt: row.finished_at,
+      leftAt: row.left_at ?? null,
     }))
   }
 
@@ -259,6 +296,7 @@ export const useRoomStore = defineStore('room', () => {
     user_id: string
     joined_at: string
     finished_at: string | null
+    left_at?: string | null
   }
 
   /** Someone else joined — their row arrived over Realtime; only their name needs a query. */
@@ -266,18 +304,27 @@ export const useRoomStore = defineStore('room', () => {
     if (isMember(row.user_id)) return
     members.value = [
       ...members.value,
-      { userId: row.user_id, displayName, joinedAt: row.joined_at, finishedAt: row.finished_at },
+      {
+        userId: row.user_id,
+        displayName,
+        joinedAt: row.joined_at,
+        finishedAt: row.finished_at,
+        leftAt: row.left_at ?? null,
+      },
     ]
     addEvent({ kind: 'joined', from: row.user_id })
   }
 
-  /** finished_at changed on a member we already know about — patch it in place, no query. */
-  function updateMemberFinished(row: Pick<MemberRow, 'user_id' | 'finished_at'>) {
+  /** finished_at or left_at changed on a member we already know about — patch it in place, no query. */
+  function updateMember(row: Pick<MemberRow, 'user_id' | 'finished_at' | 'left_at'>) {
     const index = members.value.findIndex((m) => m.userId === row.user_id)
-    if (index < 0 || members.value[index]!.finishedAt === row.finished_at) return
-    const wasFinished = !!members.value[index]!.finishedAt
+    if (index < 0) return
+    const known = members.value[index]!
+    const leftAt = row.left_at === undefined ? (known.leftAt ?? null) : row.left_at
+    if (known.finishedAt === row.finished_at && (known.leftAt ?? null) === leftAt) return
+    const wasFinished = !!known.finishedAt
     const next = [...members.value]
-    next[index] = { ...next[index]!, finishedAt: row.finished_at }
+    next[index] = { ...known, finishedAt: row.finished_at, leftAt }
     members.value = next
     if (!wasFinished && row.finished_at) {
       addEvent({ kind: 'finished', from: row.user_id })
@@ -335,7 +382,7 @@ export const useRoomStore = defineStore('room', () => {
         void fetchMemberName(row.user_id).then((name) => addMember(row, name))
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'room_members', filter }, (p) => {
-        updateMemberFinished(p.new as MemberRow)
+        updateMember(p.new as MemberRow)
       })
       // Delete events can't be filtered server-side; the old row carries the primary key.
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'room_members' }, (p) => {
@@ -371,6 +418,7 @@ export const useRoomStore = defineStore('room', () => {
         // Back after a drop: whatever changed on the room meanwhile (its order, its
         // status) never arrived, so read it again. The first join just read it.
         if (joinedOnce) void refreshRoom(roomId)
+        else startHostWatch(roomId)
         joinedOnce = true
       })
   }
@@ -387,6 +435,82 @@ export const useRoomStore = defineStore('room', () => {
     channel = null
     joinedOnce = false
     onlineIds.value = []
+    stopHostWatch()
+  }
+
+  // --- When the host goes quiet ---------------------------------------------
+  //
+  // Leaving and finishing pass the host role on at once, on the server. A host
+  // whose app just went away (battery, crash, no signal) can't say so: their
+  // open app tells the server it's there every HOST_BEAT_MS, and once they've
+  // been gone from the room for the grace period, the member first in line
+  // claims the role. The server checks the host's last beat itself, so an early
+  // or a second claim is refused and changes nothing.
+
+  let beatTimer: ReturnType<typeof setInterval> | undefined
+  let claimTimer: ReturnType<typeof setInterval> | undefined
+  let onVisible: (() => void) | undefined
+  let claiming = false
+  /** When this device first saw the host missing from the room; reset while they're there. */
+  let hostMissingSince: number | null = null
+
+  function hostBeat(roomId: string) {
+    const current = room.value
+    if (!isHost.value || current?.id !== roomId || current.status === 'finished') return
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return
+    void requireSupabase().rpc('room_host_beat', { p_room_id: roomId })
+  }
+
+  /**
+   * One round of the silent-host check: takes over from a host who has been
+   * gone longer than this member's place in line allows.
+   */
+  async function checkHost(roomId: string, now = Date.now()) {
+    const current = room.value
+    if (claiming || !current || current.id !== roomId || current.status === 'finished') return
+    const host = current.host_id
+    if (host && onlineIds.value.includes(host)) {
+      hostMissingSince = null
+      return
+    }
+    const delay = claimDelayMs(members.value, host, onlineIds.value, myId.value)
+    if (delay === null) return
+    hostMissingSince ??= now
+    if (now - hostMissingSince < delay) return
+    claiming = true
+    try {
+      const { data, error } = await requireSupabase().rpc('claim_room_host', { p_room_id: roomId })
+      if (error) {
+        // The server saw the host more recently, or someone else got there first: look again later.
+        hostMissingSince = now - delay + CLAIM_RETRY_MS
+        return
+      }
+      if (data?.id && room.value?.id === roomId) room.value = mergeRoomRow(room.value, data)
+    } finally {
+      claiming = false
+    }
+  }
+
+  function startHostWatch(roomId: string) {
+    stopHostWatch()
+    hostBeat(roomId)
+    beatTimer = setInterval(() => hostBeat(roomId), HOST_BEAT_MS)
+    claimTimer = setInterval(() => void checkHost(roomId), CLAIM_CHECK_MS)
+    if (typeof document !== 'undefined') {
+      onVisible = () => {
+        if (document.visibilityState === 'visible') hostBeat(roomId)
+      }
+      document.addEventListener('visibilitychange', onVisible)
+    }
+  }
+
+  function stopHostWatch() {
+    clearInterval(beatTimer)
+    clearInterval(claimTimer)
+    beatTimer = claimTimer = undefined
+    if (onVisible && typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisible)
+    onVisible = undefined
+    hostMissingSince = null
   }
 
   /** Loads a room this user belongs to and starts following it live. */
@@ -508,12 +632,21 @@ export const useRoomStore = defineStore('room', () => {
       .eq('user_id', uid)
   }
 
-  /** Leaves the room: before it starts this removes the membership, afterwards it just stops following. */
+  /**
+   * Leaves the room. Before it starts the membership goes; once it's running
+   * this member is marked as left (their sets stay in the recap). If they were
+   * the host, the server hands the role to whoever joined earliest of those
+   * still working out — or ends the room if nobody is.
+   */
   async function leave() {
     const current = room.value
     const uid = myId.value
-    if (current && uid && current.status === 'lobby' && !isHost.value) {
-      await requireSupabase().from('room_members').delete().eq('room_id', current.id).eq('user_id', uid)
+    if (current && uid && current.status !== 'finished') {
+      try {
+        await requireSupabase().rpc('leave_room', { p_room_id: current.id })
+      } catch {
+        /* offline: stop following here anyway */
+      }
     }
     reset()
   }
@@ -760,9 +893,12 @@ export const useRoomStore = defineStore('room', () => {
   }
 
   // Where the host is, everyone goes: the host's move to another exercise is the room's.
+  // Becoming host isn't a move: the new host's screen doesn't pull everyone
+  // over the moment the role arrives — their next move does.
   watch(
     [() => activeSession.focusedExercise?.slot, () => room.value?.id, () => room.value?.status, isHost],
-    () => {
+    ([slot, id, status], [prevSlot, prevId, prevStatus]) => {
+      if (slot === prevSlot && id === prevId && status === prevStatus) return
       const roomId = activeSession.session?.roomId
       if (!roomId || !isHost.value || room.value?.id !== roomId || room.value.status !== 'active') return
       publishOrder(roomId)
@@ -894,6 +1030,8 @@ export const useRoomStore = defineStore('room', () => {
     currentRoomId,
     openRoomId,
     isHost,
+    successor,
+    startExercise,
     routineExercises,
     order,
     orderVersion,
@@ -914,5 +1052,6 @@ export const useRoomStore = defineStore('room', () => {
     finishMine,
     leave,
     reset,
+    checkHost,
   }
 })

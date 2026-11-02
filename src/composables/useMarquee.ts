@@ -1,7 +1,9 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
 
-/** Scroll speed of an overflowing name, in px per second. */
-export const MARQUEE_SPEED = 30
+/** Scroll speed of an overflowing name, in px per second: slow enough to read along, not to catch the eye. */
+export const MARQUEE_SPEED = 14
+/** Shortest slide, in seconds, so a name cut off by a few px drifts instead of flicking. */
+export const MARQUEE_MIN_MOVE = 2
 /** Overflow below this many px is rounding noise, not a cut-off name. */
 export const MARQUEE_TOLERANCE = 2
 /**
@@ -9,7 +11,7 @@ export const MARQUEE_TOLERANCE = 2
  * keyframes in MarqueeText.vue). With `alternate`, the two holds meet, so the
  * text rests for twice this share at the start and at the end.
  */
-export const MARQUEE_HOLD = 0.2
+export const MARQUEE_HOLD = 0.3
 
 export interface MarqueeMetrics {
   /** How far the text slides left so its end lines up with the box's end. */
@@ -25,7 +27,7 @@ export interface MarqueeMetrics {
 export function marqueeMetrics(boxWidth: number, contentWidth: number): MarqueeMetrics | null {
   const distance = Math.ceil(contentWidth - boxWidth)
   if (!(boxWidth > 0) || distance <= MARQUEE_TOLERANCE) return null
-  const moving = Math.max(1, distance / MARQUEE_SPEED)
+  const moving = Math.max(MARQUEE_MIN_MOVE, distance / MARQUEE_SPEED)
   const duration = Math.round((moving / (1 - 2 * MARQUEE_HOLD)) * 100) / 100
   return { distance, duration }
 }
