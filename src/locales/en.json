@@ -750,7 +750,7 @@
     }
   },
   "consent": {
-    "text": "By creating an account, your routines and workout sessions will be uploaded and stored on our servers so they stay in sync and you can train with friends. You can delete your account and all of its data at any time from Configuration.",
+    "text": "By creating an account, your routines and workout sessions will be uploaded and stored on our servers so they stay in sync and you can train with friends. You can delete your account and all of its data at any time from Configuration. Workouts you finish are shared with your followers by default; untick “Share to feed” to keep one private.",
     "accept": "I'm 16 or older and I accept the {terms} and the {privacy}",
     "terms": "Terms",
     "privacy": "Privacy Policy"
@@ -984,7 +984,7 @@
   },
   "legal": {
     "back": "Back",
-    "updated": "Last updated: October 2, 2026",
+    "updated": "Last updated: November 2, 2026",
     "fallback": {
       "controller": "the independent developer of WTX (named on its App Store and Google Play pages)",
       "contactEmail": "the contact email shown on WTX's App Store and Google Play pages"
@@ -1016,6 +1016,13 @@
           "body": [
             "Your routines, workouts, notes, display name and bio are yours. You give us a limited, worldwide, non-exclusive, royalty-free license to store, copy and display them only as needed to run WTX, for example to sync them between your devices and to show the workouts you share to your followers. This license ends when you delete the content or your account.",
             "You're responsible for what you post, and you confirm you have the right to post it."
+          ]
+        },
+        {
+          "heading": "Sharing workouts",
+          "body": [
+            "Sharing finished workouts with your followers is a core part of a WTX account. By creating an account, you agree that each workout you finish is shared with your followers by default.",
+            "You decide every time: untick “Share to feed” when you finish a workout to keep it private. WTX remembers your last choice. To remove a workout you already shared, delete it."
           ]
         },
         {
@@ -1107,7 +1114,7 @@
         {
           "heading": "The short version",
           "body": [
-            "Without an account, your routines and workouts stay on your device. With an account, they're stored on our servers so they sync, and you decide what you share with other people.",
+            "Without an account, your routines and workouts stay on your device. With an account, they're stored on our servers so they sync, and each workout you finish is shared with your followers unless you untick “Share to feed”.",
             "The free app shows ads from Google AdMob. You're asked for consent where the law requires it, and on iPhone and iPad you choose whether WTX may track you.",
             "We don't sell your personal data."
           ]
@@ -1139,7 +1146,7 @@
           "body": [
             "Only you can see your email address, your routines, the workouts you don't share and your settings.",
             "People who follow you can see your display name, bio, the date you joined, your follower and following counts, and the workouts you share, in full: exercises, sets, notes, stats, records, kudos count and the names of the people you trained with. Your profile also shows them the dates of your shared workouts.",
-            "Anyone with your invite code, link or QR code can follow you without approval, so only share it with people you trust. You can remove a follower or block someone at any time, and you can turn off sharing when you finish a workout. To remove a workout you already shared, delete it.",
+            "Anyone with your invite code, link or QR code can follow you without approval, so only share it with people you trust. You can remove a follower or block someone at any time, and each workout you finish is shared with them by default: untick “Share to feed” to keep it private. To remove a workout you already shared, delete it.",
             "In a room (up to 8 people), the other members see your display name, the routine being trained and each set you complete, live. When a room finishes, everyone in it automatically follows each other.",
             "People you follow and people you've trained with in a room can see your display name, bio and profile counts, including how many times you've trained together, but not your workouts unless they follow you.",
             "WTX has no public profiles and no people search: your profile is visible only to the people described here."
