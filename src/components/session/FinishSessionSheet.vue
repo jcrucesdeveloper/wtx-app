@@ -81,7 +81,7 @@ const remainingSets = computed(() => stats.value.totalSets - stats.value.complet
 const step = ref<'review' | 'routine' | 'save-new'>('review')
 const sessionName = ref('')
 const saveTarget = ref<SessionSaveTarget>('profile')
-const shareToFeed = ref(false)
+const shareToFeed = ref(true)
 const newRoutineName = ref('')
 const error = ref('')
 let openedAt = 0

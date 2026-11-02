@@ -10,8 +10,8 @@ describe('settings: share to feed default', () => {
     setActivePinia(createPinia())
   })
 
-  it('is off until the user ticks it (privacy by default)', () => {
-    expect(useSettingsStore().shareToFeedDefault).toBe(false)
+  it('is on until the user unticks it (accepted with the Terms on sign-up)', () => {
+    expect(useSettingsStore().shareToFeedDefault).toBe(true)
   })
 
   it("keeps the user's last choice", () => {
