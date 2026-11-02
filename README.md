@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="listing/visuals/png/icon.png" alt="wtx icon" width="96" height="96">
+  <img src="docs/images/icon.png" alt="wtx icon" width="96" height="96">
 
   # wtx
 
@@ -35,15 +35,15 @@ routine in the URL.
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/en/01-log.png" alt="Logging a workout" width="220"><br>
+      <img src="docs/images/log.png" alt="Logging a workout" width="220"><br>
       <sub>Log a workout</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/en/02-records.png" alt="Finish screen with a personal record" width="220"><br>
+      <img src="docs/images/records.png" alt="Finish screen with a personal record" width="220"><br>
       <sub>Records and streaks</sub>
     </td>
     <td align="center" width="33%">
-      <img src="listing/visuals/screens/en/06-share.png" alt="Share a routine via QR" width="220"><br>
+      <img src="docs/images/share-qr.png" alt="Share a routine via QR" width="220"><br>
       <sub>Share via QR</sub>
     </td>
   </tr>
