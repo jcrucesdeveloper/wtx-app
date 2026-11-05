@@ -32,7 +32,7 @@ describe('build-legal', () => {
   })
 
   it('builds both languages with no leftover placeholders', () => {
-    for (const doc of ['privacy', 'terms', 'deletion']) {
+    for (const doc of ['privacy', 'terms', 'deletion', 'support']) {
       const html = buildLegalPage(
         doc,
         { en, es },
@@ -50,5 +50,14 @@ describe('build-legal', () => {
     const html = buildLegalPage('deletion', { en, es }, {})
     expect(html).toContain('href="privacy.html#en"')
     expect(html).toContain('href="privacy.html#es"')
+  })
+
+  it('links the support page to account deletion, privacy and terms', () => {
+    const html = buildLegalPage('support', { en, es }, { VITE_SUPPORT_EMAIL: 'help@example.com' })
+    for (const file of ['delete-account.html', 'privacy.html', 'terms.html']) {
+      expect(html).toContain(`href="${file}#en"`)
+      expect(html).toContain(`href="${file}#es"`)
+    }
+    expect(html).toContain('href="mailto:help@example.com"')
   })
 })

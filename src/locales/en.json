@@ -1246,6 +1246,30 @@
           ]
         }
       ]
+    },
+    "support": {
+      "title": "WTX support",
+      "body": [
+        "Need help with WTX, found a bug, or have a question about your account? Email {contactEmail}. We usually reply within 2 business days.",
+        {
+          "heading": "Report a post or an account",
+          "body": [
+            "In the app, open the ⋯ menu on a profile or a shared workout and choose Report or Block. We review reports within 24 hours and remove content that breaks the Terms."
+          ]
+        },
+        {
+          "heading": "Your data",
+          "body": [
+            "Configuration → Data → Export all data saves your routines and workouts as a .zip of plain-text files. WTX works without an account; an account only adds sync, the feed and group workouts."
+          ]
+        },
+        {
+          "heading": "Delete your account",
+          "body": [
+            "Open Configuration → Account → Delete account, type DELETE and confirm. You can also ask by email; the account deletion page below has the details."
+          ]
+        }
+      ]
     }
   },
   "settings": {

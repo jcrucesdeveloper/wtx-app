@@ -5,16 +5,19 @@
 
   - Google Mobile Ads / UMP and Capacitor ship their own PrivacyInfo.xcprivacy
     files for the required-reason APIs *they* call; those aren't repeated here.
-  - NSPrivacyTracking is true because AdMob may serve personalized ads using the
-    IDFA once the user allows App Tracking Transparency. No tracking domains are
-    listed: the app itself never contacts a tracking domain, and the ad SDK
-    declares its own network behavior in its bundled manifest.
+  - Matches the 1.x builds: ads off (VITE_ADS_ENABLED=false, so the Mobile Ads
+    SDK is never initialised and no tracking prompt is shown) and no Sentry DSN.
+    So NSPrivacyTracking is false and the advertising ID, advertising data and
+    crash data are not declared. Before a build with ads or Sentry, set
+    NSPrivacyTracking to true and declare DeviceID + AdvertisingData (tracking,
+    third-party advertising) and CrashData (not linked) again, and update the
+    App Store Connect answers with them.
   - Keep this in sync with the App Privacy "nutrition label" in App Store Connect.
 -->
 <plist version="1.0">
 <dict>
 	<key>NSPrivacyTracking</key>
-	<true/>
+	<false/>
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
 	<key>NSPrivacyAccessedAPITypes</key>
@@ -112,48 +115,6 @@
 			<false/>
 			<key>NSPrivacyCollectedDataTypePurposes</key>
 			<array>
-				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
-			</array>
-		</dict>
-		<!-- Crash reports via Sentry (src/services/crashReporting.ts). No user
-		     identity is attached (no Sentry.setUser, sendDefaultPii off). -->
-		<dict>
-			<key>NSPrivacyCollectedDataType</key>
-			<string>NSPrivacyCollectedDataTypeCrashData</string>
-			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypeTracking</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypePurposes</key>
-			<array>
-				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
-			</array>
-		</dict>
-		<!-- Google AdMob: advertising identifier (IDFA, only with ATT permission). -->
-		<dict>
-			<key>NSPrivacyCollectedDataType</key>
-			<string>NSPrivacyCollectedDataTypeDeviceID</string>
-			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypeTracking</key>
-			<true/>
-			<key>NSPrivacyCollectedDataTypePurposes</key>
-			<array>
-				<string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
-				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
-			</array>
-		</dict>
-		<!-- Google AdMob: ads seen / interacted with. -->
-		<dict>
-			<key>NSPrivacyCollectedDataType</key>
-			<string>NSPrivacyCollectedDataTypeAdvertisingData</string>
-			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypeTracking</key>
-			<true/>
-			<key>NSPrivacyCollectedDataTypePurposes</key>
-			<array>
-				<string>NSPrivacyCollectedDataTypePurposeThirdPartyAdvertising</string>
 				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
 			</array>
 		</dict>
