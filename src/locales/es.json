@@ -1246,6 +1246,30 @@
           ]
         }
       ]
+    },
+    "support": {
+      "title": "Soporte de WTX",
+      "body": [
+        "¿Necesitas ayuda con WTX, encontraste un error o tienes una pregunta sobre tu cuenta? Escribe a {contactEmail}. Normalmente respondemos en 2 días hábiles.",
+        {
+          "heading": "Reportar una publicación o una cuenta",
+          "body": [
+            "En la app, abre el menú ⋯ de un perfil o de un entrenamiento compartido y elige Reportar o Bloquear. Revisamos los reportes en 24 horas y quitamos el contenido que no cumple los Términos."
+          ]
+        },
+        {
+          "heading": "Tus datos",
+          "body": [
+            "Ajustes → Datos → Exportar todos los datos guarda tus rutinas y entrenamientos en un .zip de archivos de texto plano. WTX funciona sin cuenta; una cuenta solo agrega sincronización, el feed y los entrenamientos en grupo."
+          ]
+        },
+        {
+          "heading": "Eliminar tu cuenta",
+          "body": [
+            "Abre Ajustes → Cuenta → Eliminar cuenta, escribe ELIMINAR y confirma. También puedes pedirlo por correo; la página de eliminación de cuenta, abajo, tiene los detalles."
+          ]
+        }
+      ]
     }
   },
   "settings": {
