@@ -16,13 +16,27 @@ export const LOCALES = [
   { code: 'es', label: 'Español' },
 ]
 
-export const DOCS = ['privacy', 'terms', 'deletion']
+export const DOCS = ['privacy', 'terms', 'deletion', 'support']
 
 /**
  * Published file name per doc. `deletion` is the account-deletion page Google
  * Play requires as a web link (request deletion without the app installed).
+ * `support` is the Support URL App Store Connect requires.
  */
-export const PAGE_FILES = { privacy: 'privacy.html', terms: 'terms.html', deletion: 'delete-account.html' }
+export const PAGE_FILES = {
+  privacy: 'privacy.html',
+  terms: 'terms.html',
+  deletion: 'delete-account.html',
+  support: 'support.html',
+}
+
+/** The pages each page links to at its end. */
+export const COMPANIONS = {
+  privacy: ['terms'],
+  terms: ['privacy'],
+  deletion: ['privacy'],
+  support: ['deletion', 'privacy', 'terms'],
+}
 
 export function escapeHtml(text) {
   return String(text)
@@ -128,8 +142,6 @@ footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
 
 /** One whole page (see {@link PAGE_FILES}), all locales, as an HTML string. */
 export function buildLegalPage(doc, messagesByLocale, env) {
-  // The footer links to the companion page: privacy ↔ terms, deletion → privacy.
-  const other = doc === 'privacy' ? 'terms' : 'privacy'
   const titles = LOCALES.map(({ code }) => messagesByLocale[code].legal[doc].title)
 
   const articles = LOCALES.map(({ code }) => {
@@ -147,7 +159,9 @@ export function buildLegalPage(doc, messagesByLocale, env) {
       `    <h1>${escapeHtml(legal[doc].title)}</h1>`,
       `    <p class="updated">${escapeHtml(legal.updated)}</p>`,
       body,
-      `    <p class="lang-note"><a href="${PAGE_FILES[other]}#${code}">${escapeHtml(legal[other].title)}</a></p>`,
+      `    <p class="lang-note">${COMPANIONS[doc]
+        .map((other) => `<a href="${PAGE_FILES[other]}#${code}">${escapeHtml(legal[other].title)}</a>`)
+        .join(' · ')}</p>`,
       `  </article>`,
     ].join('\n')
   }).join('\n')
