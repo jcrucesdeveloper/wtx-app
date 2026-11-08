@@ -22,24 +22,23 @@ const TEST_AD_UNIT_IDS = {
 const AD_TEST_MODE = import.meta.env.DEV || import.meta.env.VITE_ADMOB_TESTING !== 'false'
 
 /**
- * Which native platforms show ads — none unless the build sets VITE_ADS_ENABLED
- * to `true` (Android and iOS) or a comma-separated list such as `android`.
- * One web bundle feeds both apps, so the list keeps a platform ad-free even when
- * it's built from the same env. Where ads are off the Mobile Ads SDK is never
- * initialised: no consent form, no iOS tracking prompt and no ad request.
+ * One switch per app: VITE_ADS_ANDROID and VITE_ADS_IOS. Each is off unless set
+ * to `true`, so one app can show ads while the other stays ad-free, even when
+ * both are built from the same env. Where ads are off the Mobile Ads SDK is
+ * never initialised: no consent form, no iOS tracking prompt and no ad request.
+ * The web app never shows ads.
  */
-export function adPlatforms(flag: string | undefined): string[] {
-  const value = (flag ?? '').trim().toLowerCase()
-  if (value === 'true') return ['android', 'ios']
-  if (value === '' || value === 'false') return []
-  return value.split(',').map((p) => p.trim()).filter((p) => p === 'android' || p === 'ios')
+export function adsEnabledFor(
+  platform: string,
+  env: { VITE_ADS_ANDROID?: string; VITE_ADS_IOS?: string },
+): boolean {
+  if (platform === 'android') return env.VITE_ADS_ANDROID === 'true'
+  if (platform === 'ios') return env.VITE_ADS_IOS === 'true'
+  return false
 }
 
-const AD_PLATFORMS = adPlatforms(import.meta.env.VITE_ADS_ENABLED)
-
-/** Ads only exist in the native apps the feature flag names. */
 function adsAvailable(): boolean {
-  return AD_PLATFORMS.includes(Capacitor.getPlatform())
+  return adsEnabledFor(Capacitor.getPlatform(), import.meta.env)
 }
 
 function interstitialAdUnitId(): string {
@@ -69,7 +68,7 @@ function applyConsentInfo(consent: AdmobConsentInfo) {
 
 /**
  * Thin wrapper around @capacitor-community/admob. Every call is a safe no-op
- * on web, on platforms where ads are switched off (`VITE_ADS_ENABLED`) and once the user has
+ * on web, in an app whose ads are switched off (`VITE_ADS_ANDROID` / `VITE_ADS_IOS`) and once the user has
  * removed ads — callers never need to check the flag, platform or the ads
  * store themselves.
  */
