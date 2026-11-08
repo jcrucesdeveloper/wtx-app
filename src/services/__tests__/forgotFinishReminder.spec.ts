@@ -138,6 +138,8 @@ describe('initForgotFinishReminder', () => {
       id: FORGOT_FINISH_ID,
       channelId: FORGOT_FINISH_CHANNEL,
       actionTypeId: FORGOT_FINISH_ACTIONS,
+      // Exact would open Android's "Alarms & reminders" screen on every schedule.
+      isExactNotification: false,
     })
     expect(scheduledAt()).toBe(NOW + FIVE_HOURS)
   })
