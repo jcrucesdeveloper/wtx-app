@@ -766,6 +766,8 @@
     "emailPlaceholder": "tu{'@'}ejemplo.com",
     "password": "Contraseña",
     "passwordHint": "Al menos 6 caracteres",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
     "working": "Un momento…",
     "syncing": "Sincronizando tus rutinas y sesiones…",
     "confirmEmail": "Revisa tu correo para confirmarlo y luego inicia sesión.",
