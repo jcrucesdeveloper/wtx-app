@@ -22,8 +22,12 @@
 	<string>WTX lets you pick a photo for your workout card. The photo stays on your phone.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>WTX saves your workout card to your photos when you choose Save Image.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>WTX is free thanks to ads. Allowing tracking lets our ad partner (Google AdMob) use your device's advertising identifier to show ads that are more relevant to you. Your workouts are never shared with advertisers, and you'll still see ads if you decline.</string>
+	<!-- No NSUserTrackingUsageDescription while iOS ads are off (VITE_ADS_IOS=false):
+	     with the key, App Store Connect requires tracking data types in App Privacy.
+	     Before an iOS build with ads on, add it back:
+	     "WTX is free thanks to ads. Allowing tracking lets our ad partner (Google AdMob)
+	     use your device's advertising identifier to show ads that are more relevant to you.
+	     Your workouts are never shared with advertisers, and you'll still see ads if you decline." -->
 	<!-- Google's recommended SKAdNetwork IDs for AdMob (Google first, then its
 	     buyers), copied from https://developers.google.com/admob/ios/quick-start
 	     (list last updated 2026-09-29). Refresh it before each store release. -->
