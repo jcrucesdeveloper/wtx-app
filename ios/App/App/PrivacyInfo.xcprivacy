@@ -5,7 +5,7 @@
 
   - Google Mobile Ads / UMP and Capacitor ship their own PrivacyInfo.xcprivacy
     files for the required-reason APIs *they* call; those aren't repeated here.
-  - Matches the 1.x builds: ads off (VITE_ADS_ENABLED=false, so the Mobile Ads
+  - Matches the 1.x builds: ads off (VITE_ADS_IOS=false, so the Mobile Ads
     SDK is never initialised and no tracking prompt is shown) and no Sentry DSN.
     So NSPrivacyTracking is false and the advertising ID, advertising data and
     crash data are not declared. Before a build with ads or Sentry, set

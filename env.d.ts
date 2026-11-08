@@ -4,8 +4,10 @@
 declare const __APP_VERSION__: string
 
 interface ImportMetaEnv {
-  /** Feature flag for ads. Only `'true'` turns them on; anything else ships the app without ads. */
-  readonly VITE_ADS_ENABLED?: string
+  /** Ads in the Android app. Only `'true'` turns them on; anything else ships it without ads. */
+  readonly VITE_ADS_ANDROID?: string
+  /** Ads in the iOS app. Only `'true'` turns them on; anything else ships it without ads. */
+  readonly VITE_ADS_IOS?: string
   /** Real AdMob interstitial ad unit ID for Android. Falls back to Google's test unit when unset. */
   readonly VITE_ADMOB_INTERSTITIAL_ID_ANDROID?: string
   /** Real AdMob interstitial ad unit ID for iOS. Falls back to Google's test unit when unset. */
