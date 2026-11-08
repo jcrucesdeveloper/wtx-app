@@ -1,0 +1,26 @@
+2026-09-30
+- First public release of WTX for iOS, Android and the web
+- Write routines as plain text (.wtt) or build them in an editor with sets, reps, weight, duration, rest and per-set weights
+- Three starter routines for new users; drag to reorder routines and exercises
+- Exercise picker with a large exercise library, muscle-group filters, images and Spanish names
+- Load a routine from a file, pasted text, a share link or a QR code, and share your own the same ways
+- Live workout tracking: log a set with last time's values, warm-up and drop sets, edit exercises mid-workout, and a rest timer
+- Progress and stats while you train, a review before finishing, and a finish screen with personal records, comparison to last time, week streak and milestones
+- Workout history with a training calendar, and sharing for finished workouts
+- Opt-in workout reminders
+- Optional accounts: sign up with email to sync routines and workouts across devices, with email confirmation and password recovery
+- Keep a workout on the device only, or save it to your account later
+- Export all your data as a .zip and import it back; delete your account and its data at any time
+- Group workouts: create a room from a routine and invite friends with a code, link or QR code
+- Train together live: see each other's sets, team progress and personal records, and send cheers
+- A recap when everyone finishes; training together makes you follow each other
+- A feed of workouts shared by people you follow, with training partners and kudos
+- Open any shared workout on its own page to see everything that was logged
+- Profiles with name, bio, workout count, followers, an activity calendar with your week streak, and shared workouts
+- Follow by invite code, link or QR code; follow back, unfollow and remove followers; reset your invite code
+- Shared workouts are visible only to your followers
+- Report posts and accounts, block and unblock people, and a filter for offensive names, bios and workouts
+- English and Spanish; dark, light or system theme with an accent colour; kg or lb
+- First-run onboarding, a layout for notched phones, and an Android back button that closes open sheets first
+- Privacy Policy, Terms and account-deletion pages in the app and on the web, and a Contact support link
+- Security: access rules on every table, rate limits on codes, follows, blocks and reports, and size limits on stored data
