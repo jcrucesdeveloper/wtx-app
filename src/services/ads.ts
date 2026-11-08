@@ -22,15 +22,24 @@ const TEST_AD_UNIT_IDS = {
 const AD_TEST_MODE = import.meta.env.DEV || import.meta.env.VITE_ADMOB_TESTING !== 'false'
 
 /**
- * Feature flag for ads as a whole — OFF unless the build sets
- * VITE_ADS_ENABLED=true. While off the Mobile Ads SDK is never initialised, so
- * there's no consent form, no iOS tracking prompt and no ad request.
+ * Which native platforms show ads — none unless the build sets VITE_ADS_ENABLED
+ * to `true` (Android and iOS) or a comma-separated list such as `android`.
+ * One web bundle feeds both apps, so the list keeps a platform ad-free even when
+ * it's built from the same env. Where ads are off the Mobile Ads SDK is never
+ * initialised: no consent form, no iOS tracking prompt and no ad request.
  */
-export const ADS_ENABLED = import.meta.env.VITE_ADS_ENABLED === 'true'
+export function adPlatforms(flag: string | undefined): string[] {
+  const value = (flag ?? '').trim().toLowerCase()
+  if (value === 'true') return ['android', 'ios']
+  if (value === '' || value === 'false') return []
+  return value.split(',').map((p) => p.trim()).filter((p) => p === 'android' || p === 'ios')
+}
 
-/** Ads only exist in the native apps, and only when the feature flag is on. */
+const AD_PLATFORMS = adPlatforms(import.meta.env.VITE_ADS_ENABLED)
+
+/** Ads only exist in the native apps the feature flag names. */
 function adsAvailable(): boolean {
-  return ADS_ENABLED && Capacitor.getPlatform() !== 'web'
+  return AD_PLATFORMS.includes(Capacitor.getPlatform())
 }
 
 function interstitialAdUnitId(): string {
@@ -60,7 +69,7 @@ function applyConsentInfo(consent: AdmobConsentInfo) {
 
 /**
  * Thin wrapper around @capacitor-community/admob. Every call is a safe no-op
- * on web, while ads are switched off (`ADS_ENABLED`) and once the user has
+ * on web, on platforms where ads are switched off (`VITE_ADS_ENABLED`) and once the user has
  * removed ads — callers never need to check the flag, platform or the ads
  * store themselves.
  */
