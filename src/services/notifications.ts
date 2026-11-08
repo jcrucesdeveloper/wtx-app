@@ -68,6 +68,8 @@ export const NotificationService = {
             body: atRisk
               ? t('notifications.streakBody', { count: streak, next: streak + 1 })
               : t('notifications.reminderBody'),
+            // Inexact on purpose: exact would open Android's "Alarms & reminders" screen.
+            isExactNotification: false,
             schedule: { at },
           },
         ],

@@ -104,6 +104,9 @@ async function schedule(at: number): Promise<void> {
           actionTypeId: FORGOT_FINISH_ACTIONS,
           autoCancel: true,
           // Inexact (the app has no exact-alarm permission); a few minutes late is fine.
+          // Without isExactNotification: false the plugin opens Android's
+          // "Alarms & reminders" settings screen on every schedule.
+          isExactNotification: false,
           schedule: { at: new Date(at), allowWhileIdle: true },
         },
       ],
