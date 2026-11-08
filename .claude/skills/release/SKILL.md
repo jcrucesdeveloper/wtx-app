@@ -1,89 +1,61 @@
 ---
 name: release
-description: Cut a WTX release — bump the version everywhere (package.json, Android, iOS), write changelog/X.Y.Z.txt from the commits since the last tag, commit, create an annotated vX.Y.Z tag on main, and push. Use when the user says "release", "launch", "ship vX.Y.Z", "tag a version", or asks for a changelog for a launch.
+description: Bump the WTX version — set the new version in package.json and iOS, write changelog/X.Y.Z.txt from the commits since the last tag, copy it to src/changelog.txt, commit and tag vX.Y.Z on dev. Never pushes, never touches main, never builds. Use when the user says "release", "bump the version", "new version", "ship vX.Y.Z" or "tag a version".
 ---
 
 # Release WTX
 
-Releases are cut from `main`, tagged `vX.Y.Z` (annotated), and described in
-`changelog/X.Y.Z.txt`, one file per version ([SemVer](https://semver.org)). The argument is the new version (`1.2.0`) or
-a bump type (`major` / `minor` / `patch`); if neither is given, propose one
-from the commits (breaking → major, new features → minor, fixes only → patch)
-and confirm it with the user.
+Four steps on `dev`: bump → changelog → copy into the app → commit and tag.
+The argument is the new version (`1.2.0`) or `major` / `minor` / `patch`.
+Without one, propose it from the commits (new features → minor, only fixes →
+patch) and confirm with the user.
 
-## 1. Preconditions — stop and report if any fail
+Never push, never merge into or switch to `main`, never build the app (the user
+does all of that).
 
-- Working tree clean (`git status --short` shows no tracked changes). Don't
-  commit other people's WIP as part of a release.
-- `git fetch origin --tags`. The tag `vX.Y.Z` must not exist locally or on
-  `origin` — never move, delete or re-point an existing tag.
-- Get onto an up-to-date `main`: `git switch main && git merge --ff-only origin/main`.
-  If the user wants what's on `dev` released (the usual case), `git merge --no-edit dev`
-  into `main`. Resolve conflicts carefully; never force-push.
-- Checks pass on `main`: `npm run type-check`, `npx vitest run`, `npx eslint src`,
-  `npx oxlint src`. A failing check blocks the release.
+## 0. Check first — stop and say why if any fail
 
-## 2. Bump the version
+- On `dev`, and `git status --short` shows no tracked changes.
+- The tag `vX.Y.Z` doesn't exist yet (`git tag -l vX.Y.Z`).
 
-| File | Field | Rule |
-|---|---|---|
-| `package.json` | `"version"` | `X.Y.Z` (Sentry's release and the in-app version read it via `__APP_VERSION__`). Y and Z must stay ≤ 99. |
-| `ios/App/App.xcodeproj/project.pbxproj` | `MARKETING_VERSION` (Debug + Release) | `X.Y.Z` |
-| `ios/App/App.xcodeproj/project.pbxproj` | `CURRENT_PROJECT_VERSION` (Debug + Release) | +1 per uploaded build (it must strictly increase) |
+## 1. Bump the version
 
-Android needs no edit: `android/app/build.gradle` reads `package.json` and
-derives `versionName` (`X.Y.Z`) and `versionCode`
-(`X*1000000 + Y*10000 + Z*100 + buildNumber`). `buildNumber` is a Gradle
-property that defaults to 0; it's only for uploading the same version to Play
-again.
+- `package.json`: `"version": "X.Y.Z"`. Android reads it from there.
+- `ios/App/App.xcodeproj/project.pbxproj`: `MARKETING_VERSION = X.Y.Z;` and
+  `CURRENT_PROJECT_VERSION` + 1 (both Debug and Release).
 
-Edit the exact lines (they're few); don't reformat the files. Verify with
-`grep -n '"version"' package.json` and
-`grep -n "MARKETING_VERSION\|CURRENT_PROJECT_VERSION" ios/App/App.xcodeproj/project.pbxproj`.
+Edit only those lines.
 
-## 3. Write changelog/X.Y.Z.txt
+## 2. Write changelog/X.Y.Z.txt
 
-- Source: `git log <last tag>..HEAD --no-merges --format="%h %s"`. Read diffs
-  of anything whose subject is unclear — don't guess.
-- Plain text, English, nothing else in the file:
+From `git log <last tag>..HEAD --no-merges --format="%h %s"`. Plain text,
+English:
 
-  ```
-  YYYY-MM-DD
-  - First change
-  - Second change
-  ```
+```
+YYYY-MM-DD
+- First change
+- Second change
+```
 
-  Line 1 is the release date; every other line is `- ` and one change on a
-  single line. No headings, no Markdown, no wrapped lines.
-- Features first, then other changes, then fixes (start those with `Fixed: `).
-- Write for users, not developers: what each change does for them, merged
-  where several commits make one feature. Leave out chores, test-only, lint,
-  CI, refactors, docs and WIP commits unless users notice them. Never paste
-  raw commit subjects.
-- Copy it over `src/changelog.txt`: that copy is the only changelog the app
-  ships, shown under Configuration -> version.
+Line 1 is today's date. Every other line is `- ` and one change, on a single line.
+Features first, fixes last (start them with `Fixed: `). Write for users: what each
+change does for them, several commits merged into one line where they're one
+feature. Leave out chores, tests, refactors, docs and anything users won't notice.
 
-## 4. Commit, tag, push
+## 3. Copy it into the app
+
+```sh
+cp changelog/X.Y.Z.txt src/changelog.txt
+```
+
+`src/changelog.txt` is the only changelog the app ships (Configuration → version).
+
+## 4. Commit and tag
 
 ```sh
 git add package.json ios/App/App.xcodeproj/project.pbxproj changelog/X.Y.Z.txt src/changelog.txt
-git commit -m "Release vX.Y.Z"            # + the session's Co-Authored-By trailer
-git tag -a vX.Y.Z -m "WTX vX.Y.Z" -m "<the changes from changelog/X.Y.Z.txt>"
+git commit -m "Release vX.Y.Z"      # plus the session's Co-Authored-By line
+git tag -a vX.Y.Z -m "WTX vX.Y.Z"
 ```
 
-Pushing publishes the release, so confirm first unless the user already asked
-for it in this request. Then:
-
-```sh
-git push origin main
-git push origin vX.Y.Z                     # push the one tag, not --tags
-git switch dev && git merge --ff-only main || git merge --no-edit main
-git push origin dev                        # dev carries the bumped version too
-```
-
-## 5. Report
-
-The version, the tag and the commit it points at, the changelog file, and
-what's still manual: native builds (`pnpm build && npx cap sync`, then Xcode /
-Gradle with the release settings), store uploads, and the private launch
-checklist (`../wtx-app-todo/LAUNCH-TODO.md`) if it has open items.
+Then report: the version, the tag, and the changelog lines.
