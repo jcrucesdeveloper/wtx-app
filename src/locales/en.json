@@ -1317,9 +1317,14 @@
     "vibrateRestEndHint": "A buzz when the rest timer runs out, even with the phone locked.",
     "about": "About",
     "version": "WTX v{version}",
+    "whatsNew": "See what's new in this version",
     "contactSupport": "Contact support",
     "adPrivacy": "Ad privacy settings",
     "adPrivacyHint": "Review or change how ads use your data."
+  },
+  "changelog": {
+    "title": "What's new",
+    "released": "Version {version} · {date}"
   },
   "import": {
     "title": "Import routine",

@@ -1,0 +1,24 @@
+2026-11-02
+- A rest timer you can see, with the rest time set per exercise and a soft chime when it ends (can be turned off)
+- Vibrate when a rest ends, even with the phone locked (can be turned off)
+- An ongoing workout notification with your current set and the rest countdown
+- Timed exercises: log them as one time, typed as mm:ss or with a stopwatch, and switch an exercise between reps and time mid-workout
+- Tap a set's weight or reps to type a new value
+- Delete a set and undo it
+- An "Up next" card shows the exercise after the current one
+- Routine sections on the Train screen, synced with your account and kept as folders when you export
+- Deleting a routine can be undone for a few seconds
+- Up to 300 routines per account, with a warning when you get close
+- Exercise picker: Muscle and Equipment filters you can fold away, Show more past the first 50 results, and long names that scroll so you can read them
+- Tap an exercise's picture in the routine editor to see how it's done
+- Copy a routine's text to the clipboard from its page
+- A new share sheet: the workout card first, one tap to Instagram or WhatsApp on Android, and a camera with the card's frame over it
+- Workout details redesigned like the finish screen, with records, comparison to last time and a Share button
+- History shows the calendar and your workouts first
+- Feed: tap the kudos count to see who gave them, and save a friend's routine to your library from their post
+- Group workouts follow the host: exercises they add, swap, remove or reorder change for everyone
+- If the host leaves, someone else takes over instead of the workout ending, and late joiners start where the host is
+- A new "Together" recap when a group workout finishes
+- Asks whether a workout left running for 5 hours was forgotten, with a shortcut to finish it
+- Confirm before starting a group workout
+- Finished workouts are shared with your followers by default; untick "Share to feed" to keep one private

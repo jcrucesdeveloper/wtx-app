@@ -329,7 +329,12 @@ async function toggleReminders() {
       </SettingsGroup>
 
       <SettingsGroup :title="t('settings.about')">
-        <SettingsRow :label="t('settings.version', { version: appVersion })" />
+        <SettingsRow
+          :label="t('settings.version', { version: appVersion })"
+          :hint="t('settings.whatsNew')"
+          action
+          @click="router.push({ name: 'changelog' })"
+        />
         <SettingsRow
           :label="t('legal.privacy.title')"
           action

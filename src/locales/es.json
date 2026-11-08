@@ -1317,9 +1317,14 @@
     "deleteAllConfirm": "¿Eliminar cada rutina y sesión? Esto no se puede deshacer.",
     "about": "Acerca de",
     "version": "WTX v{version}",
+    "whatsNew": "Mira las novedades de esta versión",
     "contactSupport": "Contactar soporte",
     "adPrivacy": "Privacidad de anuncios",
     "adPrivacyHint": "Revisa o cambia cómo los anuncios usan tus datos."
+  },
+  "changelog": {
+    "title": "Novedades",
+    "released": "Versión {version} · {date}"
   },
   "import": {
     "title": "Importar rutina",

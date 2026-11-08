@@ -7,14 +7,21 @@ import { ArrowLeft, Settings } from '@lucide/vue'
  * With settings out of the bottom bar, the Train
  * screen's header carries a gear to it, and settings carries a way back.
  */
-defineProps<{ kind: 'settings' | 'back' }>()
+const props = withDefaults(
+  defineProps<{
+    kind: 'settings' | 'back'
+    /** Where back goes when the screen was opened directly, with nothing to go back to. */
+    fallback?: string
+  }>(),
+  { fallback: '/' },
+)
 
 const { t } = useI18n()
 const router = useRouter()
 
 function goBack() {
   if (window.history.state?.back) router.back()
-  else router.replace('/')
+  else router.replace(props.fallback)
 }
 </script>
 

@@ -1,0 +1,14 @@
+2026-10-14
+- Favourite routines: mark the ones you train most and they're grouped first on Train (kept on the device only)
+- Swap an exercise for another in the middle of a workout, from the menu next to the exercise name
+- Sharing a finished workout shows a preview first, with three styles: a story card, your numbers over your own photo, or a transparent sticker
+- A plate on your profile that levels up with the workouts you share
+- A new design across the whole app: calmer screens, larger targets, a one-screen introduction and first steps for new users
+- The workout screen shows every set as a row with last time's numbers, colours for warm-up and drop sets, and previous/next exercise buttons
+- Train suggests the routine that's next in your rotation and shows when each one was last done
+- Following someone confirms who you now follow; unfollowing moved to their profile and your connections, where it asks first
+- Removing an exercise from a workout moved into the exercise menu
+- The group button left the workout screen; in a group workout, the group strip opens the room
+- Fixed: only one workout can run at a time, on your own or in a group
+- Fixed: personal-record marks on logged sets are kept when a workout is resumed
+- Fixed: store installs on Android open shared links in the app

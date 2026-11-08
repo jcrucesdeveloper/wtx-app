@@ -135,6 +135,11 @@ const router = createRouter({
       name: 'settings',
       component: () => import('../views/menu/ConfigurationView.vue'),
     },
+    {
+      path: '/settings/changelog',
+      name: 'changelog',
+      component: () => import('../views/menu/ChangelogView.vue'),
+    },
     // Development only: the design tokens and building blocks on one page.
     ...(import.meta.env.DEV
       ? [

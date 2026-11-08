@@ -1,13 +1,12 @@
 ---
 name: release
-description: Cut a WTX release — bump the version everywhere (package.json, Android, iOS), write the CHANGELOG entry from the commits since the last tag, commit, create an annotated vX.Y.Z tag on main, and push. Use when the user says "release", "launch", "ship vX.Y.Z", "tag a version", or asks for a changelog for a launch.
+description: Cut a WTX release — bump the version everywhere (package.json, Android, iOS), write changelog/X.Y.Z.txt from the commits since the last tag, commit, create an annotated vX.Y.Z tag on main, and push. Use when the user says "release", "launch", "ship vX.Y.Z", "tag a version", or asks for a changelog for a launch.
 ---
 
 # Release WTX
 
 Releases are cut from `main`, tagged `vX.Y.Z` (annotated), and described in
-`CHANGELOG.md` ([Keep a Changelog](https://keepachangelog.com) format,
-[SemVer](https://semver.org)). The argument is the new version (`1.2.0`) or
+`changelog/X.Y.Z.txt`, one file per version ([SemVer](https://semver.org)). The argument is the new version (`1.2.0`) or
 a bump type (`major` / `minor` / `patch`); if neither is given, propose one
 from the commits (breaking → major, new features → minor, fixes only → patch)
 and confirm it with the user.
@@ -42,30 +41,34 @@ Edit the exact lines (they're few); don't reformat the files. Verify with
 `grep -n '"version"' package.json` and
 `grep -n "MARKETING_VERSION\|CURRENT_PROJECT_VERSION" ios/App/App.xcodeproj/project.pbxproj`.
 
-## 3. Write the CHANGELOG entry
+## 3. Write changelog/X.Y.Z.txt
 
-- Source: `git log <last tag>..HEAD --no-merges --format="%h %s"` (for the
-  first release, the whole history). Read diffs of anything whose subject is
-  unclear — don't guess.
-- Add a section at the top, below the intro, newest first:
-  `## [X.Y.Z] - YYYY-MM-DD` with only the groups that apply, in this order:
-  `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
-- Write for users, not developers: one line per change, what it does for
-  them, merged where several commits make one feature. Leave out chores,
-  test-only, lint, CI, refactors, docs and WIP commits unless users notice
-  them. Never paste raw commit subjects.
-- For the first release, organise `Added` by product area (sub-bullets are fine).
-- Keep the link references at the bottom updated:
-  `[X.Y.Z]: https://github.com/jcrucesdeveloper/wtx-app/compare/vPREV...vX.Y.Z`
-  (first release: `.../releases/tag/vX.Y.Z`), and `[Unreleased]` comparing
-  `vX.Y.Z...HEAD`.
+- Source: `git log <last tag>..HEAD --no-merges --format="%h %s"`. Read diffs
+  of anything whose subject is unclear — don't guess.
+- Plain text, English, nothing else in the file:
+
+  ```
+  YYYY-MM-DD
+  - First change
+  - Second change
+  ```
+
+  Line 1 is the release date; every other line is `- ` and one change on a
+  single line. No headings, no Markdown, no wrapped lines.
+- Features first, then other changes, then fixes (start those with `Fixed: `).
+- Write for users, not developers: what each change does for them, merged
+  where several commits make one feature. Leave out chores, test-only, lint,
+  CI, refactors, docs and WIP commits unless users notice them. Never paste
+  raw commit subjects.
+- Copy it over `src/changelog.txt`: that copy is the only changelog the app
+  ships, shown under Configuration -> version.
 
 ## 4. Commit, tag, push
 
 ```sh
-git add package.json ios/App/App.xcodeproj/project.pbxproj CHANGELOG.md
+git add package.json ios/App/App.xcodeproj/project.pbxproj changelog/X.Y.Z.txt src/changelog.txt
 git commit -m "Release vX.Y.Z"            # + the session's Co-Authored-By trailer
-git tag -a vX.Y.Z -m "WTX vX.Y.Z" -m "<the changelog section, plain text>"
+git tag -a vX.Y.Z -m "WTX vX.Y.Z" -m "<the changes from changelog/X.Y.Z.txt>"
 ```
 
 Pushing publishes the release, so confirm first unless the user already asked
@@ -80,7 +83,7 @@ git push origin dev                        # dev carries the bumped version too
 
 ## 5. Report
 
-The version, the tag and the commit it points at, the changelog section, and
+The version, the tag and the commit it points at, the changelog file, and
 what's still manual: native builds (`pnpm build && npx cap sync`, then Xcode /
 Gradle with the release settings), store uploads, and the private launch
 checklist (`../wtx-app-todo/LAUNCH-TODO.md`) if it has open items.
