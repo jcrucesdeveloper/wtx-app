@@ -28,6 +28,7 @@ export function openForgotPassword() {
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ConsentNotice from '@/components/social/ConsentNotice.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSyncStore } from '@/stores/sync'
 import { containsBlockedTerms } from '@/lib/contentFilter'
@@ -161,9 +162,8 @@ async function submit() {
 
     <label v-if="draft.mode !== 'forgot'" class="field">
       <span class="field__label">{{ t('auth.password') }}</span>
-      <input
+      <PasswordInput
         v-model="draft.password"
-        type="password"
         :autocomplete="draft.mode === 'signup' ? 'new-password' : 'current-password'"
         :placeholder="draft.mode === 'signup' ? t('auth.passwordHint') : ''"
       />
@@ -239,7 +239,8 @@ async function submit() {
   font-weight: var(--weight-medium);
 }
 
-input {
+input,
+.password-input :deep(input) {
   width: 100%;
   font-family: inherit;
   font-size: var(--text-body);
@@ -311,7 +312,8 @@ input {
   font-size: 14px;
   color: var(--color-heading);
 }
-input:focus {
+input:focus,
+.password-input :deep(input:focus) {
   border-color: var(--color-border-hover);
   outline: none;
 }

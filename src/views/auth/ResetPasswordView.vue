@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AppPage from '@/components/AppPage.vue'
+import PasswordInput from '@/components/PasswordInput.vue'
 import { openForgotPassword } from '@/components/social/AuthForm.vue'
 import { useAuthStore } from '@/stores/auth'
 import { isSupabaseConfigured } from '@/services/supabase'
@@ -104,9 +105,8 @@ function requestNewLink() {
 
       <label class="field">
         <span class="field__label">{{ t('auth.reset.newPassword') }}</span>
-        <input
+        <PasswordInput
           v-model="password"
-          type="password"
           autocomplete="new-password"
           :placeholder="t('auth.passwordHint')"
         />
@@ -114,7 +114,7 @@ function requestNewLink() {
 
       <label class="field">
         <span class="field__label">{{ t('auth.reset.confirmPassword') }}</span>
-        <input v-model="confirm" type="password" autocomplete="new-password" />
+        <PasswordInput v-model="confirm" autocomplete="new-password" />
       </label>
 
       <p v-if="error" class="error">{{ error }}</p>
@@ -150,7 +150,7 @@ function requestNewLink() {
   opacity: 0.7;
 }
 
-input {
+.password-input :deep(input) {
   width: 100%;
   font-family: inherit;
   font-size: 14px;
