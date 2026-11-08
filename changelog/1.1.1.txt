@@ -1,0 +1,5 @@
+2026-11-07
+- What's new: tap the version in Configuration to see what changed in this version
+- An eye button on password fields to show or hide what you type
+- On Android, an ad may show after you finish a workout
+- Fixed: Android no longer opens the Alarms & reminders settings every time you open the app
