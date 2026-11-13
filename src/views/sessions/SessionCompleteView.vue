@@ -60,7 +60,7 @@ async function onDone() {
   router.replace('/sessions')
   // A win is the moment to ask for a rating. An ad never stacks on that request —
   // it waits for the next finish — and neither blocks leaving the screen.
-  if (!(await AppReviewService.maybeAsk({ hadWin, totalSessions }))) AdService.showInterstitial()
+  if (!(await AppReviewService.maybeAsk({ hadWin, totalSessions }))) void AdService.showAfterFinish()
 }
 
 const { cardData, caption: shareText } = useWorkoutShare(

@@ -48,6 +48,44 @@ function interstitialAdUnitId(): string {
   return import.meta.env.VITE_ADMOB_INTERSTITIAL_ID_ANDROID || TEST_AD_UNIT_IDS.interstitialAndroid
 }
 
+/**
+ * At most one interstitial per this window. AdMob forbids an interstitial
+ * after every user action; a finish is a natural break, but two short
+ * workouts back to back shouldn't mean two ads.
+ */
+export const INTERSTITIAL_COOLDOWN_MS = 3 * 60 * 1000
+
+/**
+ * The ad opens this long after Done, once the history screen is there: a
+ * finger still on the glass mustn't land on the ad (accidental clicks are
+ * invalid traffic), and it reads as a break rather than as the button's result.
+ */
+export const INTERSTITIAL_DELAY_MS = 400
+
+const LAST_SHOWN_STORAGE_KEY = 'wtx:interstitial-shown-at'
+
+/** Whether the cooldown since the last interstitial has run out. */
+export function interstitialCooledDown(lastShownAt: number | null, now: number): boolean {
+  return lastShownAt === null || now - lastShownAt >= INTERSTITIAL_COOLDOWN_MS
+}
+
+function readLastShownAt(): number | null {
+  try {
+    const value = Number(localStorage.getItem(LAST_SHOWN_STORAGE_KEY))
+    return Number.isFinite(value) && value > 0 ? value : null
+  } catch {
+    return null
+  }
+}
+
+function writeLastShownAt(value: number) {
+  try {
+    localStorage.setItem(LAST_SHOWN_STORAGE_KEY, String(value))
+  } catch {
+    /* storage unavailable — the cooldown just resets with the app */
+  }
+}
+
 let initPromise: Promise<void> | null = null
 let interstitialReady = false
 /** UMP's verdict for this launch; stays false if the consent flow couldn't run. */
@@ -95,6 +133,8 @@ export const AdService = {
       })
       interstitialReady = true
     } catch (err) {
+      // Most often "no fill", or an ad unit that doesn't belong to the AdMob
+      // App ID in the native build (see android/app/build.gradle).
       console.error('[ads] prepareInterstitial failed', err)
     }
   },
@@ -118,15 +158,47 @@ export const AdService = {
     }
   },
 
-  async showInterstitial(): Promise<void> {
+  /**
+   * Shows the preloaded interstitial, if there is one. Never loads one on the
+   * spot: an ad that pops up seconds later, mid-task, is a disallowed
+   * "unexpected launch". When nothing is ready this finish simply has no ad.
+   * Returns whether an ad was shown.
+   */
+  async showInterstitial(): Promise<boolean> {
     const ads = useAdsStore()
-    if (!adsAvailable() || ads.adsRemoved || !interstitialReady) return
+    if (!adsAvailable() || ads.adsRemoved) return false
+    if (!interstitialReady) {
+      console.info('[ads] no interstitial ready; skipping')
+      return false
+    }
     interstitialReady = false
     try {
       await AdMob.showInterstitial()
+      return true
     } catch (err) {
       console.error('[ads] showInterstitial failed', err)
+      return false
+    } finally {
+      // Ready for the next finish, even if this one failed.
+      void AdService.loadInterstitial()
     }
+  },
+
+  /**
+   * The ad after a finished workout, called when the user taps Done on the
+   * finish screen: shown after {@link INTERSTITIAL_DELAY_MS}, and only once
+   * per {@link INTERSTITIAL_COOLDOWN_MS}. Returns whether an ad was shown.
+   */
+  async showAfterFinish(): Promise<boolean> {
+    if (!adsAvailable() || useAdsStore().adsRemoved) return false
+    if (!interstitialCooledDown(readLastShownAt(), Date.now())) {
+      console.info('[ads] interstitial cooling down; skipping')
+      return false
+    }
+    await new Promise((resolve) => setTimeout(resolve, INTERSTITIAL_DELAY_MS))
+    const shown = await AdService.showInterstitial()
+    if (shown) writeLastShownAt(Date.now())
+    return shown
   },
 }
 
