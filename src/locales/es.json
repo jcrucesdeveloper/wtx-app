@@ -1355,7 +1355,8 @@
     "buttonAria": "Descanso {time}. Cambiar el temporizador",
     "offAria": "Sin temporizador de descanso. Poner uno",
     "panelAria": "Descansando, quedan {time}",
-    "after": "Descanso tras {name}"
+    "after": "Descanso tras {name}",
+    "startNowAria": "Iniciar descanso"
   },
   "timedExercise": {
     "target": "Objetivo {time}",
