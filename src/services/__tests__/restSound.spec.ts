@@ -39,6 +39,13 @@ describe('RestSoundService.restEnded', () => {
     expect(play).not.toHaveBeenCalled()
   })
 
+  it('stays quiet when all sounds are off, even with the rest sound on', () => {
+    useSettingsStore().setSoundsEnabled(false)
+    expect(useSettingsStore().restSoundEnabled).toBe(true)
+    RestSoundService.restEnded()
+    expect(play).not.toHaveBeenCalled()
+  })
+
   it('leaves the chime to the native notification on Android', () => {
     platform.name = 'android'
     platform.plugin = true
@@ -68,6 +75,33 @@ describe('settings.restSoundEnabled', () => {
 
     setActivePinia(createPinia())
     expect(useSettingsStore().restSoundEnabled).toBe(false)
+  })
+})
+
+describe('settings.soundsEnabled', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('defaults on and remembers being turned off', async () => {
+    setActivePinia(createPinia())
+    const settings = useSettingsStore()
+    expect(settings.soundsEnabled).toBe(true)
+    settings.setSoundsEnabled(false)
+    await Promise.resolve()
+    expect(localStorage.getItem('wtx:sounds')).toBe('0')
+
+    setActivePinia(createPinia())
+    expect(useSettingsStore().soundsEnabled).toBe(false)
+  })
+
+  it('gates the rest sound the native notification is told to play', () => {
+    setActivePinia(createPinia())
+    const settings = useSettingsStore()
+    expect(settings.restSoundActive).toBe(true)
+    settings.setSoundsEnabled(false)
+    expect(settings.restSoundActive).toBe(false)
+    settings.setSoundsEnabled(true)
+    settings.setRestSoundEnabled(false)
+    expect(settings.restSoundActive).toBe(false)
   })
 })
 

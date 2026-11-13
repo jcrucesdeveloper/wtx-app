@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
 const UNIT_STORAGE_KEY = 'wtx:default-unit'
@@ -6,6 +6,7 @@ const SAVE_TARGET_STORAGE_KEY = 'wtx:session-save-target'
 const SHARE_TO_FEED_STORAGE_KEY = 'wtx:share-to-feed-default'
 const VIBRATE_REST_END_STORAGE_KEY = 'wtx:vibrate-rest-end'
 const REST_SOUND_STORAGE_KEY = 'wtx:rest-sound'
+const SOUNDS_STORAGE_KEY = 'wtx:sounds'
 
 export type WeightUnit = 'kg' | 'lb'
 
@@ -55,6 +56,15 @@ function readStoredVibrateOnRestEnd(): boolean {
 function readStoredRestSound(): boolean {
   try {
     return localStorage.getItem(REST_SOUND_STORAGE_KEY) !== '0'
+  } catch {
+    return true
+  }
+}
+
+/** Defaults on: the master switch only silences what the sub-settings would play. */
+function readStoredSoundsEnabled(): boolean {
+  try {
+    return localStorage.getItem(SOUNDS_STORAGE_KEY) !== '0'
   } catch {
     return true
   }
@@ -128,6 +138,27 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   })
 
+  /**
+   * Master switch for every sound the app makes. Off silences them all while
+   * each sound keeps its own setting for when it's turned back on.
+   */
+  const soundsEnabled = ref<boolean>(readStoredSoundsEnabled())
+
+  watch(soundsEnabled, (value) => {
+    try {
+      localStorage.setItem(SOUNDS_STORAGE_KEY, value ? '1' : '0')
+    } catch {
+      /* storage unavailable — keep the in-memory value */
+    }
+  })
+
+  function setSoundsEnabled(value: boolean) {
+    soundsEnabled.value = value
+  }
+
+  /** Whether the rest-end chime actually plays: the master switch and its own. */
+  const restSoundActive = computed(() => soundsEnabled.value && restSoundEnabled.value)
+
   function setVibrateOnRestEnd(value: boolean) {
     vibrateOnRestEnd.value = value
   }
@@ -147,5 +178,8 @@ export const useSettingsStore = defineStore('settings', () => {
     setVibrateOnRestEnd,
     restSoundEnabled,
     setRestSoundEnabled,
+    soundsEnabled,
+    setSoundsEnabled,
+    restSoundActive,
   }
 })
