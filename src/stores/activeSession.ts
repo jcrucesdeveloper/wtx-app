@@ -642,6 +642,27 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     now.value = Date.now()
   }
 
+  /** The set a manual rest would follow: the exercise's last logged set, if rest is on and none runs. */
+  function manualRestSetId(exerciseIndex: number): string | null {
+    if (!session.value || session.value.restEndsAt !== null) return null
+    const exercise = session.value.draft.exercises[exerciseIndex]
+    if (!exercise?.restSeconds) return null
+    const logged = exercise.loggedSets.filter((s) => s.completed)
+    return logged[logged.length - 1]?.id ?? null
+  }
+
+  /**
+   * Starts the exercise's rest by hand, after its last logged set — for a rest
+   * skipped by mistake, instead of un-logging and re-logging the set. Does
+   * nothing while a rest runs, with rest off, or before any set is logged.
+   */
+  function startRestNow(exerciseIndex: number) {
+    const setId = manualRestSetId(exerciseIndex)
+    const seconds = session.value?.draft.exercises[exerciseIndex]?.restSeconds
+    if (!setId || !seconds) return
+    startRestTimer(exerciseIndex, setId, seconds)
+  }
+
   function skipRestTimer() {
     if (!session.value) return
     session.value.restEndsAt = null
@@ -773,6 +794,8 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
     canRemoveExercise,
     setExerciseKind,
     startRestTimer,
+    manualRestSetId,
+    startRestNow,
     skipRestTimer,
     adjustRestTimer,
     setRestSeconds,

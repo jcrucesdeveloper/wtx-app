@@ -1364,7 +1364,8 @@
     "buttonAria": "Rest {time}. Change the rest timer",
     "offAria": "No rest timer. Set one",
     "panelAria": "Resting, {time} left",
-    "after": "Rest after {name}"
+    "after": "Rest after {name}",
+    "startNowAria": "Start rest now"
   },
   "timedExercise": {
     "target": "Target {time}",

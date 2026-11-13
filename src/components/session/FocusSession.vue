@@ -782,6 +782,12 @@ function onNoteInput(event: Event) {
         <span class="logged__edit">{{ t('timedExercise.edit') }}</span>
       </button>
 
+      <!-- The exercise is done but its rest isn't running (skipped, or ended):
+           the rest chip stays, so a rest skipped by mistake can start again. -->
+      <div v-if="!currentSet && activeSession.manualRestSetId(currentIndex)" class="now__chips now__chips--done">
+        <RestTimeButton :exercise-index="currentIndex" />
+      </div>
+
       <!-- Every set of this exercise, a row each: what it is, what you did last
            time, what it is logged as, and whether it is done. A timed exercise
            is logged once, so it has none. -->
@@ -1212,6 +1218,10 @@ button.where__now:active {
   display: flex;
   flex-shrink: 0;
   gap: var(--space-2);
+}
+
+.now__chips--done {
+  justify-content: flex-end;
 }
 
 .now__type {
