@@ -67,10 +67,10 @@
         </provider>
 
         <!-- AdMob App ID, injected at build time from the `admobAppId` Gradle
-             property / ADMOB_APP_ID_ANDROID env var (see app/build.gradle).
-             Defaults to Google's public sample App ID. This is a native value
-             and can't be sourced from the Vite env vars used for the JS-side
-             ad unit IDs. -->
+             property, the ADMOB_APP_ID_ANDROID env var or ADMOB_APP_ID_ANDROID
+             in .env.production.local (see app/build.gradle). Defaults to
+             Google's public sample App ID, under which real ad units never
+             fill; a release build with Android ads on refuses to use it. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${admobAppId}" />

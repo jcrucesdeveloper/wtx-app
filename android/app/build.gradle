@@ -23,6 +23,35 @@ if (keystorePropertiesFile.exists()) {
     keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
 }
 
+// AdMob App ID. The ad unit IDs live in the repo's .env files (Vite), but
+// the App ID is native, so it's read here: the `admobAppId` Gradle property,
+// then the ADMOB_APP_ID_ANDROID env var, then ADMOB_APP_ID_ANDROID in
+// ../.env.production.local / ../.env.local (one place for all ad config).
+// Without one, Google's public sample App ID is used, and a real ad unit
+// never fills under it — so a release build with Android ads on fails here
+// instead of shipping an app that silently shows no ads.
+def SAMPLE_ADMOB_APP_ID = 'ca-app-pub-3940256099942544~3347511713'
+def readDotEnv = { String name ->
+    def values = [:]
+    def file = rootProject.file("../${name}")
+    if (file.exists()) {
+        file.eachLine { line ->
+            def m = line =~ /^\s*([A-Z0-9_]+)\s*=\s*"?([^"#]*?)"?\s*$/
+            if (m.matches()) values[m.group(1)] = m.group(2)
+        }
+    }
+    values
+}
+def dotEnv = readDotEnv('.env.local') + readDotEnv('.env.production.local')
+def admobAppId = project.findProperty('admobAppId') ?:
+    System.getenv('ADMOB_APP_ID_ANDROID') ?:
+    dotEnv['ADMOB_APP_ID_ANDROID'] ?:
+    SAMPLE_ADMOB_APP_ID
+def buildsRelease = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+if (buildsRelease && dotEnv['VITE_ADS_ANDROID'] == 'true' && admobAppId == SAMPLE_ADMOB_APP_ID) {
+    throw new GradleException("Android ads are on (VITE_ADS_ANDROID=true) but no AdMob App ID is set, so no ad would ever load. Add ADMOB_APP_ID_ANDROID=ca-app-pub-...~... (AdMob -> Apps -> App settings) to .env.production.local.")
+}
+
 android {
     namespace = "com.wtxworkout.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -33,13 +62,8 @@ android {
         versionCode appVersionCode
         versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        // AdMob App ID injected into AndroidManifest.xml. Set the real one for a
-        // Play release via the `admobAppId` Gradle property (~/.gradle/gradle.properties
-        // or -PadmobAppId=...) or the ADMOB_APP_ID_ANDROID env var. Falls back to
-        // Google's public sample App ID so dev builds never serve real ads.
-        manifestPlaceholders["admobAppId"] = project.findProperty('admobAppId') ?:
-            System.getenv('ADMOB_APP_ID_ANDROID') ?:
-            'ca-app-pub-3940256099942544~3347511713'
+        // AdMob App ID injected into AndroidManifest.xml; see `admobAppId` above.
+        manifestPlaceholders["admobAppId"] = admobAppId
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
