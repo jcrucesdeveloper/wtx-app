@@ -10,7 +10,13 @@
 import { writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { CUSTOM_EXERCISES, MUSCLE_GROUP_BY_CATEGORY, TIMED_MUSCLE_GROUPS } from './exercise-overlay.mjs'
+import {
+  CUSTOM_EXERCISES,
+  MUSCLE_GROUP_BY_CATEGORY,
+  RATINGS,
+  TAG_FIXES,
+  TIMED_MUSCLE_GROUPS,
+} from './exercise-overlay.mjs'
 
 const REF = process.argv[2] ?? 'a859101d633a01c4a1a920d6a8ce41dabba0705f'
 const REPO = 'yuhonas/free-exercise-db'
@@ -1150,24 +1156,80 @@ if (!res.ok) {
 const raw = await res.json()
 
 /** Timed groups (cardio, stretching) start out tracked by time when added to a workout. */
-function withDefaultKind({ imageSource, ...entry }) {
+function withDefaultKind({ imageSource, rating, ...entry }) {
   return {
     ...entry,
+    rating,
     ...(TIMED_MUSCLE_GROUPS.includes(entry.muscleGroup) ? { defaultKind: 'time' } : {}),
     ...(imageSource ? { imageSource } : {}),
   }
 }
 
+// --- Rating ------------------------------------------------------------------
+//
+// Popularity, 0–100, the last tiebreak when ranking search results. Curated
+// values (`RATINGS` in exercise-overlay.mjs, anchored on StrengthLog's most
+// logged exercises) win; every other entry gets one from what upstream says
+// about it, kept below the curated staples (max 59).
+
+const BASE_RATING_BY_EQUIPMENT = {
+  Barbell: 42,
+  Dumbbell: 42,
+  Machine: 40,
+  Cable: 40,
+  Bodyweight: 36,
+  Kettlebell: 32,
+  Band: 26,
+  Other: 22,
+}
+
+/** Specialist variants (accommodating resistance, partials, pauses) most lifters never program. */
+const SPECIALIST_VARIANT = /\b(chains?|bands?|boards?|pins|deficit|blocks|floor press|pause|partial|lockouts?)\b/i
+
+function defaultRating(exercise, entry) {
+  if (entry.muscleGroup === 'Stretching') {
+    return clampRating(/\bSMR\b/.test(exercise.name) ? 16 : 26)
+  }
+  if (entry.muscleGroup === 'Cardio') return clampRating(40)
+  let rating = BASE_RATING_BY_EQUIPMENT[entry.equipment]
+  if (exercise.category === 'strongman') rating = 10
+  else if (exercise.category === 'olympic weightlifting') rating -= 8
+  else if (exercise.category === 'plyometrics') rating -= 10
+  if (exercise.mechanic === 'compound') rating += 4
+  if (exercise.level === 'beginner') rating += 4
+  else if (exercise.level === 'expert') rating -= 6
+  if (SPECIALIST_VARIANT.test(entry.name)) rating -= 10
+  // The longer the name, the more specific (and rarer) the variant.
+  rating -= Math.max(0, entry.name.split(/\s+/).length - 3) * 2
+  return clampRating(rating)
+}
+
+function clampRating(rating) {
+  return Math.min(59, Math.max(1, Math.round(rating)))
+}
+
 const upstreamEntries = raw.map((exercise) => {
   const name = friendlyName(exercise.id, cleanName(exercise.name))
-  return {
+  const entry = {
     id: exercise.id,
     name,
     nameEs: translateName(name),
     muscleGroup: muscleGroupFor(exercise),
     equipment: equipmentFor(exercise, name),
     primaryMuscles: exercise.primaryMuscles,
+    ...TAG_FIXES[exercise.id],
   }
+  return { ...entry, rating: RATINGS[exercise.id] ?? defaultRating(exercise, entry) }
+})
+
+for (const id of [...Object.keys(TAG_FIXES), ...Object.keys(RATINGS)]) {
+  if (!raw.some((exercise) => exercise.id === id) && !CUSTOM_EXERCISES.some((c) => c.id === id)) {
+    throw new Error(`Overlay names an exercise that no longer exists: "${id}"`)
+  }
+}
+const customEntries = CUSTOM_EXERCISES.map((custom) => {
+  if (RATINGS[custom.id] === undefined) throw new Error(`No rating for custom exercise "${custom.id}"`)
+  return { ...custom, rating: RATINGS[custom.id] }
 })
 
 const seenIds = new Set(upstreamEntries.map((entry) => entry.id))
@@ -1176,7 +1238,7 @@ for (const custom of CUSTOM_EXERCISES) {
   seenIds.add(custom.id)
 }
 
-const trimmed = [...upstreamEntries, ...CUSTOM_EXERCISES]
+const trimmed = [...upstreamEntries, ...customEntries]
   .map(withDefaultKind)
   .sort((a, b) => a.name.localeCompare(b.name))
 

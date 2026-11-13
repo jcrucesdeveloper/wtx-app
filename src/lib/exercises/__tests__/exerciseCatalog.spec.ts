@@ -9,10 +9,10 @@ import {
 } from '../exerciseCatalog'
 
 describe('searchExerciseCatalog', () => {
-  it('returns a capped alphabetical slice for an empty query', () => {
+  it('returns the most popular exercises for an empty query', () => {
     const results = searchExerciseCatalog('', 10)
     expect(results).toHaveLength(10)
-    expect(results).toEqual(EXERCISE_CATALOG.slice(0, 10))
+    expect(results.slice(0, 3).map((entry) => entry.name)).toEqual(['Bench Press', 'Squat', 'Deadlift'])
   })
 
   it('matches case-insensitively', () => {
@@ -164,10 +164,12 @@ describe('equipment buckets', () => {
 })
 
 describe('filterExerciseCatalog', () => {
-  it('returns the whole catalog, alphabetically, with no filters', () => {
-    const { results, total } = filterExerciseCatalog({}, 10)
+  it('returns the whole catalog, most popular first, with no filters', () => {
+    const { results, total } = filterExerciseCatalog({}, EXERCISE_CATALOG.length)
     expect(total).toBe(EXERCISE_CATALOG.length)
-    expect(results).toEqual(EXERCISE_CATALOG.slice(0, 10))
+    for (let i = 1; i < results.length; i++) {
+      expect(results[i - 1]!.rating).toBeGreaterThanOrEqual(results[i]!.rating)
+    }
   })
 
   it('filters by muscle group alone, across the whole catalog', () => {
@@ -286,6 +288,60 @@ describe('catalog shape', () => {
     const estiramiento = filterExerciseCatalog({ query: 'estiramiento' }, 1000).results
     expect(estiramiento.some((entry) => entry.name === 'Arm Circles')).toBe(true)
     expect(filterExerciseCatalog({ query: 'futbol' }).results[0]?.name).toBe('Soccer')
+  })
+})
+
+describe('search ranking', () => {
+  const names = (filter: Parameters<typeof filterExerciseCatalog>[0], limit = 10) =>
+    filterExerciseCatalog(filter, limit).results.map((entry) => entry.name)
+
+  it('ranks Bench Press first for "chest" with the Barbell chip', () => {
+    expect(names({ query: 'chest', equipment: 'Barbell' })[0]).toBe('Bench Press')
+    expect(names({ query: 'chest', equipment: 'Barbell' }, 3)).toContain('Bench Press')
+  })
+
+  it('shows Bench Press under the Chest chip, first', () => {
+    expect(names({ muscleGroup: 'Chest' })[0]).toBe('Bench Press')
+  })
+
+  it('ranks Bench Press first for "bench"', () => {
+    expect(names({ query: 'bench' })[0]).toBe('Bench Press')
+  })
+
+  it('puts an exact name match above a more popular name that starts with the query', () => {
+    // "Squat" (exact) beats every other "Squat ..." name, whatever their rating.
+    expect(names({ query: 'squat' })[0]).toBe('Squat')
+    expect(names({ query: 'press de banca' })[0]).toBe('Bench Press')
+  })
+
+  it('orders each match tier by rating, most popular first', () => {
+    // All "curl" results that merely contain the word: Barbell Curl (88) leads Dumbbell's (86).
+    const curls = names({ query: 'curl' }, 200)
+    expect(curls.indexOf('Barbell Curl')).toBeLessThan(curls.indexOf('Bicep Curl (Dumbbell)'))
+    expect(curls.indexOf('Bicep Curl (Dumbbell)')).toBeLessThan(curls.indexOf('Zottman Curl'))
+  })
+
+  it('keeps the chips as filters, never mixing in other groups or equipment', () => {
+    const { results } = filterExerciseCatalog({ query: 'press', muscleGroup: 'Chest', equipment: 'Barbell' }, 200)
+    expect(results.length).toBeGreaterThan(0)
+    expect(results.every((e) => e.muscleGroup === 'Chest' && e.equipment === 'Barbell')).toBe(true)
+  })
+})
+
+describe('rating', () => {
+  it('gives every entry an integer rating from 0 to 100', () => {
+    for (const entry of EXERCISE_CATALOG) {
+      expect(Number.isInteger(entry.rating)).toBe(true)
+      expect(entry.rating).toBeGreaterThanOrEqual(0)
+      expect(entry.rating).toBeLessThanOrEqual(100)
+    }
+  })
+
+  it('rates the most logged lifts above niche variants', () => {
+    const rating = (name: string) => findCatalogEntryByName(name)!.rating
+    expect(rating('Bench Press')).toBe(100)
+    expect(rating('Squat')).toBeGreaterThan(rating('Box Squat with Chains'))
+    expect(rating('Deadlift')).toBeGreaterThan(rating('Atlas Stones'))
   })
 })
 
