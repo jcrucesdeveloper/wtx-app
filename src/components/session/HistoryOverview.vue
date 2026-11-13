@@ -2,8 +2,9 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
-import { Smartphone, X } from '@lucide/vue'
+import { ChevronRight, Smartphone, X } from '@lucide/vue'
 import TrainingCalendar from '@/components/session/TrainingCalendar.vue'
+import ExerciseProgressSheet from '@/components/session/ExerciseProgressSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSessionsStore } from '@/stores/sessions'
 import { useExerciseName } from '@/composables/useExerciseName'
@@ -19,7 +20,8 @@ import { compareSessions } from '@/lib/sessionComparisons'
  *      Only the most recent few until "show all", so the summary below
  *      stays one short scroll away however long the history gets.
  *   3. Am I keeping it up?  — a headline and twelve weeks of bars.
- *   4. Am I getting stronger? — the best set on the lifts you do most.
+ *   4. Am I getting stronger? — the best set on the lifts you do most;
+ *      tapping one charts it over its last sessions.
  */
 const { t, locale } = useI18n()
 const sessions = useSessionsStore()
@@ -114,6 +116,10 @@ const records = computed(() => {
       when: parseDate(entry.date).toLocaleDateString(locale.value, { month: 'short', day: 'numeric' }),
     }))
 })
+
+/** The lift whose progress sheet is open. */
+const progressName = ref<string | null>(null)
+const parsedSessions = computed(() => items.value.map((item) => item.session))
 
 // ----- 1 + 2. calendar and list -----
 /** A day tapped on the calendar — the list shows only its workouts until cleared. */
@@ -263,13 +269,33 @@ const groups = computed(() => {
     <section v-if="records.length">
       <h2 class="heading">{{ t('history.bestSets') }}</h2>
       <ul class="plain">
-        <li v-for="record in records" :key="record.name" class="record">
-          <span class="record__name">{{ exerciseName(record.name) }}</span>
-          <span class="record__value">{{ record.weight }} {{ record.unit }} × {{ record.reps }}</span>
-          <span class="record__when">{{ record.when }}</span>
+        <li v-for="record in records" :key="record.name">
+          <button
+            type="button"
+            class="record"
+            :aria-label="
+              t('exerciseProgress.openAria', {
+                name: exerciseName(record.name),
+                set: `${record.weight} ${record.unit} × ${record.reps}`.replace('  ', ' '),
+              })
+            "
+            @click="progressName = record.name"
+          >
+            <span class="record__name">{{ exerciseName(record.name) }}</span>
+            <span class="record__value">{{ record.weight }} {{ record.unit }} × {{ record.reps }}</span>
+            <span class="record__when">{{ record.when }}</span>
+            <ChevronRight class="record__chevron" :size="16" :stroke-width="2.25" aria-hidden="true" />
+          </button>
         </li>
       </ul>
     </section>
+
+    <ExerciseProgressSheet
+      :open="progressName !== null"
+      :name="progressName"
+      :sessions="parsedSessions"
+      @close="progressName = null"
+    />
   </div>
 </template>
 
@@ -366,11 +392,35 @@ const groups = computed(() => {
 /* 4. Best sets. */
 .record {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto 16px;
   gap: 0 12px;
   align-items: baseline;
+  width: 100%;
   padding: 11px 0;
+  border: 0;
   border-bottom: 1px solid var(--color-border);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.record:active {
+  background: var(--color-background-soft);
+}
+
+.record:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.record__chevron {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--color-text);
 }
 
 .record__name {

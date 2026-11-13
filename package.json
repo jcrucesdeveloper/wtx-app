@@ -35,6 +35,7 @@
     "@lucide/vue": "^1.41.0",
     "@sentry/vue": "^11.0.0",
     "@supabase/supabase-js": "^2.117.1",
+    "chart.js": "4.5.1",
     "fflate": "^0.8.3",
     "pinia": "^4.0.2",
     "qr-scanner": "^1.4.2",

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { i18n } from '@/i18n'
 import { useSessionsStore } from '@/stores/sessions'
@@ -12,6 +12,13 @@ vi.mock('@/services/supabase', () => ({
     throw new Error('no server in tests')
   },
 }))
+
+import type { renderProgressChart as RenderProgressChart } from '@/lib/progressChart'
+
+const { renderProgressChart } = vi.hoisted(() => ({
+  renderProgressChart: vi.fn<typeof RenderProgressChart>(() => ({ destroy: () => {} })),
+}))
+vi.mock('@/lib/progressChart', () => ({ renderProgressChart }))
 
 const session = (name: string, date: string) => `# ${name} - ${date}
 unit: kg
@@ -84,5 +91,27 @@ describe('HistoryOverview', () => {
 
     await history.find('.filter__clear').trigger('click')
     expect(history.findAll('.row')).toHaveLength(8)
+  })
+
+  it('opens a lift’s progress chart from its best set', async () => {
+    document.body.innerHTML = ''
+    renderProgressChart.mockClear()
+    const history = mountHistory(3)
+
+    const record = history.find('button.record')
+    expect(record.attributes('aria-label')).toContain('Bench Press')
+    await record.trigger('click')
+    await flushPromises()
+
+    const sheet = document.body.querySelector('[data-test="exercise-progress"]')
+    expect(sheet).not.toBeNull()
+    expect(document.body.querySelector('[role="dialog"]')?.getAttribute('aria-label')).toBe('Bench Press')
+    expect(sheet?.querySelectorAll('.progress__row')).toHaveLength(3)
+    // 60 × 8 by Epley: 76.
+    expect(sheet?.querySelector('.progress__headline')?.textContent?.trim()).toBe('76 kg')
+    expect(renderProgressChart).toHaveBeenCalledTimes(1)
+    const bars = renderProgressChart.mock.calls[0]?.[1] ?? []
+    expect(bars.map((bar) => bar.value)).toEqual([76, 76, 76])
+    history.unmount()
   })
 })

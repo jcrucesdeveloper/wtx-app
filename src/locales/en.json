@@ -111,6 +111,16 @@
     "today": "Today",
     "goTrain": "Start a workout"
   },
+  "exerciseProgress": {
+    "openAria": "{name}, best set {set}. Show progress",
+    "metricE1rm": "Estimated 1-rep max",
+    "metricSeconds": "Longest hold",
+    "sinceFirst": "{change} over {count} sessions | {change} over {count} session | {change} over {count} sessions",
+    "oneSession": "One session so far: log it again to see a trend",
+    "empty": "No sets with weight logged for this exercise yet.",
+    "chartAria": "{metric} per session: {values}",
+    "e1rmNote": "Estimated from each session's best set (Epley formula)."
+  },
   "friends": {
     "offline": "You're offline. Workouts still save on this phone and sync later.",
     "pitchTitle": "Train with a friend",
