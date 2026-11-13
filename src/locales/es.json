@@ -111,6 +111,16 @@
     "today": "Hoy",
     "goTrain": "Empezar un entrenamiento"
   },
+  "exerciseProgress": {
+    "openAria": "{name}, mejor serie {set}. Ver progreso",
+    "metricE1rm": "1RM estimado",
+    "metricSeconds": "Mayor tiempo",
+    "sinceFirst": "{change} en {count} sesiones | {change} en {count} sesión | {change} en {count} sesiones",
+    "oneSession": "Una sesión por ahora: regístralo otra vez para ver la tendencia",
+    "empty": "Aún no hay series con peso para este ejercicio.",
+    "chartAria": "{metric} por sesión: {values}",
+    "e1rmNote": "Estimado a partir de la mejor serie de cada sesión (fórmula de Epley)."
+  },
   "friends": {
     "offline": "Estás sin conexión. Los entrenamientos se guardan en este teléfono y se sincronizan después.",
     "pitchTitle": "Entrena con alguien",
