@@ -1305,6 +1305,8 @@
     "importNothing": "Nothing new to import — everything in that file is already here.",
     "importLimit": "Your library is full ({max} routines), so {count} more couldn't be imported.",
     "importError": "Could not read that file — pick a .zip exported from WTX.",
+    "dangerZone": "Danger zone",
+    "dangerZoneHint": "These can't be undone.",
     "dataDeleteHint": "Permanently erase every routine and session.",
     "deleteAllData": "Delete all data",
     "deleteAllConfirm": "Delete every routine and session? This cannot be undone.",
