@@ -1,7 +1,21 @@
 import data from './exerciseCatalog.json'
 
-/** General muscle groups exercises are tagged with. See README.md. */
-export const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Abs', 'Legs', 'Neck'] as const
+/**
+ * General groups exercises are tagged with, in chip order: seven muscle
+ * groups, then Cardio and Stretching, which are found by what they are rather
+ * than the muscle they work. See README.md.
+ */
+export const MUSCLE_GROUPS = [
+  'Chest',
+  'Back',
+  'Shoulders',
+  'Arms',
+  'Abs',
+  'Legs',
+  'Neck',
+  'Cardio',
+  'Stretching',
+] as const
 
 export type MuscleGroup = (typeof MUSCLE_GROUPS)[number]
 
@@ -33,6 +47,10 @@ export interface ExerciseCatalogEntry {
   muscleGroup: MuscleGroup
   equipment: EquipmentType
   primaryMuscles: string[]
+  /** `'time'` for exercises tracked by time (cardio, stretching) when added to a workout; absent means weight × reps. */
+  defaultKind?: 'time'
+  /** Where a WTX-added exercise's image came from (see `scripts/exercise-overlay.mjs`); absent for upstream entries and entries without an image. */
+  imageSource?: { url: string; license: string; author: string }
 }
 
 /** All vendored exercises, sorted by name. */
@@ -58,6 +76,8 @@ const MUSCLE_GROUP_TERMS: Record<MuscleGroup, string[]> = {
   Abs: ['abs', 'abdomen', 'abdominales'],
   Legs: ['legs', 'piernas'],
   Neck: ['neck', 'cuello'],
+  Cardio: ['cardio'],
+  Stretching: ['stretching', 'estiramiento', 'estiramientos', 'elongacion'],
 }
 
 const EQUIPMENT_TERMS: Record<EquipmentType, string[]> = {

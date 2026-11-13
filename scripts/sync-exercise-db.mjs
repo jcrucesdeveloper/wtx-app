@@ -10,6 +10,7 @@
 import { writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { CUSTOM_EXERCISES, MUSCLE_GROUP_BY_CATEGORY, TIMED_MUSCLE_GROUPS } from './exercise-overlay.mjs'
 
 const REF = process.argv[2] ?? 'a859101d633a01c4a1a920d6a8ce41dabba0705f'
 const REPO = 'yuhonas/free-exercise-db'
@@ -37,8 +38,11 @@ const MUSCLE_GROUP_BY_MUSCLE = {
   neck: 'Neck',
 }
 
-function muscleGroupFor(primaryMuscles) {
-  const muscle = primaryMuscles[0]
+function muscleGroupFor(exercise) {
+  // Cardio and stretching are found by what they are (see exercise-overlay.mjs).
+  const byCategory = MUSCLE_GROUP_BY_CATEGORY[exercise.category]
+  if (byCategory) return byCategory
+  const muscle = exercise.primaryMuscles[0]
   const group = MUSCLE_GROUP_BY_MUSCLE[muscle]
   if (!group) throw new Error(`No muscle group mapped for upstream muscle "${muscle}"`)
   return group
@@ -1145,18 +1149,35 @@ if (!res.ok) {
 /** @type {Array<{id: string, name: string, equipment: string | null, primaryMuscles: string[]}>} */
 const raw = await res.json()
 
-const trimmed = raw
-  .map((exercise) => {
-    const name = friendlyName(exercise.id, cleanName(exercise.name))
-    return {
-      id: exercise.id,
-      name,
-      nameEs: translateName(name),
-      muscleGroup: muscleGroupFor(exercise.primaryMuscles),
-      equipment: equipmentFor(exercise, name),
-      primaryMuscles: exercise.primaryMuscles,
-    }
-  })
+/** Timed groups (cardio, stretching) start out tracked by time when added to a workout. */
+function withDefaultKind({ imageSource, ...entry }) {
+  return {
+    ...entry,
+    ...(TIMED_MUSCLE_GROUPS.includes(entry.muscleGroup) ? { defaultKind: 'time' } : {}),
+    ...(imageSource ? { imageSource } : {}),
+  }
+}
+
+const upstreamEntries = raw.map((exercise) => {
+  const name = friendlyName(exercise.id, cleanName(exercise.name))
+  return {
+    id: exercise.id,
+    name,
+    nameEs: translateName(name),
+    muscleGroup: muscleGroupFor(exercise),
+    equipment: equipmentFor(exercise, name),
+    primaryMuscles: exercise.primaryMuscles,
+  }
+})
+
+const seenIds = new Set(upstreamEntries.map((entry) => entry.id))
+for (const custom of CUSTOM_EXERCISES) {
+  if (seenIds.has(custom.id)) throw new Error(`Custom exercise id "${custom.id}" already exists`)
+  seenIds.add(custom.id)
+}
+
+const trimmed = [...upstreamEntries, ...CUSTOM_EXERCISES]
+  .map(withDefaultKind)
   .sort((a, b) => a.name.localeCompare(b.name))
 
 const seenNames = new Set()
