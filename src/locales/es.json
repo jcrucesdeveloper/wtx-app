@@ -1303,6 +1303,8 @@
     "importNothing": "Nada nuevo que importar — todo en ese archivo ya está aquí.",
     "importLimit": "Tu biblioteca está llena ({max} rutinas), así que {count} más no se pudieron importar.",
     "importError": "No se pudo leer ese archivo — elige un .zip exportado desde WTX.",
+    "dangerZone": "Zona de peligro",
+    "dangerZoneHint": "Estas acciones no se pueden deshacer.",
     "dataDeleteHint": "Borra permanentemente cada rutina y sesión.",
     "soundGroup": "Sonido y vibración",
     "sounds": "Sonidos",

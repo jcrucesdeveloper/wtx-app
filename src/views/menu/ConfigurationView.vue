@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { Play, Sparkles, Vibrate, Volume2, VolumeX } from '@lucide/vue'
+import { Play, Sparkles, TriangleAlert, Vibrate, Volume2, VolumeX } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ColorPicker from '@/components/ColorPicker.vue'
@@ -11,6 +11,7 @@ import ThemeModePicker from '@/components/ThemeModePicker.vue'
 import UnitPicker from '@/components/UnitPicker.vue'
 import LanguagePicker from '@/components/LanguagePicker.vue'
 import AccountSection from '@/components/social/AccountSection.vue'
+import DeleteAccountRow from '@/components/social/DeleteAccountRow.vue'
 import SettingsGroup from '@/components/settings/SettingsGroup.vue'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { useThemeStore } from '@/stores/theme'
@@ -369,13 +370,6 @@ async function toggleReminders() {
           </SettingsRow>
           <input type="file" accept=".zip" :disabled="importing" @change="onImportFile" />
         </label>
-        <SettingsRow
-          :label="t('settings.deleteAllData')"
-          :hint="t('settings.dataDeleteHint')"
-          action
-          danger
-          @click="resetAllData"
-        />
       </SettingsGroup>
 
       <SettingsGroup :title="t('settings.about')">
@@ -409,6 +403,25 @@ async function toggleReminders() {
           action
           @click="openAdPrivacyOptions"
         />
+      </SettingsGroup>
+
+      <!-- Everything that can't be undone, last and apart, each still asking first. -->
+      <SettingsGroup
+        :title="t('settings.dangerZone')"
+        :hint="t('settings.dangerZoneHint')"
+        danger
+        data-test="danger-zone"
+      >
+        <template #icon><TriangleAlert :size="14" :stroke-width="2.5" /></template>
+        <SettingsRow
+          :label="t('settings.deleteAllData')"
+          :hint="t('settings.dataDeleteHint')"
+          action
+          danger
+          data-test="delete-all-data"
+          @click="resetAllData"
+        />
+        <DeleteAccountRow />
       </SettingsGroup>
     </div>
   </AppPage>
