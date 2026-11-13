@@ -296,7 +296,9 @@
       "arms": "Brazos",
       "abs": "Abdomen",
       "legs": "Piernas",
-      "neck": "Cuello"
+      "neck": "Cuello",
+      "cardio": "Cardio",
+      "stretching": "Estiramiento"
     },
     "equipment": {
       "barbell": "Barra",

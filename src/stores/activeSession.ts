@@ -15,6 +15,7 @@ import { useSessionsStore, type StoredSession } from '@/stores/sessions'
 import type { StoredRoutine } from '@/stores/routines'
 import { findLastLoggedExercise } from '@/lib/sessionMatch'
 import { isTimeExercise } from '@/lib/sessionTime'
+import { findCatalogEntryByName } from '@/lib/exercises/exerciseCatalog'
 import type { WorkoutTemplate } from '@/lib/wtx'
 import { HapticsService } from '@/services/haptics'
 import { useSettingsStore } from '@/stores/settings'
@@ -369,6 +370,10 @@ export const useActiveSessionStore = defineStore('activeSession', () => {
   function addExercise(name: string) {
     if (!session.value) return
     session.value.draft.exercises.push(newExercise(name))
+    // Cardio and stretching are tracked by time from the start (the catalog's `defaultKind`).
+    if (findCatalogEntryByName(name)?.defaultKind === 'time') {
+      setExerciseKind(session.value.draft.exercises.length - 1, 'time')
+    }
   }
 
   /** An exercise added mid-workout: 3 empty sets of 10, the way the plan has nothing to say. */

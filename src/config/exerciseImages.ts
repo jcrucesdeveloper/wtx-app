@@ -12,9 +12,24 @@
 export const EXERCISE_IMAGES_REPO = 'jcrucesdeveloper/free-exercise-db'
 export const EXERCISE_IMAGES_REF = 'wtx-v1'
 
-const BASE_URL = `https://cdn.jsdelivr.net/gh/${EXERCISE_IMAGES_REPO}@${EXERCISE_IMAGES_REF}`
+/**
+ * Exercises WTX adds on top of upstream (ids starting `WTX_`, see
+ * scripts/exercise-overlay.mjs) have their images on a later tag of the same
+ * fork, so adding them never moves the pinned upstream images. Until that tag
+ * exists their images simply don't load, which the UI already treats as an
+ * exercise without an image.
+ */
+export const CUSTOM_EXERCISE_IMAGES_REF = 'wtx-v2'
+
+const CDN = `https://cdn.jsdelivr.net/gh/${EXERCISE_IMAGES_REPO}`
+
+/** Whether a catalog id is one WTX added (see scripts/exercise-overlay.mjs). */
+export function isCustomExerciseId(catalogId: string): boolean {
+  return catalogId.startsWith('WTX_')
+}
 
 /** `frame` 0 is the exercise's start position, 1 is the end/continuation. */
 export function exerciseImageUrl(catalogId: string, frame: 0 | 1): string {
-  return `${BASE_URL}/exercises/${catalogId}/${frame}.webp`
+  const ref = isCustomExerciseId(catalogId) ? CUSTOM_EXERCISE_IMAGES_REF : EXERCISE_IMAGES_REF
+  return `${CDN}@${ref}/exercises/${catalogId}/${frame}.webp`
 }

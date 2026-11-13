@@ -235,3 +235,57 @@ describe('filterExerciseCatalog', () => {
     expect(results.some((entry) => entry.name === 'Bench Press (Machine)')).toBe(true)
   })
 })
+
+describe('catalog shape', () => {
+  const custom = EXERCISE_CATALOG.filter((entry) => entry.id.startsWith('WTX_'))
+
+  it('gives every entry a known muscle group and equipment, and a unique id and name', () => {
+    for (const entry of EXERCISE_CATALOG) {
+      expect(MUSCLE_GROUPS).toContain(entry.muscleGroup)
+      expect(EQUIPMENT_TYPES).toContain(entry.equipment)
+    }
+    expect(new Set(EXERCISE_CATALOG.map((entry) => entry.id)).size).toBe(EXERCISE_CATALOG.length)
+    expect(new Set(EXERCISE_CATALOG.map((entry) => entry.name)).size).toBe(EXERCISE_CATALOG.length)
+  })
+
+  it('has the warm-ups, sports and treadmill WTX adds, each with a Spanish name', () => {
+    const names = custom.map((entry) => entry.name)
+    for (const name of ['Warm-Up', 'Jumping Jacks', 'Soccer', 'Basketball', 'Treadmill']) {
+      expect(names).toContain(name)
+    }
+    for (const entry of custom) {
+      expect(entry.nameEs.trim()).not.toBe('')
+    }
+  })
+
+  it('records a public domain or CC0 source for every WTX image', () => {
+    const withImage = custom.filter((entry) => entry.imageSource)
+    expect(withImage.length).toBeGreaterThanOrEqual(10)
+    for (const { imageSource } of withImage) {
+      expect(imageSource!.url).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)
+      expect(['Public domain', 'CC0']).toContain(imageSource!.license)
+      expect(imageSource!.author.trim()).not.toBe('')
+    }
+    // Upstream entries have upstream's own (Unlicense) images, never a source of their own.
+    expect(EXERCISE_CATALOG.filter((e) => !e.id.startsWith('WTX_') && e.imageSource)).toEqual([])
+  })
+
+  it('puts cardio and stretching in their own groups, tracked by time', () => {
+    expect(findCatalogEntryByName('Running, Treadmill')?.muscleGroup).toBe('Cardio')
+    expect(findCatalogEntryByName('Arm Circles')?.muscleGroup).toBe('Stretching')
+    expect(findCatalogEntryByName('Soccer')?.muscleGroup).toBe('Cardio')
+    for (const entry of EXERCISE_CATALOG) {
+      const timed = entry.muscleGroup === 'Cardio' || entry.muscleGroup === 'Stretching'
+      expect(entry.defaultKind).toBe(timed ? 'time' : undefined)
+    }
+  })
+
+  it('finds cardio and stretching by name in English and Spanish', () => {
+    const cardio = filterExerciseCatalog({ query: 'cardio' }, 1000).results
+    expect(cardio.some((entry) => entry.name === 'Treadmill')).toBe(true)
+    const estiramiento = filterExerciseCatalog({ query: 'estiramiento' }, 1000).results
+    expect(estiramiento.some((entry) => entry.name === 'Arm Circles')).toBe(true)
+    expect(filterExerciseCatalog({ query: 'futbol' }).results[0]?.name).toBe('Soccer')
+  })
+})
+

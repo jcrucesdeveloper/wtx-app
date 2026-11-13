@@ -296,7 +296,9 @@
       "arms": "Arms",
       "abs": "Abs",
       "legs": "Legs",
-      "neck": "Neck"
+      "neck": "Neck",
+      "cardio": "Cardio",
+      "stretching": "Stretching"
     },
     "equipment": {
       "barbell": "Barbell",

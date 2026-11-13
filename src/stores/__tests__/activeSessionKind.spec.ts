@@ -191,3 +191,26 @@ describe('activeSession: a timed exercise is one entry', () => {
     ])
   })
 })
+
+describe('activeSession.addExercise', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    setActivePinia(createPinia())
+  })
+
+  it('tracks a cardio or stretching exercise by time from the start', () => {
+    const store = startWorkout()
+    store.addExercise('Soccer')
+    store.addExercise('Arm Circles')
+    const added = store.session!.draft.exercises.slice(-2)
+    expect(added.map((e) => e.kind)).toEqual(['time', 'time'])
+    expect(added[0]!.loggedSets).toHaveLength(1)
+  })
+
+  it('keeps a strength exercise, or one not in the catalog, on weight × reps', () => {
+    const store = startWorkout()
+    store.addExercise('Bench Press')
+    store.addExercise('My Custom Move')
+    expect(store.session!.draft.exercises.slice(-2).map((e) => e.kind)).toEqual(['reps', 'reps'])
+  })
+})

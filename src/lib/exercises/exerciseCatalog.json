@@ -13,11 +13,12 @@
     "id": "90_90_Hamstring",
     "name": "90/90 Hamstring",
     "nameEs": "90/90 Isquiotibial",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Ab_Crunch_Machine",
@@ -53,21 +54,23 @@
     "id": "Adductor",
     "name": "Adductor",
     "nameEs": "Aductor",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "adductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Adductor_Groin",
     "name": "Adductor/Groin",
     "nameEs": "Aductor/Ingle",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Advanced_Kettlebell_Windmill",
@@ -93,11 +96,12 @@
     "id": "All_Fours_Quad_Stretch",
     "name": "All Fours Quad Stretch",
     "nameEs": "Estiramiento All Fours Cuádriceps",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Alternate_Hammer_Curl",
@@ -213,31 +217,34 @@
     "id": "Ankle_Circles",
     "name": "Ankle Circles",
     "nameEs": "Círculos de Tobillo",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Ankle_On_The_Knee",
     "name": "Ankle On The Knee",
     "nameEs": "Tobillo en Rodilla",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Anterior_Tibialis-SMR",
     "name": "Anterior Tibialis-SMR",
     "nameEs": "Anterior Tibial (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Anti-Gravity_Press",
@@ -253,11 +260,12 @@
     "id": "Arm_Circles",
     "name": "Arm Circles",
     "nameEs": "Círculos de Brazo",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Arnold_Dumbbell_Press",
@@ -530,6 +538,22 @@
     ]
   },
   {
+    "id": "WTX_Basketball",
+    "name": "Basketball",
+    "nameEs": "Básquetbol",
+    "muscleGroup": "Cardio",
+    "equipment": "Other",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Basketball_through_hoop.jpg",
+      "license": "Public domain",
+      "author": "Airman 1st Class Kerelin Molina"
+    }
+  },
+  {
     "id": "Battling_Ropes",
     "name": "Battling Ropes",
     "nameEs": "Cuerdas de Batalla",
@@ -553,11 +577,12 @@
     "id": "Behind_Head_Chest_Stretch",
     "name": "Behind Head Chest Stretch",
     "nameEs": "Estiramiento Detrás de la Cabeza Pecho",
-    "muscleGroup": "Chest",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Bench_Dips",
@@ -783,21 +808,23 @@
     "id": "Bicycling",
     "name": "Bicycling",
     "nameEs": "Ciclismo",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Bicycling_Stationary",
     "name": "Bicycling, Stationary",
     "nameEs": "Estático Ciclismo,",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Board_Press",
@@ -920,14 +947,31 @@
     ]
   },
   {
+    "id": "WTX_Boxing",
+    "name": "Boxing",
+    "nameEs": "Boxeo",
+    "muscleGroup": "Cardio",
+    "equipment": "Other",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Black_boxing_gloves.jpg",
+      "license": "Public domain",
+      "author": "Airman 1st Class Kerelin Molina"
+    }
+  },
+  {
     "id": "Brachialis-SMR",
     "name": "Brachialis-SMR",
     "nameEs": "Braquial (Automasaje)",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "biceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Bradford_Rocky_Presses",
@@ -1193,21 +1237,23 @@
     "id": "Calf_Stretch_Elbows_Against_Wall",
     "name": "Calf Stretch Elbows Against Wall",
     "nameEs": "Pantorrilla Estiramiento Codos contra En la Pared",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Calf_Stretch_Hands_Against_Wall",
     "name": "Calf Stretch Hands Against Wall",
     "nameEs": "Pantorrilla Estiramiento Hands contra En la Pared",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Calf-Machine_Shoulder_Shrug",
@@ -1223,11 +1269,12 @@
     "id": "Calves-SMR",
     "name": "Calves-SMR",
     "nameEs": "Pantorrillas (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Car_Deadlift",
@@ -1263,11 +1310,12 @@
     "id": "Cat_Stretch",
     "name": "Cat Stretch",
     "nameEs": "Estiramiento Cat",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Catch_and_Overhead_Throw",
@@ -1303,21 +1351,23 @@
     "id": "Chair_Leg_Extended_Stretch",
     "name": "Chair Leg Extended Stretch",
     "nameEs": "Estiramiento Silla Pierna Extended",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Chair_Lower_Back_Stretch",
     "name": "Chair Lower Back Stretch",
     "nameEs": "Estiramiento Silla Inferior Espalda",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Chair_Squat",
@@ -1333,21 +1383,23 @@
     "id": "Chair_Upper_Body_Stretch",
     "name": "Chair Upper Body Stretch",
     "nameEs": "Estiramiento Silla Superior Cuerpo",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Chest_And_Front_Of_Shoulder_Stretch",
     "name": "Chest And Front Of Shoulder Stretch",
     "nameEs": "Estiramiento Pecho y Frontal de Hombro",
-    "muscleGroup": "Chest",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Cable_Chest_Press",
@@ -1413,31 +1465,34 @@
     "id": "Chest_Stretch_on_Stability_Ball",
     "name": "Chest Stretch on Stability Ball",
     "nameEs": "Balón Pecho Estiramiento en Stability",
-    "muscleGroup": "Chest",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "chest"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Childs_Pose",
     "name": "Child's Pose",
     "nameEs": "Postura del Niño",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Chin_To_Chest_Stretch",
     "name": "Chin To Chest Stretch",
     "nameEs": "Estiramiento Barbilla a Pecho",
-    "muscleGroup": "Neck",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "neck"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Chin-Up",
@@ -1703,11 +1758,12 @@
     "id": "Crossover_Reverse_Lunge",
     "name": "Crossover Reverse Lunge",
     "nameEs": "Zancada Cruzado Inverso",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Crucifix",
@@ -1763,11 +1819,12 @@
     "id": "Dancers_Stretch",
     "name": "Dancer's Stretch",
     "nameEs": "Estiramiento Dancer's",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Dead_Bug",
@@ -2233,31 +2290,34 @@
     "id": "Dynamic_Back_Stretch",
     "name": "Dynamic Back Stretch",
     "nameEs": "Estiramiento Dinámico Espalda",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Dynamic_Chest_Stretch",
     "name": "Dynamic Chest Stretch",
     "nameEs": "Estiramiento Dinámico Pecho",
-    "muscleGroup": "Chest",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Elbow_Circles",
     "name": "Elbow Circles",
     "nameEs": "Círculos de Codo",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Elbow_to_Knee",
@@ -2273,11 +2333,12 @@
     "id": "Elbows_Back",
     "name": "Elbows Back",
     "nameEs": "Codos Espalda",
-    "muscleGroup": "Chest",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "chest"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Elevated_Back_Lunge",
@@ -2303,11 +2364,12 @@
     "id": "Elliptical_Trainer",
     "name": "Elliptical Trainer",
     "nameEs": "Elíptica",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Exercise_Ball_Crunch",
@@ -2533,11 +2595,12 @@
     "id": "Foot-SMR",
     "name": "Foot-SMR",
     "nameEs": "Pie (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Forward_Drag_with_Press",
@@ -2573,11 +2636,12 @@
     "id": "Frog_Hops",
     "name": "Frog Hops",
     "nameEs": "Saltos Rana",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Frog_Sit-Ups",
@@ -2673,11 +2737,12 @@
     "id": "Front_Leg_Raises",
     "name": "Front Leg Raises",
     "nameEs": "Elevaciones Frontal Pierna",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Front_Plate_Raise",
@@ -2823,21 +2888,23 @@
     "id": "Groin_and_Back_Stretch",
     "name": "Groin and Back Stretch",
     "nameEs": "Estiramiento Ingle y Espalda",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Groiners",
     "name": "Groiners",
     "nameEs": "Estiramiento Dinámico de Ingle",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Hack_Squat",
@@ -2893,21 +2960,23 @@
     "id": "Hamstring_Stretch",
     "name": "Hamstring Stretch",
     "nameEs": "Estiramiento Isquiotibial",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Hamstring-SMR",
     "name": "Hamstring-SMR",
     "nameEs": "Isquiotibial (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Handstand_Push-Ups",
@@ -3030,14 +3099,42 @@
     ]
   },
   {
+    "id": "WTX_High_Knees",
+    "name": "High Knees",
+    "nameEs": "Rodillas Arriba",
+    "muscleGroup": "Cardio",
+    "equipment": "Bodyweight",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "defaultKind": "time"
+  },
+  {
+    "id": "WTX_Hiking",
+    "name": "Hiking",
+    "nameEs": "Senderismo",
+    "muscleGroup": "Cardio",
+    "equipment": "Bodyweight",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:California_Riding_%26_Hiking_Trail-_Covington_Region_(52583010187).jpg",
+      "license": "Public domain",
+      "author": "Joshua Tree National Park"
+    }
+  },
+  {
     "id": "Hip_Circles_prone",
     "name": "Hip Circles (prone)",
     "nameEs": "Círculos de Cadera (Boca Abajo)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Hip_Extension_with_Bands",
@@ -3063,11 +3160,12 @@
     "id": "Intermediate_Hip_Flexor_and_Quad_Stretch",
     "name": "Hip Flexor & Quad Stretch",
     "nameEs": "Estiramiento Cadera Flexor & Cuádriceps",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Hip_Lift_with_Band",
@@ -3083,21 +3181,23 @@
     "id": "Hug_A_Ball",
     "name": "Hug A Ball",
     "nameEs": "Balón Abrazo un",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Hug_Knees_To_Chest",
     "name": "Hug Knees To Chest",
     "nameEs": "Abrazo Rodillas a Pecho",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Hurdle_Hops",
@@ -3133,21 +3233,23 @@
     "id": "Iliotibial_Tract-SMR",
     "name": "Iliotibial Tract-SMR",
     "nameEs": "Iliotibial Tract (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "abductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Inchworm",
     "name": "Inchworm",
     "nameEs": "Oruga",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Incline_Barbell_Triceps_Extension",
@@ -3353,11 +3455,12 @@
     "id": "Intermediate_Groin_Stretch",
     "name": "Intermediate Groin Stretch",
     "nameEs": "Estiramiento Intermedio Ingle",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Internal_Rotation_with_Band",
@@ -3413,11 +3516,12 @@
     "id": "Iron_Crosses_stretch",
     "name": "Iron Crosses (stretch)",
     "nameEs": "Cruces de Hierro (Estiramiento)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Isometric_Chest_Squeezes",
@@ -3443,11 +3547,12 @@
     "id": "IT_Band_and_Glute_Stretch",
     "name": "IT Band and Glute Stretch",
     "nameEs": "Estiramiento IT Banda y Glúteo",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Band",
     "primaryMuscles": [
       "abductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Jackknife_Sit-Up",
@@ -3513,11 +3618,23 @@
     "id": "Jogging_Treadmill",
     "name": "Jogging, Treadmill",
     "nameEs": "Cinta de Correr Trote,",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
+  },
+  {
+    "id": "WTX_Jumping_Jacks",
+    "name": "Jumping Jacks",
+    "nameEs": "Saltos de Tijera",
+    "muscleGroup": "Cardio",
+    "equipment": "Bodyweight",
+    "primaryMuscles": [
+      "calves"
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Keg_Load",
@@ -3694,21 +3811,23 @@
     "id": "Knee_Across_The_Body",
     "name": "Knee Across The Body",
     "nameEs": "Cuerpo Rodilla Across",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Knee_Circles",
     "name": "Knee Circles",
     "nameEs": "Círculos de Rodilla",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Knee_Tuck_Jump",
@@ -3764,11 +3883,12 @@
     "id": "Kneeling_Forearm_Stretch",
     "name": "Kneeling Forearm Stretch",
     "nameEs": "Estiramiento Arrodillado Antebrazo",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "forearms"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Kneeling_High_Pulley_Row",
@@ -3784,11 +3904,12 @@
     "id": "Kneeling_Hip_Flexor",
     "name": "Kneeling Hip Flexor",
     "nameEs": "Flexor Arrodillado Cadera",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Kneeling_Jump_Squat",
@@ -3884,11 +4005,12 @@
     "id": "Latissimus_Dorsi-SMR",
     "name": "Latissimus Dorsi-SMR",
     "nameEs": "Dorsal Ancho (Automasaje)",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "lats"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Leg_Extensions",
@@ -3941,6 +4063,17 @@
     ]
   },
   {
+    "id": "WTX_Leg_Swings",
+    "name": "Leg Swings",
+    "nameEs": "Balanceo de Piernas",
+    "muscleGroup": "Stretching",
+    "equipment": "Bodyweight",
+    "primaryMuscles": [
+      "hamstrings"
+    ],
+    "defaultKind": "time"
+  },
+  {
     "id": "Leg-Over_Floor_Press",
     "name": "Leg-Over Floor Press",
     "nameEs": "Press Leg-Over En el Suelo",
@@ -3954,11 +4087,12 @@
     "id": "Leg-Up_Hamstring_Stretch",
     "name": "Leg-Up Hamstring Stretch",
     "nameEs": "Estiramiento Leg-Up Isquiotibial",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Leverage_Decline_Chest_Press",
@@ -4054,11 +4188,12 @@
     "id": "Looking_At_Ceiling",
     "name": "Looking At Ceiling",
     "nameEs": "Looking en Ceiling",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Low_Cable_Crossover",
@@ -4094,21 +4229,23 @@
     "id": "Lower_Back_Curl",
     "name": "Lower Back Curl",
     "nameEs": "Curl Inferior Espalda",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lower_Back-SMR",
     "name": "Lower Back-SMR",
     "nameEs": "Inferior Espalda (Automasaje)",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lunge_Pass_Through",
@@ -4134,11 +4271,12 @@
     "id": "Lying_Bent_Leg_Groin",
     "name": "Lying Bent Leg Groin",
     "nameEs": "Acostado Inclinado Pierna Ingle",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lying_Cable_Curl",
@@ -4174,11 +4312,12 @@
     "id": "Lying_Crossover",
     "name": "Lying Crossover",
     "nameEs": "Acostado Cruzado",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lying_Dumbbell_Tricep_Extension",
@@ -4214,21 +4353,23 @@
     "id": "Lying_Glute",
     "name": "Lying Glute",
     "nameEs": "Acostado Glúteo",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lying_Hamstring",
     "name": "Lying Hamstring",
     "nameEs": "Acostado Isquiotibial",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lying_High_Bench_Barbell_Curl",
@@ -4274,11 +4415,12 @@
     "id": "Lying_Prone_Quadriceps",
     "name": "Lying Prone Quadriceps",
     "nameEs": "Acostado Boca Abajo Cuádriceps",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lying_Rear_Delt_Raise",
@@ -4394,11 +4536,12 @@
     "id": "Middle_Back_Stretch",
     "name": "Middle Back Stretch",
     "nameEs": "Estiramiento Medio Espalda",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Mixed_Grip_Chin",
@@ -4534,11 +4677,12 @@
     "id": "Neck-SMR",
     "name": "Neck-SMR",
     "nameEs": "Cuello (Automasaje)",
-    "muscleGroup": "Neck",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "neck"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Oblique_Crunches",
@@ -4574,31 +4718,34 @@
     "id": "On_Your_Side_Quad_Stretch",
     "name": "On Your Side Quad Stretch",
     "nameEs": "Estiramiento en Your Lateral Cuádriceps",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "On-Your-Back_Quad_Stretch",
     "name": "On-Your-Back Quad Stretch",
     "nameEs": "Estiramiento On-Your-Back Cuádriceps",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "One_Arm_Against_Wall",
     "name": "One Arm Against Wall",
     "nameEs": "a Una Mano contra En la Pared",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "One_Arm_Chin-Up",
@@ -4654,31 +4801,34 @@
     "id": "One_Half_Locust",
     "name": "One Half Locust",
     "nameEs": "Media Postura de la Langosta",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "One_Handed_Hang",
     "name": "One Handed Hang",
     "nameEs": "Colgante One Handed",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "One_Knee_To_Chest",
     "name": "One Knee To Chest",
     "nameEs": "One Rodilla a Pecho",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "One_Leg_Barbell_Squat",
@@ -5064,11 +5214,12 @@
     "id": "Overhead_Lat",
     "name": "Overhead Lat",
     "nameEs": "Overhead Dorsal",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Overhead_Slam",
@@ -5094,21 +5245,23 @@
     "id": "Overhead_Stretch",
     "name": "Overhead Stretch",
     "nameEs": "Estiramiento Overhead",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Overhead_Triceps",
     "name": "Overhead Triceps",
     "nameEs": "Overhead Tríceps",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Overhead_Barbell_Triceps_Extension",
@@ -5139,6 +5292,22 @@
     "primaryMuscles": [
       "triceps"
     ]
+  },
+  {
+    "id": "WTX_Padel",
+    "name": "Padel",
+    "nameEs": "Pádel",
+    "muscleGroup": "Cardio",
+    "equipment": "Other",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Padel_court.jpg",
+      "license": "CC0",
+      "author": "Samson Ssemakadde"
+    }
   },
   {
     "id": "Pallof_Press",
@@ -5184,31 +5353,34 @@
     "id": "Pelvic_Tilt_Into_Bridge",
     "name": "Pelvic Tilt Into Bridge",
     "nameEs": "Puente Pélvico Inclinación hacia",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Peroneals_Stretch",
     "name": "Peroneals Stretch",
     "nameEs": "Estiramiento Peroneos",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Peroneals-SMR",
     "name": "Peroneals-SMR",
     "nameEs": "Peroneos (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Physioball_Hip_Bridge",
@@ -5234,11 +5406,12 @@
     "id": "Piriformis-SMR",
     "name": "Piriformis-SMR",
     "nameEs": "Piriforme (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "glutes"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Kettlebell_Pistol_Squat",
@@ -5334,11 +5507,12 @@
     "id": "Posterior_Tibialis_Stretch",
     "name": "Posterior Tibialis Stretch",
     "nameEs": "Estiramiento Posterior Tibial",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Power_Clean",
@@ -5464,11 +5638,12 @@
     "id": "Prowler_Sprint",
     "name": "Prowler Sprint",
     "nameEs": "Sprint con Prowler",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Pull_Through",
@@ -5584,31 +5759,34 @@
     "id": "Pyramid",
     "name": "Pyramid",
     "nameEs": "Pirámide",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Quad_Stretch",
     "name": "Quad Stretch",
     "nameEs": "Estiramiento Cuádriceps",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Quadriceps-SMR",
     "name": "Quadriceps-SMR",
     "nameEs": "Cuádriceps (Automasaje)",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Quick_Leap",
@@ -5664,21 +5842,23 @@
     "id": "Rear_Leg_Raises",
     "name": "Rear Leg Raises",
     "nameEs": "Elevaciones Trasero Pierna",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Recumbent_Bike",
     "name": "Recumbent Bike",
     "nameEs": "Bicicleta Recumbent",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Return_Push_from_Stance",
@@ -5874,11 +6054,12 @@
     "id": "Rhomboids-SMR",
     "name": "Rhomboids-SMR",
     "nameEs": "Romboides (Automasaje)",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "middle back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Rickshaw_Carry",
@@ -5984,11 +6165,12 @@
     "id": "Rope_Jumping",
     "name": "Rope Jumping",
     "nameEs": "Cuerda Jumping",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Rope_Straight-Arm_Pulldown",
@@ -6004,41 +6186,61 @@
     "id": "Round_The_World_Shoulder_Stretch",
     "name": "Round The World Shoulder Stretch",
     "nameEs": "Estiramiento Round del Mundo Hombro",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Rowing_Stationary",
     "name": "Rowing, Stationary",
     "nameEs": "Estático Remo (Cardio),",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Runners_Stretch",
     "name": "Runner's Stretch",
     "nameEs": "Estiramiento Runner's",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
+  },
+  {
+    "id": "WTX_Running",
+    "name": "Running",
+    "nameEs": "Correr",
+    "muscleGroup": "Cardio",
+    "equipment": "Bodyweight",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Spikes_shoes.jpg",
+      "license": "CC0",
+      "author": "Defeder"
+    }
   },
   {
     "id": "Running_Treadmill",
     "name": "Running, Treadmill",
     "nameEs": "Cinta de Correr Carrera,",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Russian_Twist",
@@ -6074,11 +6276,12 @@
     "id": "Scissor_Kick",
     "name": "Scissor Kick",
     "nameEs": "Patada Tijera",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Scissors_Jump",
@@ -6134,11 +6337,12 @@
     "id": "Seated_Biceps",
     "name": "Seated Biceps",
     "nameEs": "Sentado Bíceps",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "biceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Cable_Rows",
@@ -6184,11 +6388,12 @@
     "id": "Seated_Calf_Stretch",
     "name": "Seated Calf Stretch",
     "nameEs": "Estiramiento Sentado Pantorrilla",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Dumbbell_Curl",
@@ -6254,31 +6459,34 @@
     "id": "Seated_Floor_Hamstring_Stretch",
     "name": "Seated Floor Hamstring Stretch",
     "nameEs": "Estiramiento Sentado En el Suelo Isquiotibial",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Front_Deltoid",
     "name": "Seated Front Deltoid",
     "nameEs": "Sentado Frontal Deltoides",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Glute",
     "name": "Seated Glute",
     "nameEs": "Sentado Glúteo",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "glutes"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Good_Mornings",
@@ -6294,21 +6502,23 @@
     "id": "Seated_Hamstring",
     "name": "Seated Hamstring",
     "nameEs": "Sentado Isquiotibial",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Hamstring_and_Calf_Stretch",
     "name": "Seated Hamstring and Calf Stretch",
     "nameEs": "Estiramiento Sentado Isquiotibial y Pantorrilla",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Head_Harness_Neck_Resistance",
@@ -6364,11 +6574,12 @@
     "id": "Seated_Overhead_Stretch",
     "name": "Seated Overhead Stretch",
     "nameEs": "Estiramiento Sentado Overhead",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Seated_Palm-Up_Barbell_Wrist_Curl",
@@ -6444,11 +6655,12 @@
     "id": "Shoulder_Circles",
     "name": "Shoulder Circles",
     "nameEs": "Círculos de Hombro",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Shoulder_Press_-_With_Bands",
@@ -6504,21 +6716,23 @@
     "id": "Shoulder_Raise",
     "name": "Shoulder Raise",
     "nameEs": "Elevación Hombro",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Shoulder_Stretch",
     "name": "Shoulder Stretch",
     "nameEs": "Estiramiento Hombro",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Barbell_Shrug",
@@ -6624,31 +6838,34 @@
     "id": "Side_Leg_Raises",
     "name": "Side Leg Raises",
     "nameEs": "Elevaciones Lateral Pierna",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Side_Lying_Groin_Stretch",
     "name": "Side Lying Groin Stretch",
     "nameEs": "Estiramiento Lateral Acostado Ingle",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "adductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Side_Neck_Stretch",
     "name": "Side Neck Stretch",
     "nameEs": "Estiramiento Lateral Cuello",
-    "muscleGroup": "Neck",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "neck"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Side_Standing_Long_Jump",
@@ -6684,21 +6901,23 @@
     "id": "Side_Wrist_Pull",
     "name": "Side Wrist Pull",
     "nameEs": "Tirón Lateral Muñeca",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Side-Lying_Floor_Stretch",
     "name": "Side-Lying Floor Stretch",
     "nameEs": "Estiramiento Side-Lying En el Suelo",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lats"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Single_Dumbbell_Raise",
@@ -6834,11 +7053,12 @@
     "id": "Sit_Squats",
     "name": "Sit Squats",
     "nameEs": "Sentadillas Sit",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Sit-Up",
@@ -6854,11 +7074,12 @@
     "id": "Skating",
     "name": "Skating",
     "nameEs": "Patinaje",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Other",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head",
@@ -7141,6 +7362,22 @@
     ]
   },
   {
+    "id": "WTX_Soccer",
+    "name": "Soccer",
+    "nameEs": "Fútbol",
+    "muscleGroup": "Cardio",
+    "equipment": "Other",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:60th_LRS_finishes_intramural_soccer_season_strong_5811245.jpg",
+      "license": "Public domain",
+      "author": "Tech. Sgt. David W. Carbajal"
+    }
+  },
+  {
     "id": "Speed_Band_Overhead_Triceps",
     "name": "Speed Band Overhead Triceps",
     "nameEs": "Velocidad Banda Overhead Tríceps",
@@ -7204,11 +7441,12 @@
     "id": "Spinal_Stretch",
     "name": "Spinal Stretch",
     "nameEs": "Estiramiento Espinal",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Split_Clean",
@@ -7264,11 +7502,12 @@
     "id": "Split_Squats",
     "name": "Split Squats",
     "nameEs": "Sentadilla Dividida",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Barbell_Squat",
@@ -7384,11 +7623,12 @@
     "id": "Stairmaster",
     "name": "Stairmaster",
     "nameEs": "Escaladora",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Alternating_Dumbbell_Press",
@@ -7434,11 +7674,12 @@
     "id": "Standing_Biceps_Stretch",
     "name": "Standing Biceps Stretch",
     "nameEs": "Estiramiento de Pie Bíceps",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "biceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Bradford_Press",
@@ -7554,11 +7795,12 @@
     "id": "Standing_Elevated_Quad_Stretch",
     "name": "Standing Elevated Quad Stretch",
     "nameEs": "Estiramiento de Pie Elevado Cuádriceps",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Front_Barbell_Raise_Over_Head",
@@ -7574,41 +7816,45 @@
     "id": "Standing_Gastrocnemius_Calf_Stretch",
     "name": "Standing Gastrocnemius Calf Stretch",
     "nameEs": "Estiramiento de Pie Gastrocnemio Pantorrilla",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Hamstring_and_Calf_Stretch",
     "name": "Standing Hamstring and Calf Stretch",
     "nameEs": "Estiramiento de Pie Isquiotibial y Pantorrilla",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Hip_Circles",
     "name": "Standing Hip Circles",
     "nameEs": "Círculos de Cadera de Pie",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Hip_Flexors",
     "name": "Standing Hip Flexors",
     "nameEs": "Estiramiento de Flexores de Cadera de Pie",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Inner-Biceps_Curl",
@@ -7624,11 +7870,12 @@
     "id": "Standing_Lateral_Stretch",
     "name": "Standing Lateral Stretch",
     "nameEs": "Estiramiento de Pie Lateral",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Leg_Curl",
@@ -7724,11 +7971,12 @@
     "id": "Standing_Pelvic_Tilt",
     "name": "Standing Pelvic Tilt",
     "nameEs": "Inclinación de Pie Pélvico",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Rope_Crunch",
@@ -7744,21 +7992,23 @@
     "id": "Standing_Soleus_And_Achilles_Stretch",
     "name": "Standing Soleus And Achilles Stretch",
     "nameEs": "Estiramiento de Pie Sóleo y Aquiles",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "calves"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Toe_Touches",
     "name": "Standing Toe Touches",
     "nameEs": "de Pie Dedo del Pie Touches",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Towel_Triceps_Extension",
@@ -7804,11 +8054,12 @@
     "id": "Step_Mill",
     "name": "Step Mill",
     "nameEs": "Paso Mill",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Barbell_Step_Ups",
@@ -7874,11 +8125,12 @@
     "id": "Stomach_Vacuum",
     "name": "Stomach Vacuum",
     "nameEs": "Vacío Abdominal Estómago",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Straight_Bar_Bench_Mid_Rows",
@@ -7964,11 +8216,12 @@
     "id": "Superman",
     "name": "Superman",
     "nameEs": "Superman",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "lower back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Supine_Chest_Throw",
@@ -8061,6 +8314,22 @@
     ]
   },
   {
+    "id": "WTX_Swimming",
+    "name": "Swimming",
+    "nameEs": "Natación",
+    "muscleGroup": "Cardio",
+    "equipment": "Bodyweight",
+    "primaryMuscles": [
+      "lats"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Swimming_laps_(Unsplash_rAyIvNqlwCY).jpg",
+      "license": "CC0",
+      "author": "Artem Verbo artemverbo"
+    }
+  },
+  {
     "id": "T-Bar_Row_with_Handle",
     "name": "T-Bar Row with Handle",
     "nameEs": "Remo en Barra T",
@@ -8081,14 +8350,31 @@
     ]
   },
   {
+    "id": "WTX_Tennis",
+    "name": "Tennis",
+    "nameEs": "Tenis",
+    "muscleGroup": "Cardio",
+    "equipment": "Other",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Closeup_of_a_tennis_ball_(2).jpg",
+      "license": "CC0",
+      "author": "Miscellaneous contributor"
+    }
+  },
+  {
     "id": "The_Straddle",
     "name": "The Straddle",
     "nameEs": "Straddle",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Thigh_Abductor",
@@ -8124,31 +8410,34 @@
     "id": "Toe_Touchers",
     "name": "Toe Touchers",
     "nameEs": "Toques Dedo del Pie",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Torso_Rotation",
     "name": "Torso Rotation",
     "nameEs": "Rotación de Torso",
-    "muscleGroup": "Abs",
+    "muscleGroup": "Stretching",
     "equipment": "Other",
     "primaryMuscles": [
       "abdominals"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Trail_Running_Walking",
     "name": "Trail Running/Walking",
     "nameEs": "Correr/Caminar por Sendero",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Trap_Bar_Deadlift",
@@ -8159,6 +8448,22 @@
     "primaryMuscles": [
       "quadriceps"
     ]
+  },
+  {
+    "id": "WTX_Treadmill",
+    "name": "Treadmill",
+    "nameEs": "Cinta de Correr",
+    "muscleGroup": "Cardio",
+    "equipment": "Machine",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Treadmills_at_gym.jpg",
+      "license": "Public domain",
+      "author": "U.S. Air Force Photo/Staff Sgt Araceli Alarcon"
+    }
   },
   {
     "id": "Tricep_Dumbbell_Kickback",
@@ -8174,11 +8479,12 @@
     "id": "Tricep_Side_Stretch",
     "name": "Tricep Side Stretch",
     "nameEs": "Estiramiento Tríceps Lateral",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Dumbbell_Tricep_Extension_-Pronated_Grip",
@@ -8234,11 +8540,12 @@
     "id": "Triceps_Stretch",
     "name": "Triceps Stretch",
     "nameEs": "Estiramiento Tríceps",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "triceps"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Tuck_Crunch",
@@ -8324,21 +8631,23 @@
     "id": "Upper_Back_Stretch",
     "name": "Upper Back Stretch",
     "nameEs": "Estiramiento Superior Espalda",
-    "muscleGroup": "Back",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "middle back"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Upper_Back-Leg_Grab",
     "name": "Upper Back-Leg Grab",
     "nameEs": "Superior Back-Leg Grab",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Upright_Barbell_Row",
@@ -8374,11 +8683,12 @@
     "id": "Upward_Stretch",
     "name": "Upward Stretch",
     "nameEs": "Estiramiento Upward",
-    "muscleGroup": "Shoulders",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "shoulders"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "V-Bar_Pulldown",
@@ -8411,6 +8721,22 @@
     ]
   },
   {
+    "id": "WTX_Volleyball",
+    "name": "Volleyball",
+    "nameEs": "Vóleibol",
+    "muscleGroup": "Cardio",
+    "equipment": "Other",
+    "primaryMuscles": [
+      "shoulders"
+    ],
+    "defaultKind": "time",
+    "imageSource": {
+      "url": "https://commons.wikimedia.org/wiki/File:Beach_volleyball_ball.jpg",
+      "license": "Public domain",
+      "author": "Thue"
+    }
+  },
+  {
     "id": "Barbell_Walking_Lunge",
     "name": "Walking Lunge (Barbell)",
     "nameEs": "Zancada Caminando (Barra)",
@@ -8434,11 +8760,23 @@
     "id": "Walking_Treadmill",
     "name": "Walking, Treadmill",
     "nameEs": "Cinta de Correr Caminata,",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Cardio",
     "equipment": "Machine",
     "primaryMuscles": [
       "quadriceps"
-    ]
+    ],
+    "defaultKind": "time"
+  },
+  {
+    "id": "WTX_Warm-Up",
+    "name": "Warm-Up",
+    "nameEs": "Calentamiento",
+    "muscleGroup": "Cardio",
+    "equipment": "Bodyweight",
+    "primaryMuscles": [
+      "quadriceps"
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Weighted_Ball_Hyperextension",
@@ -8634,31 +8972,34 @@
     "id": "Windmills",
     "name": "Windmills",
     "nameEs": "Molinillos",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "abductors"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Worlds_Greatest_Stretch",
     "name": "World's Greatest Stretch",
     "nameEs": "Estiramiento World's Greatest",
-    "muscleGroup": "Legs",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "hamstrings"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Wrist_Circles",
     "name": "Wrist Circles",
     "nameEs": "Círculos de Muñeca",
-    "muscleGroup": "Arms",
+    "muscleGroup": "Stretching",
     "equipment": "Bodyweight",
     "primaryMuscles": [
       "forearms"
-    ]
+    ],
+    "defaultKind": "time"
   },
   {
     "id": "Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl",
