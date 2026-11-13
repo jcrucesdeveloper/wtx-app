@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { Sparkles } from '@lucide/vue'
+import { Play, Sparkles, Vibrate, Volume2, VolumeX } from '@lucide/vue'
 import AppPage from '@/components/AppPage.vue'
 import HeaderLink from '@/components/ui/HeaderLink.vue'
 import ColorPicker from '@/components/ColorPicker.vue'
@@ -42,13 +42,25 @@ const theme = useThemeStore()
 const { accent, mode } = storeToRefs(theme)
 
 const settings = useSettingsStore()
-const { defaultUnit, vibrateOnRestEnd, restSoundEnabled } = storeToRefs(settings)
+const { defaultUnit, vibrateOnRestEnd, restSoundEnabled, soundsEnabled } = storeToRefs(settings)
 
 /** Turning it on plays it once, so you know what you'll hear. */
 function toggleRestSound() {
+  if (!soundsEnabled.value) return
   const next = !restSoundEnabled.value
   settings.setRestSoundEnabled(next)
   if (next) void RestSoundService.play()
+}
+
+/** The master switch: turning it back on previews the chime if that's what you'll hear. */
+function toggleSounds() {
+  const next = !soundsEnabled.value
+  settings.setSoundsEnabled(next)
+  if (next && restSoundEnabled.value) void RestSoundService.play()
+}
+
+function playTestSound() {
+  void RestSoundService.play()
 }
 
 const localeStore = useLocaleStore()
@@ -273,19 +285,57 @@ async function toggleReminders() {
             <p class="msg msg--error">{{ t('settings.remindersDenied') }}</p>
           </template>
         </SettingsRow>
-        <SettingsRow :label="t('settings.restSound')" :hint="t('settings.restSoundHint')">
+      </SettingsGroup>
+
+      <SettingsGroup :title="t('settings.soundGroup')" data-test="sound-group">
+        <SettingsRow :label="t('settings.sounds')" :hint="t('settings.soundsHint')">
+          <template #icon>
+            <span class="row-icon" :class="{ 'row-icon--off': !soundsEnabled }">
+              <component :is="soundsEnabled ? Volume2 : VolumeX" :size="18" :stroke-width="2.25" />
+            </span>
+          </template>
           <button
             type="button"
             class="switch"
             role="switch"
-            :aria-checked="restSoundEnabled"
-            :aria-label="t('settings.restSound')"
-            @click="toggleRestSound"
+            data-test="sounds-switch"
+            :aria-checked="soundsEnabled"
+            :aria-label="t('settings.sounds')"
+            @click="toggleSounds"
           >
             <i />
           </button>
         </SettingsRow>
+        <div class="sub" :class="{ 'sub--off': !soundsEnabled }">
+          <SettingsRow :label="t('settings.restSound')" :hint="t('settings.restSoundHint')">
+            <button
+              type="button"
+              class="switch"
+              role="switch"
+              data-test="rest-sound-switch"
+              :aria-checked="soundsEnabled && restSoundEnabled"
+              :aria-disabled="!soundsEnabled"
+              :aria-label="t('settings.restSound')"
+              @click="toggleRestSound"
+            >
+              <i />
+            </button>
+          </SettingsRow>
+          <SettingsRow
+            :label="t('settings.testSound')"
+            :hint="t('settings.testSoundHint')"
+            :disabled="!soundsEnabled"
+            action
+            data-test="test-sound"
+            @click="playTestSound"
+          >
+            <span class="play"><Play :size="14" :stroke-width="2.5" /></span>
+          </SettingsRow>
+        </div>
         <SettingsRow :label="t('settings.vibrateRestEnd')" :hint="t('settings.vibrateRestEndHint')">
+          <template #icon>
+            <span class="row-icon"><Vibrate :size="18" :stroke-width="2.25" /></span>
+          </template>
           <button
             type="button"
             class="switch"
@@ -506,5 +556,57 @@ async function toggleReminders() {
 
 .msg--error {
   color: #e11d48;
+}
+
+/* An icon chip leading a row: the sound group's two top-level switches. */
+.row-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.row-icon--off {
+  color: var(--color-text);
+  background: var(--color-background-mute);
+}
+
+/* Options that depend on the master switch: indented under it, dimmed when it's off. */
+.sub {
+  padding-left: 48px;
+  border-top: 1px solid var(--color-border);
+}
+
+.sub > :deep(* + *) {
+  border-top: 1px solid var(--color-border);
+}
+
+.sub--off {
+  opacity: 0.45;
+}
+
+.sub--off .switch {
+  cursor: default;
+}
+
+.play {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--color-background);
+  background: var(--color-heading);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sub {
+    transition: opacity 0.16s ease-out;
+  }
 }
 </style>

@@ -143,7 +143,7 @@ export function initSessionNotification(router: Router) {
       i18n.global.t(key, params ?? {}),
     )
     if (!content) return
-    const options = toShowOptions(content, settings.vibrateOnRestEnd, settings.restSoundEnabled)
+    const options = toShowOptions(content, settings.vibrateOnRestEnd, settings.restSoundActive)
     const key = JSON.stringify(options)
     if (key === lastSent) return
     lastSent = key
@@ -160,7 +160,7 @@ export function initSessionNotification(router: Router) {
       () => store.session,
       () => i18n.global.locale.value,
       () => settings.vibrateOnRestEnd,
-      () => settings.restSoundEnabled,
+      () => settings.restSoundActive,
     ],
     () => {
       if (!store.session) {

@@ -88,10 +88,10 @@ export const RestSoundService = {
     source.start()
   },
 
-  /** A rest just ran out with the app on screen: chime if the setting is on. */
+  /** A rest just ran out with the app on screen: chime if sounds and the rest sound are on. */
   restEnded(): void {
     if (restSoundPlaysNatively()) return
-    if (!useSettingsStore().restSoundEnabled) return
+    if (!useSettingsStore().restSoundActive) return
     void this.play()
   },
 }

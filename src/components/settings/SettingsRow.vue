@@ -4,7 +4,7 @@ import { ChevronRight } from '@lucide/vue'
 /**
  * One line of the settings screen: what it is on the left, its value or
  * control on the right. `action` makes the whole row a button; `#below`
- * holds a control too wide to sit beside the label.
+ * holds a control too wide to sit beside the label; `#icon` leads the row.
  */
 withDefaults(
   defineProps<{
@@ -33,6 +33,7 @@ defineEmits<{ click: [] }>()
     @click="action && $emit('click')"
   >
     <span class="row__main">
+      <span v-if="$slots.icon" class="row__icon"><slot name="icon" /></span>
       <span class="row__text">
         <span class="row__label">{{ label }}</span>
         <span v-if="hint" class="row__hint">{{ hint }}</span>
@@ -80,7 +81,13 @@ defineEmits<{ click: [] }>()
   min-height: 32px;
 }
 
+.row__icon {
+  flex-shrink: 0;
+  display: flex;
+}
+
 .row__text {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
