@@ -1,5 +1,9 @@
-2026-11-07
-- What's new: tap the version in Configuration to see what changed in this version
-- An eye button on password fields to show or hide what you type
-- On Android, an ad may show after you finish a workout
-- Fixed: Android no longer opens the Alarms & reminders settings every time you open the app
+2026-11-23
+- Delete your account from your profile: tap ⋯ and choose Delete account
+- A Danger zone at the bottom of Configuration holds every delete action, including deleting your account
+- Exercises are ranked by popularity, and search shows the best matches first
+- New Cardio and Stretching groups, plus warm-up, sport and treadmill exercises
+- See a chart of a lift's progress from its best set in History
+- Start a rest by hand from the rest chip
+- A Sound & vibration group in Configuration, with a switch to turn all sounds off
+- Fixed: on Android, the ad after a workout now shows correctly, and at most once every 3 minutes
