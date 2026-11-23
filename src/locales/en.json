@@ -994,7 +994,10 @@
     "deletePrompt": "Type DELETE to permanently delete your account and all of its data.",
     "deleteWord": "DELETE",
     "deleting": "Deleting…",
-    "deleteError": "Couldn't delete your account. Try again."
+    "deleteError": "Couldn't delete your account. Try again.",
+    "deletedTitle": "Account deleted",
+    "deletedHint": "Your account and all of its data have been permanently deleted.",
+    "deletedDone": "Done"
   },
   "legal": {
     "back": "Back",

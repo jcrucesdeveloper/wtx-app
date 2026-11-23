@@ -11,6 +11,7 @@ import {
   Flame,
   Lock,
   LogOut,
+  Trash2,
   UserMinus,
   Users,
 } from '@lucide/vue'
@@ -24,6 +25,7 @@ import ProfileSkeleton from '@/components/social/ProfileSkeleton.vue'
 import EditProfileSheet from '@/components/social/EditProfileSheet.vue'
 import ReportSheet from '@/components/social/ReportSheet.vue'
 import BlockConfirmSheet from '@/components/social/BlockConfirmSheet.vue'
+import DeleteAccountSheet from '@/components/social/DeleteAccountSheet.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 import { useModerationStore } from '@/stores/moderation'
@@ -92,6 +94,19 @@ async function onLogout() {
   if (!(await logout())) return
   ownMenuOpen.value = false
   // The profile needs an account; Social is where logging back in happens.
+  router.replace({ name: 'social' })
+}
+
+// ----- own ⋯ → delete account -----
+const deleteOpen = ref(false)
+
+function openDelete() {
+  ownMenuOpen.value = false
+  deleteOpen.value = true
+}
+
+/** The account is gone; Social is where a new one starts. */
+function onDeleted() {
   router.replace({ name: 'social' })
 }
 
@@ -318,8 +333,20 @@ function goBack() {
             {{ loggingOut ? t('account.logoutChecking') : t('account.logout') }}
           </span>
         </button>
+        <button
+          type="button"
+          class="sheet__row sheet__row--danger"
+          data-test="profile-delete-account"
+          @click="openDelete"
+        >
+          <Trash2 :size="18" :stroke-width="2.25" />
+          <span class="sheet__label">{{ t('account.delete') }}</span>
+        </button>
       </div>
     </BottomSheet>
+
+    <!-- Outside the isMe guard: deleting signs out, and the sheet still has to say it's done. -->
+    <DeleteAccountSheet :open="deleteOpen" @close="deleteOpen = false" @deleted="onDeleted" />
 
     <template v-if="profile && !isMe">
       <BottomSheet :open="menuOpen" :title="profile.displayName" @close="menuOpen = false">
