@@ -51,6 +51,11 @@ def buildsRelease = gradle.startParameter.taskNames.any { it.toLowerCase().conta
 if (buildsRelease && dotEnv['VITE_ADS_ANDROID'] == 'true' && admobAppId == SAMPLE_ADMOB_APP_ID) {
     throw new GradleException("Android ads are on (VITE_ADS_ANDROID=true) but no AdMob App ID is set, so no ad would ever load. Add ADMOB_APP_ID_ANDROID=ca-app-pub-...~... (AdMob -> Apps -> App settings) to .env.production.local.")
 }
+// Start.io stands in for AdMob while AdMob can't serve (VITE_AD_PROVIDER=startio).
+// Its App ID is read by the app from VITE_STARTIO_APP_ID; without one no ad loads.
+if (buildsRelease && dotEnv['VITE_ADS_ANDROID'] == 'true' && dotEnv['VITE_AD_PROVIDER'] == 'startio' && !dotEnv['VITE_STARTIO_APP_ID']) {
+    throw new GradleException("Android ads use Start.io (VITE_AD_PROVIDER=startio) but VITE_STARTIO_APP_ID is empty, so no ad would ever load. Add the App ID from portal.start.io to .env.production.local.")
+}
 
 android {
     namespace = "com.wtxworkout.app"
@@ -109,6 +114,8 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // Start.io interstitials (src/services/ads.ts, VITE_AD_PROVIDER=startio).
+    implementation 'com.startapp:inapp-sdk:5.5.2'
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

@@ -14,6 +14,10 @@ interface ImportMetaEnv {
   readonly VITE_ADMOB_INTERSTITIAL_ID_IOS?: string
   /** Set to `'false'` for a store build to serve real ads. Anything else keeps AdMob test mode on. */
   readonly VITE_ADMOB_TESTING?: string
+  /** Network for the Android interstitial: `'startio'` uses Start.io; anything else AdMob. */
+  readonly VITE_AD_PROVIDER?: string
+  /** Start.io App ID (portal.start.io), used when VITE_AD_PROVIDER is `'startio'`. */
+  readonly VITE_STARTIO_APP_ID?: string
   /** Supabase project URL. Accounts, sync and group workouts are disabled when unset. */
   readonly VITE_SUPABASE_URL?: string
   /** Supabase anon (publishable) key. */

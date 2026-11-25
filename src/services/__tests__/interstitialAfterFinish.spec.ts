@@ -10,7 +10,9 @@ const admob = vi.hoisted(() => ({
     privacyOptionsRequirementStatus: 'NOT_REQUIRED',
   })),
   showConsentForm: vi.fn<() => Promise<unknown>>(),
-  trackingAuthorizationStatus: vi.fn<() => Promise<{ status: string }>>(async () => ({ status: 'authorized' })),
+  trackingAuthorizationStatus: vi.fn<() => Promise<{ status: string }>>(async () => ({
+    status: 'authorized',
+  })),
   requestTrackingAuthorization: vi.fn<() => Promise<void>>(),
   prepareInterstitial: vi.fn<(opts: unknown) => Promise<void>>(async () => {}),
   showInterstitial: vi.fn<() => Promise<void>>(async () => {}),
@@ -20,7 +22,16 @@ vi.mock('@capacitor-community/admob', () => ({
   AdMob: admob,
   AdmobConsentStatus: { REQUIRED: 'REQUIRED' },
 }))
-vi.mock('@capacitor/core', () => ({ Capacitor: { getPlatform: () => 'android' } }))
+const startio = vi.hoisted(() => ({
+  initialize: vi.fn<(opts: unknown) => Promise<void>>(async () => {}),
+  prepareInterstitial: vi.fn<() => Promise<void>>(async () => {}),
+  showInterstitial: vi.fn<() => Promise<{ shown: boolean }>>(async () => ({ shown: true })),
+}))
+
+vi.mock('@capacitor/core', () => ({
+  Capacitor: { getPlatform: () => 'android' },
+  registerPlugin: () => startio,
+}))
 
 import {
   INTERSTITIAL_COOLDOWN_MS,
@@ -120,5 +131,50 @@ describe('AdService.showAfterFinish (after Done on the finish screen)', () => {
     vi.stubEnv('VITE_ADS_ANDROID', 'false')
     expect(await finish()).toBe(false)
     expect(admob.showInterstitial).not.toHaveBeenCalled()
+  })
+})
+
+describe('AdService with Start.io (VITE_AD_PROVIDER=startio)', () => {
+  beforeEach(async () => {
+    vi.resetModules()
+    ;({ AdService } = await import('@/services/ads'))
+    vi.stubEnv('VITE_ADS_ANDROID', 'true')
+    vi.stubEnv('VITE_AD_PROVIDER', 'startio')
+    vi.stubEnv('VITE_STARTIO_APP_ID', '123456789')
+    vi.useFakeTimers()
+    localStorage.clear()
+    setActivePinia(createPinia())
+    for (const fn of [...Object.values(startio), admob.prepareInterstitial, admob.showInterstitial])
+      fn.mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllEnvs()
+  })
+
+  it('starts Start.io after consent and serves the ad from it, not AdMob', async () => {
+    await AdService.loadInterstitial()
+    expect(startio.initialize).toHaveBeenCalledWith({ appId: '123456789', testing: true })
+    expect(startio.prepareInterstitial).toHaveBeenCalledTimes(1)
+
+    const shown = AdService.showAfterFinish()
+    await vi.advanceTimersByTimeAsync(INTERSTITIAL_DELAY_MS)
+    expect(await shown).toBe(true)
+    expect(startio.showInterstitial).toHaveBeenCalledTimes(1)
+    expect(admob.prepareInterstitial).not.toHaveBeenCalled()
+    expect(admob.showInterstitial).not.toHaveBeenCalled()
+  })
+
+  it('never starts Start.io when consent says no ads', async () => {
+    admob.requestConsentInfo.mockResolvedValueOnce({
+      status: 'OBTAINED',
+      isConsentFormAvailable: false,
+      canRequestAds: false,
+      privacyOptionsRequirementStatus: 'REQUIRED',
+    })
+    await AdService.loadInterstitial()
+    expect(startio.initialize).not.toHaveBeenCalled()
+    expect(startio.prepareInterstitial).not.toHaveBeenCalled()
   })
 })
