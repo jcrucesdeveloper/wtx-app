@@ -1,4 +1,4 @@
-import { Capacitor } from '@capacitor/core'
+import { Capacitor, registerPlugin } from '@capacitor/core'
 import { AdMob, AdmobConsentStatus, type AdmobConsentInfo } from '@capacitor-community/admob'
 import { useAdsStore } from '@/stores/ads'
 
@@ -39,6 +39,22 @@ export function adsEnabledFor(
 
 function adsAvailable(): boolean {
   return adsEnabledFor(Capacitor.getPlatform(), import.meta.env)
+}
+
+/**
+ * Start.io, the stand-in network while AdMob can't serve (Android only,
+ * `VITE_AD_PROVIDER=startio`). Native side: android/.../StartioPlugin.java.
+ * AdMob's SDK still runs Google's consent form (UMP) either way, so the
+ * consent flow and the "Ad privacy settings" row don't change.
+ */
+const Startio = registerPlugin<{
+  initialize(options: { appId: string; testing: boolean }): Promise<void>
+  prepareInterstitial(): Promise<void>
+  showInterstitial(): Promise<{ shown: boolean }>
+}>('WtxStartio')
+
+function usesStartio(): boolean {
+  return Capacitor.getPlatform() === 'android' && import.meta.env.VITE_AD_PROVIDER === 'startio'
 }
 
 function interstitialAdUnitId(): string {
@@ -127,10 +143,14 @@ export const AdService = {
     await AdService.initAds()
     if (!canRequestAds || interstitialReady) return
     try {
-      await AdMob.prepareInterstitial({
-        adId: interstitialAdUnitId(),
-        isTesting: AD_TEST_MODE,
-      })
+      if (usesStartio()) {
+        await Startio.prepareInterstitial()
+      } else {
+        await AdMob.prepareInterstitial({
+          adId: interstitialAdUnitId(),
+          isTesting: AD_TEST_MODE,
+        })
+      }
       interstitialReady = true
     } catch (err) {
       // Most often "no fill", or an ad unit that doesn't belong to the AdMob
@@ -173,6 +193,7 @@ export const AdService = {
     }
     interstitialReady = false
     try {
+      if (usesStartio()) return (await Startio.showInterstitial()).shown
       await AdMob.showInterstitial()
       return true
     } catch (err) {
@@ -213,6 +234,8 @@ export const AdService = {
  * 3. iOS App Tracking Transparency — after UMP, as Google recommends, and
  *    before any ad request, so personalized ads only use the IDFA with the
  *    user's permission. Skipped if UMP's own IDFA explainer already asked.
+ * 4. Start.io, when it serves the ads (`VITE_AD_PROVIDER=startio`): only
+ *    after UMP allows ads, so it never starts for a user who said no.
  * Ads are only loaded after all of this resolves (see `loadInterstitial`).
  */
 async function doInit(): Promise<void> {
@@ -234,6 +257,18 @@ async function doInit(): Promise<void> {
     // user (e.g. EEA), so skip ads for this launch rather than risk it.
     console.error('[ads] consent flow failed', err)
     canRequestAds = false
+  }
+
+  if (usesStartio() && canRequestAds) {
+    try {
+      await Startio.initialize({
+        appId: import.meta.env.VITE_STARTIO_APP_ID ?? '',
+        testing: AD_TEST_MODE,
+      })
+    } catch (err) {
+      console.error('[ads] Start.io initialize failed', err)
+      canRequestAds = false
+    }
   }
 
   if (Capacitor.getPlatform() === 'ios') {
