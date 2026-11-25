@@ -994,7 +994,10 @@
     "deletePrompt": "Escribe ELIMINAR para borrar para siempre tu cuenta y todos sus datos.",
     "deleteWord": "ELIMINAR",
     "deleting": "Eliminando…",
-    "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+    "deleteError": "No se pudo eliminar tu cuenta. Inténtalo de nuevo.",
+    "deletedTitle": "Cuenta eliminada",
+    "deletedHint": "Tu cuenta y todos sus datos se han eliminado para siempre.",
+    "deletedDone": "Listo"
   },
   "legal": {
     "back": "Volver",
